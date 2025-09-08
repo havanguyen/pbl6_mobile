@@ -1,13 +1,17 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/shared/routes/routes.dart';
 import 'package:pbl6mobile/shared/themes/cubit/theme_cubit.dart';
 import 'package:pbl6mobile/shared/themes/cubit/theme_state.dart';
 import 'package:pbl6mobile/view/splash/splash.dart';
 
-void main() {
+Future  main() async  {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await dotenv.load(fileName: ".env");
   runApp(const MyApp());
 }
 

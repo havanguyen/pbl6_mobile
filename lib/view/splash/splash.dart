@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../auth/auth_page.dart';
+import '../../shared/routes/routes.dart';
+import '../../shared/services/auth_api_call_func.dart';
+import '../../shared/services/store.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -19,27 +21,40 @@ class _SplashPageState extends State<SplashPage> {
   @override
   Widget build(BuildContext context) {
     return  Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF4A148C), Color(0xFF000000)],
-          ),
+      decoration: BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage('assets/images/background.jpg'),
+          fit: BoxFit.cover,
+          colorFilter: ColorFilter.mode(Colors.blue.withOpacity(0.2), BlendMode.srcOver),
         ),
+      ),
         child: Center(
           child: Image.asset(
-            'assets/images/heart.png',
-            width: MediaQuery.of(context).size.width*0.6,
+              'assets/images/logo.png',
+              color: Colors.blue,
+              height: 200,
           ),
         ),
       );
   }
 
   Future<void> redirect() async {
-    await Future.delayed(const Duration(seconds: 2));
-    Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-            builder: (BuildContext context) => const AuthPage()));
+    if((await AuthApiCallFunc.isLoggedIn()) == false) {
+      await Store.clearStorage();
+      await Future.delayed(const Duration(seconds: 1));
+      Navigator.pushReplacementNamed(context, Routes.login);
+    }
+    else {
+      String? role = await Store.getUserRole();
+      if(role != null) {
+        await Future.delayed(const Duration(seconds: 1));
+        Navigator.pushReplacementNamed(context, Routes.mainPageDoctor);
+      }
+      else {
+        await Store.clearStorage();
+        await Future.delayed(const Duration(seconds: 1));
+        Navigator.pushReplacementNamed(context, Routes.login);
+      }
+    }
   }
 }
