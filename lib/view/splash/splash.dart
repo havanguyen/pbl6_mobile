@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../model/services/remote/auth_service.dart';
 import '../../shared/routes/routes.dart';
-import '../../shared/services/auth_api_call_func.dart';
 import '../../shared/services/store.dart';
 
 class SplashPage extends StatefulWidget {
@@ -39,7 +39,7 @@ class _SplashPageState extends State<SplashPage> {
   }
 
   Future<void> redirect() async {
-    if((await AuthApiCallFunc.isLoggedIn()) == false) {
+    if((await AuthService.isLoggedIn()) == false) {
       await Store.clearStorage();
       await Future.delayed(const Duration(seconds: 1));
       Navigator.pushReplacementNamed(context, Routes.login);

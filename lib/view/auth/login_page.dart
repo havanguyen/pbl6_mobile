@@ -3,8 +3,8 @@ import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/shared/widgets/animation/scale_animation.dart';
 import 'package:pbl6mobile/shared/widgets/button/custom_button_blue.dart';
 
+import '../../model/services/remote/auth_service.dart';
 import '../../shared/routes/routes.dart';
-import '../../shared/services/auth_api_call_func.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -84,7 +84,7 @@ class LoginPageState extends State<LoginPage> with SingleTickerProviderStateMixi
       _formKey.currentState!.save();
       setState(() => _isLoading = true);
 
-      bool success = await AuthApiCallFunc.login(
+      bool success = await AuthService.login(
         email: _email,
         password: _password,
       );

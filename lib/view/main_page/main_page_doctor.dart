@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 
+import '../../shared/routes/routes.dart';
 import '../../shared/widgets/animation/scale_animation.dart';
 import '../../shared/widgets/button/custom_circular_button.dart';
 
@@ -42,7 +43,7 @@ class MainPageDoctor extends StatelessWidget {
                     icon: Icon(
                         Icons.menu, color: context.theme.white, size: 35),
                     onPressed: () {
-                      Scaffold.of(context).openDrawer();
+                      Navigator.pushNamed(context, Routes.setting);
                     },
                   ),
                 ),
@@ -132,9 +133,9 @@ class MainPageDoctor extends StatelessWidget {
                   context,
                   size: 140,
                   icon: Icons.lock_reset_outlined,
-                  label: 'QUÊN MẬT KHẨU',
+                  label: 'ĐỔI MẬT KHẨU',
                   onTap: () {
-                    print('Quên mật khẩu');
+                    Navigator.pushNamed(context, Routes.changePassword);
                   },
                 ),),
             ),

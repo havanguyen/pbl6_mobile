@@ -3,10 +3,12 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:pbl6mobile/shared/services/store.dart';
 
-class AuthApiCallFunc {
-  const AuthApiCallFunc._();
+import '../../entities/profile.dart';
 
-  static const AuthApiCallFunc instance = AuthApiCallFunc._();
+class AuthService {
+  const AuthService._();
+
+  static const AuthService instance = AuthService._();
   static final String? _baseUrl = dotenv.env['API_BASE_URL'];
 
   static Future<bool> login({
@@ -33,7 +35,7 @@ class AuthApiCallFunc {
 
         await Store.setAccessToken(data['token']);
         await Store.setRefreshToken(data['refreshToken']);
-        await Store.setUserRole( data['user']['role']);
+        await Store.setUserRole(data['user']['role']);
 
         return true;
       } else {
@@ -124,6 +126,7 @@ class AuthApiCallFunc {
       return false;
     }
   }
+
   static Future<bool> changePassword({
     required String oldPassword,
     required String newPassword,
@@ -154,6 +157,42 @@ class AuthApiCallFunc {
       if (response.statusCode == 200) {
         print('Password changed successfully');
         return true;
+      } else if (response.statusCode == 401) {
+        final bool refreshSuccess = await refreshToken();
+        if (!refreshSuccess) {
+          print('Failed to refresh token for change password');
+          return false;
+        }
+
+        final String? newAccessToken = await Store.getAccessToken();
+        if (newAccessToken == null) {
+          print('No new access token after refresh for change password');
+          return false;
+        }
+
+        final retryResponse = await http.post(
+          Uri.parse('$_baseUrl/change-password'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $newAccessToken',
+          },
+          body: jsonEncode(requestBody),
+        ).timeout(const Duration(seconds: 10));
+
+        if (retryResponse.statusCode == 200) {
+          print('Password changed successfully after refresh');
+          return true;
+        } else {
+          if (retryResponse.body.isNotEmpty) {
+            try {
+              final Map<String, dynamic> errorData = jsonDecode(retryResponse.body);
+              print('Change password error after refresh: ${errorData['message']}');
+            } catch (e) {
+              print('Change password parse error after refresh: $e');
+            }
+          }
+          return false;
+        }
       } else {
         if (response.body.isNotEmpty) {
           try {
@@ -170,8 +209,82 @@ class AuthApiCallFunc {
       return false;
     }
   }
+
   static Future<bool> isLoggedIn() async {
     final token = await Store.getAccessToken();
     return token != null;
+  }
+
+  static Future<Profile?> getProfile() async {
+    try {
+      final String? accessToken = await Store.getAccessToken();
+      if (accessToken == null) {
+        print('No access token for get profile');
+        return null;
+      }
+
+      final response = await http.get(
+        Uri.parse('$_baseUrl/profile'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        final Map<String, dynamic> data = responseData['data'];
+        return Profile.fromJson(data);
+      } else if (response.statusCode == 401) {
+        final bool refreshSuccess = await refreshToken();
+        if (!refreshSuccess) {
+          print('Failed to refresh token');
+          return null;
+        }
+
+        final String? newAccessToken = await Store.getAccessToken();
+        if (newAccessToken == null) {
+          print('No new access token after refresh');
+          return null;
+        }
+
+        final retryResponse = await http.get(
+          Uri.parse('$_baseUrl/profile'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $newAccessToken',
+          },
+        ).timeout(const Duration(seconds: 10));
+
+        if (retryResponse.statusCode == 200) {
+          final Map<String, dynamic> retryResponseData = jsonDecode(retryResponse.body);
+          final Map<String, dynamic> data = retryResponseData['data'];
+          return Profile.fromJson(data);
+        } else {
+          if (retryResponse.body.isNotEmpty) {
+            try {
+              final Map<String, dynamic> errorData = jsonDecode(retryResponse.body);
+              print('Get profile error after refresh: ${errorData['message']}');
+            } catch (e) {
+              print('Get profile parse error after refresh: $e');
+            }
+          }
+          return null;
+        }
+      } else {
+        if (response.body.isNotEmpty) {
+          try {
+            final Map<String, dynamic> errorData = jsonDecode(response.body);
+            print('Get profile error: ${errorData['message']}');
+          } catch (e) {
+            print('Get profile parse error: $e');
+          }
+        }
+        return null;
+      }
+    } catch (e) {
+      print('Get profile network error: $e');
+      return null;
+    }
   }
 }
