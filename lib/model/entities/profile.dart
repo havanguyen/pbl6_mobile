@@ -10,15 +10,16 @@ class Profile with _$Profile {
     required String fullName,
     required String email,
     required String role,
-    required String gender,
+    String? phone,
+    String? isMale,
     DateTime? dateOfBirth,
     DateTime? deletedAt,
     required DateTime createdAt,
     required DateTime updatedAt,
-    required String sessionId,
   }) = _Profile;
 
-  factory Profile.fromJson(Map<String, dynamic> json) => _$ProfileFromJson(json);
+  factory Profile.fromJson(Map<String, dynamic> json) =>
+      _$ProfileFromJson(json);
 
   @override
   // TODO: implement createdAt
@@ -41,20 +42,20 @@ class Profile with _$Profile {
   String get fullName => throw UnimplementedError();
 
   @override
-  // TODO: implement gender
-  String get gender => throw UnimplementedError();
-
-  @override
   // TODO: implement id
   String get id => throw UnimplementedError();
 
   @override
-  // TODO: implement role
-  String get role => throw UnimplementedError();
+  // TODO: implement isMale
+  String? get isMale => throw UnimplementedError();
 
   @override
-  // TODO: implement sessionId
-  String get sessionId => throw UnimplementedError();
+  // TODO: implement phone
+  String? get phone => throw UnimplementedError();
+
+  @override
+  // TODO: implement role
+  String get role => throw UnimplementedError();
 
   @override
   Map<String, dynamic> toJson() {
@@ -65,4 +66,5 @@ class Profile with _$Profile {
   @override
   // TODO: implement updatedAt
   DateTime get updatedAt => throw UnimplementedError();
+
 }

@@ -5,6 +5,7 @@ import 'package:pbl6mobile/shared/widgets/button/custom_button_blue.dart';
 
 import '../../model/services/remote/auth_service.dart';
 import '../../shared/routes/routes.dart';
+import '../../shared/services/store.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -90,7 +91,27 @@ class LoginPageState extends State<LoginPage> with SingleTickerProviderStateMixi
       );
 
       if (success && mounted) {
-        Navigator.pushReplacementNamed(context, Routes.mainPageDoctor);
+        if((await AuthService.isLoggedIn()) == false) {
+          await Store.clearStorage();
+          await Future.delayed(const Duration(seconds: 1));
+          Navigator.pushReplacementNamed(context, Routes.login);
+        }
+        else {
+          String? role = await Store.getUserRole();
+          if(role == 'SUPER_ADMIN') {
+            await Future.delayed(const Duration(seconds: 1));
+            Navigator.pushReplacementNamed(context, Routes.mainPageSuperAdmin);
+          }
+          else if(role == 'DOCTOR') {
+            await Future.delayed(const Duration(seconds: 1));
+            Navigator.pushReplacementNamed(context, Routes.mainPageDoctor);
+          }
+          else {
+            await Store.clearStorage();
+            await Future.delayed(const Duration(seconds: 1));
+            Navigator.pushReplacementNamed(context, Routes.login);
+          }
+        }
       } else {
         _showErrorDialog('Đăng nhập thất bại. Vui lòng kiểm tra email và mật khẩu.');
       }

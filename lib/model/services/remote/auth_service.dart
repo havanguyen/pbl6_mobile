@@ -16,25 +16,28 @@ class AuthService {
     required String password,
   }) async {
     try {
+      print('Login with email: $email, password: $password');
+      print('API URL: $_baseUrl/auth/login');
       final Map<String, dynamic> requestBody = {
         'email': email,
         'password': password,
       };
 
       final response = await http.post(
-        Uri.parse('$_baseUrl/login'),
+        Uri.parse('$_baseUrl/auth/login'),
         headers: {
           'Content-Type': 'application/json',
         },
         body: jsonEncode(requestBody),
       ).timeout(const Duration(seconds: 10));
+      print('Login response: ${response.body}');
 
-      if (response.statusCode == 200) {
+      if (response.statusCode >= 200 && response.statusCode < 300) {
         final Map<String, dynamic> responseData = jsonDecode(response.body);
         final Map<String, dynamic> data = responseData['data'];
 
-        await Store.setAccessToken(data['token']);
-        await Store.setRefreshToken(data['refreshToken']);
+        await Store.setAccessToken(data['access_token']);
+        await Store.setRefreshToken(data['refresh_token']);
         await Store.setUserRole(data['user']['role']);
 
         return true;
@@ -64,11 +67,11 @@ class AuthService {
       }
 
       final Map<String, dynamic> requestBody = {
-        'refreshToken': refreshToken,
+        'refresh_token': refreshToken,
       };
 
       final response = await http.post(
-        Uri.parse('$_baseUrl/refresh'),
+        Uri.parse('$_baseUrl/auth/refresh'),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -79,8 +82,8 @@ class AuthService {
         final Map<String, dynamic> responseData = jsonDecode(response.body);
         final Map<String, dynamic> data = responseData['data'];
 
-        await Store.setRefreshToken(data['refreshToken']);
-        await Store.setAccessToken(data['token']);
+        await Store.setAccessToken(data['access_token']);
+        await Store.setRefreshToken(data['refresh_token']);
 
         print('Token refreshed successfully');
         return true;
@@ -104,7 +107,7 @@ class AuthService {
       }
 
       final response = await http.post(
-        Uri.parse('$_baseUrl/logout'),
+        Uri.parse('$_baseUrl/auth/logout'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $accessToken',
@@ -128,9 +131,8 @@ class AuthService {
   }
 
   static Future<bool> changePassword({
-    required String oldPassword,
+    required String currentPassword,
     required String newPassword,
-    required String confirmPassword,
   }) async {
     try {
       final String? accessToken = await Store.getAccessToken();
@@ -140,13 +142,12 @@ class AuthService {
       }
 
       final Map<String, dynamic> requestBody = {
-        'oldPassword': oldPassword,
+        'currentPassword': currentPassword,
         'newPassword': newPassword,
-        'confirmPassword': confirmPassword,
       };
 
       final response = await http.post(
-        Uri.parse('$_baseUrl/change-password'),
+        Uri.parse('$_baseUrl/auth/change-password'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $accessToken',
@@ -171,7 +172,7 @@ class AuthService {
         }
 
         final retryResponse = await http.post(
-          Uri.parse('$_baseUrl/change-password'),
+          Uri.parse('$_baseUrl/auth/change-password'),
           headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer $newAccessToken',
@@ -224,7 +225,7 @@ class AuthService {
       }
 
       final response = await http.get(
-        Uri.parse('$_baseUrl/profile'),
+        Uri.parse('$_baseUrl/auth/profile'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $accessToken',
@@ -249,7 +250,7 @@ class AuthService {
         }
 
         final retryResponse = await http.get(
-          Uri.parse('$_baseUrl/profile'),
+          Uri.parse('$_baseUrl/auth/profile'),
           headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer $newAccessToken',

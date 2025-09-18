@@ -1,12 +1,11 @@
-
 import 'package:flutter/material.dart';
 import 'package:pbl6mobile/model/entities/profile.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 
-class ProfilePage extends StatelessWidget {
+class ProfileSuperadminPage extends StatelessWidget {
   final Profile profile;
 
-  const ProfilePage({super.key, required this.profile});
+  const ProfileSuperadminPage({super.key, required this.profile});
 
   @override
   Widget build(BuildContext context) {

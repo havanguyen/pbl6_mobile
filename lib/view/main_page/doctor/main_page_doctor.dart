@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 
-import '../../shared/routes/routes.dart';
-import '../../shared/widgets/animation/scale_animation.dart';
-import '../../shared/widgets/button/custom_circular_button.dart';
+import '../../../shared/routes/routes.dart';
+import '../../../shared/widgets/animation/scale_animation.dart';
+import '../../../shared/widgets/button/custom_circular_button.dart';
 
 class MainPageDoctor extends StatelessWidget {
   const MainPageDoctor({super.key});

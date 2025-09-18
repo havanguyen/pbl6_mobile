@@ -35,9 +35,8 @@ class ChangePasswordPageState extends State<ChangePasswordPage> {
       setState(() => _isLoading = true);
 
       final success = await AuthService.changePassword(
-        oldPassword: _oldPasswordController.text,
+        currentPassword: _oldPasswordController.text,
         newPassword: _newPasswordController.text,
-        confirmPassword: _confirmPasswordController.text,
       );
 
       setState(() => _isLoading = false);
