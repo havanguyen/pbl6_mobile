@@ -104,6 +104,7 @@ class ChangePasswordPageState extends State<ChangePasswordPage> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
+      backgroundColor: context.theme.bg,
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -115,12 +116,18 @@ class ChangePasswordPageState extends State<ChangePasswordPage> {
                 controller: _oldPasswordController,
                 decoration: InputDecoration(
                   labelText: 'Mật khẩu cũ',
+                  labelStyle: TextStyle(color: context.theme.textColor),
                   prefixIcon: Icon(Icons.lock, color: context.theme.blue),
                   suffixIcon: IconButton(
                     icon: Icon(_obscureOldPassword ? Icons.visibility : Icons.visibility_off),
                     onPressed: () => setState(() => _obscureOldPassword = !_obscureOldPassword),
                   ),
-                  border: const OutlineInputBorder(),
+                  border:  OutlineInputBorder(
+                    borderSide: BorderSide(color: context.theme.textColor),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: context.theme.blue),
+                  ),
                 ),
                 obscureText: _obscureOldPassword,
                 validator: (value) {
@@ -135,12 +142,18 @@ class ChangePasswordPageState extends State<ChangePasswordPage> {
                 controller: _newPasswordController,
                 decoration: InputDecoration(
                   labelText: 'Mật khẩu mới',
+                  labelStyle: TextStyle(color: context.theme.textColor),
                   prefixIcon: Icon(Icons.lock_outline, color: context.theme.blue),
                   suffixIcon: IconButton(
                     icon: Icon(_obscureNewPassword ? Icons.visibility : Icons.visibility_off),
                     onPressed: () => setState(() => _obscureNewPassword = !_obscureNewPassword),
                   ),
-                  border: const OutlineInputBorder(),
+                  border:  OutlineInputBorder(
+                    borderSide: BorderSide(color: context.theme.textColor),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: context.theme.blue),
+                  ),
                 ),
                 obscureText: _obscureNewPassword,
                 validator: (value) {
@@ -158,12 +171,18 @@ class ChangePasswordPageState extends State<ChangePasswordPage> {
                 controller: _confirmPasswordController,
                 decoration: InputDecoration(
                   labelText: 'Xác nhận mật khẩu mới',
+                  labelStyle: TextStyle(color: context.theme.textColor),
                   prefixIcon: Icon(Icons.lock_outline, color: context.theme.blue),
                   suffixIcon: IconButton(
                     icon: Icon(_obscureConfirmPassword ? Icons.visibility : Icons.visibility_off),
                     onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
                   ),
-                  border: const OutlineInputBorder(),
+                  border:  OutlineInputBorder(
+                    borderSide: BorderSide(color: context.theme.textColor),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: context.theme.blue),
+                  ),
                 ),
                 obscureText: _obscureConfirmPassword,
                 validator: (value) {

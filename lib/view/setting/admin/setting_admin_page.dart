@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pbl6mobile/model/services/remote/auth_service.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/shared/routes/routes.dart';
-import 'package:pbl6mobile/view/setting/profile_page.dart';
+import 'package:pbl6mobile/view/setting/admin/profile_admin_page.dart';
+
+import '../../../shared/themes/cubit/theme_cubit.dart';
 
 
-class SettingPage extends StatelessWidget {
-  const SettingPage({super.key});
+class SettingAdminPage extends StatelessWidget {
+  const SettingAdminPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +58,7 @@ class SettingPage extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ProfilePage(profile: profile),
+                    builder: (context) => ProfileAdminPage(profile: profile),
                   ),
                 );
               } else {
@@ -71,56 +74,74 @@ class SettingPage extends StatelessWidget {
           const Divider(height: 1, color: Colors.grey),
           ListTile(
             leading: Icon(
-              Icons.help_outline,
+              Icons.type_specimen_outlined,
               color: context.theme.blue,
               size: 28,
             ),
             title: Text(
-              'Điều khoản sử dụng',
+              'Quản lý chuyên khoa',
               style: TextStyle(
                 fontSize: 16,
                 color: context.theme.textColor,
               ),
             ),
             onTap: () {
-              print('Mở điều khoản sử dụng');
+              //
             },
           ),
           const Divider(height: 1, color: Colors.grey),
           ListTile(
             leading: Icon(
-              Icons.lightbulb_outline,
+              Icons.location_city_outlined,
               color: context.theme.blue,
               size: 28,
             ),
             title: Text(
-              'Hướng dẫn sử dụng',
+              'Quản lý địa điểm khám',
               style: TextStyle(
                 fontSize: 16,
                 color: context.theme.textColor,
               ),
             ),
             onTap: () {
-              print('Mở hướng dẫn sử dụng');
+              //
             },
           ),
           const Divider(height: 1, color: Colors.grey),
           ListTile(
             leading: Icon(
-              Icons.shield_outlined,
+              Icons.brightness_6_outlined,
               color: context.theme.blue,
               size: 28,
             ),
             title: Text(
-              'Chính sách bảo mật',
+              'Chủ đề (Theme)',
               style: TextStyle(
                 fontSize: 16,
                 color: context.theme.textColor,
               ),
             ),
-            onTap: () {
-              print('Mở chính sách bảo mật');
-            },
+            trailing: DropdownButton<ThemeMode>(
+              value: context
+                  .read<ThemeCubit>()
+                  .state
+                  .themeMode,
+              dropdownColor: context.theme.bg,
+              focusColor: context.theme.grey,
+              items: [
+                DropdownMenuItem(value: ThemeMode.light,
+                    child: Text('Light',
+                        style: TextStyle(color: context.theme.textColor))),
+                DropdownMenuItem(value: ThemeMode.dark,
+                    child: Text('Dark',
+                        style: TextStyle(color: context.theme.textColor))),
+              ],
+              onChanged: (value) {
+                if (value != null) {
+                  context.read<ThemeCubit>().changeTheme(value);
+                }
+              },
+            ),
           ),
           const Divider(height: 1, color: Colors.grey),
           ListTile(

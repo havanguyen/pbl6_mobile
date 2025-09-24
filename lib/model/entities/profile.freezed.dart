@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Profile {
 
- String get id; String get fullName; String get email; String get role; String? get phone; String? get isMale; DateTime? get dateOfBirth; DateTime? get deletedAt; DateTime get createdAt; DateTime get updatedAt;
+ String get id; String get fullName; String get email; String get role; String? get phone; bool? get isMale; DateTime? get dateOfBirth; DateTime? get deletedAt; DateTime get createdAt; DateTime get updatedAt;
 /// Create a copy of Profile
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $ProfileCopyWith<$Res>  {
   factory $ProfileCopyWith(Profile value, $Res Function(Profile) _then) = _$ProfileCopyWithImpl;
 @useResult
 $Res call({
- String id, String fullName, String email, String role, String? phone, String? isMale, DateTime? dateOfBirth, DateTime? deletedAt, DateTime createdAt, DateTime updatedAt
+ String id, String fullName, String email, String role, String? phone, bool? isMale, DateTime? dateOfBirth, DateTime? deletedAt, DateTime createdAt, DateTime updatedAt
 });
 
 
@@ -73,7 +73,7 @@ as String,email: null == email ? _self.email : email // ignore: cast_nullable_to
 as String,role: null == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
 as String,phone: freezed == phone ? _self.phone : phone // ignore: cast_nullable_to_non_nullable
 as String?,isMale: freezed == isMale ? _self.isMale : isMale // ignore: cast_nullable_to_non_nullable
-as String?,dateOfBirth: freezed == dateOfBirth ? _self.dateOfBirth : dateOfBirth // ignore: cast_nullable_to_non_nullable
+as bool?,dateOfBirth: freezed == dateOfBirth ? _self.dateOfBirth : dateOfBirth // ignore: cast_nullable_to_non_nullable
 as DateTime?,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
@@ -162,7 +162,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String fullName,  String email,  String role,  String? phone,  String? isMale,  DateTime? dateOfBirth,  DateTime? deletedAt,  DateTime createdAt,  DateTime updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String fullName,  String email,  String role,  String? phone,  bool? isMale,  DateTime? dateOfBirth,  DateTime? deletedAt,  DateTime createdAt,  DateTime updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Profile() when $default != null:
 return $default(_that.id,_that.fullName,_that.email,_that.role,_that.phone,_that.isMale,_that.dateOfBirth,_that.deletedAt,_that.createdAt,_that.updatedAt);case _:
@@ -183,7 +183,7 @@ return $default(_that.id,_that.fullName,_that.email,_that.role,_that.phone,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String fullName,  String email,  String role,  String? phone,  String? isMale,  DateTime? dateOfBirth,  DateTime? deletedAt,  DateTime createdAt,  DateTime updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String fullName,  String email,  String role,  String? phone,  bool? isMale,  DateTime? dateOfBirth,  DateTime? deletedAt,  DateTime createdAt,  DateTime updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _Profile():
 return $default(_that.id,_that.fullName,_that.email,_that.role,_that.phone,_that.isMale,_that.dateOfBirth,_that.deletedAt,_that.createdAt,_that.updatedAt);case _:
@@ -203,7 +203,7 @@ return $default(_that.id,_that.fullName,_that.email,_that.role,_that.phone,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String fullName,  String email,  String role,  String? phone,  String? isMale,  DateTime? dateOfBirth,  DateTime? deletedAt,  DateTime createdAt,  DateTime updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String fullName,  String email,  String role,  String? phone,  bool? isMale,  DateTime? dateOfBirth,  DateTime? deletedAt,  DateTime createdAt,  DateTime updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _Profile() when $default != null:
 return $default(_that.id,_that.fullName,_that.email,_that.role,_that.phone,_that.isMale,_that.dateOfBirth,_that.deletedAt,_that.createdAt,_that.updatedAt);case _:
@@ -226,7 +226,7 @@ class _Profile implements Profile {
 @override final  String email;
 @override final  String role;
 @override final  String? phone;
-@override final  String? isMale;
+@override final  bool? isMale;
 @override final  DateTime? dateOfBirth;
 @override final  DateTime? deletedAt;
 @override final  DateTime createdAt;
@@ -265,7 +265,7 @@ abstract mixin class _$ProfileCopyWith<$Res> implements $ProfileCopyWith<$Res> {
   factory _$ProfileCopyWith(_Profile value, $Res Function(_Profile) _then) = __$ProfileCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String fullName, String email, String role, String? phone, String? isMale, DateTime? dateOfBirth, DateTime? deletedAt, DateTime createdAt, DateTime updatedAt
+ String id, String fullName, String email, String role, String? phone, bool? isMale, DateTime? dateOfBirth, DateTime? deletedAt, DateTime createdAt, DateTime updatedAt
 });
 
 
@@ -290,7 +290,7 @@ as String,email: null == email ? _self.email : email // ignore: cast_nullable_to
 as String,role: null == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
 as String,phone: freezed == phone ? _self.phone : phone // ignore: cast_nullable_to_non_nullable
 as String?,isMale: freezed == isMale ? _self.isMale : isMale // ignore: cast_nullable_to_non_nullable
-as String?,dateOfBirth: freezed == dateOfBirth ? _self.dateOfBirth : dateOfBirth // ignore: cast_nullable_to_non_nullable
+as bool?,dateOfBirth: freezed == dateOfBirth ? _self.dateOfBirth : dateOfBirth // ignore: cast_nullable_to_non_nullable
 as DateTime?,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable

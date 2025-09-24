@@ -5,8 +5,10 @@ import '../../../shared/routes/routes.dart';
 import '../../../shared/widgets/animation/scale_animation.dart';
 import '../../../shared/widgets/button/custom_circular_button.dart';
 
-class MainPageDoctor extends StatelessWidget {
-  const MainPageDoctor({super.key});
+
+
+class MainPageAdmin extends StatelessWidget {
+  const MainPageAdmin({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +45,7 @@ class MainPageDoctor extends StatelessWidget {
                     icon: Icon(
                         Icons.menu, color: context.theme.white, size: 35),
                     onPressed: () {
-                      Navigator.pushNamed(context, Routes.settingDoctor);
+                      Navigator.pushNamed(context, Routes.settingAdmin);
                     },
                   ),
                 ),
@@ -74,10 +76,8 @@ class MainPageDoctor extends StatelessWidget {
                   context,
                   size: 110,
                   icon: Icons.calendar_today_outlined,
-                  label: 'QUẢN LÝ LỊCH TRÌNH',
-                  onTap: () {
-                    print('Quản lý lịch trình');
-                  },
+                  label: 'QUẢN LÝ LỊCH KHÁM',
+                  onTap: () {},
                 ),
               ),
             ),
@@ -89,9 +89,9 @@ class MainPageDoctor extends StatelessWidget {
                   context,
                   size: 110,
                   icon: Icons.question_answer_outlined,
-                  label: 'TRẢ LỜI CÂU HỎI',
+                  label: 'QUẢN LÝ BÁC SĨ',
                   onTap: () {
-                    print('Trả lời câu hỏi');
+                    Navigator.pushNamed(context, Routes.listDoctor);
                   },
                 ),
               ),
@@ -104,10 +104,8 @@ class MainPageDoctor extends StatelessWidget {
                   context,
                   size: 140,
                   icon: Icons.rate_review_outlined,
-                  label: 'CẢM NHẬN BỆNH NHÂN',
-                  onTap: () {
-                    print('Cảm nhận bệnh nhân');
-                  },
+                  label: 'QUẢN LÝ MỤC HỎI ĐÁP',
+                  onTap: () {},
                 ),
               ),
             ),
@@ -119,10 +117,8 @@ class MainPageDoctor extends StatelessWidget {
                   context,
                   size: 120,
                   icon: Icons.account_circle_outlined,
-                  label: 'QUẢN LÝ TÀI KHOẢN',
-                  onTap: () {
-                    print('Quản lý tài khoản');
-                  },
+                  label: 'QUẢN LÝ BLOG',
+                  onTap: () {},
                 ),),
             ),
             Positioned(
@@ -145,7 +141,7 @@ class MainPageDoctor extends StatelessWidget {
               right: 0,
               child: Center(
                 child: Text(
-                  'Ứng dụng quản lý dành cho bác sĩ',
+                  'Bạn đang đăng nhập với tư cách là admin',
                   style: TextStyle(
                     color: context.theme.blue,
                     fontWeight: FontWeight.bold,

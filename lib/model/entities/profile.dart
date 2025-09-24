@@ -11,7 +11,7 @@ class Profile with _$Profile {
     required String email,
     required String role,
     String? phone,
-    String? isMale,
+    bool? isMale,
     DateTime? dateOfBirth,
     DateTime? deletedAt,
     required DateTime createdAt,
@@ -47,7 +47,7 @@ class Profile with _$Profile {
 
   @override
   // TODO: implement isMale
-  String? get isMale => throw UnimplementedError();
+  bool? get isMale => throw UnimplementedError();
 
   @override
   // TODO: implement phone

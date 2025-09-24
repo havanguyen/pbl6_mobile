@@ -3,13 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pbl6mobile/model/services/remote/auth_service.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/shared/routes/routes.dart';
-import 'package:pbl6mobile/view/setting/super_admin/profile_superadmin_page.dart';
 
 import '../../../shared/themes/cubit/theme_cubit.dart';
 
 
-class SettingSupperAdminPage extends StatelessWidget {
-  const SettingSupperAdminPage({super.key});
+class SettingDoctorPage extends StatelessWidget {
+  const SettingDoctorPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -39,93 +38,6 @@ class SettingSupperAdminPage extends StatelessWidget {
       ),
       body: ListView(
         children: [
-          ListTile(
-            leading: Icon(
-              Icons.person_outline,
-              color: context.theme.blue,
-              size: 28,
-            ),
-            title: Text(
-              'Thông tin cá nhân',
-              style: TextStyle(
-                fontSize: 16,
-                color: context.theme.textColor,
-              ),
-            ),
-            onTap: () async {
-              final profile = await AuthService.getProfile();
-              if (profile != null && context.mounted) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ProfileSuperadminPage(profile: profile),
-                  ),
-                );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Không thể lấy thông tin cá nhân. Vui lòng thử lại.'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-              }
-            },
-          ),
-          const Divider(height: 1, color: Colors.grey),
-          ListTile(
-            leading: Icon(
-              Icons.type_specimen_outlined,
-              color: context.theme.blue,
-              size: 28,
-            ),
-            title: Text(
-              'Quản lý chuyên khoa',
-              style: TextStyle(
-                fontSize: 16,
-                color: context.theme.textColor,
-              ),
-            ),
-            onTap: () {
-              //
-            },
-          ),
-          const Divider(height: 1, color: Colors.grey),
-          ListTile(
-            leading: Icon(
-              Icons.location_city_outlined,
-              color: context.theme.blue,
-              size: 28,
-            ),
-            title: Text(
-              'Quản lý địa điểm khám',
-              style: TextStyle(
-                fontSize: 16,
-                color: context.theme.textColor,
-              ),
-            ),
-            onTap: () {
-              //
-            },
-          ),
-          const Divider(height: 1, color: Colors.grey),
-          ListTile(
-            leading: Icon(
-              Icons.shield_outlined,
-              color: context.theme.blue,
-              size: 28,
-            ),
-            title: Text(
-              'Đổi mật khẩu',
-              style: TextStyle(
-                fontSize: 16,
-                color: context.theme.textColor,
-              ),
-            ),
-            onTap: () {
-              Navigator.pushNamed(context, Routes.changePassword);
-            },
-          ),
-          const Divider(height: 1, color: Colors.grey),
           ListTile(
             leading: Icon(
               Icons.brightness_6_outlined,

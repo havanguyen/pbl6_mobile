@@ -46,9 +46,14 @@ class _SplashPageState extends State<SplashPage> {
     }
     else {
       String? role = await Store.getUserRole();
+      print('role :$role');
       if(role == 'SUPER_ADMIN') {
         await Future.delayed(const Duration(seconds: 1));
         Navigator.pushReplacementNamed(context, Routes.mainPageSuperAdmin);
+      }
+      else if(role == 'ADMIN') {
+        await Future.delayed(const Duration(seconds: 1));
+        Navigator.pushReplacementNamed(context, Routes.mainPageAdmin);
       }
       else if(role == 'DOCTOR') {
         await Future.delayed(const Duration(seconds: 1));

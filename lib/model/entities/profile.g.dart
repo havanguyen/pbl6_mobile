@@ -12,7 +12,7 @@ _Profile _$ProfileFromJson(Map<String, dynamic> json) => _Profile(
   email: json['email'] as String,
   role: json['role'] as String,
   phone: json['phone'] as String?,
-  isMale: json['isMale'] as String?,
+  isMale: json['isMale'] as bool?,
   dateOfBirth: json['dateOfBirth'] == null
       ? null
       : DateTime.parse(json['dateOfBirth'] as String),

@@ -102,6 +102,10 @@ class LoginPageState extends State<LoginPage> with SingleTickerProviderStateMixi
             await Future.delayed(const Duration(seconds: 1));
             Navigator.pushReplacementNamed(context, Routes.mainPageSuperAdmin);
           }
+          else if(role == 'ADMIN') {
+            await Future.delayed(const Duration(seconds: 1));
+            Navigator.pushReplacementNamed(context, Routes.mainPageAdmin);
+          }
           else if(role == 'DOCTOR') {
             await Future.delayed(const Duration(seconds: 1));
             Navigator.pushReplacementNamed(context, Routes.mainPageDoctor);

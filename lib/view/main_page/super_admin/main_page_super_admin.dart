@@ -90,7 +90,9 @@ class MainPageSuperAdmin extends StatelessWidget {
                   size: 110,
                   icon: Icons.question_answer_outlined,
                   label: 'QUẢN LÝ BÁC SĨ',
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.pushNamed(context, Routes.listDoctor);
+                  },
                 ),
               ),
             ),

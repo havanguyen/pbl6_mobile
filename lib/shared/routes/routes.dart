@@ -10,20 +10,28 @@ import '../../view/admin_management/create_admin_page.dart';
 import '../../view/admin_management/list_admin_page.dart';
 import '../../view/admin_management/update_admin_page.dart';
 import '../../view/auth/login_page.dart';
-import '../../view/setting/setting_page.dart';
+import '../../view/doctor_management/create_doctor_page.dart';
+import '../../view/doctor_management/list_doctor_page.dart';
+import '../../view/doctor_management/update_doctor_page.dart';
+import '../../view/main_page/admin/main_page_admin.dart';
+import '../../view/setting/admin/setting_admin_page.dart';
+import '../../view/setting/doctor/setting_doctor_page.dart';
 
 class Routes {
   static const login = '/login';
   static const mainPageDoctor = '/mainPageDoctor';
-  static const setting = '/setting';
   static const changePassword = '/changePassword';
   static const mainPageSuperAdmin = '/mainPageSuperAdmin';
+  static const mainPageAdmin = '/mainPageAdmin';
   static const settingSuperAdmin = '/settingSuperAdmin';
   static const createAdmin = '/createAdmin';
   static const listAdmin = '/listAdmin';
   static const updateAdmin = '/updateAdmin';
-
-
+  static const updateDoctor = '/updateDoctor';
+  static const listDoctor = '/listDoctor';
+  static const createDoctor = '/createDoctor';
+  static const settingAdmin = '/settingAdmin';
+  static const settingDoctor = '/settingDoctor';
 
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
@@ -39,6 +47,43 @@ class Routes {
           type: PageTransitionType.fade,
           settings: settings,
           child: const MainPageDoctor(),
+        );
+        case settingDoctor:
+        return PageTransition(
+          type: PageTransitionType.leftToRight,
+          settings: settings,
+          child: const SettingDoctorPage(),
+        );
+        case settingAdmin:
+        return PageTransition(
+          type: PageTransitionType.leftToRight,
+          settings: settings,
+          child: const SettingAdminPage(),
+        );
+        case mainPageAdmin:
+        return PageTransition(
+          type: PageTransitionType.fade,
+          settings: settings,
+          child: const MainPageAdmin(),
+        );
+        case createDoctor:
+        return PageTransition(
+          type: PageTransitionType.leftToRight,
+          settings: settings,
+          child: const CreateDoctorPage(),
+        );
+        case listDoctor:
+        return PageTransition(
+          type: PageTransitionType.fade,
+          settings: settings,
+          child: const DoctorListPage(),
+        );
+        case updateDoctor:
+        final doctor = settings.arguments as Map<String, dynamic>?;
+        return PageTransition(
+          type: PageTransitionType.leftToRight,
+          settings: settings,
+          child:  UpdateDoctorPage(doctor: doctor!,),
         );
         case createAdmin:
         return PageTransition(
@@ -69,12 +114,6 @@ class Routes {
           type: PageTransitionType.fade,
           settings: settings,
           child: const MainPageSuperAdmin(),
-        );
-        case setting:
-        return PageTransition(
-          type: PageTransitionType.leftToRight,
-          settings: settings,
-          child: const SettingPage(),
         );
       case updateAdmin:
         final admin = settings.arguments as Map<String, dynamic>?;

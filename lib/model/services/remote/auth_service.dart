@@ -78,7 +78,7 @@ class AuthService {
         body: jsonEncode(requestBody),
       ).timeout(const Duration(seconds: 10));
 
-      if (response.statusCode == 200) {
+      if (response.statusCode >= 200 && response.statusCode < 300) {
         final Map<String, dynamic> responseData = jsonDecode(response.body);
         final Map<String, dynamic> data = responseData['data'];
 
@@ -155,7 +155,7 @@ class AuthService {
         body: jsonEncode(requestBody),
       ).timeout(const Duration(seconds: 10));
 
-      if (response.statusCode == 200) {
+      if (response.statusCode >= 200 && response.statusCode < 300) {
         print('Password changed successfully');
         return true;
       } else if (response.statusCode == 401) {
@@ -180,7 +180,7 @@ class AuthService {
           body: jsonEncode(requestBody),
         ).timeout(const Duration(seconds: 10));
 
-        if (retryResponse.statusCode == 200) {
+        if (retryResponse.statusCode >= 200 && retryResponse.statusCode < 300) {
           print('Password changed successfully after refresh');
           return true;
         } else {
@@ -232,7 +232,7 @@ class AuthService {
         },
       ).timeout(const Duration(seconds: 10));
 
-      if (response.statusCode == 200) {
+      if (response.statusCode >= 200 && response.statusCode < 300) {
         final Map<String, dynamic> responseData = jsonDecode(response.body);
         final Map<String, dynamic> data = responseData['data'];
         return Profile.fromJson(data);
@@ -257,7 +257,7 @@ class AuthService {
           },
         ).timeout(const Duration(seconds: 10));
 
-        if (retryResponse.statusCode == 200) {
+        if (retryResponse.statusCode >= 200 && retryResponse.statusCode < 300) {
           final Map<String, dynamic> retryResponseData = jsonDecode(retryResponse.body);
           final Map<String, dynamic> data = retryResponseData['data'];
           return Profile.fromJson(data);

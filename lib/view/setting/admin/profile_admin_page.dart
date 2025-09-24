@@ -1,12 +1,11 @@
-
 import 'package:flutter/material.dart';
 import 'package:pbl6mobile/model/entities/profile.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 
-class ProfilePage extends StatelessWidget {
+class ProfileAdminPage extends StatelessWidget {
   final Profile profile;
 
-  const ProfilePage({super.key, required this.profile});
+  const ProfileAdminPage({super.key, required this.profile});
 
   @override
   Widget build(BuildContext context) {
@@ -37,13 +36,13 @@ class ProfilePage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildInfoItem('Họ và tên', profile.fullName),
-            _buildInfoItem('Email', profile.email),
-            _buildInfoItem('Vai trò', profile.role),
-            _buildInfoItem('Giới tính', profile.isMale != null ? (profile.isMale!) : 'Chưa cập nhật'),
+            _buildInfoItem('Họ và tên', profile.fullName , context),
+            _buildInfoItem('Email', profile.email , context),
+            _buildInfoItem('Vai trò', profile.role , context),
+            _buildInfoItem('Giới tính', profile.isMale != null ? (profile.isMale! ? 'Nam' : 'Nữ') : 'Chưa cập nhật' , context),
             _buildInfoItem(
                 'Ngày sinh',
-                profile.dateOfBirth?.toString().split(' ')[0] ?? 'Chưa cập nhật'
+                profile.dateOfBirth?.toString().split(' ')[0] ?? 'Chưa cập nhật' , context
             ),
           ],
         ),
@@ -51,7 +50,7 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoItem(String label, String value) {
+  Widget _buildInfoItem(String label, String value , BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12.0),
       child: Column(
@@ -59,19 +58,19 @@ class ProfilePage extends StatelessWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(
+            style:  TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
-              color: Colors.grey,
+              color: context.theme.textColor,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             value,
-            style: const TextStyle(
+            style:  TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w400,
-              color: Colors.grey,
+              color: context.theme.textColor,
             ),
           ),
           const Divider(height: 24),

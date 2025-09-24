@@ -1,0 +1,232 @@
+import 'package:flutter/material.dart';
+import 'package:pbl6mobile/model/services/remote/staff_service.dart';
+import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
+import 'package:pbl6mobile/shared/widgets/button/custom_button_blue.dart';
+
+import '../../shared/routes/routes.dart';
+
+class CreateDoctorPage extends StatefulWidget {
+  const CreateDoctorPage({super.key});
+
+  @override
+  State<CreateDoctorPage> createState() => _CreateDoctorPageState();
+}
+
+class _CreateDoctorPageState extends State<CreateDoctorPage> {
+  final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _fullNameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _dateOfBirthController = TextEditingController();
+  bool _isMale = true;
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    _fullNameController.dispose();
+    _phoneController.dispose();
+    _dateOfBirthController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _selectDate() async {
+    final date = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
+    if (date != null) {
+      _dateOfBirthController.text = '${date.day}/${date.month}/${date.year}';
+    }
+  }
+
+  void _createDoctor() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() => _isLoading = true);
+      final success = await StaffService.createDoctor(
+        email: _emailController.text,
+        password: _passwordController.text,
+        fullName: _fullNameController.text,
+        phone: _phoneController.text.isEmpty ? null : _phoneController.text,
+        dateOfBirth: _dateOfBirthController.text,
+        isMale: _isMale,
+      );
+      setState(() => _isLoading = false);
+      if (success) {
+        _showSuccessDialog();
+      } else {
+        _showErrorDialog('Tạo tài khoản thất bại. Vui lòng thử lại.');
+      }
+    }
+  }
+
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Thành công'),
+        content: const Text('Tạo tài khoản doctor thành công!'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pushReplacementNamed(context, Routes.listDoctor);
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Lỗi'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: context.theme.blue,
+        title: Text(
+          'Tạo tài khoản doctor',
+          style: TextStyle(color: context.theme.white),
+        ),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: context.theme.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                TextFormField(
+                  controller: _fullNameController,
+                  decoration: InputDecoration(
+                    labelText: 'Họ và tên',
+                    prefixIcon: Icon(Icons.person, color: context.theme.blue),
+                    border: const OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) return 'Vui lòng nhập họ và tên';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _emailController,
+                  decoration: InputDecoration(
+                    labelText: 'Email',
+                    prefixIcon: Icon(Icons.email, color: context.theme.blue),
+                    border: const OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) return 'Vui lòng nhập email';
+                    final emailRegex = RegExp(r'^[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z]+');
+                    if (!emailRegex.hasMatch(value)) return 'Email không đúng định dạng';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _passwordController,
+                  decoration: InputDecoration(
+                    labelText: 'Mật khẩu',
+                    prefixIcon: Icon(Icons.lock, color: context.theme.blue),
+                    border: const OutlineInputBorder(),
+                  ),
+                  obscureText: true,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) return 'Vui lòng nhập mật khẩu';
+                    if (value.length < 8 || !value.contains(RegExp(r'[a-zA-Z]')) || !value.contains(RegExp(r'[0-9]'))) {
+                      return 'Mật khẩu tối thiểu 8 ký tự, có ít nhất 1 chữ cái và 1 số';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _phoneController,
+                  decoration: InputDecoration(
+                    labelText: 'Số điện thoại',
+                    prefixIcon: Icon(Icons.phone, color: context.theme.blue),
+                    border: const OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.phone,
+                  validator: (value) {
+                    if (value != null && value.isNotEmpty) {
+                      if (!RegExp(r'^\d{10}$').hasMatch(value)) return 'Số điện thoại phải là 10 chữ số';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _dateOfBirthController,
+                  decoration: InputDecoration(
+                    labelText: 'Ngày sinh (dd/mm/yyyy)',
+                    prefixIcon: Icon(Icons.calendar_today, color: context.theme.blue),
+                    border: const OutlineInputBorder(),
+                  ),
+                  readOnly: true,
+                  onTap: _selectDate,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) return 'Vui lòng chọn ngày sinh';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Checkbox(
+                      value: _isMale,
+                      onChanged: (value) => setState(() => _isMale = value ?? true),
+                    ),
+                    const Text('Nam'),
+                    Radio<bool>(
+                      value: true,
+                      groupValue: _isMale,
+                      onChanged: (value) => setState(() => _isMale = true),
+                    ),
+                    const SizedBox(width: 16),
+                    Radio<bool>(
+                      value: false,
+                      groupValue: _isMale,
+                      onChanged: (value) => setState(() => _isMale = false),
+                    ),
+                    const Text('Nữ'),
+                  ],
+                ),
+                const SizedBox(height: 32),
+                CustomButtonBlue(
+                  onTap: _createDoctor,
+                  text: _isLoading ? 'Đang tạo...' : 'Tạo tài khoản',
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
