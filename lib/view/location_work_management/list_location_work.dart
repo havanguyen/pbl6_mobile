@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:pbl6mobile/model/services/remote/staff_service.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/shared/routes/routes.dart';
 import 'package:pbl6mobile/shared/widgets/button/custom_button_blue.dart';
 
-class DoctorListPage extends StatefulWidget {
-  const DoctorListPage({super.key});
+import '../../model/services/remote/work_location_service.dart';
+
+class LocationWorkListPage extends StatefulWidget {
+  const LocationWorkListPage({super.key});
 
   @override
-  State<DoctorListPage> createState() => _DoctorListPageState();
+  State<LocationWorkListPage> createState() => _LocationWorkListPageState();
 }
 
-class _DoctorListPageState extends State<DoctorListPage> {
-  List<dynamic> _doctors = [];
+class _LocationWorkListPageState extends State<LocationWorkListPage> {
+  List<dynamic> _locations = [];
   bool _isLoading = true;
   bool _isEmpty = false;
   final TextEditingController _searchController = TextEditingController();
@@ -21,12 +22,12 @@ class _DoctorListPageState extends State<DoctorListPage> {
   @override
   void initState() {
     super.initState();
-    _fetchDoctors();
+    _fetchLocations();
     _searchController.addListener(() {
       setState(() {
         _searchQuery = _searchController.text;
       });
-      _fetchDoctors();
+      _fetchLocations();
     });
   }
 
@@ -36,20 +37,19 @@ class _DoctorListPageState extends State<DoctorListPage> {
     super.dispose();
   }
 
-  Future<void> _fetchDoctors() async {
+  Future<void> _fetchLocations() async {
     setState(() => _isLoading = true);
-    final result = await StaffService.getDoctors(search: _searchQuery);
+    final result = await LocationWorkService.getAllLocations();
     if (mounted) {
       setState(() {
-        _doctors = result['data'] ?? [];
-        _isEmpty = _doctors.isEmpty;
+        _locations = result['data'] ?? [];
+        _isEmpty = _locations.isEmpty;
         _isLoading = false;
       });
     }
   }
 
-
-  void _showDeleteDialog(dynamic doctor) {
+  void _showDeleteDialog(dynamic location) {
     final TextEditingController passwordController = TextEditingController();
     showDialog(
       context: context,
@@ -60,16 +60,16 @@ class _DoctorListPageState extends State<DoctorListPage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Bạn có chắc chắn muốn xóa tài khoản: ${doctor['fullName']}?',
+              'Bạn có chắc chắn muốn xóa địa điểm: ${location['name']}?',
               style: TextStyle(color: context.theme.popoverForeground),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: passwordController,
               obscureText: true,
-              style: TextStyle(color: context.theme.input),
+              style: TextStyle(color: context.theme.textColor),
               decoration: InputDecoration(
-                labelText: 'Nhập mật khẩu của bạn',
+                labelText: 'Nhập mật khẩu Admin/Super Admin',
                 labelStyle: TextStyle(color: context.theme.mutedForeground),
                 border: OutlineInputBorder(
                   borderSide: BorderSide(color: context.theme.border),
@@ -80,7 +80,7 @@ class _DoctorListPageState extends State<DoctorListPage> {
                 filled: true,
                 fillColor: context.theme.input,
               ),
-              onSubmitted: (_) => _confirmDelete(doctor, passwordController.text),
+              onSubmitted: (_) => _confirmDelete(location, passwordController.text),
             ),
           ],
         ),
@@ -90,7 +90,7 @@ class _DoctorListPageState extends State<DoctorListPage> {
             child: Text('Hủy', style: TextStyle(color: context.theme.mutedForeground)),
           ),
           TextButton(
-            onPressed: () => _confirmDelete(doctor, passwordController.text),
+            onPressed: () => _confirmDelete(location, passwordController.text),
             child: Text('Xóa', style: TextStyle(color: context.theme.destructive)),
           ),
         ],
@@ -98,17 +98,17 @@ class _DoctorListPageState extends State<DoctorListPage> {
     );
   }
 
-  Future<void> _confirmDelete(dynamic doctor, String password) async {
-    final success = await StaffService.deleteStaff(doctor['id'], password: password);
+  Future<void> _confirmDelete(dynamic location, String password) async {
+    final success = await LocationWorkService.deleteLocation(location['id'], password: password);
     Navigator.pop(context);
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Xóa tài khoản thành công!', style: TextStyle(color: context.theme.primaryForeground)),
+          content: Text('Xóa địa điểm thành công!', style: TextStyle(color: context.theme.primaryForeground)),
           backgroundColor: context.theme.green,
         ),
       );
-      _fetchDoctors();
+      _fetchLocations();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -126,9 +126,9 @@ class _DoctorListPageState extends State<DoctorListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: context.theme.blue,
+        backgroundColor: context.theme.appBar,
         title: Text(
-          'Quản lý tài khoản bác sĩ',
+          'Quản lý địa điểm làm việc',
           style: TextStyle(color: context.theme.primaryForeground),
         ),
         leading: IconButton(
@@ -138,7 +138,7 @@ class _DoctorListPageState extends State<DoctorListPage> {
         actions: [
           IconButton(
             icon: Icon(Icons.refresh, color: context.theme.primaryForeground),
-            onPressed: _fetchDoctors,
+            onPressed: _fetchLocations,
           ),
         ],
       ),
@@ -153,7 +153,7 @@ class _DoctorListPageState extends State<DoctorListPage> {
                   controller: _searchController,
                   style: TextStyle(color: context.theme.textColor),
                   decoration: InputDecoration(
-                    labelText: 'Tìm kiếm theo tên hoặc email',
+                    labelText: 'Tìm kiếm theo tên hoặc địa chỉ',
                     labelStyle: TextStyle(color: context.theme.mutedForeground),
                     prefixIcon: Icon(Icons.search, color: context.theme.primary),
                     border: OutlineInputBorder(
@@ -170,7 +170,7 @@ class _DoctorListPageState extends State<DoctorListPage> {
                       onPressed: () {
                         _searchController.clear();
                         setState(() => _searchQuery = '');
-                        _fetchDoctors();
+                        _fetchLocations();
                       },
                     )
                         : null,
@@ -178,8 +178,8 @@ class _DoctorListPageState extends State<DoctorListPage> {
                 ),
                 const SizedBox(height: 16),
                 CustomButtonBlue(
-                  onTap: () => Navigator.pushNamed(context, Routes.createDoctor),
-                  text: 'Tạo tài khoản bác sĩ',
+                  onTap: () => Navigator.pushNamed(context, Routes.createLocationWork),
+                  text: 'Thêm địa điểm làm việc',
                 ),
               ],
             ),
@@ -192,12 +192,12 @@ class _DoctorListPageState extends State<DoctorListPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.admin_panel_settings_outlined, size: 64, color: context.theme.muted),
+                  Icon(Icons.location_on_outlined, size: 64, color: context.theme.muted),
                   const SizedBox(height: 16),
                   Text(
                     _searchQuery.isNotEmpty
-                        ? 'Không tìm thấy tài khoản bác sĩ phù hợp'
-                        : 'Danh sách tài khoản bác sĩ trống',
+                        ? 'Không tìm thấy địa điểm làm việc phù hợp'
+                        : 'Danh sách địa điểm làm việc trống',
                     style: TextStyle(fontSize: 18, color: context.theme.mutedForeground),
                     textAlign: TextAlign.center,
                   ),
@@ -205,9 +205,9 @@ class _DoctorListPageState extends State<DoctorListPage> {
               ),
             )
                 : ListView.builder(
-              itemCount: _doctors.length,
+              itemCount: _locations.length,
               itemBuilder: (context, index) {
-                final doctor = _doctors[index];
+                final location = _locations[index];
                 return Card(
                   margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                   color: context.theme.card,
@@ -216,20 +216,20 @@ class _DoctorListPageState extends State<DoctorListPage> {
                     leading: CircleAvatar(
                       backgroundColor: context.theme.primary,
                       child: Text(
-                        doctor['fullName']?[0].toUpperCase() ?? 'A',
+                        location['name']?[0].toUpperCase() ?? 'L',
                         style: TextStyle(color: context.theme.primaryForeground),
                       ),
                     ),
                     title: Text(
-                      doctor['fullName'] ?? 'N/A',
+                      location['name'] ?? 'N/A',
                       style: TextStyle(color: context.theme.cardForeground),
                     ),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(doctor['email'] ?? 'N/A', style: TextStyle(color: context.theme.mutedForeground)),
-                        Text('Vai trò: ${doctor['role'] ?? 'DOCTOR'}', style: TextStyle(color: context.theme.mutedForeground)),
-                        if (doctor['phone'] != null) Text('SĐT: ${doctor['phone']}', style: TextStyle(color: context.theme.mutedForeground)),
+                        Text(location['address'] ?? 'N/A', style: TextStyle(color: context.theme.mutedForeground)),
+                        Text('SĐT: ${location['phone'] ?? 'N/A'}', style: TextStyle(color: context.theme.mutedForeground)),
+                        Text('Múi giờ: ${location['timezone'] ?? 'N/A'}', style: TextStyle(color: context.theme.mutedForeground)),
                       ],
                     ),
                     trailing: Row(
@@ -239,13 +239,13 @@ class _DoctorListPageState extends State<DoctorListPage> {
                           icon: Icon(Icons.edit, color: context.theme.primary),
                           onPressed: () => Navigator.pushNamed(
                             context,
-                            Routes.updateDoctor,
-                            arguments: doctor,
+                            Routes.updateLocationWork,
+                            arguments: location,
                           ),
                         ),
                         IconButton(
                           icon: Icon(Icons.delete, color: context.theme.destructive),
-                          onPressed: () => _showDeleteDialog(doctor),
+                          onPressed: () => _showDeleteDialog(location),
                         ),
                       ],
                     ),

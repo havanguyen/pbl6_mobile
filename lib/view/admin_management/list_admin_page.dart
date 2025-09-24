@@ -23,7 +23,9 @@ class _AdminListPageState extends State<AdminListPage> {
     super.initState();
     _fetchAdmins();
     _searchController.addListener(() {
-      _searchQuery = _searchController.text;
+      setState(() {
+        _searchQuery = _searchController.text;
+      });
       _fetchAdmins();
     });
   }
@@ -51,18 +53,31 @@ class _AdminListPageState extends State<AdminListPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Xác nhận xóa'),
+        backgroundColor: context.theme.popover,
+        title: Text('Xác nhận xóa', style: TextStyle(color: context.theme.popoverForeground)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Bạn có chắc chắn muốn xóa tài khoản: ${admin['fullName']}?'),
+            Text(
+              'Bạn có chắc chắn muốn xóa tài khoản: ${admin['fullName']}?',
+              style: TextStyle(color: context.theme.popoverForeground),
+            ),
             const SizedBox(height: 16),
             TextField(
               controller: passwordController,
               obscureText: true,
-              decoration: const InputDecoration(
+              style: TextStyle(color: context.theme.textColor),
+              decoration: InputDecoration(
                 labelText: 'Nhập mật khẩu Super Admin',
-                border: OutlineInputBorder(),
+                labelStyle: TextStyle(color: context.theme.mutedForeground),
+                border: OutlineInputBorder(
+                  borderSide: BorderSide(color: context.theme.border),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: context.theme.ring),
+                ),
+                filled: true,
+                fillColor: context.theme.input,
               ),
               onSubmitted: (_) => _confirmDelete(admin, passwordController.text),
             ),
@@ -71,11 +86,11 @@ class _AdminListPageState extends State<AdminListPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Hủy'),
+            child: Text('Hủy', style: TextStyle(color: context.theme.mutedForeground)),
           ),
           TextButton(
             onPressed: () => _confirmDelete(admin, passwordController.text),
-            child: const Text('Xóa'),
+            child: Text('Xóa', style: TextStyle(color: context.theme.destructive)),
           ),
         ],
       ),
@@ -87,12 +102,21 @@ class _AdminListPageState extends State<AdminListPage> {
     Navigator.pop(context);
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Xóa tài khoản thành công!')),
+        SnackBar(
+          content: Text('Xóa tài khoản thành công!', style: TextStyle(color: context.theme.primaryForeground)),
+          backgroundColor: context.theme.green,
+        ),
       );
       _fetchAdmins();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Xóa thất bại. Kiểm tra mật khẩu hoặc thử lại.'), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text(
+            'Xóa thất bại. Kiểm tra mật khẩu hoặc thử lại.',
+            style: TextStyle(color: context.theme.destructiveForeground),
+          ),
+          backgroundColor: context.theme.destructive,
+        ),
       );
     }
   }
@@ -104,19 +128,20 @@ class _AdminListPageState extends State<AdminListPage> {
         backgroundColor: context.theme.blue,
         title: Text(
           'Quản lý tài khoản admin',
-          style: TextStyle(color: context.theme.white),
+          style: TextStyle(color: context.theme.primaryForeground),
         ),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: context.theme.white),
+          icon: Icon(Icons.arrow_back, color: context.theme.primaryForeground),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.refresh, color: context.theme.white),
+            icon: Icon(Icons.refresh, color: context.theme.primaryForeground),
             onPressed: _fetchAdmins,
           ),
         ],
       ),
+      backgroundColor: context.theme.bg,
       body: Column(
         children: [
           Padding(
@@ -125,15 +150,25 @@ class _AdminListPageState extends State<AdminListPage> {
               children: [
                 TextField(
                   controller: _searchController,
+                  style: TextStyle(color: context.theme.textColor),
                   decoration: InputDecoration(
                     labelText: 'Tìm kiếm theo tên hoặc email',
-                    prefixIcon: Icon(Icons.search, color: context.theme.blue),
-                    border: const OutlineInputBorder(),
+                    labelStyle: TextStyle(color: context.theme.mutedForeground),
+                    prefixIcon: Icon(Icons.search, color: context.theme.primary),
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide(color: context.theme.border),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: context.theme.ring),
+                    ),
+                    filled: true,
+                    fillColor: context.theme.input,
                     suffixIcon: _searchQuery.isNotEmpty
                         ? IconButton(
-                      icon: Icon(Icons.clear, color: context.theme.blue),
+                      icon: Icon(Icons.clear, color: context.theme.primary),
                       onPressed: () {
                         _searchController.clear();
+                        setState(() => _searchQuery = '');
                         _fetchAdmins();
                       },
                     )
@@ -150,19 +185,19 @@ class _AdminListPageState extends State<AdminListPage> {
           ),
           Expanded(
             child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? Center(child: CircularProgressIndicator(color: context.theme.primary))
                 : _isEmpty
                 ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.admin_panel_settings_outlined, size: 64, color: Colors.grey),
+                  Icon(Icons.admin_panel_settings_outlined, size: 64, color: context.theme.muted),
                   const SizedBox(height: 16),
                   Text(
                     _searchQuery.isNotEmpty
                         ? 'Không tìm thấy tài khoản admin phù hợp'
                         : 'Danh sách tài khoản admin trống',
-                    style: TextStyle(fontSize: 18, color: Colors.grey),
+                    style: TextStyle(fontSize: 18, color: context.theme.mutedForeground),
                     textAlign: TextAlign.center,
                   ),
                 ],
@@ -174,36 +209,41 @@ class _AdminListPageState extends State<AdminListPage> {
                 final admin = _admins[index];
                 return Card(
                   margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  color: context.theme.card,
                   child: ListTile(
+                    textColor: context.theme.cardForeground,
                     leading: CircleAvatar(
-                      backgroundColor: context.theme.blue,
+                      backgroundColor: context.theme.primary,
                       child: Text(
                         admin['fullName']?[0].toUpperCase() ?? 'A',
-                        style: TextStyle(color: context.theme.white),
+                        style: TextStyle(color: context.theme.primaryForeground),
                       ),
                     ),
-                    title: Text(admin['fullName'] ?? 'N/A'),
+                    title: Text(
+                      admin['fullName'] ?? 'N/A',
+                      style: TextStyle(color: context.theme.cardForeground),
+                    ),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(admin['email'] ?? 'N/A'),
-                        Text('Vai trò: ${admin['role'] ?? 'ADMIN'}'),
-                        if (admin['phone'] != null) Text('SĐT: ${admin['phone']}'),
+                        Text(admin['email'] ?? 'N/A', style: TextStyle(color: context.theme.mutedForeground)),
+                        Text('Vai trò: ${admin['role'] ?? 'ADMIN'}', style: TextStyle(color: context.theme.mutedForeground)),
+                        if (admin['phone'] != null) Text('SĐT: ${admin['phone']}', style: TextStyle(color: context.theme.mutedForeground)),
                       ],
                     ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          icon: Icon(Icons.edit, color: context.theme.blue),
+                          icon: Icon(Icons.edit, color: context.theme.primary),
                           onPressed: () => Navigator.pushNamed(
                             context,
                             Routes.updateAdmin,
-                            arguments: admin
+                            arguments: admin,
                           ),
                         ),
                         IconButton(
-                          icon: Icon(Icons.delete, color: Colors.red),
+                          icon: Icon(Icons.delete, color: context.theme.destructive),
                           onPressed: () => _showDeleteDialog(admin),
                         ),
                       ],

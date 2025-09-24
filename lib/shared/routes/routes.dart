@@ -13,6 +13,9 @@ import '../../view/auth/login_page.dart';
 import '../../view/doctor_management/create_doctor_page.dart';
 import '../../view/doctor_management/list_doctor_page.dart';
 import '../../view/doctor_management/update_doctor_page.dart';
+import '../../view/location_work_management/create_location_work.dart';
+import '../../view/location_work_management/list_location_work.dart';
+import '../../view/location_work_management/update_location_work.dart';
 import '../../view/main_page/admin/main_page_admin.dart';
 import '../../view/setting/admin/setting_admin_page.dart';
 import '../../view/setting/doctor/setting_doctor_page.dart';
@@ -32,6 +35,10 @@ class Routes {
   static const createDoctor = '/createDoctor';
   static const settingAdmin = '/settingAdmin';
   static const settingDoctor = '/settingDoctor';
+  static const listLocationWork = '/listLocationWork';
+  static const createLocationWork = '/createLocationWork';
+  static const updateLocationWork = '/updateLocationWork';
+
 
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
@@ -48,6 +55,25 @@ class Routes {
           settings: settings,
           child: const MainPageDoctor(),
         );
+        case listLocationWork:
+        return PageTransition(
+          type: PageTransitionType.fade,
+          settings: settings,
+          child: const LocationWorkListPage(),
+        );
+        case createLocationWork:
+        return PageTransition(
+          type: PageTransitionType.leftToRight,
+          settings: settings,
+          child: const CreateLocationWorkPage(),
+        );
+        case updateLocationWork:
+          final location = settings.arguments as Map<String, dynamic>?;
+          return PageTransition(
+            type: PageTransitionType.leftToRight,
+            settings: settings,
+            child: UpdateLocationWorkPage(location: location!,),
+          );
         case settingDoctor:
         return PageTransition(
           type: PageTransitionType.leftToRight,

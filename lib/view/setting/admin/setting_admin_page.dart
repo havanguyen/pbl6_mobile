@@ -104,7 +104,7 @@ class SettingAdminPage extends StatelessWidget {
               ),
             ),
             onTap: () {
-              //
+              Navigator.pushNamed(context, Routes.listLocationWork);
             },
           ),
           const Divider(height: 1, color: Colors.grey),

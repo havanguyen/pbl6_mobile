@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:pbl6mobile/model/services/remote/staff_service.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/shared/widgets/button/custom_button_blue.dart';
-
 import 'package:pbl6mobile/shared/routes/routes.dart';
 
 class UpdateDoctorPage extends StatefulWidget {
@@ -29,7 +28,7 @@ class _UpdateDoctorPageState extends State<UpdateDoctorPage> {
     super.initState();
     _fullNameController = TextEditingController(text: widget.doctor['fullName'] ?? '');
     _emailController = TextEditingController(text: widget.doctor['email'] ?? '');
-    _passwordController = TextEditingController(); // Không load password
+    _passwordController = TextEditingController();
     _phoneController = TextEditingController(text: widget.doctor['phone'] ?? '');
     _dateOfBirthController = TextEditingController();
     final dob = widget.doctor['dateOfBirth'];
@@ -56,6 +55,17 @@ class _UpdateDoctorPageState extends State<UpdateDoctorPage> {
       initialDate: DateTime.now(),
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
+      builder: (context, child) => Theme(
+        data: Theme.of(context).copyWith(
+          colorScheme: ColorScheme.light(
+            primary: context.theme.primary,
+            onPrimary: context.theme.primaryForeground,
+            surface: context.theme.popover,
+            onSurface: context.theme.popoverForeground,
+          ),
+        ),
+        child: child!,
+      ),
     );
     if (date != null) {
       _dateOfBirthController.text = '${date.day}/${date.month}/${date.year}';
@@ -87,15 +97,16 @@ class _UpdateDoctorPageState extends State<UpdateDoctorPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Thành công'),
-        content: const Text('Cập nhật tài khoản thành công!'),
+        backgroundColor: context.theme.popover,
+        title: Text('Thành công', style: TextStyle(color: context.theme.popoverForeground)),
+        content: Text('Cập nhật tài khoản thành công!', style: TextStyle(color: context.theme.popoverForeground)),
         actions: [
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               Navigator.pushReplacementNamed(context, Routes.listDoctor);
             },
-            child: const Text('OK'),
+            child: Text('OK', style: TextStyle(color: context.theme.primary)),
           ),
         ],
       ),
@@ -106,12 +117,13 @@ class _UpdateDoctorPageState extends State<UpdateDoctorPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Lỗi'),
-        content: Text(message),
+        backgroundColor: context.theme.popover,
+        title: Text('Lỗi', style: TextStyle(color: context.theme.popoverForeground)),
+        content: Text(message, style: TextStyle(color: context.theme.popoverForeground)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            child: Text('OK', style: TextStyle(color: context.theme.destructive)),
           ),
         ],
       ),
@@ -125,13 +137,14 @@ class _UpdateDoctorPageState extends State<UpdateDoctorPage> {
         backgroundColor: context.theme.blue,
         title: Text(
           'Chỉnh sửa tài khoản bác sĩ',
-          style: TextStyle(color: context.theme.white),
+          style: TextStyle(color: context.theme.primaryForeground),
         ),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: context.theme.white),
+          icon: Icon(Icons.arrow_back, color: context.theme.primaryForeground),
           onPressed: () => Navigator.pop(context),
         ),
       ),
+      backgroundColor: context.theme.bg,
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -141,10 +154,18 @@ class _UpdateDoctorPageState extends State<UpdateDoctorPage> {
               children: [
                 TextFormField(
                   controller: _fullNameController,
+                  style: TextStyle(color: context.theme.textColor),
                   decoration: InputDecoration(
                     labelText: 'Họ và tên',
-                    prefixIcon: Icon(Icons.person, color: context.theme.blue),
-                    border: const OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.person, color: context.theme.primary),
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide(color: context.theme.border),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: context.theme.ring),
+                    ),
+                    filled: true,
+                    fillColor: context.theme.input,
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) return 'Vui lòng nhập họ và tên';
@@ -154,10 +175,18 @@ class _UpdateDoctorPageState extends State<UpdateDoctorPage> {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _emailController,
+                  style: TextStyle(color: context.theme.textColor),
                   decoration: InputDecoration(
                     labelText: 'Email',
-                    prefixIcon: Icon(Icons.email, color: context.theme.blue),
-                    border: const OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.email, color: context.theme.primary),
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide(color: context.theme.border),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: context.theme.ring),
+                    ),
+                    filled: true,
+                    fillColor: context.theme.input,
                   ),
                   keyboardType: TextInputType.emailAddress,
                   validator: (value) {
@@ -170,10 +199,18 @@ class _UpdateDoctorPageState extends State<UpdateDoctorPage> {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _passwordController,
+                  style: TextStyle(color: context.theme.textColor),
                   decoration: InputDecoration(
                     labelText: 'Mật khẩu mới (để trống nếu không thay đổi)',
-                    prefixIcon: Icon(Icons.lock, color: context.theme.blue),
-                    border: const OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.lock, color: context.theme.primary),
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide(color: context.theme.border),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: context.theme.ring),
+                    ),
+                    filled: true,
+                    fillColor: context.theme.input,
                   ),
                   obscureText: true,
                   validator: (value) {
@@ -188,10 +225,18 @@ class _UpdateDoctorPageState extends State<UpdateDoctorPage> {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _phoneController,
+                  style: TextStyle(color: context.theme.textColor),
                   decoration: InputDecoration(
                     labelText: 'Số điện thoại',
-                    prefixIcon: Icon(Icons.phone, color: context.theme.blue),
-                    border: const OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.phone, color: context.theme.primary),
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide(color: context.theme.border),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: context.theme.ring),
+                    ),
+                    filled: true,
+                    fillColor: context.theme.input,
                   ),
                   keyboardType: TextInputType.phone,
                   validator: (value) {
@@ -204,10 +249,18 @@ class _UpdateDoctorPageState extends State<UpdateDoctorPage> {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _dateOfBirthController,
+                  style: TextStyle(color: context.theme.textColor),
                   decoration: InputDecoration(
                     labelText: 'Ngày sinh (dd/mm/yyyy)',
-                    prefixIcon: Icon(Icons.calendar_today, color: context.theme.blue),
-                    border: const OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.calendar_today, color: context.theme.primary),
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide(color: context.theme.border),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: context.theme.ring),
+                    ),
+                    filled: true,
+                    fillColor: context.theme.input,
                   ),
                   readOnly: true,
                   onTap: _selectDate,
@@ -222,20 +275,24 @@ class _UpdateDoctorPageState extends State<UpdateDoctorPage> {
                     Checkbox(
                       value: _isMale,
                       onChanged: (value) => setState(() => _isMale = value ?? true),
+                      activeColor: context.theme.primary,
+                      checkColor: context.theme.primaryForeground,
                     ),
-                    const Text('Nam'),
+                    Text('Nam', style: TextStyle(color: context.theme.textColor)),
                     Radio<bool>(
                       value: true,
                       groupValue: _isMale,
                       onChanged: (value) => setState(() => _isMale = true),
+                      activeColor: context.theme.primary,
                     ),
                     const SizedBox(width: 16),
                     Radio<bool>(
                       value: false,
                       groupValue: _isMale,
                       onChanged: (value) => setState(() => _isMale = false),
+                      activeColor: context.theme.primary,
                     ),
-                    const Text('Nữ'),
+                    Text('Nữ', style: TextStyle(color: context.theme.textColor)),
                   ],
                 ),
                 const SizedBox(height: 32),

@@ -241,15 +241,15 @@ class StaffService {
         if (response.body.isNotEmpty) {
           try {
             final Map<String, dynamic> errorData = jsonDecode(response.body);
-            print('Create admin error: ${errorData['message'] ?? 'Unknown error'}');
+            print('Create doctor error: ${errorData['message'] ?? 'Unknown error'}');
           } catch (e) {
-            print('Create admin parse error: $e');
+            print('Create doctor parse error: $e');
           }
         }
         return false;
       }
     } catch (e) {
-      print('Create admin error: $e');
+      print('Create doctor error: $e');
       return false;
     }
   }
