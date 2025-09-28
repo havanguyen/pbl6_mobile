@@ -7,6 +7,9 @@ import 'package:pbl6mobile/shared/routes/routes.dart';
 import 'package:pbl6mobile/shared/themes/cubit/theme_cubit.dart';
 import 'package:pbl6mobile/shared/themes/cubit/theme_state.dart';
 import 'package:pbl6mobile/view/splash/splash.dart';
+import 'package:pbl6mobile/view_model/location_work_management/location_work_vm.dart';
+import 'package:pbl6mobile/view_model/specialty/specialty_vm.dart';
+import 'package:provider/provider.dart';
 
 Future  main() async  {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,7 +44,13 @@ class _PBL6State extends State<PBL6> {
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
-      providers: [BlocProvider(create: (_) => ThemeCubit()..loadTheme())],
+      providers: [
+        ChangeNotifierProvider<LocationWorkVm>(create: (_) => LocationWorkVm()),
+        ChangeNotifierProvider<SpecialtyVm>(create: (_) => SpecialtyVm()),
+        BlocProvider<ThemeCubit>(
+          create: (_) => ThemeCubit()..loadTheme(),
+        ),
+      ],
       child: BlocBuilder<ThemeCubit, ThemeState>(
         builder: (context, state) {
           return MaterialApp(

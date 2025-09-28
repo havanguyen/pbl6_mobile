@@ -17,7 +17,7 @@ class StaffService {
         return {'success': false, 'data': []};
       }
 
-      String url = '$_baseUrl/staffs?skip=0&limit=10&role=ADMIN';
+      String url = '$_baseUrl/staffs?page=1&limit=10&role=ADMIN';
       if (search.isNotEmpty) {
         url += '&search=$search';
       }
@@ -66,7 +66,7 @@ class StaffService {
         return {'success': false, 'data': []};
       }
 
-      String url = '$_baseUrl/staffs?skip=0&limit=10&role=DOCTOR';
+      String url = '$_baseUrl/staffs?page=1&limit=10&role=DOCTOR';
       if (search.isNotEmpty) {
         url += '&search=$search';
       }

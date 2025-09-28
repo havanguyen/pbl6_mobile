@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:pbl6mobile/view_model/specialty/specialty_vm.dart';
+import 'package:provider/provider.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 
-import '../../model/services/remote/work_location_service.dart';
-import '../../shared/widgets/widget/location_form.dart';
+import '../../shared/widgets/widget/specialty_form.dart';
 
-class CreateLocationWorkPage extends StatelessWidget {
-  const CreateLocationWorkPage({super.key});
+class CreateSpecialtyPage extends StatelessWidget {
+  const CreateSpecialtyPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +14,7 @@ class CreateLocationWorkPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: context.theme.appBar,
         title: Text(
-          'Tạo địa điểm làm việc',
+          'Tạo chuyên khoa',
           style: TextStyle(color: context.theme.primaryForeground),
         ),
         leading: IconButton(
@@ -24,14 +25,12 @@ class CreateLocationWorkPage extends StatelessWidget {
       backgroundColor: context.theme.bg,
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: LocationForm(
+        child: SpecialtyForm(
           isUpdate: false,
-          onSubmit: ({required name, required address, required phone, required timezone, id}) async {
-            return await LocationWorkService.createLocation(
+          onSubmit: ({required name, description, id}) async {
+            return await Provider.of<SpecialtyVm>(context, listen: false).createSpecialty(
               name: name,
-              address: address,
-              phone: phone,
-              timezone: timezone,
+              description: description,
             );
           },
         ),

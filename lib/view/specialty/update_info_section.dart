@@ -1,21 +1,25 @@
+
 import 'package:flutter/material.dart';
+import 'package:pbl6mobile/view_model/specialty/specialty_vm.dart';
+import 'package:provider/provider.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 
-import '../../model/services/remote/work_location_service.dart';
-import '../../shared/widgets/widget/location_form.dart';
+import '../../shared/widgets/widget/info_section_form.dart';
 
-class UpdateLocationWorkPage extends StatelessWidget {
-  final Map<String, dynamic> location;
+class UpdateInfoSectionPage extends StatelessWidget {
+  final Map<String, dynamic> args;
 
-  const UpdateLocationWorkPage({super.key, required this.location});
+  const UpdateInfoSectionPage({super.key, required this.args});
 
   @override
   Widget build(BuildContext context) {
+    final infoSection = args['infoSection'];
+    final specialtyId = args['specialtyId'];
     return Scaffold(
       appBar: AppBar(
         backgroundColor: context.theme.appBar,
         title: Text(
-          'Chỉnh sửa địa điểm làm việc',
+          'Chỉnh sửa phần thông tin',
           style: TextStyle(color: context.theme.primaryForeground),
         ),
         leading: IconButton(
@@ -26,16 +30,15 @@ class UpdateLocationWorkPage extends StatelessWidget {
       backgroundColor: context.theme.bg,
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: LocationForm(
+        child: InfoSectionForm(
           isUpdate: true,
-          initialData: location,
-          onSubmit: ({required name, required address, required phone, required timezone, id}) async {
-            return await LocationWorkService.updateLocation(
+          initialData: infoSection,
+          specialtyId: specialtyId,
+          onSubmit: ({required name, required content, id}) async {
+            return await Provider.of<SpecialtyVm>(context, listen: false).updateInfoSection(
               id: id!,
               name: name,
-              address: address,
-              phone: phone,
-              timezone: timezone,
+              content: content,
             );
           },
         ),

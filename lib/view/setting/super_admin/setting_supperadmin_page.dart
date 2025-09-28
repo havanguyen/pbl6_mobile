@@ -86,7 +86,7 @@ class SettingSupperAdminPage extends StatelessWidget {
               ),
             ),
             onTap: () {
-              //
+              Navigator.pushNamed(context, Routes.listSpecialty);
             },
           ),
           const Divider(height: 1, color: Colors.grey),

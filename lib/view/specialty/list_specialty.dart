@@ -1,41 +1,47 @@
+// lib/features/specialty/list_specialty.dart
 import 'package:flutter/material.dart';
+import 'package:pbl6mobile/view_model/specialty/specialty_vm.dart';
+import 'package:provider/provider.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/shared/routes/routes.dart';
 import 'package:pbl6mobile/shared/widgets/button/custom_button_blue.dart';
-import 'package:provider/provider.dart';
 
-import '../../model/services/remote/work_location_service.dart';
-import '../../view_model/location_work_management/location_work_vm.dart';
-
-class LocationWorkListPage extends StatefulWidget {
-  const LocationWorkListPage({super.key});
+class ListSpecialtyPage extends StatefulWidget {
+  const ListSpecialtyPage({super.key});
 
   @override
-  State<LocationWorkListPage> createState() => _LocationWorkListPageState();
+  State<ListSpecialtyPage> createState() => _ListSpecialtyPageState();
 }
 
-class _LocationWorkListPageState extends State<LocationWorkListPage> {
+class _ListSpecialtyPageState extends State<ListSpecialtyPage> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<LocationWorkVm>(context, listen: false).fetchLocations();
+      Provider.of<SpecialtyVm>(context, listen: false).fetchSpecialties(refresh: true);
     });
     _searchController.addListener(() {
       setState(() => _searchQuery = _searchController.text);
+    });
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent) {
+        Provider.of<SpecialtyVm>(context, listen: false).fetchSpecialties();
+      }
     });
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
-  void _showDeleteDialog(dynamic location) {
+  void _showDeleteDialog(dynamic specialty) {
     final TextEditingController passwordController = TextEditingController();
     showDialog(
       context: context,
@@ -46,7 +52,7 @@ class _LocationWorkListPageState extends State<LocationWorkListPage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Bạn có chắc chắn muốn xóa địa điểm: ${location['name']}?',
+              'Bạn có chắc chắn muốn xóa chuyên khoa: ${specialty['name']}?',
               style: TextStyle(color: context.theme.popoverForeground),
             ),
             const SizedBox(height: 16),
@@ -57,16 +63,12 @@ class _LocationWorkListPageState extends State<LocationWorkListPage> {
               decoration: InputDecoration(
                 labelText: 'Nhập mật khẩu Admin/Super Admin',
                 labelStyle: TextStyle(color: context.theme.mutedForeground),
-                border: OutlineInputBorder(
-                  borderSide: BorderSide(color: context.theme.border),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: context.theme.ring),
-                ),
+                border: OutlineInputBorder(borderSide: BorderSide(color: context.theme.border)),
+                focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: context.theme.ring)),
                 filled: true,
                 fillColor: context.theme.input,
               ),
-              onSubmitted: (_) => _confirmDelete(location, passwordController.text),
+              onSubmitted: (_) => _confirmDelete(specialty['id'], passwordController.text),
             ),
           ],
         ),
@@ -76,7 +78,7 @@ class _LocationWorkListPageState extends State<LocationWorkListPage> {
             child: Text('Hủy', style: TextStyle(color: context.theme.mutedForeground)),
           ),
           TextButton(
-            onPressed: () => _confirmDelete(location, passwordController.text),
+            onPressed: () => _confirmDelete(specialty['id'], passwordController.text),
             child: Text('Xóa', style: TextStyle(color: context.theme.destructive)),
           ),
         ],
@@ -84,24 +86,21 @@ class _LocationWorkListPageState extends State<LocationWorkListPage> {
     );
   }
 
-  Future<void> _confirmDelete(dynamic location, String password) async {
-    final success = await LocationWorkService.deleteLocation(location['id'], password: password);
+  Future<void> _confirmDelete(String id, String password) async {
     Navigator.pop(context);
+    final provider = Provider.of<SpecialtyVm>(context, listen: false);
+    final success = await provider.deleteSpecialty(id, password);
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Xóa địa điểm thành công!', style: TextStyle(color: context.theme.primaryForeground)),
+          content: Text('Xóa chuyên khoa thành công!', style: TextStyle(color: context.theme.primaryForeground)),
           backgroundColor: context.theme.green,
         ),
       );
-      Provider.of<LocationWorkVm>(context, listen: false).fetchLocations();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'Xóa thất bại. Kiểm tra mật khẩu hoặc thử lại.',
-            style: TextStyle(color: context.theme.destructiveForeground),
-          ),
+          content: Text('Xóa thất bại. Kiểm tra mật khẩu hoặc thử lại.', style: TextStyle(color: context.theme.destructiveForeground)),
           backgroundColor: context.theme.destructive,
         ),
       );
@@ -114,7 +113,7 @@ class _LocationWorkListPageState extends State<LocationWorkListPage> {
       appBar: AppBar(
         backgroundColor: context.theme.appBar,
         title: Text(
-          'Quản lý địa điểm làm việc',
+          'Quản lý Chuyên khoa',
           style: TextStyle(color: context.theme.primaryForeground),
         ),
         leading: IconButton(
@@ -124,7 +123,7 @@ class _LocationWorkListPageState extends State<LocationWorkListPage> {
         actions: [
           IconButton(
             icon: Icon(Icons.refresh, color: context.theme.primaryForeground),
-            onPressed: () => Provider.of<LocationWorkVm>(context, listen: false).fetchLocations(),
+            onPressed: () => Provider.of<SpecialtyVm>(context, listen: false).fetchSpecialties(refresh: true),
           ),
         ],
       ),
@@ -139,15 +138,11 @@ class _LocationWorkListPageState extends State<LocationWorkListPage> {
                   controller: _searchController,
                   style: TextStyle(color: context.theme.textColor),
                   decoration: InputDecoration(
-                    labelText: 'Tìm kiếm theo tên hoặc địa chỉ',
+                    labelText: 'Tìm kiếm theo tên',
                     labelStyle: TextStyle(color: context.theme.mutedForeground),
                     prefixIcon: Icon(Icons.search, color: context.theme.primary),
-                    border: OutlineInputBorder(
-                      borderSide: BorderSide(color: context.theme.border),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: context.theme.ring),
-                    ),
+                    border: OutlineInputBorder(borderSide: BorderSide(color: context.theme.border)),
+                    focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: context.theme.ring)),
                     filled: true,
                     fillColor: context.theme.input,
                     suffixIcon: _searchQuery.isNotEmpty
@@ -163,49 +158,51 @@ class _LocationWorkListPageState extends State<LocationWorkListPage> {
                 ),
                 const SizedBox(height: 16),
                 CustomButtonBlue(
-                  onTap: () => Navigator.pushNamed(context, Routes.createLocationWork),
-                  text: 'Thêm địa điểm làm việc',
+                  onTap: () => Navigator.pushNamed(context, Routes.createSpecialty),
+                  text: 'Thêm chuyên khoa',
                 ),
               ],
             ),
           ),
           Expanded(
-            child: Consumer<LocationWorkVm>(
+            child: Consumer<SpecialtyVm>(
               builder: (context, provider, child) {
-                if (provider.isLoading) {
+                if (provider.isLoading && provider.specialties.isEmpty) {
                   return Center(child: CircularProgressIndicator(color: context.theme.primary));
                 }
                 if (provider.error != null) {
                   return Center(child: Text(provider.error!, style: TextStyle(color: context.theme.destructive)));
                 }
-
-                final filteredLocations = provider.locations.where((loc) {
-                  final name = loc['name']?.toLowerCase() ?? '';
-                  final address = loc['address']?.toLowerCase() ?? '';
+                final filteredSpecialties = provider.specialties.where((spec) {
+                  final name = spec['name']?.toLowerCase() ?? '';
                   final query = _searchQuery.toLowerCase();
-                  return name.contains(query) || address.contains(query);
+                  return name.contains(query);
                 }).toList();
 
-                if (filteredLocations.isEmpty) {
+                if (filteredSpecialties.isEmpty) {
                   return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.location_off, size: 64, color: context.theme.mutedForeground),
+                        Icon(Icons.medical_information_outlined, size: 64, color: context.theme.muted),
                         const SizedBox(height: 16),
                         Text(
-                          _searchQuery.isEmpty ? 'Chưa có địa điểm nào' : 'Không tìm thấy địa điểm phù hợp',
-                          style: TextStyle(color: context.theme.mutedForeground),
+                          _searchQuery.isNotEmpty ? 'Không tìm thấy chuyên khoa phù hợp' : 'Danh sách chuyên khoa trống',
+                          style: TextStyle(fontSize: 18, color: context.theme.mutedForeground),
+                          textAlign: TextAlign.center,
                         ),
                       ],
                     ),
                   );
                 }
-
                 return ListView.builder(
-                  itemCount: filteredLocations.length,
+                  controller: _scrollController,
+                  itemCount: filteredSpecialties.length + (provider.hasMore ? 1 : 0),
                   itemBuilder: (context, index) {
-                    final location = filteredLocations[index];
+                    if (index == filteredSpecialties.length) {
+                      return Center(child: CircularProgressIndicator(color: context.theme.primary));
+                    }
+                    final specialty = filteredSpecialties[index];
                     return Card(
                       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                       color: context.theme.card,
@@ -214,20 +211,16 @@ class _LocationWorkListPageState extends State<LocationWorkListPage> {
                         leading: CircleAvatar(
                           backgroundColor: context.theme.primary,
                           child: Text(
-                            location['name']?[0].toUpperCase() ?? 'L',
+                            specialty['name']?[0].toUpperCase() ?? 'S',
                             style: TextStyle(color: context.theme.primaryForeground),
                           ),
                         ),
-                        title: Text(
-                          location['name'] ?? 'N/A',
-                          style: TextStyle(color: context.theme.cardForeground),
-                        ),
+                        title: Text(specialty['name'] ?? 'N/A'),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(location['address'] ?? 'N/A', style: TextStyle(color: context.theme.mutedForeground)),
-                            Text('SĐT: ${location['phone'] ?? 'N/A'}', style: TextStyle(color: context.theme.mutedForeground)),
-                            Text('Múi giờ: ${location['timezone'] ?? 'N/A'}', style: TextStyle(color: context.theme.mutedForeground)),
+                            Text(specialty['description'] ?? 'N/A', style: TextStyle(color: context.theme.mutedForeground)),
+                            Text('Số phần thông tin: ${specialty['infoSectionsCount'] ?? 0}', style: TextStyle(color: context.theme.mutedForeground)),
                           ],
                         ),
                         trailing: Row(
@@ -237,15 +230,20 @@ class _LocationWorkListPageState extends State<LocationWorkListPage> {
                               icon: Icon(Icons.edit, color: context.theme.primary),
                               onPressed: () => Navigator.pushNamed(
                                 context,
-                                Routes.updateLocationWork,
-                                arguments: location,
+                                Routes.updateSpecialty,
+                                arguments: specialty,
                               ),
                             ),
                             IconButton(
                               icon: Icon(Icons.delete, color: context.theme.destructive),
-                              onPressed: () => _showDeleteDialog(location),
+                              onPressed: () => _showDeleteDialog(specialty),
                             ),
                           ],
+                        ),
+                        onTap: () => Navigator.pushNamed(
+                          context,
+                          Routes.specialtyDetail,
+                          arguments: specialty,
                         ),
                       ),
                     );

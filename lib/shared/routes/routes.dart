@@ -19,6 +19,12 @@ import '../../view/location_work_management/update_location_work.dart';
 import '../../view/main_page/admin/main_page_admin.dart';
 import '../../view/setting/admin/setting_admin_page.dart';
 import '../../view/setting/doctor/setting_doctor_page.dart';
+import '../../view/specialty/create_info_section.dart';
+import '../../view/specialty/create_specialty.dart';
+import '../../view/specialty/list_specialty.dart';
+import '../../view/specialty/specialty_detail.dart';
+import '../../view/specialty/update_info_section.dart';
+import '../../view/specialty/update_specialty.dart';
 
 class Routes {
   static const login = '/login';
@@ -38,6 +44,12 @@ class Routes {
   static const listLocationWork = '/listLocationWork';
   static const createLocationWork = '/createLocationWork';
   static const updateLocationWork = '/updateLocationWork';
+  static const listSpecialty = '/listSpecialty';
+  static const createSpecialty = '/createSpecialty';
+  static const updateSpecialty = '/updateSpecialty';
+  static const specialtyDetail = '/specialtyDetail';
+  static const createInfoSection = '/createInfoSection';
+  static const updateInfoSection = '/updateInfoSection';
 
 
 
@@ -54,6 +66,46 @@ class Routes {
           type: PageTransitionType.fade,
           settings: settings,
           child: const MainPageDoctor(),
+        );
+        case listSpecialty:
+        return PageTransition(
+          type: PageTransitionType.fade,
+          settings: settings,
+          child: const ListSpecialtyPage(),
+        );
+        case createSpecialty:
+        return PageTransition(
+          type: PageTransitionType.leftToRight,
+          settings: settings,
+          child: const CreateSpecialtyPage(),
+        );
+        case updateInfoSection:
+        final arg = settings.arguments as Map<String, dynamic>?;
+        return PageTransition(
+          type: PageTransitionType.leftToRight,
+          settings: settings,
+          child: UpdateInfoSectionPage(args: arg!),
+        );
+        case createInfoSection:
+        final specialtyId = settings.arguments as String?;
+        return PageTransition(
+          type: PageTransitionType.leftToRight,
+          settings: settings,
+          child: CreateInfoSectionPage(specialtyId: specialtyId!),
+        );
+        case updateSpecialty:
+        final specialty = settings.arguments as Map<String, dynamic>?;
+        return PageTransition(
+          type: PageTransitionType.leftToRight,
+          settings: settings,
+          child:  UpdateSpecialtyPage(specialty: specialty!,),
+        );
+        case specialtyDetail:
+        final specialty = settings.arguments as Map<String, dynamic>?;
+        return PageTransition(
+          type: PageTransitionType.leftToRight,
+          settings: settings,
+          child:  SpecialtyDetailPage(specialty: specialty!,),
         );
         case listLocationWork:
         return PageTransition(
