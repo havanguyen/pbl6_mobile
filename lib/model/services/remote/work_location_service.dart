@@ -252,12 +252,14 @@ class LocationWorkService {
     try {
       final String? accessToken = await Store.getAccessToken();
       if (accessToken == null) {
+        print('No access token for delete location');
         return false;
       }
-
-      final Map<String, dynamic> requestBody = {
-        'password': password,
-      };
+      final bool isPasswordValid = await AuthService.verifyPassword(password: password);
+      if (!isPasswordValid) {
+        print('Password verification failed');
+        return false;
+      }
 
       final response = await http.delete(
         Uri.parse('$_baseUrl/work-locations/$id'),
@@ -265,30 +267,53 @@ class LocationWorkService {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $accessToken',
         },
-        body: jsonEncode(requestBody),
       ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200 || response.statusCode == 204) {
+        print('Location deleted successfully');
         return true;
       } else if (response.statusCode == 401) {
-        final refreshSuccess = await AuthService.refreshToken();
-        if (refreshSuccess) {
-          final newAccessToken = await Store.getAccessToken();
-          if (newAccessToken != null) {
-            final retryResponse = await http.delete(
-              Uri.parse('$_baseUrl/work-locations/$id'),
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer $newAccessToken',
-              },
-              body: jsonEncode(requestBody),
-            ).timeout(const Duration(seconds: 10));
-            if (retryResponse.statusCode == 200 || retryResponse.statusCode == 204) {
-              return true;
+        final bool refreshSuccess = await AuthService.refreshToken();
+        if (!refreshSuccess) {
+          print('Failed to refresh token for delete location');
+          return false;
+        }
+
+        final String? newAccessToken = await Store.getAccessToken();
+        if (newAccessToken == null) {
+          print('No new access token after refresh for delete location');
+          return false;
+        }
+
+        // Retry password verification with new token
+        final bool retryPasswordValid = await AuthService.verifyPassword(password: password);
+        if (!retryPasswordValid) {
+          print('Password verification failed after refresh');
+          return false;
+        }
+
+        final retryResponse = await http.delete(
+          Uri.parse('$_baseUrl/work-locations/$id'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $newAccessToken',
+          },
+        ).timeout(const Duration(seconds: 10));
+
+        if (retryResponse.statusCode == 200 || retryResponse.statusCode == 204) {
+          print('Location deleted successfully after refresh');
+          return true;
+        } else {
+          if (retryResponse.body.isNotEmpty) {
+            try {
+              final Map<String, dynamic> errorData = jsonDecode(retryResponse.body);
+              print('Delete location error after refresh: ${errorData['message'] ?? 'Unknown error'}');
+            } catch (e) {
+              print('Delete location parse error after refresh: $e');
             }
           }
+          return false;
         }
-        return false;
       } else {
         if (response.body.isNotEmpty) {
           try {
@@ -301,7 +326,7 @@ class LocationWorkService {
         return false;
       }
     } catch (e) {
-      print('Delete location error: $e');
+      print('Delete location network error: $e');
       return false;
     }
   }

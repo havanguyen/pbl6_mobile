@@ -1,4 +1,3 @@
-// lib/model/services/remote/specialty_service.dart
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';

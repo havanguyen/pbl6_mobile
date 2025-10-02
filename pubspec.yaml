@@ -25,6 +25,8 @@ dependencies:
   retry: ^3.1.2
   html_editor_enhanced: ^2.7.1
   flutter_html: ^3.0.0
+  timezone: ^0.10.1
+  dropdown_button2: ^2.3.9
 
 dev_dependencies:
   flutter_test:
@@ -43,5 +45,6 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/data/
     - .env
 

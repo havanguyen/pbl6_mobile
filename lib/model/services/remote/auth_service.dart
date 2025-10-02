@@ -288,4 +288,72 @@ class AuthService {
       return null;
     }
   }
+  static Future<bool> verifyPassword({
+    required String password,
+  }) async {
+    try {
+      final String? accessToken = await Store.getAccessToken();
+      if (accessToken == null) {
+        print('No access token for verify password');
+        return false;
+      }
+
+      final Map<String, dynamic> requestBody = {
+        'password': password,
+      };
+
+      final response = await http.post(
+        Uri.parse('$_baseUrl/auth/verify-password'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode(requestBody),
+      ).timeout(const Duration(seconds: 10));
+
+      print('Verify password response: ${response.body}');
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        final bool success = responseData['success'] ?? false;
+        return success;
+      } else if (response.statusCode == 401) {
+        // token hết hạn → refresh lại
+        final bool refreshSuccess = await refreshToken();
+        if (!refreshSuccess) {
+          print('Failed to refresh token for verify password');
+          return false;
+        }
+
+        final String? newAccessToken = await Store.getAccessToken();
+        if (newAccessToken == null) {
+          print('No new access token after refresh for verify password');
+          return false;
+        }
+
+        final retryResponse = await http.post(
+          Uri.parse('$_baseUrl/auth/verify-password'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $newAccessToken',
+          },
+          body: jsonEncode(requestBody),
+        ).timeout(const Duration(seconds: 10));
+
+        if (retryResponse.statusCode >= 200 && retryResponse.statusCode < 300) {
+          final Map<String, dynamic> retryData = jsonDecode(retryResponse.body);
+          return retryData['success'] ?? false;
+        } else {
+          print('Verify password failed after refresh: ${retryResponse.statusCode}');
+          return false;
+        }
+      } else {
+        print('Verify password failed: ${response.statusCode}');
+        return false;
+      }
+    } catch (e) {
+      print('Verify password network error: $e');
+      return false;
+    }
+  }
 }

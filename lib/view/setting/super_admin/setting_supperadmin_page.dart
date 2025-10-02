@@ -153,6 +153,9 @@ class SettingSupperAdminPage extends StatelessWidget {
                 DropdownMenuItem(value: ThemeMode.dark,
                     child: Text('Dark',
                         style: TextStyle(color: context.theme.textColor))),
+                DropdownMenuItem(value: ThemeMode.system,
+                    child: Text('System',
+                        style: TextStyle(color: context.theme.textColor))),
               ],
               onChanged: (value) {
                 if (value != null) {

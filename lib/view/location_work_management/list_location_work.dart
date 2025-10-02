@@ -34,59 +34,99 @@ class _LocationWorkListPageState extends State<LocationWorkListPage> {
     _searchController.dispose();
     super.dispose();
   }
-
   void _showDeleteDialog(dynamic location) {
     final TextEditingController passwordController = TextEditingController();
+    bool isDeleting = false; // trạng thái loading
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: context.theme.popover,
-        title: Text('Xác nhận xóa', style: TextStyle(color: context.theme.popoverForeground)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Bạn có chắc chắn muốn xóa địa điểm: ${location['name']}?',
-              style: TextStyle(color: context.theme.popoverForeground),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: passwordController,
-              obscureText: true,
-              style: TextStyle(color: context.theme.textColor),
-              decoration: InputDecoration(
-                labelText: 'Nhập mật khẩu Admin/Super Admin',
-                labelStyle: TextStyle(color: context.theme.mutedForeground),
-                border: OutlineInputBorder(
-                  borderSide: BorderSide(color: context.theme.border),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: context.theme.ring),
-                ),
-                filled: true,
-                fillColor: context.theme.input,
+      barrierDismissible: false,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              backgroundColor: context.theme.popover,
+              title: Text(
+                'Xác nhận xóa',
+                style: TextStyle(color: context.theme.popoverForeground),
               ),
-              onSubmitted: (_) => _confirmDelete(location, passwordController.text),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Hủy', style: TextStyle(color: context.theme.mutedForeground)),
-          ),
-          TextButton(
-            onPressed: () => _confirmDelete(location, passwordController.text),
-            child: Text('Xóa', style: TextStyle(color: context.theme.destructive)),
-          ),
-        ],
-      ),
-    );
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Bạn có chắc chắn muốn xóa địa điểm: ${location['name']}?',
+                    style: TextStyle(color: context.theme.popoverForeground),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: passwordController,
+                    obscureText: true,
+                    style: TextStyle(color: context.theme.textColor),
+                    decoration: InputDecoration(
+                      labelText: 'Nhập mật khẩu Admin/Super Admin',
+                      labelStyle: TextStyle(color: context.theme.mutedForeground),
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(color: context.theme.border),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: context.theme.ring),
+                      ),
+                      filled: true,
+                      fillColor: context.theme.input,
+                    ),
+                    onSubmitted: (_) async {
+                      setState(() => isDeleting = true);
+                      await _confirmDelete(location, passwordController.text);
+                      setState(() => isDeleting = false);
+                    },
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isDeleting ? null : () => Navigator.pop(context),
+                  child: Text('Hủy', style: TextStyle(color: context.theme.mutedForeground)),
+                ),
+                isDeleting
+                    ? const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+                    : TextButton(
+                  onPressed: () async {
+                    setState(() => isDeleting = true);
+                    await _confirmDelete(location, passwordController.text);
+                    setState(() => isDeleting = false);
+                  },
+                  child: Text('Xóa', style: TextStyle(color: context.theme.destructive)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    ).then((_) => passwordController.dispose());
   }
 
   Future<void> _confirmDelete(dynamic location, String password) async {
+    if (password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Vui lòng nhập mật khẩu để xác nhận xóa.',
+            style: TextStyle(color: context.theme.destructiveForeground),
+          ),
+          backgroundColor: context.theme.destructive,
+        ),
+      );
+      return;
+    }
+
     final success = await LocationWorkService.deleteLocation(location['id'], password: password);
+
     Navigator.pop(context);
+
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -107,6 +147,7 @@ class _LocationWorkListPageState extends State<LocationWorkListPage> {
       );
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
