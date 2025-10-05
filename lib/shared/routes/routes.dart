@@ -6,6 +6,7 @@ import 'package:pbl6mobile/view/main_page/doctor/main_page_doctor.dart';
 import 'package:pbl6mobile/view/main_page/super_admin/main_page_super_admin.dart';
 import 'package:pbl6mobile/view/setting/super_admin/setting_supperadmin_page.dart';
 
+import '../../model/entities/work_location.dart';
 import '../../view/admin_management/create_admin_page.dart';
 import '../../view/admin_management/list_admin_page.dart';
 import '../../view/admin_management/update_admin_page.dart';
@@ -120,11 +121,11 @@ class Routes {
           child: const CreateLocationWorkPage(),
         );
         case updateLocationWork:
-          final location = settings.arguments as Map<String, dynamic>?;
+          final location = settings.arguments as WorkLocation;
           return PageTransition(
             type: PageTransitionType.leftToRight,
             settings: settings,
-            child: UpdateLocationWorkPage(location: location!,),
+            child: UpdateLocationWorkPage(location: location,),
           );
         case settingDoctor:
         return PageTransition(

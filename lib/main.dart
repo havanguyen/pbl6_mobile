@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -7,13 +6,14 @@ import 'package:pbl6mobile/shared/routes/routes.dart';
 import 'package:pbl6mobile/shared/themes/cubit/theme_cubit.dart';
 import 'package:pbl6mobile/shared/themes/cubit/theme_state.dart';
 import 'package:pbl6mobile/view/splash/splash.dart';
+import 'package:pbl6mobile/view_model/admin_management/admin_management_vm.dart';
 import 'package:pbl6mobile/view_model/location_work_management/location_work_vm.dart';
+import 'package:pbl6mobile/view_model/location_work_management/snackbar_service.dart';
 import 'package:pbl6mobile/view_model/specialty/specialty_vm.dart';
 import 'package:provider/provider.dart';
 
-Future  main() async  {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   await dotenv.load(fileName: ".env");
   runApp(const MyApp());
 }
@@ -43,9 +43,11 @@ class PBL6 extends StatefulWidget {
 class _PBL6State extends State<PBL6> {
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
+    return MultiProvider(
       providers: [
+        ChangeNotifierProvider<SnackbarService>(create: (_) => SnackbarService()),
         ChangeNotifierProvider<LocationWorkVm>(create: (_) => LocationWorkVm()),
+        ChangeNotifierProvider<StaffVm>(create: (_) => StaffVm()),
         ChangeNotifierProvider<SpecialtyVm>(create: (_) => SpecialtyVm()),
         BlocProvider<ThemeCubit>(
           create: (_) => ThemeCubit()..loadTheme(),

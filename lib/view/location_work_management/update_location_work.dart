@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:pbl6mobile/model/entities/work_location.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 
 import '../../model/services/remote/work_location_service.dart';
 import '../../shared/widgets/widget/location_form.dart';
 
 class UpdateLocationWorkPage extends StatelessWidget {
-  final Map<String, dynamic> location;
+  final WorkLocation location;
 
   const UpdateLocationWorkPage({super.key, required this.location});
 

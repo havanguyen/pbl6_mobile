@@ -66,5 +66,4 @@ class Profile with _$Profile {
   @override
   // TODO: implement updatedAt
   DateTime get updatedAt => throw UnimplementedError();
-
 }

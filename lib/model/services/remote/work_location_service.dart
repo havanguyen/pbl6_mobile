@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:pbl6mobile/shared/services/store.dart';
-
 import 'auth_service.dart';
 
 class LocationWorkService {
@@ -10,14 +9,20 @@ class LocationWorkService {
   static const LocationWorkService instance = LocationWorkService._();
   static final String? _baseUrl = dotenv.env['API_BASE_URL'];
 
-  static Future<Map<String, dynamic>> getAllLocations({String sortBy = 'createdAt', String sortOrder = 'ASC'}) async {
+  static Future<Map<String, dynamic>> getAllLocations({
+    String sortBy = 'createdAt',
+    String sortOrder = 'ASC',
+    int page = 1,
+    int limit = 10,
+  }) async {
     try {
       final String? accessToken = await Store.getAccessToken();
       if (accessToken == null) {
         return {'success': false, 'data': []};
       }
 
-      final url = '$_baseUrl/work-locations/public?sortBy=$sortBy&sortOrder=$sortOrder';
+      final url = '$_baseUrl/work-locations?sortBy=$sortBy&sortOrder=$sortOrder&includeMetadata=true&page=$page';
+      print(url);
       final response = await http.get(
         Uri.parse(url),
         headers: {
@@ -46,6 +51,12 @@ class LocationWorkService {
           }
         }
         return {'success': false, 'data': []};
+      } else if (response.statusCode == 429) {
+        return {
+          'success': false,
+          'data': [],
+          'message': 'ThrottlerException: Too Many Requests. Please try again later.'
+        };
       } else {
         if (response.body.isNotEmpty) {
           try {
@@ -62,6 +73,7 @@ class LocationWorkService {
       return {'success': false, 'data': []};
     }
   }
+
   static Future<Map<String, dynamic>> getLocationById(String id) async {
     try {
       final String? accessToken = await Store.getAccessToken();
@@ -97,6 +109,12 @@ class LocationWorkService {
           }
         }
         return {'success': false, 'data': null};
+      } else if (response.statusCode == 429) {
+        return {
+          'success': false,
+          'data': [],
+          'message': 'ThrottlerException: Too Many Requests. Please try again later.'
+        };
       } else {
         if (response.body.isNotEmpty) {
           try {
@@ -113,6 +131,7 @@ class LocationWorkService {
       return {'success': false, 'data': null};
     }
   }
+
   static Future<bool> createLocation({
     required String name,
     required String address,
@@ -178,12 +197,14 @@ class LocationWorkService {
       return false;
     }
   }
+
   static Future<bool> updateLocation({
     required String id,
     String? name,
     String? address,
     String? phone,
     String? timezone,
+    bool? isActive,
   }) async {
     try {
       final String? accessToken = await Store.getAccessToken();
@@ -196,6 +217,7 @@ class LocationWorkService {
       if (address != null && address.isNotEmpty) requestBody['address'] = address;
       if (phone != null && phone.isNotEmpty) requestBody['phone'] = phone;
       if (timezone != null && timezone.isNotEmpty) requestBody['timezone'] = timezone;
+      if (isActive != null) requestBody['isActive'] = isActive;
 
       if (requestBody.isEmpty) {
         print('No fields to update');
@@ -248,6 +270,7 @@ class LocationWorkService {
       return false;
     }
   }
+
   static Future<bool> deleteLocation(String id, {required String password}) async {
     try {
       final String? accessToken = await Store.getAccessToken();
@@ -284,8 +307,6 @@ class LocationWorkService {
           print('No new access token after refresh for delete location');
           return false;
         }
-
-        // Retry password verification with new token
         final bool retryPasswordValid = await AuthService.verifyPassword(password: password);
         if (!retryPasswordValid) {
           print('Password verification failed after refresh');

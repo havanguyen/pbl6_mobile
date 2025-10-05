@@ -33,7 +33,7 @@ class CreateLocationWorkPage extends StatelessWidget {
               phone: phone,
               timezone: timezone,
             );
-          },
+          }, initialData: null,
         ),
       ),
     );

@@ -10,5 +10,6 @@ class ThemeState with _$ThemeState {
   }) = _ThemeState;
 
   @override
+  // TODO: implement themeMode
   ThemeMode get themeMode => throw UnimplementedError();
 }

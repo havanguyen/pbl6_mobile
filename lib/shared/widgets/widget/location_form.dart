@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:pbl6mobile/model/entities/work_location.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/shared/widgets/button/custom_button_blue.dart';
 import 'package:timezone/data/latest.dart' as tzData;
@@ -9,7 +10,7 @@ import '../../../model/services/remote/address_service.dart';
 
 class LocationForm extends StatefulWidget {
   final bool isUpdate;
-  final Map<String, dynamic>? initialData;
+  final WorkLocation? initialData;
   final Future<bool> Function({
   required String name,
   required String address,
@@ -21,7 +22,7 @@ class LocationForm extends StatefulWidget {
   const LocationForm({
     super.key,
     required this.isUpdate,
-    this.initialData,
+    required this.initialData,
     required this.onSubmit,
   });
 
@@ -29,7 +30,7 @@ class LocationForm extends StatefulWidget {
   State<LocationForm> createState() => _LocationFormState();
 }
 
-class _LocationFormState extends State<LocationForm> {
+class _LocationFormState extends State<LocationForm> with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _phoneController;
@@ -49,27 +50,56 @@ class _LocationFormState extends State<LocationForm> {
   Map<String, String> _districts = {};
   Map<String, String> _wards = {};
 
+  // Animation Controllers
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<double> _slideAnimation;
+
   @override
   void initState() {
     super.initState();
-    _nameController =
-        TextEditingController(text: widget.initialData?['name'] ?? '');
-    _phoneController =
-        TextEditingController(text: widget.initialData?['phone'] ?? '');
+    _nameController = TextEditingController(text: widget.initialData?.name);
+    _phoneController = TextEditingController(text: widget.initialData?.phone);
     _detailAddressController = TextEditingController();
 
-    _selectedTimezone = widget.initialData?['timezone'] ?? 'Asia/Ho_Chi_Minh';
+    _selectedTimezone = widget.initialData?.timezone;
 
     tzData.initializeTimeZones();
     _timezones = tz.timeZoneDatabase.locations.keys.toList();
 
-    _loadData();
+    // Initialize animations
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    ));
+
+    _slideAnimation = Tween<double>(
+      begin: 30.0,
+      end: 0.0,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeOutCubic,
+    ));
+
+    _loadData().then((_) {
+      if (mounted) {
+        _animationController.forward();
+      }
+    });
   }
 
   Future<void> _loadData() async {
     await _fetchProvinces();
-    if (widget.isUpdate && widget.initialData?['address'] != null) {
-      await _parseAndSetAddress(widget.initialData!['address']);
+    if (widget.isUpdate) {
+      await _parseAndSetAddress(widget.initialData!.address);
     }
   }
 
@@ -188,17 +218,18 @@ class _LocationFormState extends State<LocationForm> {
     _nameController.dispose();
     _phoneController.dispose();
     _detailAddressController.dispose();
+    _animationController.dispose();
     super.dispose();
   }
 
-  void _submitForm() async {
+  void _submitForm(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
       final address =
           '${_detailAddressController.text}, ${_wards[_selectedWardId] ?? ''}, ${_districts[_selectedDistrictId] ?? ''}, ${_provinces[_selectedProvinceId] ?? ''}';
 
       setState(() => _isLoading = true);
       final success = await widget.onSubmit(
-        id: widget.initialData?['id'],
+        id: widget.initialData?.id,
         name: _nameController.text,
         address: address,
         phone: _phoneController.text,
@@ -207,34 +238,12 @@ class _LocationFormState extends State<LocationForm> {
       setState(() => _isLoading = false);
 
       if (success) {
-        _showSuccessDialog();
+        Navigator.of(context).pop(true);
       } else {
         _showErrorDialog(
             '${widget.isUpdate ? 'Cập nhật' : 'Tạo'} địa điểm thất bại. Vui lòng thử lại.');
       }
     }
-  }
-
-  void _showSuccessDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: context.theme.popover,
-        title: Text('Thành công',
-            style: TextStyle(color: context.theme.popoverForeground)),
-        content: Text(
-            '${widget.isUpdate ? 'Cập nhật' : 'Tạo'} địa điểm thành công!',
-            style: TextStyle(color: context.theme.popoverForeground)),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: Text('OK', style: TextStyle(color: context.theme.primary)),
-          ),
-        ],
-      ),
-    );
   }
 
   void _showErrorDialog(String message) {
@@ -255,235 +264,541 @@ class _LocationFormState extends State<LocationForm> {
     );
   }
 
+  Widget _buildAnimatedFormField({
+    required int index,
+    required Widget child,
+  }) {
+    final delay = index * 100;
+    final animation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Interval(
+        delay / 1000,
+        1.0,
+        curve: Curves.easeOutCubic,
+      ),
+    ));
+
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (context, child) {
+        return Transform.translate(
+          offset: Offset(0, (1 - animation.value) * 20),
+          child: Opacity(
+            opacity: animation.value,
+            child: child,
+          ),
+        );
+      },
+      child: child,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (!_dataLoaded) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(color: context.theme.primary),
+            const SizedBox(height: 16),
+            Text(
+              'Đang tải dữ liệu...',
+              style: TextStyle(
+                color: context.theme.mutedForeground,
+              ),
+            ),
+          ],
+        ),
+      );
     }
 
     return Form(
       key: _formKey,
       child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            TextFormField(
-              controller: _nameController,
-              style: TextStyle(color: context.theme.textColor),
-              decoration: InputDecoration(
-                labelText: 'Tên địa điểm',
-                prefixIcon: Icon(Icons.location_on, color: context.theme.primary),
-                border: OutlineInputBorder(
-                    borderSide: BorderSide(color: context.theme.border)),
-                focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: context.theme.ring)),
-                filled: true,
-                fillColor: context.theme.input,
-              ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Vui lòng nhập tên địa điểm';
-                }
-                if (value.length < 10 || value.length > 200) {
-                  return 'Tên phải từ 10 đến 200 ký tự';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
-
-            // Province
-            DropdownButtonFormField2<String>(
-              value: _selectedProvinceId,
-              isExpanded: true,
-              style: TextStyle(color: context.theme.textColor),
-              decoration: InputDecoration(
-                labelText: 'Tỉnh/Thành phố',
-                prefixIcon: Icon(Icons.map, color: context.theme.primary),
-                border: OutlineInputBorder(
-                    borderSide: BorderSide(color: context.theme.border)),
-                focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: context.theme.ring)),
-                filled: true,
-                fillColor: context.theme.input,
-              ),
-              items: _provinces.entries
-                  .map((e) =>
-                  DropdownMenuItem(value: e.key, child: Text(e.value)))
-                  .toList(),
-              onChanged: (value) async {
-                setState(() {
-                  _selectedProvinceId = value;
-                  _selectedDistrictId = null;
-                  _selectedWardId = null;
-                  _districts.clear();
-                  _wards.clear();
-                });
-                if (value != null) {
-                  await _fetchDistricts(value);
-                }
-              },
-              validator: (value) =>
-              value == null ? 'Vui lòng chọn tỉnh/thành phố' : null,
-              dropdownStyleData: const DropdownStyleData(
-                maxHeight: 300, // 👈 Giới hạn chiều cao dropdown
+            // Location Name Field
+            _buildAnimatedFormField(
+              index: 0,
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: context.theme.border.withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: TextFormField(
+                  controller: _nameController,
+                  style: TextStyle(
+                    color: context.theme.textColor,
+                    fontSize: 16,
+                  ),
+                  decoration: InputDecoration(
+                    labelText: 'Tên địa điểm',
+                    prefixIcon: Icon(Icons.location_on, color: context.theme.primary),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: context.theme.border),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: context.theme.primary,
+                        width: 1.5,
+                      ),
+                    ),
+                    filled: true,
+                    fillColor: context.theme.input,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Vui lòng nhập tên địa điểm';
+                    }
+                    if (value.length < 10 || value.length > 200) {
+                      return 'Tên phải từ 10 đến 200 ký tự';
+                    }
+                    return null;
+                  },
+                ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
 
-            // District
-            DropdownButtonFormField2<String>(
-              value: _selectedDistrictId,
-              isExpanded: true,
-              style: TextStyle(color: context.theme.textColor),
-              decoration: InputDecoration(
-                labelText: 'Quận/Huyện',
-                prefixIcon: Icon(Icons.map, color: context.theme.primary),
-                border: OutlineInputBorder(
-                    borderSide: BorderSide(color: context.theme.border)),
-                focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: context.theme.ring)),
-                filled: true,
-                fillColor: context.theme.input,
-              ),
-              items: _districts.entries
-                  .map((e) =>
-                  DropdownMenuItem(value: e.key, child: Text(e.value)))
-                  .toList(),
-              onChanged: (value) async {
-                setState(() {
-                  _selectedDistrictId = value;
-                  _selectedWardId = null;
-                  _wards.clear();
-                });
-                if (value != null) {
-                  await _fetchWards(value);
-                }
-              },
-              validator: (value) =>
-              value == null ? 'Vui lòng chọn quận/huyện' : null,
-              dropdownStyleData: const DropdownStyleData(
-                maxHeight: 300,
+            // Province Dropdown
+            _buildAnimatedFormField(
+              index: 1,
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: context.theme.border.withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: DropdownButtonFormField2<String>(
+                  value: _selectedProvinceId,
+                  isExpanded: true,
+                  style: TextStyle(
+                    color: context.theme.textColor,
+                    fontSize: 16,
+                  ),
+                  decoration: InputDecoration(
+                    labelText: 'Tỉnh/Thành phố',
+                    prefixIcon: Icon(Icons.map, color: context.theme.primary),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: context.theme.border),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: context.theme.primary,
+                        width: 1.5,
+                      ),
+                    ),
+                    filled: true,
+                    fillColor: context.theme.input,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                  ),
+                  items: _provinces.entries
+                      .map((e) => DropdownMenuItem(
+                    value: e.key,
+                    child: Text(
+                      e.value,
+                      style: TextStyle(color: context.theme.textColor),
+                    ),
+                  ))
+                      .toList(),
+                  onChanged: (value) async {
+                    setState(() {
+                      _selectedProvinceId = value;
+                      _selectedDistrictId = null;
+                      _selectedWardId = null;
+                      _districts.clear();
+                      _wards.clear();
+                    });
+                    if (value != null) {
+                      await _fetchDistricts(value);
+                    }
+                  },
+                  validator: (value) => value == null ? 'Vui lòng chọn tỉnh/thành phố' : null,
+                  dropdownStyleData: DropdownStyleData(
+                    maxHeight: 300,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: context.theme.input,
+                    ),
+                  ),
+                ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
 
-            // Ward
-            DropdownButtonFormField2<String>(
-              value: _selectedWardId,
-              isExpanded: true,
-              style: TextStyle(color: context.theme.textColor),
-              decoration: InputDecoration(
-                labelText: 'Phường/Xã',
-                prefixIcon: Icon(Icons.map, color: context.theme.primary),
-                border: OutlineInputBorder(
-                    borderSide: BorderSide(color: context.theme.border)),
-                focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: context.theme.ring)),
-                filled: true,
-                fillColor: context.theme.input,
-              ),
-              items: _wards.entries
-                  .map((e) =>
-                  DropdownMenuItem(value: e.key, child: Text(e.value)))
-                  .toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedWardId = value;
-                });
-              },
-              validator: (value) =>
-              value == null ? 'Vui lòng chọn phường/xã' : null,
-              dropdownStyleData: const DropdownStyleData(
-                maxHeight: 300,
+            // District Dropdown
+            _buildAnimatedFormField(
+              index: 2,
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: context.theme.border.withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: DropdownButtonFormField2<String>(
+                  value: _selectedDistrictId,
+                  isExpanded: true,
+                  style: TextStyle(
+                    color: context.theme.textColor,
+                    fontSize: 16,
+                  ),
+                  decoration: InputDecoration(
+                    labelText: 'Quận/Huyện',
+                    prefixIcon: Icon(Icons.map, color: context.theme.primary),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: context.theme.border),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: context.theme.primary,
+                        width: 1.5,
+                      ),
+                    ),
+                    filled: true,
+                    fillColor: context.theme.input,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                  ),
+                  items: _districts.entries
+                      .map((e) => DropdownMenuItem(
+                    value: e.key,
+                    child: Text(
+                      e.value,
+                      style: TextStyle(color: context.theme.textColor),
+                    ),
+                  ))
+                      .toList(),
+                  onChanged: (value) async {
+                    setState(() {
+                      _selectedDistrictId = value;
+                      _selectedWardId = null;
+                      _wards.clear();
+                    });
+                    if (value != null) {
+                      await _fetchWards(value);
+                    }
+                  },
+                  validator: (value) => value == null ? 'Vui lòng chọn quận/huyện' : null,
+                  dropdownStyleData: DropdownStyleData(
+                    maxHeight: 300,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: context.theme.input,
+                    ),
+                  ),
+                ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
 
-            TextFormField(
-              controller: _detailAddressController,
-              style: TextStyle(color: context.theme.textColor),
-              decoration: InputDecoration(
-                labelText: 'Địa chỉ chi tiết',
-                prefixIcon: Icon(Icons.map, color: context.theme.primary),
-                border: OutlineInputBorder(
-                    borderSide: BorderSide(color: context.theme.border)),
-                focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: context.theme.ring)),
-                filled: true,
-                fillColor: context.theme.input,
+            // Ward Dropdown
+            _buildAnimatedFormField(
+              index: 3,
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: context.theme.border.withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: DropdownButtonFormField2<String>(
+                  value: _selectedWardId,
+                  isExpanded: true,
+                  style: TextStyle(
+                    color: context.theme.textColor,
+                    fontSize: 16,
+                  ),
+                  decoration: InputDecoration(
+                    labelText: 'Phường/Xã',
+                    prefixIcon: Icon(Icons.map, color: context.theme.primary),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: context.theme.border),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: context.theme.primary,
+                        width: 1.5,
+                      ),
+                    ),
+                    filled: true,
+                    fillColor: context.theme.input,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                  ),
+                  items: _wards.entries
+                      .map((e) => DropdownMenuItem(
+                    value: e.key,
+                    child: Text(
+                      e.value,
+                      style: TextStyle(color: context.theme.textColor),
+                    ),
+                  ))
+                      .toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedWardId = value;
+                    });
+                  },
+                  validator: (value) => value == null ? 'Vui lòng chọn phường/xã' : null,
+                  dropdownStyleData: DropdownStyleData(
+                    maxHeight: 300,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: context.theme.input,
+                    ),
+                  ),
+                ),
               ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Vui lòng nhập địa chỉ chi tiết';
-                }
-                return null;
-              },
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
 
-            TextFormField(
-              controller: _phoneController,
-              style: TextStyle(color: context.theme.textColor),
-              decoration: InputDecoration(
-                labelText: 'Số điện thoại',
-                prefixIcon: Icon(Icons.phone, color: context.theme.primary),
-                border: OutlineInputBorder(
-                    borderSide: BorderSide(color: context.theme.border)),
-                focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: context.theme.ring)),
-                filled: true,
-                fillColor: context.theme.input,
+            // Detail Address Field
+            _buildAnimatedFormField(
+              index: 4,
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: context.theme.border.withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: TextFormField(
+                  controller: _detailAddressController,
+                  style: TextStyle(
+                    color: context.theme.textColor,
+                    fontSize: 16,
+                  ),
+                  decoration: InputDecoration(
+                    labelText: 'Địa chỉ chi tiết',
+                    prefixIcon: Icon(Icons.home_work, color: context.theme.primary),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: context.theme.border),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: context.theme.primary,
+                        width: 1.5,
+                      ),
+                    ),
+                    filled: true,
+                    fillColor: context.theme.input,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Vui lòng nhập địa chỉ chi tiết';
+                    }
+                    return null;
+                  },
+                ),
               ),
-              keyboardType: TextInputType.phone,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Vui lòng nhập số điện thoại';
-                }
-                if (!RegExp(r'^\+?\d{9,15}$').hasMatch(value)) {
-                  return 'Số điện thoại không hợp lệ';
-                }
-                return null;
-              },
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
 
-            // Timezone
-            DropdownButtonFormField2<String>(
-              value: _selectedTimezone,
-              isExpanded: true,
-              style: TextStyle(color: context.theme.textColor),
-              decoration: InputDecoration(
-                labelText: 'Múi giờ',
-                prefixIcon: Icon(Icons.access_time, color: context.theme.primary),
-                border: OutlineInputBorder(
-                    borderSide: BorderSide(color: context.theme.border)),
-                focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: context.theme.ring)),
-                filled: true,
-                fillColor: context.theme.input,
+            // Phone Field
+            _buildAnimatedFormField(
+              index: 5,
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: context.theme.border.withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: TextFormField(
+                  controller: _phoneController,
+                  style: TextStyle(
+                    color: context.theme.textColor,
+                    fontSize: 16,
+                  ),
+                  decoration: InputDecoration(
+                    labelText: 'Số điện thoại',
+                    prefixIcon: Icon(Icons.phone, color: context.theme.primary),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: context.theme.border),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: context.theme.primary,
+                        width: 1.5,
+                      ),
+                    ),
+                    filled: true,
+                    fillColor: context.theme.input,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                  ),
+                  keyboardType: TextInputType.phone,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Vui lòng nhập số điện thoại';
+                    }
+                    if (!RegExp(r'^\+?\d{9,15}$').hasMatch(value)) {
+                      return 'Số điện thoại không hợp lệ';
+                    }
+                    return null;
+                  },
+                ),
               ),
-              items: _timezones
-                  .map((tz) => DropdownMenuItem(value: tz, child: Text(tz)))
-                  .toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedTimezone = value;
-                });
-              },
-              validator: (value) =>
-              value == null ? 'Vui lòng chọn múi giờ' : null,
-              dropdownStyleData: const DropdownStyleData(
-                maxHeight: 300,
+            ),
+            const SizedBox(height: 20),
+
+            // Timezone Dropdown
+            _buildAnimatedFormField(
+              index: 6,
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: context.theme.border.withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: DropdownButtonFormField2<String>(
+                  value: _selectedTimezone,
+                  isExpanded: true,
+                  style: TextStyle(
+                    color: context.theme.textColor,
+                    fontSize: 16,
+                  ),
+                  decoration: InputDecoration(
+                    labelText: 'Múi giờ',
+                    prefixIcon: Icon(Icons.access_time, color: context.theme.primary),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: context.theme.border),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: context.theme.primary,
+                        width: 1.5,
+                      ),
+                    ),
+                    filled: true,
+                    fillColor: context.theme.input,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                  ),
+                  items: _timezones
+                      .map((tz) => DropdownMenuItem(
+                    value: tz,
+                    child: Text(
+                      tz,
+                      style: TextStyle(color: context.theme.textColor),
+                    ),
+                  ))
+                      .toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedTimezone = value;
+                    });
+                  },
+                  validator: (value) => value == null ? 'Vui lòng chọn múi giờ' : null,
+                  dropdownStyleData: DropdownStyleData(
+                    maxHeight: 300,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: context.theme.input,
+                    ),
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: 32),
 
-            CustomButtonBlue(
-              onTap: _submitForm,
-              text: _isLoading
-                  ? 'Đang ${widget.isUpdate ? 'cập nhật' : 'tạo'}...'
-                  : '${widget.isUpdate ? 'Cập nhật' : 'Tạo'} địa điểm',
+            // Submit Button
+            _buildAnimatedFormField(
+              index: 7,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: context.theme.primary.withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: CustomButtonBlue(
+                  onTap: () {
+                    _submitForm(context);
+                  },
+                  text: _isLoading
+                      ? 'Đang ${widget.isUpdate ? 'cập nhật' : 'tạo'}...'
+                      : '${widget.isUpdate ? 'Cập nhật' : 'Tạo'} địa điểm',
+                ),
+              ),
             ),
+            const SizedBox(height: 20),
           ],
         ),
       ),
