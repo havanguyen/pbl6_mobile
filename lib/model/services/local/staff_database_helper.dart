@@ -35,22 +35,27 @@ class StaffDatabaseHelper {
         fullName TEXT NOT NULL,
         phone TEXT,
         role TEXT NOT NULL,
-        isMale INTEGER NOT NULL,
-        dateOfBirth TEXT NOT NULL,
-        createdAt TEXT NOT NULL,
-        updatedAt TEXT NOT NULL
+        isMale INTEGER ,
+        dateOfBirth TEXT,
+        createdAt TEXT,
+        updatedAt TEXT ,
+        deletedAt TEXT
       )
     ''');
   }
 
   Future<void> insertStaffs(List<Staff> staffs) async {
-    if (staffs.isEmpty) return;
+    if (staffs.isEmpty) {
+      print('No staffs to insert');
+      return;
+    }
 
     final db = await database;
     final batch = db.batch();
 
     for (var staff in staffs) {
       try {
+        print('Inserting staff: ${staff.id}, dateOfBirth: ${staff.dateOfBirth}, deletedAt: ${staff.deletedAt}');
         batch.insert(
           _table,
           {
@@ -59,10 +64,11 @@ class StaffDatabaseHelper {
             'fullName': staff.fullName,
             'phone': staff.phone,
             'role': staff.role,
-            'isMale': staff.isMale ? 1 : 0,
-            'dateOfBirth': staff.dateOfBirth.toIso8601String(),
-            'createdAt': staff.createdAt.toIso8601String(),
-            'updatedAt': staff.updatedAt.toIso8601String(),
+            'isMale': staff.isMale == null ? null : (staff.isMale! ? 1 : 0),
+            'dateOfBirth': staff.dateOfBirth?.toIso8601String() ?? null ,
+            'createdAt': staff.createdAt?.toIso8601String() ?? null ,
+            'updatedAt': staff.updatedAt?.toIso8601String() ?? null,
+            'deletedAt': staff.deletedAt?.toIso8601String() ?? null,
           },
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
@@ -71,14 +77,74 @@ class StaffDatabaseHelper {
       }
     }
 
-    await batch.commit(noResult: true);
-    print('Inserted ${staffs.length} staffs into database');
+    try {
+      await batch.commit(noResult: true);
+      print('Inserted ${staffs.length} staffs into database');
+    } catch (e) {
+      print('Batch commit error: $e');
+    }
   }
 
-  Future<List<Staff>> getStaffs() async {
+  Future<List<Staff>> getStaffs({
+    String? search,
+    bool? isMale,
+    String? email,
+    String? createdFrom,
+    String? createdTo,
+    String? sortBy,
+    String? sortOrder,
+    int page = 1,
+    int limit = 10,
+  }) async {
     final db = await database;
     try {
-      final List<Map<String, dynamic>> maps = await db.query(_table);
+      List<String> whereClauses = [];
+      List<dynamic> whereArgs = [];
+      whereClauses.add('role = ?');
+      whereArgs.add('ADMIN');
+
+      if (search != null && search.isNotEmpty) {
+        whereClauses.add('(fullName LIKE ? OR email LIKE ?)');
+        whereArgs.add('%$search%');
+        whereArgs.add('%$search%');
+      }
+      if (isMale != null) {
+        whereClauses.add('isMale = ?');
+        whereArgs.add(isMale ? 1 : 0);
+      }
+      if (email != null && email.isNotEmpty) {
+        whereClauses.add('email = ?');
+        whereArgs.add(email);
+      }
+
+      if (createdFrom != null && createdFrom.isNotEmpty) {
+        whereClauses.add('createdAt >= ?');
+        whereArgs.add(createdFrom);
+      }
+      if (createdTo != null && createdTo.isNotEmpty) {
+        whereClauses.add('createdAt <= ?');
+        whereArgs.add(createdTo);
+      }
+
+      final offset = (page - 1) * limit;
+
+      String orderBy = '';
+      if (sortBy != null && sortBy.isNotEmpty) {
+        orderBy = '$sortBy ${sortOrder ?? 'ASC'}';
+      } else {
+        orderBy = 'createdAt DESC';
+      }
+      String query = 'SELECT * FROM $_table';
+      if (whereClauses.isNotEmpty) {
+        query += ' WHERE ${whereClauses.join(' AND ')}';
+      }
+      query += ' ORDER BY $orderBy LIMIT ? OFFSET ?';
+      whereArgs.add(limit);
+      whereArgs.add(offset);
+
+      print('Executing query: $query with args: $whereArgs');
+
+      final List<Map<String, dynamic>> maps = await db.rawQuery(query, whereArgs);
       print('Retrieved ${maps.length} staffs from database');
 
       return maps.map((map) {
@@ -89,10 +155,11 @@ class StaffDatabaseHelper {
             fullName: map['fullName'] as String,
             phone: map['phone'] as String?,
             role: map['role'] as String,
-            isMale: (map['isMale'] as int) == 1,
-            dateOfBirth: DateTime.parse(map['dateOfBirth'] as String),
-            createdAt: DateTime.parse(map['createdAt'] as String),
-            updatedAt: DateTime.parse(map['updatedAt'] as String),
+            isMale: map['isMale'] == null || map['isMale'] is! int ? null : map['isMale'] == 1,
+            dateOfBirth: map['dateOfBirth'] == null || map['dateOfBirth'] == '' ? null : DateTime.tryParse(map['dateOfBirth'] as String),
+            createdAt: map['createdAt'] == null || map['createdAt'] == '' ? null : DateTime.tryParse(map['createdAt'] as String),
+            updatedAt: map['updatedAt'] == null || map['updatedAt'] == '' ? null : DateTime.tryParse(map['updatedAt'] as String),
+            deletedAt: map['deletedAt'] == null || map['deletedAt'] == '' ? null : DateTime.tryParse(map['deletedAt'] as String),
           );
         } catch (e) {
           print('Error parsing staff from database: $e');
@@ -111,8 +178,6 @@ class StaffDatabaseHelper {
     await db.delete(_table);
     print('Cleared all staffs from database');
   }
-
-  // Thêm method để debug
   Future<void> debugDatabase() async {
     final db = await database;
     final tables = await db.rawQuery(

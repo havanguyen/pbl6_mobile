@@ -6,10 +6,10 @@ import 'package:pbl6mobile/model/entities/staff.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/shared/routes/routes.dart';
 import 'package:pbl6mobile/shared/widgets/button/custom_button_blue.dart';
+import 'package:pbl6mobile/view_model/admin_management/admin_management_vm.dart';
 import 'package:pbl6mobile/view_model/location_work_management/snackbar_service.dart';
 
 import '../../shared/widgets/widget/staff_delete_confirm.dart';
-import '../../view_model/admin_management/admin_management_vm.dart';
 
 class AdminListPage extends StatefulWidget {
   const AdminListPage({super.key});
@@ -43,7 +43,7 @@ class _AdminListPageState extends State<AdminListPage> with SingleTickerProvider
 
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 600), // Giảm thời gian để mượt hơn
     );
 
     _fadeAnimation = Tween<double>(
@@ -55,11 +55,11 @@ class _AdminListPageState extends State<AdminListPage> with SingleTickerProvider
     ));
 
     _slideAnimation = Tween<double>(
-      begin: 30.0,
+      begin: 20.0, // Giảm biên độ slide để nhẹ hơn
       end: 0.0,
     ).animate(CurvedAnimation(
       parent: _animationController,
-      curve: Curves.easeOutCubic,
+      curve: Curves.easeOutQuad, // Curve nhẹ hơn
     ));
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -75,9 +75,9 @@ class _AdminListPageState extends State<AdminListPage> with SingleTickerProvider
     super.dispose();
   }
 
-  void _loadData() {
+  void _loadData({bool forceRefresh = false}) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<StaffVm>().fetchStaffs();
+      context.read<StaffVm>().fetchStaffs(forceRefresh: forceRefresh);
     });
   }
 
@@ -85,8 +85,18 @@ class _AdminListPageState extends State<AdminListPage> with SingleTickerProvider
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 500), () {
       if (mounted) {
-        context.read<StaffVm>().updateFilters(searchQuery: _searchController.text);
-        _loadData(); // Thêm dòng này
+        final provider = context.read<StaffVm>();
+        provider.updateFilters(searchQuery: _searchController.text);
+        _loadData();
+        if (provider.isOffline) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Tìm kiếm từ dữ liệu offline'),
+              duration: Duration(seconds: 2),
+              backgroundColor: context.theme.primary.withOpacity(0.8),
+            ),
+          );
+        }
       }
     });
   }
@@ -129,7 +139,6 @@ class _AdminListPageState extends State<AdminListPage> with SingleTickerProvider
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // Search Field
             Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
@@ -194,8 +203,6 @@ class _AdminListPageState extends State<AdminListPage> with SingleTickerProvider
               ),
             ),
             const SizedBox(height: 16),
-
-            // Filter Toggle Button
             Row(
               children: [
                 Expanded(
@@ -216,7 +223,7 @@ class _AdminListPageState extends State<AdminListPage> with SingleTickerProvider
                         final result = await Navigator.pushNamed(context, Routes.createAdmin);
                         if (result == true) {
                           print('🔄 Refreshing admin list after create');
-                          _loadData();
+                          _loadData(forceRefresh: true);
                         }
                       },
                       text: 'Tạo tài khoản admin',
@@ -250,8 +257,6 @@ class _AdminListPageState extends State<AdminListPage> with SingleTickerProvider
                 ),
               ],
             ),
-
-            // Filter Section với animation
             if (_showFilters) ...[
               const SizedBox(height: 16),
               _buildFilterSection(),
@@ -281,34 +286,6 @@ class _AdminListPageState extends State<AdminListPage> with SingleTickerProvider
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Bộ lọc',
-                style: TextStyle(
-                  color: context.theme.textColor,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              TextButton(
-                onPressed: () {
-                  context.read<StaffVm>().resetFilters();
-                  _searchController.clear();
-                  setState(() => _searchQuery = '');
-                  _loadData();
-                },
-                child: Text(
-                  'Đặt lại',
-                  style: TextStyle(color: context.theme.primary),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          // Gender Filter
           Text(
             'Giới tính',
             style: TextStyle(
@@ -325,6 +302,15 @@ class _AdminListPageState extends State<AdminListPage> with SingleTickerProvider
                 onSelected: (selected) {
                   context.read<StaffVm>().updateFilters(isMale: null);
                   _loadData();
+                  if (staffVm.isOffline) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Lọc từ dữ liệu offline'),
+                        duration: Duration(seconds: 2),
+                        backgroundColor: context.theme.primary.withOpacity(0.8),
+                      ),
+                    );
+                  }
                 },
                 selectedColor: context.theme.primary,
                 labelStyle: TextStyle(
@@ -340,6 +326,15 @@ class _AdminListPageState extends State<AdminListPage> with SingleTickerProvider
                 onSelected: (selected) {
                   context.read<StaffVm>().updateFilters(isMale: true);
                   _loadData();
+                  if (staffVm.isOffline) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Lọc từ dữ liệu offline'),
+                        duration: Duration(seconds: 2),
+                        backgroundColor: context.theme.primary.withOpacity(0.8),
+                      ),
+                    );
+                  }
                 },
                 selectedColor: context.theme.primary,
                 labelStyle: TextStyle(
@@ -355,6 +350,15 @@ class _AdminListPageState extends State<AdminListPage> with SingleTickerProvider
                 onSelected: (selected) {
                   context.read<StaffVm>().updateFilters(isMale: false);
                   _loadData();
+                  if (staffVm.isOffline) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Lọc từ dữ liệu offline'),
+                        duration: Duration(seconds: 2),
+                        backgroundColor: context.theme.primary.withOpacity(0.8),
+                      ),
+                    );
+                  }
                 },
                 selectedColor: context.theme.primary,
                 labelStyle: TextStyle(
@@ -366,8 +370,6 @@ class _AdminListPageState extends State<AdminListPage> with SingleTickerProvider
             ],
           ),
           const SizedBox(height: 16),
-
-          // Sort Options
           Text(
             'Sắp xếp',
             style: TextStyle(
@@ -390,6 +392,15 @@ class _AdminListPageState extends State<AdminListPage> with SingleTickerProvider
                 onChanged: (value) {
                   context.read<StaffVm>().updateFilters(sortBy: value);
                   _loadData();
+                  if (staffVm.isOffline) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Sắp xếp từ dữ liệu offline'),
+                        duration: Duration(seconds: 2),
+                        backgroundColor: context.theme.primary.withOpacity(0.8),
+                      ),
+                    );
+                  }
                 },
               ),
               const SizedBox(width: 16),
@@ -404,6 +415,15 @@ class _AdminListPageState extends State<AdminListPage> with SingleTickerProvider
                 onChanged: (value) {
                   context.read<StaffVm>().updateFilters(sortOrder: value);
                   _loadData();
+                  if (staffVm.isOffline) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Sắp xếp từ dữ liệu offline'),
+                        duration: Duration(seconds: 2),
+                        backgroundColor: context.theme.primary.withOpacity(0.8),
+                      ),
+                    );
+                  }
                 },
               ),
             ],
@@ -414,8 +434,10 @@ class _AdminListPageState extends State<AdminListPage> with SingleTickerProvider
   }
 
   Widget _buildAnimatedAdminCard(Staff admin, int index) {
+    final animationDelay = index < 10 ? Duration(milliseconds: 300 + (index * 50)) : Duration.zero;
+
     return AnimatedContainer(
-      duration: Duration(milliseconds: 300 + (index * 100)),
+      duration: animationDelay,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Card(
         elevation: 2,
@@ -437,14 +459,13 @@ class _AdminListPageState extends State<AdminListPage> with SingleTickerProvider
             );
             if (result == true) {
               print('🔄 Refreshing admin list after update');
-              _loadData();
+              _loadData(forceRefresh: true);
             }
           },
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                // Avatar với animation
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
                   padding: const EdgeInsets.all(12),
@@ -459,8 +480,6 @@ class _AdminListPageState extends State<AdminListPage> with SingleTickerProvider
                   ),
                 ),
                 const SizedBox(width: 16),
-
-                // Content
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -505,18 +524,21 @@ class _AdminListPageState extends State<AdminListPage> with SingleTickerProvider
                                 ),
                               ),
                             ),
+                          if (admin.isMale != null)
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
-                              color: admin.isMale
-                                  ? Colors.blue.withOpacity(0.1)
-                                  : Colors.pink.withOpacity(0.1),
+                              color: admin.isMale != null
+                                  ? (admin.isMale! ? Colors.blue.withOpacity(0.1) : Colors.pink.withOpacity(0.1))
+                                  : Colors.grey.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
-                              admin.isMale ? 'Nam' : 'Nữ',
+                              admin.isMale != null ? (admin.isMale! ? 'Nam' : 'Nữ') : 'Chưa xác định',
                               style: TextStyle(
-                                color: admin.isMale ? Colors.blue : Colors.pink,
+                                color: admin.isMale != null
+                                    ? (admin.isMale! ? Colors.blue : Colors.pink)
+                                    : Colors.grey,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -527,12 +549,9 @@ class _AdminListPageState extends State<AdminListPage> with SingleTickerProvider
                     ],
                   ),
                 ),
-
-                // Action Buttons
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Edit Button
                     MouseRegion(
                       cursor: SystemMouseCursors.click,
                       child: AnimatedContainer(
@@ -556,14 +575,12 @@ class _AdminListPageState extends State<AdminListPage> with SingleTickerProvider
                             );
                             if (result == true) {
                               print('🔄 Refreshing admin list after update');
-                              _loadData();
+                              _loadData(forceRefresh: true);
                             }
                           },
                         ),
                       ),
                     ),
-
-                    // Delete Button
                     MouseRegion(
                       cursor: SystemMouseCursors.click,
                       child: AnimatedContainer(
@@ -705,7 +722,6 @@ class _AdminListPageState extends State<AdminListPage> with SingleTickerProvider
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Previous Button
             AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               decoration: BoxDecoration(
@@ -740,8 +756,6 @@ class _AdminListPageState extends State<AdminListPage> with SingleTickerProvider
                 ),
               ),
             ),
-
-            // Page Info
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
@@ -756,8 +770,6 @@ class _AdminListPageState extends State<AdminListPage> with SingleTickerProvider
                 ),
               ),
             ),
-
-            // Next Button
             AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               decoration: BoxDecoration(
@@ -794,101 +806,6 @@ class _AdminListPageState extends State<AdminListPage> with SingleTickerProvider
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: context.theme.appBar,
-        elevation: 0,
-        title: Text(
-          'Quản lý tài khoản admin',
-          style: TextStyle(
-            color: context.theme.primaryForeground,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: context.theme.primaryForeground),
-          onPressed: () => Navigator.pop(context),
-        ),
-        actions: [
-          // Animated Refresh Button
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            decoration: BoxDecoration(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: IconButton(
-              icon: Icon(Icons.refresh, color: context.theme.primaryForeground),
-              onPressed: _loadData,
-            ),
-          ),
-        ],
-      ),
-      backgroundColor: context.theme.bg,
-      body: Column(
-        children: [
-          _buildAnimatedSearchSection(),
-          Expanded(
-            child: Consumer<StaffVm>(
-              builder: (context, provider, child) {
-                if (provider.isLoading) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        CircularProgressIndicator(
-                          color: context.theme.primary,
-                          strokeWidth: 2,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Đang tải dữ liệu...',
-                          style: TextStyle(
-                            color: context.theme.mutedForeground,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-
-                if (provider.error != null) {
-                  return _buildAnimatedErrorState(provider);
-                }
-
-                if (provider.staffs.isEmpty) {
-                  return _buildAnimatedEmptyState();
-                }
-
-                return RefreshIndicator(
-                  color: context.theme.primary,
-                  backgroundColor: context.theme.bg,
-                  onRefresh: () => provider.fetchStaffs(),
-                  child: ListView.builder(
-                    itemCount: provider.staffs.length,
-                    itemBuilder: (context, index) {
-                      return _buildAnimatedAdminCard(provider.staffs[index], index);
-                    },
-                  ),
-                );
-              },
-            ),
-          ),
-          Consumer<StaffVm>(
-            builder: (context, provider, child) {
-              if (provider.total >= 10) {
-                return _buildAnimatedPagination(provider);
-              }
-              return const SizedBox.shrink();
-            },
-          ),
-        ],
       ),
     );
   }
@@ -955,7 +872,7 @@ class _AdminListPageState extends State<AdminListPage> with SingleTickerProvider
                   ],
                 ),
                 child: ElevatedButton(
-                  onPressed: _loadData,
+                  onPressed: () => _loadData(forceRefresh: true),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: context.theme.primary,
                     foregroundColor: context.theme.primaryForeground,
@@ -976,6 +893,122 @@ class _AdminListPageState extends State<AdminListPage> with SingleTickerProvider
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: context.theme.appBar,
+        elevation: 0,
+        title: Text(
+          'Quản lý tài khoản admin',
+          style: TextStyle(
+            color: context.theme.primaryForeground,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: context.theme.primaryForeground),
+          onPressed: () => Navigator.pop(context),
+        ),
+        actions: [
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            decoration: BoxDecoration(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: IconButton(
+              icon: Icon(Icons.refresh, color: context.theme.primaryForeground),
+              onPressed: () => _loadData(forceRefresh: true),
+            ),
+          ),
+        ],
+      ),
+      backgroundColor: context.theme.bg,
+      body: Column(
+        children: [
+          _buildAnimatedSearchSection(),
+          Expanded(
+            child: Consumer<StaffVm>(
+              builder: (context, provider, child) {
+                if (provider.isLoading && provider.staffs.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CircularProgressIndicator(
+                          color: context.theme.primary,
+                          strokeWidth: 2,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Đang tải dữ liệu...',
+                          style: TextStyle(
+                            color: context.theme.mutedForeground,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+                Widget content;
+                if (provider.error != null && provider.staffs.isEmpty) {
+                  content = _buildAnimatedErrorState(provider);
+                } else if (provider.staffs.isEmpty) {
+                  content = _buildAnimatedEmptyState();
+                } else {
+                  content = RefreshIndicator(
+                    color: context.theme.primary,
+                    backgroundColor: context.theme.bg,
+                    onRefresh: () => provider.fetchStaffs(forceRefresh: true),
+                    child: ListView.builder(
+                      itemCount: provider.staffs.length,
+                      itemBuilder: (context, index) {
+                        return _buildAnimatedAdminCard(provider.staffs[index], index);
+                      },
+                    ),
+                  );
+                }
+                if (provider.isOffline) {
+                  return Column(
+                    children: [
+                      MaterialBanner(
+                        padding: const EdgeInsets.all(16),
+                        content: Text(
+                          'Bạn đang offline !',
+                          style: TextStyle(
+                            color: context.theme.textColor,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        backgroundColor: context.theme.bg.withOpacity(0.95),
+                        leading: Icon(
+                          Icons.wifi_off,
+                          color: context.theme.primary,
+                        ),
+                        actions: [SizedBox.shrink()],
+                      ),
+                      Expanded(child: content),
+                    ],
+                  );
+                }
+                return content;
+              },
+            ),
+          ),
+          Consumer<StaffVm>(
+            builder: (context, provider, child) {
+              if (provider.total >= 10) {
+                return _buildAnimatedPagination(provider);
+              }
+              return const SizedBox.shrink();
+            },
+          ),
+        ],
       ),
     );
   }

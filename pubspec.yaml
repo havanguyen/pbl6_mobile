@@ -28,6 +28,7 @@ dependencies:
   timezone: ^0.10.1
   dropdown_button2: ^2.3.9
   sqflite: ^2.4.2
+  connectivity_plus: ^7.0.0
 
 dev_dependencies:
   flutter_test:
