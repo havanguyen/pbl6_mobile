@@ -187,7 +187,6 @@ class _AdminListPageState extends State<AdminListPage> {
                       selected: staffVm.isMale == null,
                       onSelected: (selected) {
                         staffVm.updateGenderFilter(null);
-                        Navigator.pop(context);
                       },
                       selectedColor: context.theme.primary,
                       labelStyle: TextStyle(color: staffVm.isMale == null ? context.theme.primaryForeground : context.theme.textColor),
@@ -198,7 +197,6 @@ class _AdminListPageState extends State<AdminListPage> {
                       selected: staffVm.isMale == true,
                       onSelected: (selected) {
                         staffVm.updateGenderFilter(true);
-                        Navigator.pop(context);
                       },
                       selectedColor: context.theme.primary,
                       labelStyle: TextStyle(color: staffVm.isMale == true ? context.theme.primaryForeground : context.theme.textColor),
@@ -209,7 +207,6 @@ class _AdminListPageState extends State<AdminListPage> {
                       selected: staffVm.isMale == false,
                       onSelected: (selected) {
                         staffVm.updateGenderFilter(false);
-                        Navigator.pop(context);
                       },
                       selectedColor: context.theme.primary,
                       labelStyle: TextStyle(color: staffVm.isMale == false ? context.theme.primaryForeground : context.theme.textColor),
