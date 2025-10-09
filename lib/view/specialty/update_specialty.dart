@@ -1,4 +1,3 @@
-// lib/features/specialty/update_specialty.dart
 import 'package:flutter/material.dart';
 import 'package:pbl6mobile/view_model/specialty/specialty_vm.dart';
 import 'package:provider/provider.dart';
@@ -15,7 +14,6 @@ class UpdateSpecialtyPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: context.theme.appBar,
         title: Text(
           'Chỉnh sửa chuyên khoa',
           style: TextStyle(color: context.theme.primaryForeground),
@@ -25,14 +23,14 @@ class UpdateSpecialtyPage extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      backgroundColor: context.theme.bg,
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SpecialtyForm(
           isUpdate: true,
           initialData: specialty,
           onSubmit: ({required name, description, id}) async {
-            return await Provider.of<SpecialtyVm>(context, listen: false).updateSpecialty(
+            return await Provider.of<SpecialtyVm>(context, listen: false)
+                .updateSpecialty(
               id: id!,
               name: name,
               description: description,

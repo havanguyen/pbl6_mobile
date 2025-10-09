@@ -1,9 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:html_editor_enhanced/html_editor.dart';
+import 'package:flutter_quill/flutter_quill.dart' as quill;
+import 'package:flutter_quill_extensions/flutter_quill_extensions.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
-import 'package:pbl6mobile/shared/widgets/button/custom_button_blue.dart';
 
-import '../../services/store.dart';
+import 'doctor_form.dart';
 
 class InfoSectionForm extends StatefulWidget {
   final bool isUpdate;
@@ -14,6 +15,7 @@ class InfoSectionForm extends StatefulWidget {
   required String content,
   String? id,
   }) onSubmit;
+  final VoidCallback? onSuccess;
 
   const InfoSectionForm({
     super.key,
@@ -21,6 +23,7 @@ class InfoSectionForm extends StatefulWidget {
     this.initialData,
     required this.specialtyId,
     required this.onSubmit,
+    this.onSuccess,
   });
 
   @override
@@ -30,143 +33,141 @@ class InfoSectionForm extends StatefulWidget {
 class _InfoSectionFormState extends State<InfoSectionForm> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
-  final HtmlEditorController _controller = HtmlEditorController();
-  bool _isLoading = false;
-  bool _isDarkMode = false;
+  late quill.QuillController _contentController;
+  final FocusNode _focusNode = FocusNode();
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    isDarkMode().then((value) => setState(() => _isDarkMode = value));
-    _nameController = TextEditingController(text: widget.initialData?['name'] ?? '');
-    if (widget.initialData?['content'] != null) {
-      _controller.setText(widget.initialData?['content']);
+    _nameController =
+        TextEditingController(text: widget.initialData?['name'] ?? '');
+    _contentController = quill.QuillController.basic();
+    final initialContent = widget.initialData?['content'];
+    if (initialContent != null && initialContent.isNotEmpty) {
+      try {
+        final doc = quill.Document.fromJson(jsonDecode(initialContent));
+        _contentController = quill.QuillController(
+          document: doc,
+          selection: const TextSelection.collapsed(offset: 0),
+        );
+      } catch (e) {
+        final doc = quill.Document()..insert(0, initialContent);
+        _contentController = quill.QuillController(
+          document: doc,
+          selection: const TextSelection.collapsed(offset: 0),
+        );
+      }
     }
   }
 
   @override
   void dispose() {
     _nameController.dispose();
+    _contentController.dispose();
+    _focusNode.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
-  void _submitForm() async {
+  Future<bool> _submitForm() async {
     if (_formKey.currentState!.validate()) {
-      final content = await _controller.getText();
-      if (content.isEmpty) {
-        _showErrorDialog('Vui lòng nhập nội dung');
-        return;
+      final plainTextContent = _contentController.document.toPlainText().trim();
+      if (plainTextContent.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Nội dung không được để trống')),
+        );
+        return false;
       }
-      setState(() => _isLoading = true);
+      final jsonContent =
+      jsonEncode(_contentController.document.toDelta().toJson());
       final success = await widget.onSubmit(
         id: widget.initialData?['id'],
         name: _nameController.text,
-        content: content,
+        content: jsonContent,
       );
-      setState(() => _isLoading = false);
       if (success) {
-        _showSuccessDialog();
-      } else {
-        _showErrorDialog('${widget.isUpdate ? 'Cập nhật' : 'Tạo'} phần thông tin thất bại. Vui lòng thử lại.');
+        widget.onSuccess?.call();
+        Future.delayed(const Duration(milliseconds: 1500), () {
+          if (mounted) {
+            Navigator.of(context).pop(true);
+          }
+        });
       }
+      return success;
     }
-  }
-
-  void _showSuccessDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: context.theme.popover,
-        title: Text('Thành công', style: TextStyle(color: context.theme.popoverForeground)),
-        content: Text('${widget.isUpdate ? 'Cập nhật' : 'Tạo'} phần thông tin thành công!', style: TextStyle(color: context.theme.popoverForeground)),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: Text('OK', style: TextStyle(color: context.theme.primary)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showErrorDialog(String message) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: context.theme.popover,
-        title: Text('Lỗi', style: TextStyle(color: context.theme.popoverForeground)),
-        content: Text(message, style: TextStyle(color: context.theme.popoverForeground)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('OK', style: TextStyle(color: context.theme.destructive)),
-          ),
-        ],
-      ),
-    );
-  }
-  Future<bool> isDarkMode () async {
-    final themeModeString = await Store.getThemeMode();
-    switch (themeModeString) {
-      case 'dark':
-        return true;
-      default:
-        return false;
-    }
+    return false;
   }
 
   @override
   Widget build(BuildContext context) {
     return Form(
       key: _formKey,
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            TextFormField(
-              controller: _nameController,
-              style: TextStyle(color: context.theme.textColor),
-              decoration: InputDecoration(
-                labelText: 'Tên phần thông tin',
-                prefixIcon: Icon(Icons.info, color: context.theme.primary),
-                border: OutlineInputBorder(borderSide: BorderSide(color: context.theme.border)),
-                focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: context.theme.ring)),
-                filled: true,
-                fillColor: context.theme.input,
-              ),
-              validator: (value) {
-                if (value == null || value.isEmpty) return 'Vui lòng nhập tên phần thông tin';
-                return null;
-              },
+      child: Column(
+        children: [
+          TextFormField(
+            controller: _nameController,
+            decoration: InputDecoration(
+              labelText: 'Tên phần thông tin',
+              prefixIcon: Icon(Icons.title, color: context.theme.primary),
             ),
-            const SizedBox(height: 16),
-            HtmlEditor(
-              controller: _controller,
-              htmlEditorOptions: HtmlEditorOptions(
-                hint: 'Nội dung...',
-                darkMode: _isDarkMode,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Vui lòng nhập tên';
+              }
+              if (value.length < 10 || value.length > 200) {
+                return 'Tên phải từ 10 đến 200 ký tự';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 20),
+          Text(
+            'Nội dung',
+            style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: context.theme.textColor),
+          ),
+          const SizedBox(height: 8),
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: context.theme.border),
+                borderRadius: BorderRadius.circular(8),
               ),
-              htmlToolbarOptions: HtmlToolbarOptions(
-                toolbarPosition: ToolbarPosition.aboveEditor,
-                defaultToolbarButtons: [
-                  FontButtons(),
-                  StyleButtons(),
-                  FontSettingButtons(),
-                  ColorButtons(),
-                  ListButtons(),
-                  ParagraphButtons(),
-                  InsertButtons(video: true, audio: true, otherFile: true),
+              child: Column(
+                children: [
+                  quill.QuillSimpleToolbar(
+                    controller: _contentController,
+                    config: const quill.QuillSimpleToolbarConfig(),
+                  ),
+                  const Divider(height: 1),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: quill.QuillEditor(
+                        controller: _contentController,
+                        focusNode: _focusNode,
+                        scrollController: _scrollController,
+                        config: quill.QuillEditorConfig(
+                          padding: const EdgeInsets.all(8),
+                          embedBuilders: FlutterQuillEmbeds.editorBuilders(),
+                        ),
+                      ),
+                    ),
+                  )
                 ],
               ),
             ),
-            const SizedBox(height: 32),
-            CustomButtonBlue(
-              onTap: _submitForm,
-              text: _isLoading ? 'Đang ${widget.isUpdate ? 'cập nhật' : 'tạo'}...' : '${widget.isUpdate ? 'Cập nhật' : 'Tạo'} phần thông tin',
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 32),
+          AnimatedSubmitButton(
+            onSubmit: _submitForm,
+            idleText: '${widget.isUpdate ? 'Cập nhật' : 'Tạo'} phần thông tin',
+            loadingText: 'Đang xử lý...',
+          ),
+        ],
       ),
     );
   }

@@ -12,7 +12,6 @@ class CreateSpecialtyPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: context.theme.appBar,
         title: Text(
           'Tạo chuyên khoa',
           style: TextStyle(color: context.theme.primaryForeground),
@@ -22,13 +21,13 @@ class CreateSpecialtyPage extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      backgroundColor: context.theme.bg,
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SpecialtyForm(
           isUpdate: false,
           onSubmit: ({required name, description, id}) async {
-            return await Provider.of<SpecialtyVm>(context, listen: false).createSpecialty(
+            return await Provider.of<SpecialtyVm>(context, listen: false)
+                .createSpecialty(
               name: name,
               description: description,
             );

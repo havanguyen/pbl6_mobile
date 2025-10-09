@@ -1,261 +1,494 @@
-// import 'package:flutter/material.dart';
-// import 'package:pbl6mobile/model/services/remote/staff_service.dart';
-// import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
-// import 'package:pbl6mobile/shared/routes/routes.dart';
-// import 'package:pbl6mobile/shared/widgets/button/custom_button_blue.dart';
-//
-// class DoctorListPage extends StatefulWidget {
-//   const DoctorListPage({super.key});
-//
-//   @override
-//   State<DoctorListPage> createState() => _DoctorListPageState();
-// }
-//
-// class _DoctorListPageState extends State<DoctorListPage> {
-//   List<dynamic> _doctors = [];
-//   bool _isLoading = true;
-//   bool _isEmpty = false;
-//   final TextEditingController _searchController = TextEditingController();
-//   String _searchQuery = '';
-//
-//   @override
-//   void initState() {
-//     super.initState();
-//     _fetchDoctors();
-//     _searchController.addListener(() {
-//       setState(() {
-//         _searchQuery = _searchController.text;
-//       });
-//       _fetchDoctors();
-//     });
-//   }
-//
-//   @override
-//   void dispose() {
-//     _searchController.dispose();
-//     super.dispose();
-//   }
-//
-//   Future<void> _fetchDoctors() async {
-//     setState(() => _isLoading = true);
-//     final result ;//= await StaffService.getDoctors(search: _searchQuery);
-//     if (mounted) {
-//       setState(() {
-//         _doctors = result['data'] ?? [];
-//         _isEmpty = _doctors.isEmpty;
-//         _isLoading = false;
-//       });
-//     }
-//   }
-//
-//
-//   void _showDeleteDialog(dynamic doctor) {
-//     final TextEditingController passwordController = TextEditingController();
-//     showDialog(
-//       context: context,
-//       builder: (context) => AlertDialog(
-//         backgroundColor: context.theme.popover,
-//         title: Text('Xác nhận xóa', style: TextStyle(color: context.theme.popoverForeground)),
-//         content: Column(
-//           mainAxisSize: MainAxisSize.min,
-//           children: [
-//             Text(
-//               'Bạn có chắc chắn muốn xóa tài khoản: ${doctor['fullName']}?',
-//               style: TextStyle(color: context.theme.popoverForeground),
-//             ),
-//             const SizedBox(height: 16),
-//             TextField(
-//               controller: passwordController,
-//               obscureText: true,
-//               style: TextStyle(color: context.theme.input),
-//               decoration: InputDecoration(
-//                 labelText: 'Nhập mật khẩu của bạn',
-//                 labelStyle: TextStyle(color: context.theme.mutedForeground),
-//                 border: OutlineInputBorder(
-//                   borderSide: BorderSide(color: context.theme.border),
-//                 ),
-//                 focusedBorder: OutlineInputBorder(
-//                   borderSide: BorderSide(color: context.theme.ring),
-//                 ),
-//                 filled: true,
-//                 fillColor: context.theme.input,
-//               ),
-//               onSubmitted: (_) => _confirmDelete(doctor, passwordController.text),
-//             ),
-//           ],
-//         ),
-//         actions: [
-//           TextButton(
-//             onPressed: () => Navigator.pop(context),
-//             child: Text('Hủy', style: TextStyle(color: context.theme.mutedForeground)),
-//           ),
-//           TextButton(
-//             onPressed: () => _confirmDelete(doctor, passwordController.text),
-//             child: Text('Xóa', style: TextStyle(color: context.theme.destructive)),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-//
-//   Future<void> _confirmDelete(dynamic doctor, String password) async {
-//     final success = await StaffService.deleteStaff(doctor['id'], password: password);
-//     Navigator.pop(context);
-//     if (success) {
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         SnackBar(
-//           content: Text('Xóa tài khoản thành công!', style: TextStyle(color: context.theme.primaryForeground)),
-//           backgroundColor: context.theme.green,
-//         ),
-//       );
-//       _fetchDoctors();
-//     } else {
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         SnackBar(
-//           content: Text(
-//             'Xóa thất bại. Kiểm tra mật khẩu hoặc thử lại.',
-//             style: TextStyle(color: context.theme.destructiveForeground),
-//           ),
-//           backgroundColor: context.theme.destructive,
-//         ),
-//       );
-//     }
-//   }
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         backgroundColor: context.theme.blue,
-//         title: Text(
-//           'Quản lý tài khoản bác sĩ',
-//           style: TextStyle(color: context.theme.primaryForeground),
-//         ),
-//         leading: IconButton(
-//           icon: Icon(Icons.arrow_back, color: context.theme.primaryForeground),
-//           onPressed: () => Navigator.pop(context),
-//         ),
-//         actions: [
-//           IconButton(
-//             icon: Icon(Icons.refresh, color: context.theme.primaryForeground),
-//             onPressed: _fetchDoctors,
-//           ),
-//         ],
-//       ),
-//       backgroundColor: context.theme.bg,
-//       body: Column(
-//         children: [
-//           Padding(
-//             padding: const EdgeInsets.all(16.0),
-//             child: Column(
-//               children: [
-//                 TextField(
-//                   controller: _searchController,
-//                   style: TextStyle(color: context.theme.textColor),
-//                   decoration: InputDecoration(
-//                     labelText: 'Tìm kiếm theo tên hoặc email',
-//                     labelStyle: TextStyle(color: context.theme.mutedForeground),
-//                     prefixIcon: Icon(Icons.search, color: context.theme.primary),
-//                     border: OutlineInputBorder(
-//                       borderSide: BorderSide(color: context.theme.border),
-//                     ),
-//                     focusedBorder: OutlineInputBorder(
-//                       borderSide: BorderSide(color: context.theme.ring),
-//                     ),
-//                     filled: true,
-//                     fillColor: context.theme.input,
-//                     suffixIcon: _searchQuery.isNotEmpty
-//                         ? IconButton(
-//                       icon: Icon(Icons.clear, color: context.theme.primary),
-//                       onPressed: () {
-//                         _searchController.clear();
-//                         setState(() => _searchQuery = '');
-//                         _fetchDoctors();
-//                       },
-//                     )
-//                         : null,
-//                   ),
-//                 ),
-//                 const SizedBox(height: 16),
-//                 CustomButtonBlue(
-//                   onTap: () => Navigator.pushNamed(context, Routes.createDoctor),
-//                   text: 'Tạo tài khoản bác sĩ',
-//                 ),
-//               ],
-//             ),
-//           ),
-//           Expanded(
-//             child: _isLoading
-//                 ? Center(child: CircularProgressIndicator(color: context.theme.primary))
-//                 : _isEmpty
-//                 ? Center(
-//               child: Column(
-//                 mainAxisAlignment: MainAxisAlignment.center,
-//                 children: [
-//                   Icon(Icons.admin_panel_settings_outlined, size: 64, color: context.theme.muted),
-//                   const SizedBox(height: 16),
-//                   Text(
-//                     _searchQuery.isNotEmpty
-//                         ? 'Không tìm thấy tài khoản bác sĩ phù hợp'
-//                         : 'Danh sách tài khoản bác sĩ trống',
-//                     style: TextStyle(fontSize: 18, color: context.theme.mutedForeground),
-//                     textAlign: TextAlign.center,
-//                   ),
-//                 ],
-//               ),
-//             )
-//                 : ListView.builder(
-//               itemCount: _doctors.length,
-//               itemBuilder: (context, index) {
-//                 final doctor = _doctors[index];
-//                 return Card(
-//                   margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-//                   color: context.theme.card,
-//                   child: ListTile(
-//                     textColor: context.theme.cardForeground,
-//                     leading: CircleAvatar(
-//                       backgroundColor: context.theme.primary,
-//                       child: Text(
-//                         doctor['fullName']?[0].toUpperCase() ?? 'A',
-//                         style: TextStyle(color: context.theme.primaryForeground),
-//                       ),
-//                     ),
-//                     title: Text(
-//                       doctor['fullName'] ?? 'N/A',
-//                       style: TextStyle(color: context.theme.cardForeground),
-//                     ),
-//                     subtitle: Column(
-//                       crossAxisAlignment: CrossAxisAlignment.start,
-//                       children: [
-//                         Text(doctor['email'] ?? 'N/A', style: TextStyle(color: context.theme.mutedForeground)),
-//                         Text('Vai trò: ${doctor['role'] ?? 'DOCTOR'}', style: TextStyle(color: context.theme.mutedForeground)),
-//                         if (doctor['phone'] != null) Text('SĐT: ${doctor['phone']}', style: TextStyle(color: context.theme.mutedForeground)),
-//                       ],
-//                     ),
-//                     trailing: Row(
-//                       mainAxisSize: MainAxisSize.min,
-//                       children: [
-//                         IconButton(
-//                           icon: Icon(Icons.edit, color: context.theme.primary),
-//                           onPressed: () => Navigator.pushNamed(
-//                             context,
-//                             Routes.updateDoctor,
-//                             arguments: doctor,
-//                           ),
-//                         ),
-//                         IconButton(
-//                           icon: Icon(Icons.delete, color: context.theme.destructive),
-//                           onPressed: () => _showDeleteDialog(doctor),
-//                         ),
-//                       ],
-//                     ),
-//                   ),
-//                 );
-//               },
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }
+import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:pbl6mobile/model/entities/doctor.dart';
+import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
+import 'package:pbl6mobile/shared/routes/routes.dart';
+import 'package:shimmer/shimmer.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
+
+import '../../shared/widgets/widget/doctor_delete_confirm.dart';
+import '../../view_model/admin_management/doctor_management_vm.dart';
+import '../../view_model/location_work_management/snackbar_service.dart';
+
+class DoctorListPage extends StatefulWidget {
+  const DoctorListPage({super.key});
+
+  @override
+  State<DoctorListPage> createState() => _DoctorListPageState();
+}
+
+class _DoctorListPageState extends State<DoctorListPage> {
+  final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  Timer? _debounceTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<DoctorVm>().fetchDoctors(forceRefresh: true);
+      }
+    });
+
+    _searchController.addListener(_debounceSearch);
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _searchController.removeListener(_debounceSearch);
+    _searchController.dispose();
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    _debounceTimer?.cancel();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      context.read<DoctorVm>().loadMore();
+    }
+  }
+
+  void _debounceSearch() {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 700), () {
+      if (mounted) {
+        context.read<DoctorVm>().updateSearchQuery(_searchController.text);
+      }
+    });
+  }
+
+  void _showDeleteDialog(Doctor doctor) {
+    final snackbarService =
+    Provider.of<SnackbarService>(context, listen: false);
+    final doctorVm = Provider.of<DoctorVm>(context, listen: false);
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => DeleteDoctorConfirmationDialog(
+        doctor: doctor.toJson(),
+        onDeleteSuccess: () {
+          doctorVm.fetchDoctors(forceRefresh: true);
+        },
+        snackbarService: snackbarService,
+        role: 'Bác sĩ',
+      ),
+    );
+  }
+
+  void _showFilterSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: context.theme.card,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => _buildFilterSection(),
+    );
+  }
+
+  Widget _buildSearchSection(bool isOffline) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          TextField(
+            controller: _searchController,
+            style: TextStyle(color: context.theme.textColor),
+            decoration: InputDecoration(
+              labelText: 'Tìm kiếm theo tên hoặc email',
+              labelStyle: TextStyle(color: context.theme.mutedForeground),
+              prefixIcon: Icon(Icons.search, color: context.theme.primary),
+              border:
+              OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: context.theme.primary, width: 1.5),
+              ),
+              filled: true,
+              fillColor: context.theme.input,
+              suffixIcon: _searchController.text.isNotEmpty
+                  ? IconButton(
+                icon: Icon(Icons.clear, color: context.theme.primary),
+                onPressed: () {
+                  _searchController.clear();
+                  context.read<DoctorVm>().resetFilters();
+                },
+              )
+                  : null,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: isOffline
+                      ? null
+                      : () async {
+                    final result = await Navigator.pushNamed(
+                        context, Routes.createDoctor);
+                    if (result == true) {
+                      context.read<DoctorVm>().fetchDoctors(forceRefresh: true);
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: context.theme.primary,
+                    foregroundColor: context.theme.primaryForeground,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ).copyWith(
+                    backgroundColor: MaterialStateProperty.resolveWith<Color?>(
+                          (Set<MaterialState> states) {
+                        if (states.contains(MaterialState.disabled)) {
+                          return Colors.grey;
+                        }
+                        return context.theme.primary;
+                      },
+                    ),
+                  ),
+                  child: const Text('Tạo tài khoản bác sĩ'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  color: context.theme.input,
+                ),
+                child: IconButton(
+                  icon: Icon(Icons.filter_alt_outlined,
+                      color: context.theme.primary),
+                  onPressed: _showFilterSheet,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterSection() {
+    return Consumer<DoctorVm>(builder: (context, doctorVm, child) {
+      return Container(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Bộ lọc & Sắp xếp',
+                style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: context.theme.textColor)),
+            const SizedBox(height: 24),
+            Text('Giới tính',
+                style: TextStyle(
+                    color: context.theme.textColor,
+                    fontWeight: FontWeight.w500)),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                ChoiceChip(
+                  label: const Text('Tất cả'),
+                  selected: doctorVm.isMale == null,
+                  onSelected: (selected) {
+                    doctorVm.updateGenderFilter(null);
+                  },
+                  selectedColor: context.theme.primary,
+                  labelStyle: TextStyle(
+                      color: doctorVm.isMale == null
+                          ? context.theme.primaryForeground
+                          : context.theme.textColor),
+                ),
+                const SizedBox(width: 8),
+                ChoiceChip(
+                  label: const Text('Nam'),
+                  selected: doctorVm.isMale == true,
+                  onSelected: (selected) {
+                    doctorVm.updateGenderFilter(true);
+                  },
+                  selectedColor: context.theme.primary,
+                  labelStyle: TextStyle(
+                      color: doctorVm.isMale == true
+                          ? context.theme.primaryForeground
+                          : context.theme.textColor),
+                ),
+                const SizedBox(width: 8),
+                ChoiceChip(
+                  label: const Text('Nữ'),
+                  selected: doctorVm.isMale == false,
+                  onSelected: (selected) {
+                    doctorVm.updateGenderFilter(false);
+                  },
+                  selectedColor: context.theme.primary,
+                  labelStyle: TextStyle(
+                      color: doctorVm.isMale == false
+                          ? context.theme.primaryForeground
+                          : context.theme.textColor),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            Text('Sắp xếp',
+                style: TextStyle(
+                    color: context.theme.textColor,
+                    fontWeight: FontWeight.w500)),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                DropdownButton<String>(
+                  value: doctorVm.sortBy,
+                  items: const [
+                    DropdownMenuItem(value: 'createdAt', child: Text('Ngày tạo')),
+                    DropdownMenuItem(value: 'fullName', child: Text('Tên')),
+                    DropdownMenuItem(value: 'email', child: Text('Email')),
+                  ],
+                  onChanged: (value) => doctorVm.updateSortFilter(sortBy: value),
+                ),
+                const SizedBox(width: 16),
+                DropdownButton<String>(
+                  value: doctorVm.sortOrder,
+                  items: const [
+                    DropdownMenuItem(value: 'asc', child: Text('Tăng dần')),
+                    DropdownMenuItem(value: 'desc', child: Text('Giảm dần')),
+                  ],
+                  onChanged: (value) =>
+                      doctorVm.updateSortFilter(sortOrder: value),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    });
+  }
+
+  Widget _buildShimmerList() {
+    return Shimmer.fromColors(
+      baseColor: context.theme.muted,
+      highlightColor: context.theme.input,
+      child: ListView.builder(
+        itemCount: 8,
+        itemBuilder: (_, __) => Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Container(
+                  width: 48.0,
+                  height: 48.0,
+                  decoration: const BoxDecoration(
+                      color: Colors.white, shape: BoxShape.circle)),
+              const Padding(padding: EdgeInsets.symmetric(horizontal: 8.0)),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Container(
+                        width: double.infinity, height: 12.0, color: Colors.white),
+                    const Padding(padding: EdgeInsets.symmetric(vertical: 4.0)),
+                    Container(
+                        width: double.infinity, height: 10.0, color: Colors.white),
+                    const Padding(padding: EdgeInsets.symmetric(vertical: 2.0)),
+                    Container(width: 100.0, height: 8.0, color: Colors.white),
+                  ],
+                ),
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAnimatedDoctorCard(Doctor doctor, int index, bool isOffline) {
+    return Slidable(
+      key: ValueKey(doctor.id),
+      endActionPane: isOffline
+          ? null
+          : ActionPane(
+        motion: const BehindMotion(),
+        children: [
+          SlidableAction(
+            onPressed: (context) async {
+              final result = await Navigator.pushNamed(
+                  context, Routes.updateDoctor,
+                  arguments: doctor.toJson());
+              if (result == true) {
+                context.read<DoctorVm>().fetchDoctors(forceRefresh: true);
+              }
+            },
+            backgroundColor: context.theme.blue,
+            foregroundColor: Colors.white,
+            icon: Icons.edit,
+            label: 'Sửa',
+          ),
+          SlidableAction(
+            onPressed: (context) => _showDeleteDialog(doctor),
+            backgroundColor: context.theme.destructive,
+            foregroundColor: Colors.white,
+            icon: Icons.delete,
+            label: 'Xóa',
+          ),
+        ],
+      ),
+      child: Card(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        child: InkWell(
+            onTap: isOffline
+                ? null
+                : () async {
+              final result = await Navigator.pushNamed(
+                  context, Routes.updateDoctor,
+                  arguments: doctor.toJson());
+              if (result == true) {
+                context.read<DoctorVm>().fetchDoctors(forceRefresh: true);
+              }
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Hero(
+                    tag: 'avatar_${doctor.id}',
+                    child: CircleAvatar(
+                      radius: 24,
+                      backgroundColor: context.theme.primary.withOpacity(0.1),
+                      child: Text(
+                        doctor.fullName.isNotEmpty
+                            ? doctor.fullName[0].toUpperCase()
+                            : 'D',
+                        style: TextStyle(
+                            fontSize: 20,
+                            color: context.theme.primary,
+                            fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Hero(
+                          tag: 'name_${doctor.id}',
+                          child: Material(
+                            color: Colors.transparent,
+                            child: Text(
+                              doctor.fullName,
+                              style: TextStyle(
+                                  color: context.theme.cardForeground,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          doctor.email,
+                          style: TextStyle(
+                              color: context.theme.mutedForeground,
+                              fontSize: 14),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            )),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Quản lý Bác sĩ'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () => context.read<DoctorVm>().fetchDoctors(forceRefresh: true),
+          )
+        ],
+      ),
+      body: Consumer<DoctorVm>(
+        builder: (context, provider, child) {
+          return Column(
+            children: [
+              _buildSearchSection(provider.isOffline),
+              if (provider.isOffline && provider.error != null)
+                Container(
+                  width: double.infinity,
+                  color: Colors.amber,
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    provider.error!,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.black),
+                  ),
+                ),
+              if (provider.isLoading && provider.doctors.isNotEmpty)
+                const LinearProgressIndicator(),
+              Expanded(
+                child: Builder(
+                  builder: (context) {
+                    if (provider.isLoading && provider.doctors.isEmpty) {
+                      return _buildShimmerList();
+                    }
+
+                    if (provider.doctors.isEmpty) {
+                      return const Center(child: Text('Không có bác sĩ nào'));
+                    }
+
+                    return RefreshIndicator(
+                      onRefresh: () async =>
+                          context.read<DoctorVm>().fetchDoctors(forceRefresh: true),
+                      child: ListView.builder(
+                        controller: _scrollController,
+                        itemCount: provider.doctors.length +
+                            (provider.isLoadingMore ? 1 : 0),
+                        itemBuilder: (context, index) {
+                          if (index == provider.doctors.length) {
+                            return const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(16.0),
+                                child: CircularProgressIndicator(),
+                              ),
+                            );
+                          }
+                          return AnimationConfiguration.staggeredList(
+                            position: index,
+                            duration: const Duration(milliseconds: 375),
+                            child: SlideAnimation(
+                              verticalOffset: 50.0,
+                              child: FadeInAnimation(
+                                child: _buildAnimatedDoctorCard(
+                                    provider.doctors[index],
+                                    index,
+                                    provider.isOffline),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}

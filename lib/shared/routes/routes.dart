@@ -145,18 +145,18 @@ class Routes {
           settings: settings,
           child: const MainPageAdmin(),
         );
-        // case createDoctor:
-        // return PageTransition(
-        //   type: PageTransitionType.leftToRight,
-        //   settings: settings,
-        //   child: const CreateDoctorPage(),
-        // );
-        // case listDoctor:
-        // return PageTransition(
-        //   type: PageTransitionType.fade,
-        //   settings: settings,
-        //   child: const DoctorListPage(),
-        // );
+        case createDoctor:
+        return PageTransition(
+          type: PageTransitionType.leftToRight,
+          settings: settings,
+          child: const CreateDoctorPage(),
+        );
+        case listDoctor:
+        return PageTransition(
+          type: PageTransitionType.fade,
+          settings: settings,
+          child: const DoctorListPage(),
+        );
         case updateDoctor:
         final doctor = settings.arguments as Map<String, dynamic>?;
         return PageTransition(

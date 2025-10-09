@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:pbl6mobile/view_model/specialty/specialty_vm.dart';
 import 'package:provider/provider.dart';
@@ -15,7 +14,6 @@ class CreateInfoSectionPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: context.theme.appBar,
         title: Text(
           'Tạo phần thông tin',
           style: TextStyle(color: context.theme.primaryForeground),
@@ -25,18 +23,22 @@ class CreateInfoSectionPage extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      backgroundColor: context.theme.bg,
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: InfoSectionForm(
           isUpdate: false,
           specialtyId: specialtyId,
           onSubmit: ({required name, required content, id}) async {
-            return await Provider.of<SpecialtyVm>(context, listen: false).createInfoSection(
+            return await Provider.of<SpecialtyVm>(context, listen: false)
+                .createInfoSection(
               specialtyId: specialtyId,
               name: name,
               content: content,
             );
+          },
+          onSuccess: () {
+            Provider.of<SpecialtyVm>(context, listen: false)
+                .fetchInfoSections(specialtyId, forceRefresh: true);
           },
         ),
       ),

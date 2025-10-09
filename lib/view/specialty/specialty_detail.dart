@@ -4,7 +4,6 @@ import 'package:pbl6mobile/view_model/specialty/specialty_vm.dart';
 import 'package:provider/provider.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/shared/routes/routes.dart';
-import 'package:pbl6mobile/shared/widgets/button/custom_button_blue.dart';
 
 class SpecialtyDetailPage extends StatefulWidget {
   final Map<String, dynamic> specialty;
@@ -20,140 +19,125 @@ class _SpecialtyDetailPageState extends State<SpecialtyDetailPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<SpecialtyVm>(context, listen: false).fetchInfoSections(widget.specialty['id']);
+      context
+          .read<SpecialtyVm>()
+          .fetchInfoSections(widget.specialty['id'], forceRefresh: true);
     });
   }
 
-  void _showDeleteDialog(dynamic infoSection) {
+  void _showDeleteDialog(String infoSectionId) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: context.theme.popover,
-        title: Text('Xác nhận xóa', style: TextStyle(color: context.theme.popoverForeground)),
-        content: Text(
-          'Bạn có chắc chắn muốn xóa phần thông tin: ${infoSection['name']}?',
-          style: TextStyle(color: context.theme.popoverForeground),
-        ),
+        title: const Text('Xác nhận xóa'),
+        content: const Text('Bạn có chắc chắn muốn xóa phần thông tin này?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Hủy', style: TextStyle(color: context.theme.mutedForeground)),
+            child: const Text('Hủy'),
           ),
           TextButton(
-            onPressed: () => _confirmDelete(infoSection['id']),
-            child: Text('Xóa', style: TextStyle(color: context.theme.destructive)),
+            onPressed: () {
+              Navigator.pop(context);
+              context
+                  .read<SpecialtyVm>()
+                  .deleteInfoSection(infoSectionId, widget.specialty['id']);
+            },
+            child: Text('Xóa',
+                style: TextStyle(color: context.theme.destructive)),
           ),
         ],
       ),
     );
   }
 
-  Future<void> _confirmDelete(String id) async {
-    Navigator.pop(context);
-    final provider = Provider.of<SpecialtyVm>(context, listen: false);
-    final success = await provider.deleteInfoSection(id, widget.specialty['id']);
-    if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Xóa phần thông tin thành công!', style: TextStyle(color: context.theme.primaryForeground)),
-          backgroundColor: context.theme.green,
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Xóa thất bại. Thử lại.', style: TextStyle(color: context.theme.destructiveForeground)),
-          backgroundColor: context.theme.destructive,
-        ),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: context.theme.appBar,
-        title: Text(
-          widget.specialty['name'],
-          style: TextStyle(color: context.theme.primaryForeground),
-        ),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: context.theme.primaryForeground),
-          onPressed: () => Navigator.pop(context),
-        ),
+        title: Text(widget.specialty['name']),
         actions: [
           IconButton(
-            icon: Icon(Icons.refresh, color: context.theme.primaryForeground),
-            onPressed: () => Provider.of<SpecialtyVm>(context, listen: false).fetchInfoSections(widget.specialty['id']),
-          ),
+            icon: const Icon(Icons.refresh),
+            onPressed: () => context
+                .read<SpecialtyVm>()
+                .fetchInfoSections(widget.specialty['id'], forceRefresh: true),
+          )
         ],
       ),
-      backgroundColor: context.theme.bg,
       body: Column(
         children: [
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: CustomButtonBlue(
-              onTap: () => Navigator.pushNamed(
-                context,
-                Routes.createInfoSection,
-                arguments: widget.specialty['id'],
+            child: ElevatedButton(
+              onPressed: () async {
+                final result = await Navigator.pushNamed(
+                    context, Routes.createInfoSection,
+                    arguments: widget.specialty['id']);
+                if (result == true) {
+                  context.read<SpecialtyVm>().fetchInfoSections(
+                      widget.specialty['id'],
+                      forceRefresh: true);
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 50),
               ),
-              text: 'Thêm phần thông tin',
+              child: const Text('Thêm phần thông tin'),
             ),
           ),
           Expanded(
             child: Consumer<SpecialtyVm>(
               builder: (context, provider, child) {
-                if (provider.isLoading) {
-                  return Center(child: CircularProgressIndicator(color: context.theme.primary));
+                if (provider.isInfoSectionLoading) {
+                  return const Center(child: CircularProgressIndicator());
                 }
-                final infoSections = provider.getInfoSectionsFor(widget.specialty['id']);
+                final infoSections =
+                provider.getInfoSectionsFor(widget.specialty['id']);
                 if (infoSections.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.info_outline, size: 64, color: context.theme.muted),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Danh sách phần thông tin trống',
-                          style: TextStyle(fontSize: 18, color: context.theme.mutedForeground),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  );
+                  return const Center(
+                      child: Text('Không có phần thông tin nào.'));
                 }
                 return ListView.builder(
                   itemCount: infoSections.length,
                   itemBuilder: (context, index) {
                     final info = infoSections[index];
                     return Card(
-                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                      color: context.theme.card,
+                      margin: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 4),
                       child: ExpansionTile(
-                        title: Text(info['name'] ?? 'N/A', style: TextStyle(color: context.theme.cardForeground)),
+                        title: Text(info.name),
                         children: [
                           Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Html(data: info['content'] ?? ''),
+                            padding: const EdgeInsets.all(16.0),
+                            child: Html(data: info.content),
                           ),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
                               IconButton(
-                                icon: Icon(Icons.edit, color: context.theme.primary),
-                                onPressed: () => Navigator.pushNamed(
-                                  context,
-                                  Routes.updateInfoSection,
-                                  arguments: {'infoSection': info, 'specialtyId': widget.specialty['id']},
-                                ),
+                                icon: Icon(Icons.edit,
+                                    color: context.theme.primary),
+                                onPressed: () async {
+                                  final result = await Navigator.pushNamed(
+                                    context,
+                                    Routes.updateInfoSection,
+                                    arguments: {
+                                      'infoSection': info.toJson(),
+                                      'specialtyId': widget.specialty['id']
+                                    },
+                                  );
+                                  if (result == true) {
+                                    provider.fetchInfoSections(
+                                        widget.specialty['id'],
+                                        forceRefresh: true);
+                                  }
+                                },
                               ),
                               IconButton(
-                                icon: Icon(Icons.delete, color: context.theme.destructive),
-                                onPressed: () => _showDeleteDialog(info),
+                                icon: Icon(Icons.delete,
+                                    color: context.theme.destructive),
+                                onPressed: () => _showDeleteDialog(info.id),
                               ),
                             ],
                           ),

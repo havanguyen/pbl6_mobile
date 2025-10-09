@@ -1,10 +1,16 @@
-// lib/features/specialty/list_specialty.dart
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:pbl6mobile/view_model/specialty/specialty_vm.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:pbl6mobile/model/entities/specialty.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/shared/routes/routes.dart';
-import 'package:pbl6mobile/shared/widgets/button/custom_button_blue.dart';
+import 'package:pbl6mobile/view_model/specialty/specialty_vm.dart';
+import 'package:provider/provider.dart';
+import 'package:shimmer/shimmer.dart';
+
+import '../../shared/widgets/widget/specialty_delete_confirm.dart';
+import '../../view_model/location_work_management/snackbar_service.dart';
 
 class ListSpecialtyPage extends StatefulWidget {
   const ListSpecialtyPage({super.key});
@@ -15,244 +21,300 @@ class ListSpecialtyPage extends StatefulWidget {
 
 class _ListSpecialtyPageState extends State<ListSpecialtyPage> {
   final TextEditingController _searchController = TextEditingController();
-  String _searchQuery = '';
   final ScrollController _scrollController = ScrollController();
+  Timer? _debounceTimer;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<SpecialtyVm>(context, listen: false).fetchSpecialties(refresh: true);
-    });
-    _searchController.addListener(() {
-      setState(() => _searchQuery = _searchController.text);
-    });
-    _scrollController.addListener(() {
-      if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent) {
-        Provider.of<SpecialtyVm>(context, listen: false).fetchSpecialties();
+      if (mounted) {
+        context.read<SpecialtyVm>().fetchSpecialties(forceRefresh: true);
       }
     });
+
+    _searchController.addListener(_debounceSearch);
+    _scrollController.addListener(_onScroll);
   }
 
   @override
   void dispose() {
+    _searchController.removeListener(_debounceSearch);
     _searchController.dispose();
+    _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
+    _debounceTimer?.cancel();
     super.dispose();
   }
 
-  void _showDeleteDialog(dynamic specialty) {
-    final TextEditingController passwordController = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: context.theme.popover,
-        title: Text('Xác nhận xóa', style: TextStyle(color: context.theme.popoverForeground)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Bạn có chắc chắn muốn xóa chuyên khoa: ${specialty['name']}?',
-              style: TextStyle(color: context.theme.popoverForeground),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: passwordController,
-              obscureText: true,
-              style: TextStyle(color: context.theme.textColor),
-              decoration: InputDecoration(
-                labelText: 'Nhập mật khẩu Admin/Super Admin',
-                labelStyle: TextStyle(color: context.theme.mutedForeground),
-                border: OutlineInputBorder(borderSide: BorderSide(color: context.theme.border)),
-                focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: context.theme.ring)),
-                filled: true,
-                fillColor: context.theme.input,
-              ),
-              onSubmitted: (_) => _confirmDelete(specialty['id'], passwordController.text),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Hủy', style: TextStyle(color: context.theme.mutedForeground)),
-          ),
-          TextButton(
-            onPressed: () => _confirmDelete(specialty['id'], passwordController.text),
-            child: Text('Xóa', style: TextStyle(color: context.theme.destructive)),
-          ),
-        ],
-      ),
-    );
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      context.read<SpecialtyVm>().fetchSpecialties();
+    }
   }
 
-  Future<void> _confirmDelete(String id, String password) async {
-    Navigator.pop(context);
-    final provider = Provider.of<SpecialtyVm>(context, listen: false);
-    final success = await provider.deleteSpecialty(id, password);
-    if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Xóa chuyên khoa thành công!', style: TextStyle(color: context.theme.primaryForeground)),
-          backgroundColor: context.theme.green,
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Xóa thất bại. Kiểm tra mật khẩu hoặc thử lại.', style: TextStyle(color: context.theme.destructiveForeground)),
-          backgroundColor: context.theme.destructive,
-        ),
-      );
-    }
+  void _debounceSearch() {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 700), () {
+      if (mounted) {
+        context.read<SpecialtyVm>().updateSearchQuery(_searchController.text);
+      }
+    });
+  }
+
+  void _showDeleteDialog(Specialty specialty) {
+    final snackbarService =
+    Provider.of<SnackbarService>(context, listen: false);
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => DeleteSpecialtyConfirmationDialog(
+        specialty: specialty.toJson(),
+        onDeleteSuccess: () {},
+        snackbarService: snackbarService,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: context.theme.appBar,
-        title: Text(
-          'Quản lý Chuyên khoa',
-          style: TextStyle(color: context.theme.primaryForeground),
-        ),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: context.theme.primaryForeground),
-          onPressed: () => Navigator.pop(context),
-        ),
+        title: const Text('Quản lý Chuyên khoa'),
         actions: [
           IconButton(
-            icon: Icon(Icons.refresh, color: context.theme.primaryForeground),
-            onPressed: () => Provider.of<SpecialtyVm>(context, listen: false).fetchSpecialties(refresh: true),
+            icon: const Icon(Icons.refresh),
+            onPressed: () =>
+                context.read<SpecialtyVm>().fetchSpecialties(forceRefresh: true),
+          )
+        ],
+      ),
+      body: Consumer<SpecialtyVm>(
+        builder: (context, provider, child) {
+          return Column(
+            children: [
+              _buildSearchSection(provider.isOffline),
+              if (provider.isOffline && provider.error != null)
+                Container(
+                  width: double.infinity,
+                  color: Colors.amber,
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    provider.error!,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.black),
+                  ),
+                ),
+              if (provider.isLoading && provider.specialties.isNotEmpty)
+                const LinearProgressIndicator(),
+              Expanded(
+                child: Builder(
+                  builder: (context) {
+                    if (provider.isLoading && provider.specialties.isEmpty) {
+                      return _buildShimmerList();
+                    }
+                    if (provider.specialties.isEmpty) {
+                      return const Center(
+                          child: Text('Không có chuyên khoa nào'));
+                    }
+                    return RefreshIndicator(
+                      onRefresh: () async => context
+                          .read<SpecialtyVm>()
+                          .fetchSpecialties(forceRefresh: true),
+                      child: ListView.builder(
+                        controller: _scrollController,
+                        itemCount: provider.specialties.length +
+                            (provider.isLoadingMore ? 1 : 0),
+                        itemBuilder: (context, index) {
+                          if (index == provider.specialties.length) {
+                            return const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(16.0),
+                                child: CircularProgressIndicator(),
+                              ),
+                            );
+                          }
+                          return AnimationConfiguration.staggeredList(
+                            position: index,
+                            duration: const Duration(milliseconds: 375),
+                            child: SlideAnimation(
+                              verticalOffset: 50.0,
+                              child: FadeInAnimation(
+                                child: _buildAnimatedCard(
+                                    provider.specialties[index],
+                                    provider.isOffline),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildSearchSection(bool isOffline) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          TextField(
+            controller: _searchController,
+            decoration: InputDecoration(
+              labelText: 'Tìm kiếm chuyên khoa',
+              prefixIcon: Icon(Icons.search, color: context.theme.primary),
+              suffixIcon: _searchController.text.isNotEmpty
+                  ? IconButton(
+                icon: Icon(Icons.clear, color: context.theme.primary),
+                onPressed: () {
+                  _searchController.clear();
+                  context.read<SpecialtyVm>().resetFilters();
+                },
+              )
+                  : null,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: isOffline
+                ? null
+                : () async {
+              final result =
+              await Navigator.pushNamed(context, Routes.createSpecialty);
+              if (result == true) {
+                context
+                    .read<SpecialtyVm>()
+                    .fetchSpecialties(forceRefresh: true);
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              minimumSize: const Size(double.infinity, 50),
+            ),
+            child: const Text('Thêm chuyên khoa'),
           ),
         ],
       ),
-      backgroundColor: context.theme.bg,
-      body: Column(
+    );
+  }
+
+  Widget _buildShimmerList() {
+    return Shimmer.fromColors(
+      baseColor: context.theme.muted,
+      highlightColor: context.theme.input,
+      child: ListView.builder(
+        itemCount: 8,
+        itemBuilder: (_, __) => Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            children: [
+              const CircleAvatar(radius: 24),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                        width: double.infinity, height: 12.0, color: Colors.white),
+                    const SizedBox(height: 8),
+                    Container(width: 150, height: 10.0, color: Colors.white),
+                  ],
+                ),
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAnimatedCard(Specialty specialty, bool isOffline) {
+    return Slidable(
+      key: ValueKey(specialty.id),
+      endActionPane: isOffline
+          ? null
+          : ActionPane(
+        motion: const BehindMotion(),
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
+          SlidableAction(
+            onPressed: (context) async {
+              final result = await Navigator.pushNamed(
+                  context, Routes.updateSpecialty,
+                  arguments: specialty.toJson());
+              if (result == true) {
+                context
+                    .read<SpecialtyVm>()
+                    .fetchSpecialties(forceRefresh: true);
+              }
+            },
+            backgroundColor: context.theme.blue,
+            foregroundColor: Colors.white,
+            icon: Icons.edit,
+            label: 'Sửa',
+          ),
+          SlidableAction(
+            onPressed: (context) => _showDeleteDialog(specialty),
+            backgroundColor: context.theme.destructive,
+            foregroundColor: Colors.white,
+            icon: Icons.delete,
+            label: 'Xóa',
+          ),
+        ],
+      ),
+      child: Card(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        child: InkWell(
+          onTap: () async {
+            final result = await Navigator.pushNamed(
+                context, Routes.specialtyDetail,
+                arguments: specialty.toJson());
+            if (result == true) {
+              context.read<SpecialtyVm>().fetchSpecialties(forceRefresh: true);
+            }
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
               children: [
-                TextField(
-                  controller: _searchController,
-                  style: TextStyle(color: context.theme.textColor),
-                  decoration: InputDecoration(
-                    labelText: 'Tìm kiếm theo tên',
-                    labelStyle: TextStyle(color: context.theme.mutedForeground),
-                    prefixIcon: Icon(Icons.search, color: context.theme.primary),
-                    border: OutlineInputBorder(borderSide: BorderSide(color: context.theme.border)),
-                    focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: context.theme.ring)),
-                    filled: true,
-                    fillColor: context.theme.input,
-                    suffixIcon: _searchQuery.isNotEmpty
-                        ? IconButton(
-                      icon: Icon(Icons.clear, color: context.theme.primary),
-                      onPressed: () {
-                        _searchController.clear();
-                        setState(() => _searchQuery = '');
-                      },
-                    )
-                        : null,
+                Hero(
+                  tag: 'specialty_${specialty.id}',
+                  child: CircleAvatar(
+                    radius: 24,
+                    child: Text(
+                      specialty.name.isNotEmpty
+                          ? specialty.name[0].toUpperCase()
+                          : 'C',
+                    ),
                   ),
                 ),
-                const SizedBox(height: 16),
-                CustomButtonBlue(
-                  onTap: () => Navigator.pushNamed(context, Routes.createSpecialty),
-                  text: 'Thêm chuyên khoa',
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        specialty.name,
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Số phần thông tin: ${specialty.infoSectionsCount}',
+                        style: TextStyle(color: context.theme.mutedForeground),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
-          Expanded(
-            child: Consumer<SpecialtyVm>(
-              builder: (context, provider, child) {
-                if (provider.isLoading && provider.specialties.isEmpty) {
-                  return Center(child: CircularProgressIndicator(color: context.theme.primary));
-                }
-                if (provider.error != null) {
-                  return Center(child: Text(provider.error!, style: TextStyle(color: context.theme.destructive)));
-                }
-                final filteredSpecialties = provider.specialties.where((spec) {
-                  final name = spec['name']?.toLowerCase() ?? '';
-                  final query = _searchQuery.toLowerCase();
-                  return name.contains(query);
-                }).toList();
-
-                if (filteredSpecialties.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.medical_information_outlined, size: 64, color: context.theme.muted),
-                        const SizedBox(height: 16),
-                        Text(
-                          _searchQuery.isNotEmpty ? 'Không tìm thấy chuyên khoa phù hợp' : 'Danh sách chuyên khoa trống',
-                          style: TextStyle(fontSize: 18, color: context.theme.mutedForeground),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  );
-                }
-                return ListView.builder(
-                  controller: _scrollController,
-                  itemCount: filteredSpecialties.length + (provider.hasMore ? 1 : 0),
-                  itemBuilder: (context, index) {
-                    if (index == filteredSpecialties.length) {
-                      return Center(child: CircularProgressIndicator(color: context.theme.primary));
-                    }
-                    final specialty = filteredSpecialties[index];
-                    return Card(
-                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                      color: context.theme.card,
-                      child: ListTile(
-                        textColor: context.theme.cardForeground,
-                        leading: CircleAvatar(
-                          backgroundColor: context.theme.primary,
-                          child: Text(
-                            specialty['name']?[0].toUpperCase() ?? 'S',
-                            style: TextStyle(color: context.theme.primaryForeground),
-                          ),
-                        ),
-                        title: Text(specialty['name'] ?? 'N/A'),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(specialty['description'] ?? 'N/A', style: TextStyle(color: context.theme.mutedForeground)),
-                            Text('Số phần thông tin: ${specialty['infoSectionsCount'] ?? 0}', style: TextStyle(color: context.theme.mutedForeground)),
-                          ],
-                        ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: Icon(Icons.edit, color: context.theme.primary),
-                              onPressed: () => Navigator.pushNamed(
-                                context,
-                                Routes.updateSpecialty,
-                                arguments: specialty,
-                              ),
-                            ),
-                            IconButton(
-                              icon: Icon(Icons.delete, color: context.theme.destructive),
-                              onPressed: () => _showDeleteDialog(specialty),
-                            ),
-                          ],
-                        ),
-                        onTap: () => Navigator.pushNamed(
-                          context,
-                          Routes.specialtyDetail,
-                          arguments: specialty,
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

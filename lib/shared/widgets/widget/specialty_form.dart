@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
-import 'package:pbl6mobile/shared/widgets/button/custom_button_blue.dart';
+
+import 'doctor_form.dart';
 
 class SpecialtyForm extends StatefulWidget {
   final bool isUpdate;
@@ -10,12 +11,14 @@ class SpecialtyForm extends StatefulWidget {
   String? description,
   String? id,
   }) onSubmit;
+  final VoidCallback? onSuccess;
 
   const SpecialtyForm({
     super.key,
     required this.isUpdate,
     this.initialData,
     required this.onSubmit,
+    this.onSuccess,
   });
 
   @override
@@ -26,13 +29,14 @@ class _SpecialtyFormState extends State<SpecialtyForm> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _descriptionController;
-  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.initialData?['name'] ?? '');
-    _descriptionController = TextEditingController(text: widget.initialData?['description'] ?? '');
+    _nameController =
+        TextEditingController(text: widget.initialData?['name'] ?? '');
+    _descriptionController =
+        TextEditingController(text: widget.initialData?['description'] ?? '');
   }
 
   @override
@@ -42,57 +46,26 @@ class _SpecialtyFormState extends State<SpecialtyForm> {
     super.dispose();
   }
 
-  void _submitForm() async {
+  Future<bool> _submitForm() async {
     if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
       final success = await widget.onSubmit(
         id: widget.initialData?['id'],
         name: _nameController.text,
-        description: _descriptionController.text,
+        description: _descriptionController.text.isEmpty
+            ? null
+            : _descriptionController.text,
       );
-      setState(() => _isLoading = false);
       if (success) {
-        _showSuccessDialog();
-      } else {
-        _showErrorDialog('${widget.isUpdate ? 'Cập nhật' : 'Tạo'} chuyên khoa thất bại. Vui lòng thử lại.');
+        widget.onSuccess?.call();
+        Future.delayed(const Duration(milliseconds: 1500), () {
+          if (mounted) {
+            Navigator.of(context).pop(true);
+          }
+        });
       }
+      return success;
     }
-  }
-
-  void _showSuccessDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: context.theme.popover,
-        title: Text('Thành công', style: TextStyle(color: context.theme.popoverForeground)),
-        content: Text('${widget.isUpdate ? 'Cập nhật' : 'Tạo'} chuyên khoa thành công!', style: TextStyle(color: context.theme.popoverForeground)),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: Text('OK', style: TextStyle(color: context.theme.primary)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showErrorDialog(String message) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: context.theme.popover,
-        title: Text('Lỗi', style: TextStyle(color: context.theme.popoverForeground)),
-        content: Text(message, style: TextStyle(color: context.theme.popoverForeground)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('OK', style: TextStyle(color: context.theme.destructive)),
-          ),
-        ],
-      ),
-    );
+    return false;
   }
 
   @override
@@ -100,49 +73,50 @@ class _SpecialtyFormState extends State<SpecialtyForm> {
     return Form(
       key: _formKey,
       child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(vertical: 16),
         child: Column(
           children: [
             TextFormField(
               controller: _nameController,
-              style: TextStyle(color: context.theme.textColor),
               decoration: InputDecoration(
                 labelText: 'Tên chuyên khoa',
-                prefixIcon: Icon(Icons.medical_services, color: context.theme.primary),
-                border: OutlineInputBorder(borderSide: BorderSide(color: context.theme.border)),
-                focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: context.theme.ring)),
-                filled: true,
-                fillColor: context.theme.input,
+                prefixIcon:
+                Icon(Icons.medical_services, color: context.theme.primary),
               ),
               validator: (value) {
-                if (value == null || value.isEmpty) return 'Vui lòng nhập tên chuyên khoa';
-                if (value.length < 10 || value.length > 200) return 'Tên phải từ 10 đến 200 ký tự';
+                if (value == null || value.isEmpty) {
+                  return 'Vui lòng nhập tên chuyên khoa';
+                }
+                if (value.length < 10 || value.length > 200) {
+                  return 'Tên phải từ 10 đến 200 ký tự';
+                }
                 return null;
               },
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             TextFormField(
               controller: _descriptionController,
-              style: TextStyle(color: context.theme.textColor),
               decoration: InputDecoration(
                 labelText: 'Mô tả',
-                prefixIcon: Icon(Icons.description, color: context.theme.primary),
-                border: OutlineInputBorder(borderSide: BorderSide(color: context.theme.border)),
-                focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: context.theme.ring)),
-                filled: true,
-                fillColor: context.theme.input,
+                prefixIcon:
+                Icon(Icons.description, color: context.theme.primary),
               ),
               maxLines: 5,
               validator: (value) {
-                if (value != null && value.isNotEmpty && (value.length < 10 || value.length > 1000)) {
-                  return 'Mô tả phải từ 10 đến 1000 ký tự nếu nhập';
+                if (value != null &&
+                    value.isNotEmpty &&
+                    (value.length < 10 || value.length > 1000)) {
+                  return 'Mô tả phải từ 10 đến 1000 ký tự nếu có';
                 }
                 return null;
               },
             ),
             const SizedBox(height: 32),
-            CustomButtonBlue(
-              onTap: _submitForm,
-              text: _isLoading ? 'Đang ${widget.isUpdate ? 'cập nhật' : 'tạo'}...' : '${widget.isUpdate ? 'Cập nhật' : 'Tạo'} chuyên khoa',
+            AnimatedSubmitButton(
+              onSubmit: _submitForm,
+              idleText:
+              '${widget.isUpdate ? 'Cập nhật' : 'Tạo'} chuyên khoa',
+              loadingText: 'Đang xử lý...',
             ),
           ],
         ),
