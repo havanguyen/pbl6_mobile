@@ -1,6 +1,107 @@
 import 'package:flutter/material.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
-import 'package:pbl6mobile/shared/widgets/button/custom_button_blue.dart';
+
+enum ButtonState { idle, loading, success, error }
+
+class AnimatedSubmitButton extends StatefulWidget {
+  final Future<bool> Function() onSubmit;
+  final String idleText;
+  final String loadingText;
+
+  const AnimatedSubmitButton({
+    super.key,
+    required this.onSubmit,
+    required this.idleText,
+    required this.loadingText,
+  });
+
+  @override
+  State<AnimatedSubmitButton> createState() => _AnimatedSubmitButtonState();
+}
+
+class _AnimatedSubmitButtonState extends State<AnimatedSubmitButton> {
+  ButtonState _state = ButtonState.idle;
+
+  void _handleSubmit() async {
+    if (_state == ButtonState.loading) return;
+
+    setState(() => _state = ButtonState.loading);
+    final success = await widget.onSubmit();
+    setState(() => _state = success ? ButtonState.success : ButtonState.error);
+    await Future.delayed(const Duration(seconds: 2));
+    if (mounted) {
+      setState(() => _state = ButtonState.idle);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      transitionBuilder: (Widget child, Animation<double> animation) {
+        return ScaleTransition(scale: animation, child: child);
+      },
+      child: _buildButtonChild(),
+    );
+  }
+  Widget _buildButtonChild() {
+    switch (_state) {
+      case ButtonState.loading:
+        return const SizedBox(
+          key: ValueKey('loading'),
+          height: 52,
+          child: Center(
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2,
+                ),
+              )),
+        );
+      case ButtonState.success:
+        return const SizedBox(
+          key: ValueKey('success'),
+          height: 52,
+          child: CircleAvatar(
+            backgroundColor: Colors.green,
+            child: Icon(Icons.check, color: Colors.white),
+          ),
+        );
+      case ButtonState.error:
+        return SizedBox(
+          key: const ValueKey('error'),
+          height: 52,
+          child: CircleAvatar(
+            backgroundColor: context.theme.destructive,
+            child: const Icon(Icons.close, color: Colors.white),
+          ),
+        );
+      case ButtonState.idle:
+      default:
+        return SizedBox(
+          key: const ValueKey('idle'),
+          width: double.infinity,
+          height: 52,
+          child: ElevatedButton(
+            onPressed: _handleSubmit,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: context.theme.primary,
+              foregroundColor: context.theme.primaryForeground,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: Text(
+              widget.idleText,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+            ),
+          ),
+        );
+    }
+  }
+}
 
 class StaffForm extends StatefulWidget {
   final bool isUpdate;
@@ -15,7 +116,7 @@ class StaffForm extends StatefulWidget {
   required bool isMale,
   String? id,
   }) onSubmit;
-  final VoidCallback? onSuccess; // Thêm callback khi thành công
+  final VoidCallback? onSuccess;
 
   const StaffForm({
     super.key,
@@ -23,7 +124,7 @@ class StaffForm extends StatefulWidget {
     required this.initialData,
     required this.role,
     required this.onSubmit,
-    this.onSuccess, // Thêm callback optional
+    this.onSuccess,
   });
 
   @override
@@ -38,8 +139,6 @@ class _StaffFormState extends State<StaffForm> with SingleTickerProviderStateMix
   late TextEditingController _phoneController;
   late TextEditingController _dateOfBirthController;
   late bool _isMale;
-  bool _isLoading = false;
-
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _slideAnimation;
@@ -54,36 +153,27 @@ class _StaffFormState extends State<StaffForm> with SingleTickerProviderStateMix
     _dateOfBirthController = TextEditingController();
     _isMale = widget.initialData?['isMale'] ?? true;
 
-    // Khởi tạo animation
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
     );
 
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(
       parent: _animationController,
       curve: Curves.easeInOut,
     ));
 
-    _slideAnimation = Tween<double>(
-      begin: 30.0,
-      end: 0.0,
-    ).animate(CurvedAnimation(
+    _slideAnimation = Tween<double>(begin: 30.0, end: 0.0).animate(CurvedAnimation(
       parent: _animationController,
       curve: Curves.easeOutCubic,
     ));
 
-    // Set initial date if available
     final dob = widget.initialData?['dateOfBirth'];
     if (dob != null) {
       try {
         final date = DateTime.parse(dob).toLocal();
-        _dateOfBirthController.text = '${date.day}/${date.month}/${date.year}';
+        _dateOfBirthController.text = '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
       } catch (e) {
-        print('❌ Error parsing initial date: $e');
         _dateOfBirthController.text = dob.toString();
       }
     }
@@ -105,47 +195,35 @@ class _StaffFormState extends State<StaffForm> with SingleTickerProviderStateMix
   }
 
   Future<void> _selectDate() async {
-    try {
-      final DateTime? picked = await showDatePicker(
-        context: context,
-        initialDate: DateTime.now(),
-        firstDate: DateTime(1900),
-        lastDate: DateTime.now(),
-        builder: (context, child) => Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
-              primary: context.theme.primary,
-              onPrimary: context.theme.primaryForeground,
-              surface: context.theme.popover,
-              onSurface: context.theme.popoverForeground,
-            ),
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+      builder: (context, child) => Theme(
+        data: Theme.of(context).copyWith(
+          colorScheme: ColorScheme.light(
+            primary: context.theme.primary,
+            onPrimary: context.theme.primaryForeground,
+            surface: context.theme.popover,
+            onSurface: context.theme.popoverForeground,
           ),
-          child: child!,
         ),
-      );
+        child: child!,
+      ),
+    );
 
-      if (picked != null) {
-        // Format date thành dd/mm/yyyy
-        final day = picked.day.toString().padLeft(2, '0');
-        final month = picked.month.toString().padLeft(2, '0');
-        final year = picked.year.toString();
-        final formattedDate = '$day/$month/$year';
-
-        _dateOfBirthController.text = formattedDate;
-        print('📅 Selected and formatted date: $formattedDate');
-      }
-    } catch (e) {
-      print('❌ Error selecting date: $e');
+    if (picked != null) {
+      final day = picked.day.toString().padLeft(2, '0');
+      final month = picked.month.toString().padLeft(2, '0');
+      final year = picked.year.toString();
+      final formattedDate = '$day/$month/$year';
+      _dateOfBirthController.text = formattedDate;
     }
   }
 
-  void _submitForm(BuildContext context) async {
+  Future<bool> _submitForm() async {
     if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
-
-      print('🔄 Submitting form...');
-      print('📝 Date of birth: ${_dateOfBirthController.text}');
-
       final success = await widget.onSubmit(
         id: widget.initialData?['id'],
         email: _emailController.text,
@@ -156,26 +234,19 @@ class _StaffFormState extends State<StaffForm> with SingleTickerProviderStateMix
         isMale: _isMale,
       );
 
-      setState(() => _isLoading = false);
-
       if (success) {
-        print('✅ Form submitted successfully');
-
-        // Gọi callback khi thành công nếu có
-        if (widget.onSuccess != null) {
-          widget.onSuccess!();
-        }
-
-        // Đóng trang và trả về kết quả
-        if (mounted) {
-          Navigator.of(context).pop(true);
-        }
+        widget.onSuccess?.call();
+        Future.delayed(const Duration(milliseconds: 1500), () {
+          if (mounted) {
+            Navigator.of(context).pop(true);
+          }
+        });
       } else {
-        print('❌ Form submission failed');
-        _showErrorDialog(
-            '${widget.isUpdate ? 'Cập nhật' : 'Tạo'} ${widget.role.toLowerCase()} thất bại. Vui lòng thử lại.');
+        _showErrorDialog('${widget.isUpdate ? 'Cập nhật' : 'Tạo'} ${widget.role.toLowerCase()} thất bại.');
       }
+      return success;
     }
+    return false;
   }
 
   void _showErrorDialog(String message) {
@@ -200,16 +271,9 @@ class _StaffFormState extends State<StaffForm> with SingleTickerProviderStateMix
     required Widget child,
   }) {
     final delay = index * 100;
-    final animation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
+    final animation = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(
       parent: _animationController,
-      curve: Interval(
-        delay / 1000,
-        1.0,
-        curve: Curves.easeOutCubic,
-      ),
+      curve: Interval(delay / 1000, 1.0, curve: Curves.easeOutCubic),
     ));
 
     return AnimatedBuilder(
@@ -235,379 +299,155 @@ class _StaffFormState extends State<StaffForm> with SingleTickerProviderStateMix
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // Full Name Field
+            if (widget.isUpdate) ...[
+              Hero(
+                tag: 'avatar_${widget.initialData?['id']}',
+                child: CircleAvatar(
+                  radius: 50,
+                  backgroundColor: context.theme.primary.withOpacity(0.1),
+                  child: Text(
+                    widget.initialData?['fullName']?.isNotEmpty == true
+                        ? widget.initialData!['fullName'][0].toUpperCase()
+                        : 'A',
+                    style: TextStyle(
+                        fontSize: 40,
+                        color: context.theme.primary,
+                        fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Hero(
+                tag: 'name_${widget.initialData?['id']}',
+                child: Material(
+                  color: Colors.transparent,
+                  child: Text(
+                    widget.initialData?['fullName'] ?? '',
+                    style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: context.theme.textColor),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 32),
+            ],
             _buildAnimatedFormField(
               index: 0,
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: context.theme.border.withOpacity(0.1),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
+              child: TextFormField(
+                controller: _fullNameController,
+                decoration: InputDecoration(
+                  labelText: 'Họ và tên',
+                  prefixIcon: Icon(Icons.person, color: context.theme.primary),
                 ),
-                child: TextFormField(
-                  controller: _fullNameController,
-                  style: TextStyle(
-                    color: context.theme.textColor,
-                    fontSize: 16,
-                  ),
-                  decoration: InputDecoration(
-                    labelText: 'Họ và tên',
-                    prefixIcon: Icon(Icons.person, color: context.theme.primary),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: context.theme.border),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: context.theme.primary,
-                        width: 1.5,
-                      ),
-                    ),
-                    filled: true,
-                    fillColor: context.theme.input,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) return 'Vui lòng nhập họ và tên';
-                    return null;
-                  },
-                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) return 'Vui lòng nhập họ và tên';
+                  return null;
+                },
               ),
             ),
             const SizedBox(height: 20),
-
-            // Email Field
             _buildAnimatedFormField(
               index: 1,
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: context.theme.border.withOpacity(0.1),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
+              child: TextFormField(
+                controller: _emailController,
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                  prefixIcon: Icon(Icons.email, color: context.theme.primary),
                 ),
-                child: TextFormField(
-                  controller: _emailController,
-                  style: TextStyle(
-                    color: context.theme.textColor,
-                    fontSize: 16,
-                  ),
-                  decoration: InputDecoration(
-                    labelText: 'Email',
-                    prefixIcon: Icon(Icons.email, color: context.theme.primary),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: context.theme.border),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: context.theme.primary,
-                        width: 1.5,
-                      ),
-                    ),
-                    filled: true,
-                    fillColor: context.theme.input,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                  ),
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) return 'Vui lòng nhập email';
-                    final emailRegex = RegExp(r'^[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z]+');
-                    if (!emailRegex.hasMatch(value)) return 'Email không đúng định dạng';
-                    return null;
-                  },
-                ),
+                keyboardType: TextInputType.emailAddress,
+                validator: (value) {
+                  if (value == null || value.isEmpty) return 'Vui lòng nhập email';
+                  if (!RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$').hasMatch(value)) {
+                    return 'Email không đúng định dạng';
+                  }
+                  return null;
+                },
               ),
             ),
             const SizedBox(height: 20),
-
-            // Password Field
             _buildAnimatedFormField(
               index: 2,
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: context.theme.border.withOpacity(0.1),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
+              child: TextFormField(
+                controller: _passwordController,
+                decoration: InputDecoration(
+                  labelText: widget.isUpdate
+                      ? 'Mật khẩu mới (để trống nếu không đổi)'
+                      : 'Mật khẩu',
+                  prefixIcon: Icon(Icons.lock, color: context.theme.primary),
                 ),
-                child: TextFormField(
-                  controller: _passwordController,
-                  style: TextStyle(
-                    color: context.theme.textColor,
-                    fontSize: 16,
-                  ),
-                  decoration: InputDecoration(
-                    labelText: widget.isUpdate
-                        ? 'Mật khẩu mới (để trống nếu không thay đổi)'
-                        : 'Mật khẩu',
-                    prefixIcon: Icon(Icons.lock, color: context.theme.primary),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: context.theme.border),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: context.theme.primary,
-                        width: 1.5,
-                      ),
-                    ),
-                    filled: true,
-                    fillColor: context.theme.input,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                  ),
-                  obscureText: true,
-                  validator: (value) {
-                    if (widget.isUpdate) {
-                      if (value != null && value.isNotEmpty) {
-                        if (value.length < 8 || !value.contains(RegExp(r'[a-zA-Z]')) || !value.contains(RegExp(r'[0-9]'))) {
-                          return 'Mật khẩu tối thiểu 8 ký tự, có ít nhất 1 chữ cái và 1 số';
-                        }
-                      }
-                    } else {
-                      if (value == null || value.isEmpty) return 'Vui lòng nhập mật khẩu';
-                      if (value.length < 8 || !value.contains(RegExp(r'[a-zA-Z]')) || !value.contains(RegExp(r'[0-9]'))) {
-                        return 'Mật khẩu tối thiểu 8 ký tự, có ít nhất 1 chữ cái và 1 số';
-                      }
-                    }
-                    return null;
-                  },
-                ),
+                obscureText: true,
+                validator: (value) {
+                  if (!widget.isUpdate && (value == null || value.isEmpty)) {
+                    return 'Vui lòng nhập mật khẩu';
+                  }
+                  if (value != null && value.isNotEmpty && (value.length < 8 || !value.contains(RegExp(r'[a-zA-Z]')) || !value.contains(RegExp(r'[0-9]')))) {
+                    return 'Mật khẩu tối thiểu 8 ký tự, có chữ và số';
+                  }
+                  return null;
+                },
               ),
             ),
             const SizedBox(height: 20),
-
-            // Phone Field
             _buildAnimatedFormField(
               index: 3,
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: context.theme.border.withOpacity(0.1),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
+              child: TextFormField(
+                controller: _phoneController,
+                decoration: InputDecoration(
+                  labelText: 'Số điện thoại',
+                  prefixIcon: Icon(Icons.phone, color: context.theme.primary),
                 ),
-                child: TextFormField(
-                  controller: _phoneController,
-                  style: TextStyle(
-                    color: context.theme.textColor,
-                    fontSize: 16,
-                  ),
-                  decoration: InputDecoration(
-                    labelText: 'Số điện thoại',
-                    prefixIcon: Icon(Icons.phone, color: context.theme.primary),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: context.theme.border),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: context.theme.primary,
-                        width: 1.5,
-                      ),
-                    ),
-                    filled: true,
-                    fillColor: context.theme.input,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                  ),
-                  keyboardType: TextInputType.phone,
-                  validator: (value) {
-                    if (value != null && value.isNotEmpty) {
-                      if (!RegExp(r'^\d{10}$').hasMatch(value)) return 'Số điện thoại phải là 10 chữ số';
-                    }
-                    return null;
-                  },
-                ),
+                keyboardType: TextInputType.phone,
+                validator: (value) {
+                  if (value != null && value.isNotEmpty && !RegExp(r'^\d{10}$').hasMatch(value)) {
+                    return 'Số điện thoại phải là 10 chữ số';
+                  }
+                  return null;
+                },
               ),
             ),
             const SizedBox(height: 20),
-
-            // Date of Birth Field
             _buildAnimatedFormField(
               index: 4,
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: context.theme.border.withOpacity(0.1),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
+              child: TextFormField(
+                controller: _dateOfBirthController,
+                decoration: InputDecoration(
+                  labelText: 'Ngày sinh (dd/mm/yyyy)',
+                  prefixIcon: Icon(Icons.calendar_today, color: context.theme.primary),
                 ),
-                child: TextFormField(
-                  controller: _dateOfBirthController,
-                  style: TextStyle(
-                    color: context.theme.textColor,
-                    fontSize: 16,
-                  ),
-                  decoration: InputDecoration(
-                    labelText: 'Ngày sinh (dd/mm/yyyy)',
-                    prefixIcon: Icon(Icons.calendar_today, color: context.theme.primary),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: context.theme.border),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: context.theme.primary,
-                        width: 1.5,
-                      ),
-                    ),
-                    filled: true,
-                    fillColor: context.theme.input,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                  ),
-                  readOnly: true,
-                  onTap: _selectDate,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) return 'Vui lòng chọn ngày sinh';
-
-                    // Validate date format
-                    try {
-                      final dateParts = value.split('/');
-                      if (dateParts.length != 3) {
-                        return 'Định dạng ngày không hợp lệ (dd/mm/yyyy)';
-                      }
-
-                      final day = int.tryParse(dateParts[0]);
-                      final month = int.tryParse(dateParts[1]);
-                      final year = int.tryParse(dateParts[2]);
-
-                      if (day == null || month == null || year == null) {
-                        return 'Ngày tháng năm phải là số';
-                      }
-
-                      return null;
-                    } catch (e) {
-                      return 'Định dạng ngày không hợp lệ';
-                    }
-                  },
-                ),
+                readOnly: true,
+                onTap: _selectDate,
+                validator: (value) {
+                  if (value == null || value.isEmpty) return 'Vui lòng chọn ngày sinh';
+                  return null;
+                },
               ),
             ),
             const SizedBox(height: 20),
-
-            // Gender Selection
             _buildAnimatedFormField(
-              index: 5,
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  color: context.theme.input,
-                  boxShadow: [
-                    BoxShadow(
-                      color: context.theme.border.withOpacity(0.1),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                index: 5,
+                child: Row(
                   children: [
-                    Text(
-                      'Giới tính',
-                      style: TextStyle(
-                        color: context.theme.textColor,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Checkbox(
-                          value: _isMale,
-                          onChanged: (value) => setState(() => _isMale = value ?? true),
-                          activeColor: context.theme.primary,
-                          checkColor: context.theme.primaryForeground,
-                        ),
-                        Text('Nam', style: TextStyle(color: context.theme.textColor)),
-                        Radio<bool>(
-                          value: true,
-                          groupValue: _isMale,
-                          onChanged: (value) => setState(() => _isMale = true),
-                          activeColor: context.theme.primary,
-                        ),
-                        const SizedBox(width: 16),
-                        Radio<bool>(
-                          value: false,
-                          groupValue: _isMale,
-                          onChanged: (value) => setState(() => _isMale = false),
-                          activeColor: context.theme.primary,
-                        ),
-                        Text('Nữ', style: TextStyle(color: context.theme.textColor)),
-                      ],
-                    ),
+                    Text('Giới tính:', style: TextStyle(color: context.theme.textColor)),
+                    Radio<bool>(
+                        value: true,
+                        groupValue: _isMale,
+                        onChanged: (value) => setState(() => _isMale = true)),
+                    Text('Nam', style: TextStyle(color: context.theme.textColor)),
+                    Radio<bool>(
+                        value: false,
+                        groupValue: _isMale,
+                        onChanged: (value) => setState(() => _isMale = false)),
+                    Text('Nữ', style: TextStyle(color: context.theme.textColor)),
                   ],
-                ),
-              ),
-            ),
+                )),
             const SizedBox(height: 32),
-
-            // Submit Button
             _buildAnimatedFormField(
               index: 6,
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: context.theme.primary.withOpacity(0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: CustomButtonBlue(
-                  onTap: () {
-                    _submitForm(context);
-                  },
-                  text: _isLoading
-                      ? 'Đang ${widget.isUpdate ? 'cập nhật' : 'tạo'}...'
-                      : '${widget.isUpdate ? 'Cập nhật' : 'Tạo'} ${widget.role.toLowerCase()}',
-                ),
+              child: AnimatedSubmitButton(
+                onSubmit: _submitForm,
+                idleText: '${widget.isUpdate ? 'Cập nhật' : 'Tạo'} ${widget.role.toLowerCase()}',
+                loadingText: 'Đang xử lý...',
               ),
             ),
             const SizedBox(height: 20),

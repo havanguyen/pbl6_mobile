@@ -14,7 +14,6 @@ class UpdateAdminPage extends StatelessWidget {
 
     try {
       if (input.contains('/')) {
-        // Định dạng dd/mm/yyyy -> chuyển sang yyyy-mm-dd
         final parts = input.split('/');
         if (parts.length != 3) {
           print('❌ Invalid dd/mm/yyyy format: $input');
@@ -27,7 +26,6 @@ class UpdateAdminPage extends StatelessWidget {
         print('✅ Converted dd/mm/yyyy to ISO: $formattedDate');
         return formattedDate;
       } else if (input.contains('-')) {
-        // Đã là định dạng ISO, sử dụng trực tiếp
         print('✅ Date is already in ISO format: $input');
         return input;
       } else {
@@ -84,7 +82,6 @@ class UpdateAdminPage extends StatelessWidget {
         role: 'Admin',
         onSubmit: _onSubmit,
         onSuccess: () {
-          // Callback khi cập nhật thành công
           print('✅ Admin updated successfully, will refresh list');
         },
       ),
