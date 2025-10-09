@@ -15,7 +15,6 @@ class SpecialtyVm extends ChangeNotifier {
   final int _limit = 10;
   Map<String, dynamic> _meta = {};
 
-  String _searchQuery = '';
   String? _sortBy = 'createdAt';
   String? _sortOrder = 'DESC';
 
@@ -46,11 +45,6 @@ class SpecialtyVm extends ChangeNotifier {
     });
   }
 
-  void updateSearchQuery(String query) {
-    _searchQuery = query;
-    fetchSpecialties(forceRefresh: true);
-  }
-
   void updateSortFilter({String? sortBy, String? sortOrder}) {
     _sortBy = sortBy ?? _sortBy;
     _sortOrder = sortOrder ?? _sortOrder;
@@ -58,7 +52,6 @@ class SpecialtyVm extends ChangeNotifier {
   }
 
   void resetFilters() {
-    _searchQuery = '';
     _sortBy = 'createdAt';
     _sortOrder = 'DESC';
     fetchSpecialties(forceRefresh: true);
@@ -83,7 +76,6 @@ class SpecialtyVm extends ChangeNotifier {
     if (!isConnected) {
       _error = 'Bạn đang offline. Dữ liệu có thể đã cũ.';
       final offlineData = await _dbHelper.getSpecialties(
-        search: _searchQuery,
         page: _currentPage,
         limit: _limit,
         sortBy: _sortBy,
@@ -98,7 +90,6 @@ class SpecialtyVm extends ChangeNotifier {
 
     try {
       final result = await SpecialtyService.getAllSpecialties(
-        search: _searchQuery,
         page: _currentPage,
         limit: _limit,
         sortBy: _sortBy!,
@@ -209,8 +200,9 @@ class SpecialtyVm extends ChangeNotifier {
     return success;
   }
 
-  Future<bool> deleteInfoSection(String id, String specialtyId) async {
-    final success = await SpecialtyService.deleteInfoSection(id);
+  Future<bool> deleteInfoSection(
+      String id, String specialtyId, String password) async {
+    final success = await SpecialtyService.deleteInfoSection(id, password: password);
     if (success) {
       await fetchInfoSections(specialtyId, forceRefresh: true);
     }

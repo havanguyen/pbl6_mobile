@@ -195,8 +195,9 @@ class SpecialtyService {
     try {
       final String? accessToken = await Store.getAccessToken();
       if (accessToken == null) return false;
-
-      final Map<String, dynamic> requestBody = {'password': password};
+      if (!await AuthService.verifyPassword(password: password)) {
+        return false;
+      }
 
       final url = '$_baseUrl/specialties/$id';
       final response = await _httpRetry(() => http.delete(
@@ -205,7 +206,6 @@ class SpecialtyService {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $accessToken'
         },
-        body: jsonEncode(requestBody),
       ).timeout(const Duration(seconds: 15)));
 
       if (response.statusCode == 200 || response.statusCode == 204) return true;
@@ -219,7 +219,6 @@ class SpecialtyService {
               'Content-Type': 'application/json',
               'Authorization': 'Bearer $newAccessToken'
             },
-            body: jsonEncode(requestBody),
           ).timeout(const Duration(seconds: 15)));
           return retryResponse.statusCode == 200 ||
               retryResponse.statusCode == 204;
@@ -314,10 +313,14 @@ class SpecialtyService {
     }
   }
 
-  static Future<bool> deleteInfoSection(String id) async {
+  static Future<bool> deleteInfoSection(String id, {required String password}) async {
     try {
       final String? accessToken = await Store.getAccessToken();
       if (accessToken == null) return false;
+
+      if (!await AuthService.verifyPassword(password: password)) {
+        return false;
+      }
 
       final url = '$_baseUrl/specialties/info-section/$id';
       final response = await _httpRetry(() => http.delete(
@@ -325,7 +328,20 @@ class SpecialtyService {
         headers: {'Authorization': 'Bearer $accessToken'},
       ).timeout(const Duration(seconds: 15)));
 
-      return response.statusCode == 200 || response.statusCode == 204;
+      if (response.statusCode == 200 || response.statusCode == 204) return true;
+
+      if (response.statusCode == 401) {
+        if (await AuthService.refreshToken()) {
+          final newAccessToken = await Store.getAccessToken();
+          final retryResponse = await _httpRetry(() => http.delete(
+            Uri.parse(url),
+            headers: {'Authorization': 'Bearer $newAccessToken'},
+          ).timeout(const Duration(seconds: 15)));
+          return retryResponse.statusCode == 200 ||
+              retryResponse.statusCode == 204;
+        }
+      }
+      return false;
     } catch (e) {
       return false;
     }

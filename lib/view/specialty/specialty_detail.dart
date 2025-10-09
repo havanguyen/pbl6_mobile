@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
+import 'package:pbl6mobile/model/entities/info_section.dart';
+import 'package:pbl6mobile/shared/widgets/widget/info_section_delete_confirm.dart';
+import 'package:pbl6mobile/view_model/location_work_management/snackbar_service.dart';
 import 'package:pbl6mobile/view_model/specialty/specialty_vm.dart';
 import 'package:provider/provider.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
@@ -25,28 +28,17 @@ class _SpecialtyDetailPageState extends State<SpecialtyDetailPage> {
     });
   }
 
-  void _showDeleteDialog(String infoSectionId) {
+  void _showDeleteDialog(InfoSection infoSection) {
+    final snackbarService =
+    Provider.of<SnackbarService>(context, listen: false);
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Xác nhận xóa'),
-        content: const Text('Bạn có chắc chắn muốn xóa phần thông tin này?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Hủy'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              context
-                  .read<SpecialtyVm>()
-                  .deleteInfoSection(infoSectionId, widget.specialty['id']);
-            },
-            child: Text('Xóa',
-                style: TextStyle(color: context.theme.destructive)),
-          ),
-        ],
+      barrierDismissible: false,
+      builder: (context) => DeleteInfoSectionConfirmationDialog(
+        infoSection: infoSection,
+        specialtyId: widget.specialty['id'],
+        onDeleteSuccess: () {},
+        snackbarService: snackbarService,
       ),
     );
   }
@@ -65,91 +57,105 @@ class _SpecialtyDetailPageState extends State<SpecialtyDetailPage> {
           )
         ],
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: ElevatedButton(
-              onPressed: () async {
-                final result = await Navigator.pushNamed(
-                    context, Routes.createInfoSection,
-                    arguments: widget.specialty['id']);
-                if (result == true) {
-                  context.read<SpecialtyVm>().fetchInfoSections(
-                      widget.specialty['id'],
-                      forceRefresh: true);
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 50),
+      body: Consumer<SpecialtyVm>(
+        builder: (context, provider, child) {
+          if (provider.isInfoSectionLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final infoSections =
+          provider.getInfoSectionsFor(widget.specialty['id']);
+          if (infoSections.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.article_outlined,
+                    size: 80,
+                    color: context.theme.mutedForeground,
+                  ),
+                  const SizedBox(height: 20),
+                  const Text('Chưa có phần thông tin nào.'),
+                ],
               ),
-              child: const Text('Thêm phần thông tin'),
-            ),
-          ),
-          Expanded(
-            child: Consumer<SpecialtyVm>(
-              builder: (context, provider, child) {
-                if (provider.isInfoSectionLoading) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                final infoSections =
-                provider.getInfoSectionsFor(widget.specialty['id']);
-                if (infoSections.isEmpty) {
-                  return const Center(
-                      child: Text('Không có phần thông tin nào.'));
-                }
-                return ListView.builder(
-                  itemCount: infoSections.length,
-                  itemBuilder: (context, index) {
-                    final info = infoSections[index];
-                    return Card(
-                      margin: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 4),
-                      child: ExpansionTile(
-                        title: Text(info.name),
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Html(data: info.content),
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              IconButton(
-                                icon: Icon(Icons.edit,
-                                    color: context.theme.primary),
-                                onPressed: () async {
-                                  final result = await Navigator.pushNamed(
-                                    context,
-                                    Routes.updateInfoSection,
-                                    arguments: {
-                                      'infoSection': info.toJson(),
-                                      'specialtyId': widget.specialty['id']
-                                    },
-                                  );
-                                  if (result == true) {
-                                    provider.fetchInfoSections(
-                                        widget.specialty['id'],
-                                        forceRefresh: true);
-                                  }
-                                },
-                              ),
-                              IconButton(
-                                icon: Icon(Icons.delete,
-                                    color: context.theme.destructive),
-                                onPressed: () => _showDeleteDialog(info.id),
-                              ),
-                            ],
-                          ),
-                        ],
+            );
+          }
+          return ListView.builder(
+            padding: const EdgeInsets.all(8),
+            itemCount: infoSections.length,
+            itemBuilder: (context, index) {
+              final info = infoSections[index];
+              return Card(
+                margin: const EdgeInsets.symmetric(vertical: 8),
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: ExpansionTile(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  collapsedShape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  title: Text(
+                    info.name,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: Icon(Icons.edit_outlined,
+                            color: context.theme.primary),
+                        onPressed: () async {
+                          final result = await Navigator.pushNamed(
+                            context,
+                            Routes.updateInfoSection,
+                            arguments: {
+                              'infoSection': info.toJson(),
+                              'specialtyId': widget.specialty['id']
+                            },
+                          );
+                          if (result == true) {
+                            provider.fetchInfoSections(widget.specialty['id'],
+                                forceRefresh: true);
+                          }
+                        },
                       ),
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-        ],
+                      IconButton(
+                        icon: Icon(Icons.delete_outline,
+                            color: context.theme.destructive),
+                        onPressed: () => _showDeleteDialog(info),
+                      ),
+                    ],
+                  ),
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      child: Html(data: info.content),
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          final result = await Navigator.pushNamed(
+            context,
+            Routes.createInfoSection,
+            arguments: widget.specialty['id'],
+          );
+          if (result == true && mounted) {
+            context
+                .read<SpecialtyVm>()
+                .fetchInfoSections(widget.specialty['id'], forceRefresh: true);
+          }
+        },
+        child: const Icon(Icons.add),
       ),
     );
   }

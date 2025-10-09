@@ -1,6 +1,5 @@
-import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:pbl6mobile/model/entities/specialty.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
@@ -20,9 +19,7 @@ class ListSpecialtyPage extends StatefulWidget {
 }
 
 class _ListSpecialtyPageState extends State<ListSpecialtyPage> {
-  final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  Timer? _debounceTimer;
 
   @override
   void initState() {
@@ -32,18 +29,13 @@ class _ListSpecialtyPageState extends State<ListSpecialtyPage> {
         context.read<SpecialtyVm>().fetchSpecialties(forceRefresh: true);
       }
     });
-
-    _searchController.addListener(_debounceSearch);
     _scrollController.addListener(_onScroll);
   }
 
   @override
   void dispose() {
-    _searchController.removeListener(_debounceSearch);
-    _searchController.dispose();
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
-    _debounceTimer?.cancel();
     super.dispose();
   }
 
@@ -52,15 +44,6 @@ class _ListSpecialtyPageState extends State<ListSpecialtyPage> {
         _scrollController.position.maxScrollExtent - 200) {
       context.read<SpecialtyVm>().fetchSpecialties();
     }
-  }
-
-  void _debounceSearch() {
-    _debounceTimer?.cancel();
-    _debounceTimer = Timer(const Duration(milliseconds: 700), () {
-      if (mounted) {
-        context.read<SpecialtyVm>().updateSearchQuery(_searchController.text);
-      }
-    });
   }
 
   void _showDeleteDialog(Specialty specialty) {
@@ -92,112 +75,85 @@ class _ListSpecialtyPageState extends State<ListSpecialtyPage> {
       ),
       body: Consumer<SpecialtyVm>(
         builder: (context, provider, child) {
-          return Column(
-            children: [
-              _buildSearchSection(provider.isOffline),
-              if (provider.isOffline && provider.error != null)
-                Container(
-                  width: double.infinity,
-                  color: Colors.amber,
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    provider.error!,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.black),
+          if (provider.isLoading && provider.specialties.isEmpty) {
+            return _buildShimmerList();
+          }
+          if (provider.error != null && provider.specialties.isEmpty) {
+            return Center(child: Text('Lỗi: ${provider.error}'));
+          }
+          if (provider.specialties.isEmpty) {
+            return _buildEmptyState();
+          }
+          return RefreshIndicator(
+            onRefresh: () async =>
+                context.read<SpecialtyVm>().fetchSpecialties(forceRefresh: true),
+            child: ListView.builder(
+              controller: _scrollController,
+              padding: const EdgeInsets.all(8),
+              itemCount: provider.specialties.length +
+                  (provider.isLoadingMore ? 1 : 0),
+              itemBuilder: (context, index) {
+                if (index == provider.specialties.length) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(16.0),
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+                }
+                final specialty = provider.specialties[index];
+                return AnimationConfiguration.staggeredList(
+                  position: index,
+                  duration: const Duration(milliseconds: 375),
+                  child: SlideAnimation(
+                    verticalOffset: 50.0,
+                    child: FadeInAnimation(
+                      child: _buildSpecialtyCard(specialty),
+                    ),
                   ),
-                ),
-              if (provider.isLoading && provider.specialties.isNotEmpty)
-                const LinearProgressIndicator(),
-              Expanded(
-                child: Builder(
-                  builder: (context) {
-                    if (provider.isLoading && provider.specialties.isEmpty) {
-                      return _buildShimmerList();
-                    }
-                    if (provider.specialties.isEmpty) {
-                      return const Center(
-                          child: Text('Không có chuyên khoa nào'));
-                    }
-                    return RefreshIndicator(
-                      onRefresh: () async => context
-                          .read<SpecialtyVm>()
-                          .fetchSpecialties(forceRefresh: true),
-                      child: ListView.builder(
-                        controller: _scrollController,
-                        itemCount: provider.specialties.length +
-                            (provider.isLoadingMore ? 1 : 0),
-                        itemBuilder: (context, index) {
-                          if (index == provider.specialties.length) {
-                            return const Center(
-                              child: Padding(
-                                padding: EdgeInsets.all(16.0),
-                                child: CircularProgressIndicator(),
-                              ),
-                            );
-                          }
-                          return AnimationConfiguration.staggeredList(
-                            position: index,
-                            duration: const Duration(milliseconds: 375),
-                            child: SlideAnimation(
-                              verticalOffset: 50.0,
-                              child: FadeInAnimation(
-                                child: _buildAnimatedCard(
-                                    provider.specialties[index],
-                                    provider.isOffline),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
+                );
+              },
+            ),
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          final result =
+          await Navigator.pushNamed(context, Routes.createSpecialty);
+          if (result == true && mounted) {
+            context.read<SpecialtyVm>().fetchSpecialties(forceRefresh: true);
+          }
+        },
+        backgroundColor: context.theme.primary,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
 
-  Widget _buildSearchSection(bool isOffline) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
+  Widget _buildEmptyState() {
+    return Center(
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          TextField(
-            controller: _searchController,
-            decoration: InputDecoration(
-              labelText: 'Tìm kiếm chuyên khoa',
-              prefixIcon: Icon(Icons.search, color: context.theme.primary),
-              suffixIcon: _searchController.text.isNotEmpty
-                  ? IconButton(
-                icon: Icon(Icons.clear, color: context.theme.primary),
-                onPressed: () {
-                  _searchController.clear();
-                  context.read<SpecialtyVm>().resetFilters();
-                },
-              )
-                  : null,
+          Icon(
+            Icons.medical_services_outlined,
+            size: 80,
+            color: context.theme.mutedForeground,
+          ),
+          const SizedBox(height: 20),
+          Text(
+            'Chưa có chuyên khoa nào',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: context.theme.textColor,
             ),
           ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: isOffline
-                ? null
-                : () async {
-              final result =
-              await Navigator.pushNamed(context, Routes.createSpecialty);
-              if (result == true) {
-                context
-                    .read<SpecialtyVm>()
-                    .fetchSpecialties(forceRefresh: true);
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              minimumSize: const Size(double.infinity, 50),
-            ),
-            child: const Text('Thêm chuyên khoa'),
+          const SizedBox(height: 8),
+          Text(
+            'Nhấn nút + để thêm chuyên khoa mới.',
+            style: TextStyle(color: context.theme.mutedForeground),
           ),
         ],
       ),
@@ -210,109 +166,124 @@ class _ListSpecialtyPageState extends State<ListSpecialtyPage> {
       highlightColor: context.theme.input,
       child: ListView.builder(
         itemCount: 8,
-        itemBuilder: (_, __) => Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(
-            children: [
-              const CircleAvatar(radius: 24),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                        width: double.infinity, height: 12.0, color: Colors.white),
-                    const SizedBox(height: 8),
-                    Container(width: 150, height: 10.0, color: Colors.white),
-                  ],
-                ),
-              )
-            ],
+        padding: const EdgeInsets.all(8),
+        itemBuilder: (_, __) => Card(
+          margin: const EdgeInsets.symmetric(vertical: 8),
+          child: ListTile(
+            leading: const CircleAvatar(radius: 28),
+            title: Container(
+              height: 16,
+              color: Colors.white,
+            ),
+            subtitle: Container(
+              height: 12,
+              width: 150,
+              color: Colors.white,
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildAnimatedCard(Specialty specialty, bool isOffline) {
-    return Slidable(
-      key: ValueKey(specialty.id),
-      endActionPane: isOffline
-          ? null
-          : ActionPane(
-        motion: const BehindMotion(),
-        children: [
-          SlidableAction(
-            onPressed: (context) async {
-              final result = await Navigator.pushNamed(
-                  context, Routes.updateSpecialty,
-                  arguments: specialty.toJson());
-              if (result == true) {
-                context
-                    .read<SpecialtyVm>()
-                    .fetchSpecialties(forceRefresh: true);
-              }
-            },
-            backgroundColor: context.theme.blue,
-            foregroundColor: Colors.white,
-            icon: Icons.edit,
-            label: 'Sửa',
-          ),
-          SlidableAction(
-            onPressed: (context) => _showDeleteDialog(specialty),
-            backgroundColor: context.theme.destructive,
-            foregroundColor: Colors.white,
-            icon: Icons.delete,
-            label: 'Xóa',
-          ),
-        ],
-      ),
-      child: Card(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        child: InkWell(
-          onTap: () async {
-            final result = await Navigator.pushNamed(
-                context, Routes.specialtyDetail,
-                arguments: specialty.toJson());
-            if (result == true) {
-              context.read<SpecialtyVm>().fetchSpecialties(forceRefresh: true);
-            }
-          },
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Hero(
-                  tag: 'specialty_${specialty.id}',
-                  child: CircleAvatar(
-                    radius: 24,
-                    child: Text(
-                      specialty.name.isNotEmpty
-                          ? specialty.name[0].toUpperCase()
-                          : 'C',
+  Widget _buildSpecialtyCard(Specialty specialty) {
+    return Card(
+      elevation: 2,
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () async {
+          final result = await Navigator.pushNamed(
+            context,
+            Routes.specialtyDetail,
+            arguments: specialty.toJson(),
+          );
+          if (result == true && mounted) {
+            context.read<SpecialtyVm>().fetchSpecialties(forceRefresh: true);
+          }
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 28,
+                backgroundColor: context.theme.primary.withOpacity(0.1),
+                child: Icon(
+                  Icons.medical_services_outlined,
+                  color: context.theme.primary,
+                  size: 28,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      specialty.name,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: context.theme.textColor,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Số phần thông tin: ${specialty.infoSectionsCount}',
+                      style: TextStyle(
+                        color: context.theme.mutedForeground,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              PopupMenuButton<String>(
+                onSelected: (value) async {
+                  if (value == 'edit') {
+                    final result = await Navigator.pushNamed(
+                      context,
+                      Routes.updateSpecialty,
+                      arguments: specialty.toJson(),
+                    );
+                    if (result == true && mounted) {
+                      context
+                          .read<SpecialtyVm>()
+                          .fetchSpecialties(forceRefresh: true);
+                    }
+                  } else if (value == 'delete') {
+                    _showDeleteDialog(specialty);
+                  }
+                },
+                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                  const PopupMenuItem<String>(
+                    value: 'edit',
+                    child: Row(
+                      children: [
+                        Icon(Icons.edit_outlined, size: 20),
+                        SizedBox(width: 8),
+                        Text('Sửa'),
+                      ],
                     ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        specialty.name,
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w600),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Số phần thông tin: ${specialty.infoSectionsCount}',
-                        style: TextStyle(color: context.theme.mutedForeground),
-                      ),
-                    ],
+                  const PopupMenuItem<String>(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        Icon(Icons.delete_outline, size: 20),
+                        SizedBox(width: 8),
+                        Text('Xóa'),
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
+                ],
+                icon: Icon(Icons.more_vert, color: context.theme.mutedForeground),
+              ),
+            ],
           ),
         ),
       ),
