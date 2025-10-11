@@ -142,11 +142,21 @@ class DoctorService {
   }
 
   static Future<DoctorProfile?> createDoctorProfile(Map<String, dynamic> data) async {
+    print("--- DEBUG: CREATE DOCTOR PROFILE ---");
     try {
       final String? accessToken = await Store.getAccessToken();
-      if (accessToken == null) return null;
+      if (accessToken == null) {
+        print("DEBUG: Access Token is NULL. Aborting.");
+        return null;
+      }
 
       final url = '$_baseUrl/doctors/profile';
+      final body = jsonEncode(data);
+
+      print("DEBUG: URL: $url");
+      print("DEBUG: Access Token: Bearer $accessToken");
+      print("DEBUG: Request Body: $body");
+
       final response = await _httpRetry(
             () => http.post(
           Uri.parse(url),
@@ -154,31 +164,49 @@ class DoctorService {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer $accessToken'
           },
-          body: jsonEncode(data),
+          body: body,
         ).timeout(const Duration(seconds: 15)),
       );
 
+      print("DEBUG: Response Status Code: ${response.statusCode}");
+      print("DEBUG: Response Body: ${response.body}");
+
       if (response.statusCode == 201) {
+        print("DEBUG: Profile created successfully.");
         final responseData = jsonDecode(response.body);
         return DoctorProfile.fromJson(responseData['data']);
       } else if (response.statusCode == 401) {
+        print("DEBUG: Token expired. Attempting to refresh...");
         if (await AuthService.refreshToken()) {
-          return createDoctorProfile(data);
+          print("DEBUG: Token refreshed. Retrying request...");
+          return createDoctorProfile(data); // Retry the request
         }
       }
+      print("DEBUG: Failed to create profile with status ${response.statusCode}.");
       return null;
     } catch (e) {
+      print('--- DEBUG: CREATE DOCTOR PROFILE CRASHED ---');
       print('Create Doctor Profile Error: $e');
       return null;
     }
   }
 
   static Future<DoctorProfile?> updateDoctorProfile(String profileId, Map<String, dynamic> data) async {
+    print("--- DEBUG: UPDATE DOCTOR PROFILE ---");
     try {
       final String? accessToken = await Store.getAccessToken();
-      if (accessToken == null) return null;
+      if (accessToken == null) {
+        print("DEBUG: Access Token is NULL. Aborting.");
+        return null;
+      }
 
       final url = '$_baseUrl/doctors/profile/$profileId';
+      final body = jsonEncode(data);
+
+      print("DEBUG: URL: $url");
+      print("DEBUG: Access Token: Bearer $accessToken");
+      print("DEBUG: Request Body: $body");
+
       final response = await _httpRetry(
             () => http.patch(
           Uri.parse(url),
@@ -186,24 +214,33 @@ class DoctorService {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer $accessToken'
           },
-          body: jsonEncode(data),
+          body: body,
         ).timeout(const Duration(seconds: 15)),
       );
 
+      print("DEBUG: Response Status Code: ${response.statusCode}");
+      print("DEBUG: Response Body: ${response.body}");
+
       if (response.statusCode == 200) {
+        print("DEBUG: Profile updated successfully.");
         final responseData = jsonDecode(response.body);
         return DoctorProfile.fromJson(responseData['data']);
       } else if (response.statusCode == 401) {
+        print("DEBUG: Token expired. Attempting to refresh...");
         if (await AuthService.refreshToken()) {
-          return updateDoctorProfile(profileId, data);
+          print("DEBUG: Token refreshed. Retrying request...");
+          return updateDoctorProfile(profileId, data); // Retry the request
         }
       }
+      print("DEBUG: Failed to update profile with status ${response.statusCode}.");
       return null;
     } catch (e) {
+      print('--- DEBUG: UPDATE DOCTOR PROFILE CRASHED ---');
       print('Update Doctor Profile Error: $e');
       return null;
     }
   }
+
 
   static Future<bool> toggleDoctorActive(String profileId, bool isActive) async {
     try {

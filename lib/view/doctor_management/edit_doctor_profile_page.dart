@@ -1,6 +1,4 @@
-
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:pbl6mobile/model/entities/doctor_detail.dart';
 import 'package:pbl6mobile/model/entities/specialty.dart';
@@ -23,16 +21,15 @@ class EditDoctorProfilePage extends StatefulWidget {
 
 class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
   final _formKey = GlobalKey<FormState>();
+
   // Text controllers
   late TextEditingController _degreeController;
   late TextEditingController _avatarUrlController;
   late TextEditingController _portraitController;
-  late TextEditingController _researchController;
 
-  // Quill controller
+  // Quill controllers
   late quill.QuillController _introductionController;
-  final FocusNode _focusNode = FocusNode();
-  final ScrollController _scrollController = ScrollController();
+  late quill.QuillController _researchController;
 
   // Dynamic list controllers
   late List<TextEditingController> _positionControllers;
@@ -48,38 +45,54 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
   @override
   void initState() {
     super.initState();
-    // Fetch data for dropdowns
-    context.read<SpecialtyVm>().fetchSpecialties(forceRefresh: true);
-    context.read<LocationWorkVm>().fetchLocations();
+
+    // SỬA LỖI: Di chuyển việc fetch dữ liệu vào addPostFrameCallback
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<SpecialtyVm>().fetchSpecialties(forceRefresh: true);
+        context.read<LocationWorkVm>().fetchLocations();
+      }
+    });
 
     // Initialize controllers
-    _degreeController = TextEditingController(text: widget.doctorDetail.degree ?? '');
-    _avatarUrlController = TextEditingController(text: widget.doctorDetail.avatarUrl ?? '');
-    _portraitController = TextEditingController(text: widget.doctorDetail.portrait ?? '');
-    _researchController = TextEditingController(text: widget.doctorDetail.research ?? '');
-    _initializeQuillController();
+    _degreeController =
+        TextEditingController(text: widget.doctorDetail.degree ?? '');
+    _avatarUrlController =
+        TextEditingController(text: widget.doctorDetail.avatarUrl ?? '');
+    _portraitController =
+        TextEditingController(text: widget.doctorDetail.portrait ?? '');
+
+    _introductionController =
+        _initializeQuillController(widget.doctorDetail.introduction);
+    _researchController =
+        _initializeQuillController(widget.doctorDetail.research);
+
     _positionControllers = _initListControllers(widget.doctorDetail.position);
-    _membershipControllers = _initListControllers(widget.doctorDetail.memberships);
+    _membershipControllers =
+        _initListControllers(widget.doctorDetail.memberships);
     _awardControllers = _initListControllers(widget.doctorDetail.awards);
-    _trainingControllers = _initListControllers(widget.doctorDetail.trainingProcess);
-    _experienceControllers = _initListControllers(widget.doctorDetail.experience);
+    _trainingControllers =
+        _initListControllers(widget.doctorDetail.trainingProcess);
+    _experienceControllers =
+        _initListControllers(widget.doctorDetail.experience);
+
     _selectedSpecialties = List.from(widget.doctorDetail.specialties);
     _selectedWorkLocations = List.from(widget.doctorDetail.workLocations);
   }
 
-  void _initializeQuillController() {
-    final initialIntroduction = widget.doctorDetail.introduction;
-    if (initialIntroduction != null && initialIntroduction.isNotEmpty) {
+  quill.QuillController _initializeQuillController(String? content) {
+    if (content != null && content.isNotEmpty) {
       try {
-        final doc = quill.Document.fromJson(jsonDecode(initialIntroduction));
-        _introductionController = quill.QuillController(document: doc, selection: const TextSelection.collapsed(offset: 0));
+        final doc = quill.Document.fromJson(jsonDecode(content));
+        return quill.QuillController(
+            document: doc, selection: const TextSelection.collapsed(offset: 0));
       } catch (e) {
-        final doc = quill.Document()..insert(0, initialIntroduction);
-        _introductionController = quill.QuillController(document: doc, selection: const TextSelection.collapsed(offset: 0));
+        final doc = quill.Document()..insert(0, content);
+        return quill.QuillController(
+            document: doc, selection: const TextSelection.collapsed(offset: 0));
       }
-    } else {
-      _introductionController = quill.QuillController.basic();
     }
+    return quill.QuillController.basic();
   }
 
   List<TextEditingController> _initListControllers(List<String>? items) {
@@ -92,10 +105,8 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
     _degreeController.dispose();
     _avatarUrlController.dispose();
     _portraitController.dispose();
-    _researchController.dispose();
     _introductionController.dispose();
-    _focusNode.dispose();
-    _scrollController.dispose();
+    _researchController.dispose();
     _positionControllers.forEach((c) => c.dispose());
     _membershipControllers.forEach((c) => c.dispose());
     _awardControllers.forEach((c) => c.dispose());
@@ -104,21 +115,31 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
     super.dispose();
   }
 
-  List<String> _getValuesFromControllers(List<TextEditingController> controllers) {
-    return controllers.map((c) => c.text.trim()).where((s) => s.isNotEmpty).toList();
+  List<String> _getValuesFromControllers(
+      List<TextEditingController> controllers) {
+    return controllers
+        .map((c) => c.text.trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
   }
 
   void _saveProfile() {
     if (_formKey.currentState!.validate()) {
-      final introductionJson = jsonEncode(_introductionController.document.toDelta().toJson());
+      final introductionJson =
+      jsonEncode(_introductionController.document.toDelta().toJson());
+      final researchJson =
+      jsonEncode(_researchController.document.toDelta().toJson());
 
-      final data = {
-        'staffAccountId': widget.doctorDetail.id,
+      // SỬA LỖI: Chỉ thêm 'staffAccountId' khi tạo mới
+      final bool isCreating = widget.doctorDetail.profileId == null;
+
+      final Map<String, dynamic> data = {
+        if (isCreating) 'staffAccountId': widget.doctorDetail.id,
         'degree': _degreeController.text.trim(),
         'avatarUrl': _avatarUrlController.text.trim(),
         'portrait': _portraitController.text.trim(),
         'introduction': introductionJson,
-        'research': _researchController.text.trim(),
+        'research': researchJson,
         'position': _getValuesFromControllers(_positionControllers),
         'memberships': _getValuesFromControllers(_membershipControllers),
         'awards': _getValuesFromControllers(_awardControllers),
@@ -129,18 +150,19 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
       };
 
       final doctorVm = context.read<DoctorVm>();
-      final future = widget.doctorDetail.profileId != null
-          ? doctorVm.updateDoctorProfile(widget.doctorDetail.profileId!, data)
-          : doctorVm.createDoctorProfile(data);
+      final future = isCreating
+          ? doctorVm.createDoctorProfile(data)
+          : doctorVm.updateDoctorProfile(widget.doctorDetail.profileId!, data);
 
       future.then((success) {
         if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text(
+                    '${isCreating ? 'Tạo' : 'Cập nhật'} hồ sơ ${success ? 'thành công' : 'thất bại'}')),
+          );
           if (success) {
             Navigator.pop(context, true);
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('${widget.doctorDetail.profileId != null ? 'Cập nhật' : 'Tạo'} hồ sơ thất bại')),
-            );
           }
         }
       });
@@ -151,7 +173,9 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.doctorDetail.profileId != null ? 'Chỉnh sửa hồ sơ' : 'Tạo hồ sơ'),
+        title: Text(widget.doctorDetail.profileId != null
+            ? 'Chỉnh sửa hồ sơ'
+            : 'Tạo hồ sơ'),
         actions: [IconButton(icon: const Icon(Icons.save), onPressed: _saveProfile)],
       ),
       body: Form(
@@ -162,10 +186,12 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildTextField(_degreeController, 'Học vị', Icons.school),
-              _buildTextField(_avatarUrlController, 'URL Ảnh đại diện', Icons.image),
-              _buildTextField(_portraitController, 'URL Ảnh chân dung', Icons.face),
-              _buildQuillEditor(),
-              _buildTextField(_researchController, 'Nghiên cứu khoa học', Icons.science, maxLines: 5),
+              _buildTextField(
+                  _avatarUrlController, 'URL Ảnh đại diện', Icons.image),
+              _buildTextField(
+                  _portraitController, 'URL Ảnh chân dung', Icons.face),
+              _buildQuillEditor("Giới thiệu", _introductionController),
+              _buildQuillEditor("Nghiên cứu khoa học", _researchController),
               _buildDynamicListField('Chức vụ', _positionControllers),
               _buildDynamicListField('Thành viên hiệp hội', _membershipControllers),
               _buildDynamicListField('Giải thưởng', _awardControllers),
@@ -176,7 +202,8 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
               const SizedBox(height: 32),
               ElevatedButton(
                 onPressed: _saveProfile,
-                style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 50)),
+                style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 50)),
                 child: const Text('Lưu thay đổi'),
               ),
             ],
@@ -186,12 +213,11 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label, IconData icon, {int? maxLines = 1}) {
+  Widget _buildTextField(TextEditingController controller, String label, IconData icon) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10.0),
       child: TextFormField(
         controller: controller,
-        maxLines: maxLines,
         decoration: InputDecoration(
           labelText: label,
           prefixIcon: Icon(icon, color: context.theme.primary),
@@ -201,7 +227,7 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
     );
   }
 
-  Widget _buildQuillEditor() {
+  Widget _buildQuillEditor(String label, quill.QuillController controller) {
     final theme = context.theme;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10.0),
@@ -209,8 +235,11 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Giới thiệu',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: theme.textColor),
+            label,
+            style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: theme.textColor),
           ),
           const SizedBox(height: 8),
           Container(
@@ -218,7 +247,11 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
               border: Border.all(color: theme.border),
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
-                BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
               ],
             ),
             child: ClipRRect(
@@ -228,11 +261,12 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
                   Container(
                     decoration: BoxDecoration(
                       color: theme.input,
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                      borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(12)),
                     ),
                     padding: const EdgeInsets.all(8.0),
                     child: quill.QuillSimpleToolbar(
-                      controller: _introductionController,
+                      controller: controller,
                       config: const quill.QuillSimpleToolbarConfig(
                         toolbarSize: 20,
                         toolbarSectionSpacing: 2,
@@ -245,13 +279,11 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
                   ),
                   const Divider(height: 1),
                   Container(
-                    height: 300,
+                    height: 200,
                     color: theme.input,
                     padding: const EdgeInsets.all(5),
-                    child: quill.QuillEditor(
-                      controller: _introductionController,
-                      focusNode: _focusNode,
-                      scrollController: _scrollController,
+                    child: quill.QuillEditor.basic(
+                      controller: controller,
                     ),
                   ),
                 ],
@@ -263,13 +295,16 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
     );
   }
 
-  Widget _buildDynamicListField(String label, List<TextEditingController> controllers) {
+  Widget _buildDynamicListField(
+      String label, List<TextEditingController> controllers) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+          Text(label,
+              style:
+              const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
           ...controllers.asMap().entries.map((entry) {
             int idx = entry.key;
             TextEditingController controller = entry.value;
@@ -286,6 +321,8 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
                   onPressed: () {
                     if (controllers.length > 1) {
                       setState(() => controllers.removeAt(idx));
+                    } else {
+                      setState(() => controller.clear());
                     }
                   },
                 ),
@@ -295,7 +332,8 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
           TextButton.icon(
             icon: const Icon(Icons.add),
             label: const Text('Thêm mục'),
-            onPressed: () => setState(() => controllers.add(TextEditingController())),
+            onPressed: () =>
+                setState(() => controllers.add(TextEditingController())),
           ),
           const Divider(),
         ],
@@ -340,7 +378,6 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
   }
 }
 
-// Custom widget for multi-selection
 class _MultiSelectChipField<T> extends StatefulWidget {
   final String label;
   final List<T> allItems;
@@ -357,7 +394,8 @@ class _MultiSelectChipField<T> extends StatefulWidget {
   });
 
   @override
-  _MultiSelectChipFieldState<T> createState() => _MultiSelectChipFieldState<T>();
+  _MultiSelectChipFieldState<T> createState() =>
+      _MultiSelectChipFieldState<T>();
 }
 
 class _MultiSelectChipFieldState<T> extends State<_MultiSelectChipField<T>> {
@@ -369,13 +407,21 @@ class _MultiSelectChipFieldState<T> extends State<_MultiSelectChipField<T>> {
     _selectedItems = List.from(widget.initialSelectedItems);
   }
 
+  @override
+  void didUpdateWidget(covariant _MultiSelectChipField<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialSelectedItems != oldWidget.initialSelectedItems) {
+      _selectedItems = List.from(widget.initialSelectedItems);
+    }
+  }
+
   void _showMultiSelect() async {
     final List<T>? results = await showDialog(
       context: context,
       builder: (BuildContext context) {
         final tempSelectedItems = List<T>.from(_selectedItems);
         return StatefulBuilder(
-          builder: (context, setState) {
+          builder: (context, setStateDialog) {
             return AlertDialog(
               title: Text('Chọn ${widget.label}'),
               content: SizedBox(
@@ -384,15 +430,20 @@ class _MultiSelectChipFieldState<T> extends State<_MultiSelectChipField<T>> {
                   itemCount: widget.allItems.length,
                   itemBuilder: (context, index) {
                     final item = widget.allItems[index];
+                    final bool isSelected =
+                    tempSelectedItems.any((selectedItem) => selectedItem == item);
                     return CheckboxListTile(
                       title: Text(widget.itemName(item)),
-                      value: tempSelectedItems.contains(item),
+                      value: isSelected,
                       onChanged: (bool? selected) {
-                        setState(() {
+                        setStateDialog(() {
                           if (selected == true) {
-                            tempSelectedItems.add(item);
+                            if (!isSelected) {
+                              tempSelectedItems.add(item);
+                            }
                           } else {
-                            tempSelectedItems.remove(item);
+                            tempSelectedItems.removeWhere(
+                                    (selectedItem) => selectedItem == item);
                           }
                         });
                       },
@@ -431,7 +482,9 @@ class _MultiSelectChipFieldState<T> extends State<_MultiSelectChipField<T>> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(widget.label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+          Text(widget.label,
+              style:
+              const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.all(10),
