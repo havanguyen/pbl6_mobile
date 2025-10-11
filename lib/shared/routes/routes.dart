@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 
 import 'package:page_transition/page_transition.dart';
+import 'package:pbl6mobile/model/entities/doctor_detail.dart';
 import 'package:pbl6mobile/view/change_password/change_password.dart';
+import 'package:pbl6mobile/view/doctor_management/doctor_detail_page.dart';
+import 'package:pbl6mobile/view/doctor_management/edit_doctor_profile_page.dart';
 import 'package:pbl6mobile/view/main_page/doctor/main_page_doctor.dart';
 import 'package:pbl6mobile/view/main_page/super_admin/main_page_super_admin.dart';
 import 'package:pbl6mobile/view/setting/super_admin/setting_supperadmin_page.dart';
@@ -51,6 +54,8 @@ class Routes {
   static const specialtyDetail = '/specialtyDetail';
   static const createInfoSection = '/createInfoSection';
   static const updateInfoSection = '/updateInfoSection';
+  static const doctorDetail = '/doctorDetail';
+  static const editDoctorProfile = '/editDoctorProfile';
 
 
 
@@ -62,127 +67,141 @@ class Routes {
           settings: settings,
           child: const LoginPage(),
         );
-        case mainPageDoctor:
+      case mainPageDoctor:
         return PageTransition(
           type: PageTransitionType.fade,
           settings: settings,
           child: const MainPageDoctor(),
         );
-        case listSpecialty:
+      case listSpecialty:
         return PageTransition(
           type: PageTransitionType.fade,
           settings: settings,
           child: const ListSpecialtyPage(),
         );
-        case createSpecialty:
+      case createSpecialty:
         return PageTransition(
           type: PageTransitionType.leftToRight,
           settings: settings,
           child: const CreateSpecialtyPage(),
         );
-        case updateInfoSection:
+      case updateInfoSection:
         final arg = settings.arguments as Map<String, dynamic>?;
         return PageTransition(
           type: PageTransitionType.leftToRight,
           settings: settings,
           child: UpdateInfoSectionPage(args: arg!),
         );
-        case createInfoSection:
+      case createInfoSection:
         final specialtyId = settings.arguments as String?;
         return PageTransition(
           type: PageTransitionType.leftToRight,
           settings: settings,
           child: CreateInfoSectionPage(specialtyId: specialtyId!),
         );
-        case updateSpecialty:
+      case updateSpecialty:
         final specialty = settings.arguments as Map<String, dynamic>?;
         return PageTransition(
           type: PageTransitionType.leftToRight,
           settings: settings,
           child:  UpdateSpecialtyPage(specialty: specialty!,),
         );
-        case specialtyDetail:
+      case specialtyDetail:
         final specialty = settings.arguments as Map<String, dynamic>?;
         return PageTransition(
           type: PageTransitionType.leftToRight,
           settings: settings,
           child:  SpecialtyDetailPage(specialty: specialty!,),
         );
-        case listLocationWork:
+      case listLocationWork:
         return PageTransition(
           type: PageTransitionType.fade,
           settings: settings,
           child: const LocationWorkListPage(),
         );
-        case createLocationWork:
+      case createLocationWork:
         return PageTransition(
           type: PageTransitionType.leftToRight,
           settings: settings,
           child: const CreateLocationWorkPage(),
         );
-        case updateLocationWork:
-          final location = settings.arguments as WorkLocation;
-          return PageTransition(
-            type: PageTransitionType.leftToRight,
-            settings: settings,
-            child: UpdateLocationWorkPage(location: location,),
-          );
-        case settingDoctor:
+      case updateLocationWork:
+        final location = settings.arguments as WorkLocation;
+        return PageTransition(
+          type: PageTransitionType.leftToRight,
+          settings: settings,
+          child: UpdateLocationWorkPage(location: location,),
+        );
+      case settingDoctor:
         return PageTransition(
           type: PageTransitionType.leftToRight,
           settings: settings,
           child: const SettingDoctorPage(),
         );
-        case settingAdmin:
+      case settingAdmin:
         return PageTransition(
           type: PageTransitionType.leftToRight,
           settings: settings,
           child: const SettingAdminPage(),
         );
-        case mainPageAdmin:
+      case mainPageAdmin:
         return PageTransition(
           type: PageTransitionType.fade,
           settings: settings,
           child: const MainPageAdmin(),
         );
-        case createDoctor:
+      case createDoctor:
         return PageTransition(
           type: PageTransitionType.leftToRight,
           settings: settings,
           child: const CreateDoctorPage(),
         );
-        case listDoctor:
+      case listDoctor:
         return PageTransition(
           type: PageTransitionType.fade,
           settings: settings,
           child: const DoctorListPage(),
         );
-        case updateDoctor:
+      case updateDoctor:
         final doctor = settings.arguments as Map<String, dynamic>?;
         return PageTransition(
           type: PageTransitionType.leftToRight,
           settings: settings,
           child:  UpdateDoctorPage(doctor: doctor!,),
         );
-        case createAdmin:
+      case doctorDetail:
+        final doctorId = settings.arguments as String;
+        return PageTransition(
+          type: PageTransitionType.leftToRight,
+          settings: settings,
+          child: DoctorDetailPage(doctorId: doctorId),
+        );
+      case editDoctorProfile:
+        final doctorDetail = settings.arguments as DoctorDetail;
+        return PageTransition(
+          type: PageTransitionType.leftToRight,
+          settings: settings,
+          child: EditDoctorProfilePage(doctorDetail: doctorDetail),
+        );
+      case createAdmin:
         return PageTransition(
           type: PageTransitionType.leftToRight,
           settings: settings,
           child: const CreateAdminPage(),
         );
-        case listAdmin:
+      case listAdmin:
         return PageTransition(
           type: PageTransitionType.fade,
           settings: settings,
           child: const AdminListPage(),
         );
-        case changePassword:
+      case changePassword:
         return PageTransition(
           type: PageTransitionType.fade,
           settings: settings,
           child: const ChangePasswordPage(),
         );
-        case settingSuperAdmin:
+      case settingSuperAdmin:
         return PageTransition(
           type: PageTransitionType.leftToRight,
           settings: settings,

@@ -1,6 +1,7 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:pbl6mobile/model/entities/doctor.dart';
+import 'package:pbl6mobile/model/entities/doctor_detail.dart';
 import 'package:pbl6mobile/model/services/local/doctor_database_helper.dart';
 import 'package:pbl6mobile/model/services/remote/doctor_service.dart';
 
@@ -20,6 +21,10 @@ class DoctorVm extends ChangeNotifier {
   String? _sortBy = 'createdAt';
   String? _sortOrder = 'desc';
 
+  DoctorDetail? _doctorDetail;
+  bool _isLoadingDetail = false;
+
+
   List<Doctor> get doctors => _doctors;
   bool get isLoading => _isLoading;
   bool get isLoadingMore => _isLoadingMore;
@@ -30,6 +35,10 @@ class DoctorVm extends ChangeNotifier {
   bool? get isMale => _isMale;
   String? get sortBy => _sortBy;
   String? get sortOrder => _sortOrder;
+
+  DoctorDetail? get doctorDetail => _doctorDetail;
+  bool get isLoadingDetail => _isLoadingDetail;
+
 
   final DoctorDatabaseHelper _dbHelper = DoctorDatabaseHelper.instance;
 
@@ -134,6 +143,60 @@ class DoctorVm extends ChangeNotifier {
     } finally {
       _isLoading = false;
       _isLoadingMore = false;
+      notifyListeners();
+    }
+  }
+  Future<void> fetchDoctorDetail(String doctorId) async {
+    _isLoadingDetail = true;
+    notifyListeners();
+
+    _doctorDetail = await DoctorService.getDoctorWithProfile(doctorId);
+
+    _isLoadingDetail = false;
+    notifyListeners();
+  }
+
+  Future<bool> createDoctorProfile(Map<String, dynamic> data) async {
+    final profile = await DoctorService.createDoctorProfile(data);
+    return profile != null;
+  }
+
+  Future<bool> updateDoctorProfile(String profileId, Map<String, dynamic> data) async {
+    final profile = await DoctorService.updateDoctorProfile(profileId, data);
+    return profile != null;
+  }
+
+  Future<void> toggleDoctorStatus(String profileId, bool isActive) async {
+    final success = await DoctorService.toggleDoctorActive(profileId, isActive);
+    if (success && _doctorDetail != null) {
+      // Create a new DoctorDetail object with the updated isActive status
+      _doctorDetail = DoctorDetail(
+        id: _doctorDetail!.id,
+        fullName: _doctorDetail!.fullName,
+        email: _doctorDetail!.email,
+        phone: _doctorDetail!.phone,
+        isMale: _doctorDetail!.isMale,
+        dateOfBirth: _doctorDetail!.dateOfBirth,
+        role: _doctorDetail!.role,
+        profileId: _doctorDetail!.profileId,
+        isActive: isActive, // Update the isActive status
+        degree: _doctorDetail!.degree,
+        position: _doctorDetail!.position,
+        introduction: _doctorDetail!.introduction,
+        memberships: _doctorDetail!.memberships,
+        awards: _doctorDetail!.awards,
+        research: _doctorDetail!.research,
+        trainingProcess: _doctorDetail!.trainingProcess,
+        experience: _doctorDetail!.experience,
+        avatarUrl: _doctorDetail!.avatarUrl,
+        portrait: _doctorDetail!.portrait,
+        specialties: _doctorDetail!.specialties,
+        workLocations: _doctorDetail!.workLocations,
+        createdAt: _doctorDetail!.createdAt,
+        updatedAt: _doctorDetail!.updatedAt,
+        profileCreatedAt: _doctorDetail!.profileCreatedAt,
+        profileUpdatedAt: _doctorDetail!.profileUpdatedAt,
+      );
       notifyListeners();
     }
   }

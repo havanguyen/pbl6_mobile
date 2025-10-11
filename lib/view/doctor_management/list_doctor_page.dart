@@ -346,13 +346,12 @@ class _DoctorListPageState extends State<DoctorListPage> {
         child: InkWell(
             onTap: isOffline
                 ? null
-                : () async {
-              final result = await Navigator.pushNamed(
-                  context, Routes.updateDoctor,
-                  arguments: doctor.toJson());
-              if (result == true) {
-                context.read<DoctorVm>().fetchDoctors(forceRefresh: true);
-              }
+                : () {
+              Navigator.pushNamed(
+                context,
+                Routes.doctorDetail,
+                arguments: doctor.id,
+              );
             },
             child: Padding(
               padding: const EdgeInsets.all(16),

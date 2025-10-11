@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:pbl6mobile/model/entities/doctor.dart';
+import 'package:pbl6mobile/model/entities/doctor_detail.dart';
+import 'package:pbl6mobile/model/entities/doctor_profile.dart';
 import 'package:pbl6mobile/model/entities/doctor_response.dart';
 import 'package:pbl6mobile/model/services/remote/auth_service.dart';
 import 'package:pbl6mobile/shared/services/store.dart';
@@ -109,6 +111,128 @@ class DoctorService {
     } catch (e) {
       return GetDoctorsResponse(
           success: false, message: 'Network error or too many requests.');
+    }
+  }
+  static Future<DoctorDetail?> getDoctorWithProfile(String doctorId) async {
+    try {
+      final String? accessToken = await Store.getAccessToken();
+      if (accessToken == null) return null;
+
+      final url = '$_baseUrl/doctors/$doctorId/complete';
+      final response = await _httpRetry(
+            () => http.get(
+          Uri.parse(url),
+          headers: {'Authorization': 'Bearer $accessToken'},
+        ).timeout(const Duration(seconds: 15)),
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return DoctorDetail.fromJson(responseData['data']);
+      } else if (response.statusCode == 401) {
+        if (await AuthService.refreshToken()) {
+          return getDoctorWithProfile(doctorId);
+        }
+      }
+      return null;
+    } catch (e) {
+      print('Get Doctor with Profile Error: $e');
+      return null;
+    }
+  }
+
+  static Future<DoctorProfile?> createDoctorProfile(Map<String, dynamic> data) async {
+    try {
+      final String? accessToken = await Store.getAccessToken();
+      if (accessToken == null) return null;
+
+      final url = '$_baseUrl/doctors/profile';
+      final response = await _httpRetry(
+            () => http.post(
+          Uri.parse(url),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $accessToken'
+          },
+          body: jsonEncode(data),
+        ).timeout(const Duration(seconds: 15)),
+      );
+
+      if (response.statusCode == 201) {
+        final responseData = jsonDecode(response.body);
+        return DoctorProfile.fromJson(responseData['data']);
+      } else if (response.statusCode == 401) {
+        if (await AuthService.refreshToken()) {
+          return createDoctorProfile(data);
+        }
+      }
+      return null;
+    } catch (e) {
+      print('Create Doctor Profile Error: $e');
+      return null;
+    }
+  }
+
+  static Future<DoctorProfile?> updateDoctorProfile(String profileId, Map<String, dynamic> data) async {
+    try {
+      final String? accessToken = await Store.getAccessToken();
+      if (accessToken == null) return null;
+
+      final url = '$_baseUrl/doctors/profile/$profileId';
+      final response = await _httpRetry(
+            () => http.patch(
+          Uri.parse(url),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $accessToken'
+          },
+          body: jsonEncode(data),
+        ).timeout(const Duration(seconds: 15)),
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return DoctorProfile.fromJson(responseData['data']);
+      } else if (response.statusCode == 401) {
+        if (await AuthService.refreshToken()) {
+          return updateDoctorProfile(profileId, data);
+        }
+      }
+      return null;
+    } catch (e) {
+      print('Update Doctor Profile Error: $e');
+      return null;
+    }
+  }
+
+  static Future<bool> toggleDoctorActive(String profileId, bool isActive) async {
+    try {
+      final String? accessToken = await Store.getAccessToken();
+      if (accessToken == null) return false;
+
+      final url = '$_baseUrl/doctors/profile/$profileId/toggle-active';
+      final response = await _httpRetry(
+            () => http.patch(
+          Uri.parse(url),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $accessToken'
+          },
+          body: jsonEncode({'isActive': isActive}),
+        ).timeout(const Duration(seconds: 15)),
+      );
+
+      if (response.statusCode == 200) {
+        return true;
+      } else if (response.statusCode == 401) {
+        if (await AuthService.refreshToken()) {
+          return toggleDoctorActive(profileId, isActive);
+        }
+      }
+      return false;
+    } catch (e) {
+      print('Toggle Doctor Active Error: $e');
+      return false;
     }
   }
 
