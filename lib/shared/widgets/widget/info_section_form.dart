@@ -210,6 +210,7 @@ class _InfoSectionFormState extends State<InfoSectionForm> with SingleTickerProv
                       Container(
                         height: 300,
                         color: theme.input,
+                        padding: EdgeInsets.all(5),
                         child: quill.QuillEditor(
                           controller: _contentController,
                           focusNode: _focusNode,
@@ -224,12 +225,14 @@ class _InfoSectionFormState extends State<InfoSectionForm> with SingleTickerProv
             const SizedBox(height: 32),
             _buildAnimatedWrapper(
               index: 3,
-              child: AnimatedSubmitButton(
-                onSubmit: _submitForm,
-                idleText: widget.isUpdate
-                    ? '💾 Cập nhật'
-                    : '➕ Tạo mới',
-                loadingText: 'Đang xử lý...',
+              child: Center(
+                child: AnimatedSubmitButton(
+                  onSubmit: _submitForm,
+                  idleText: widget.isUpdate
+                      ? '💾 Cập nhật'
+                      : '➕ Tạo mới',
+                  loadingText: 'Đang xử lý...',
+                ),
               ),
             ),
           ],
