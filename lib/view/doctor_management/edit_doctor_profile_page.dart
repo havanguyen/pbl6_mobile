@@ -19,34 +19,28 @@ class EditDoctorProfilePage extends StatefulWidget {
   State<EditDoctorProfilePage> createState() => _EditDoctorProfilePageState();
 }
 
-class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
+class _EditDoctorProfilePageState extends State<EditDoctorProfilePage>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
+  late TabController _tabController;
 
-  // Text controllers
+  // Controllers
   late TextEditingController _degreeController;
-  late TextEditingController _avatarUrlController;
-  late TextEditingController _portraitController;
-
-  // Quill controllers
   late quill.QuillController _introductionController;
   late quill.QuillController _researchController;
-
-  // Dynamic list controllers
-  late List<TextEditingController> _positionControllers;
-  late List<TextEditingController> _membershipControllers;
-  late List<TextEditingController> _awardControllers;
-  late List<TextEditingController> _trainingControllers;
-  late List<TextEditingController> _experienceControllers;
-
-  // Multi-select values
+  late List<String> _positions;
+  late List<String> _memberships;
+  late List<String> _awards;
+  late List<String> _trainings;
+  late List<String> _experiences;
   late List<Specialty> _selectedSpecialties;
   late List<WorkLocation> _selectedWorkLocations;
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 3, vsync: this);
 
-    // SỬA LỖI: Di chuyển việc fetch dữ liệu vào addPostFrameCallback
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         context.read<SpecialtyVm>().fetchSpecialties(forceRefresh: true);
@@ -54,30 +48,28 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
       }
     });
 
-    // Initialize controllers
     _degreeController =
         TextEditingController(text: widget.doctorDetail.degree ?? '');
-    _avatarUrlController =
-        TextEditingController(text: widget.doctorDetail.avatarUrl ?? '');
-    _portraitController =
-        TextEditingController(text: widget.doctorDetail.portrait ?? '');
-
     _introductionController =
         _initializeQuillController(widget.doctorDetail.introduction);
     _researchController =
         _initializeQuillController(widget.doctorDetail.research);
-
-    _positionControllers = _initListControllers(widget.doctorDetail.position);
-    _membershipControllers =
-        _initListControllers(widget.doctorDetail.memberships);
-    _awardControllers = _initListControllers(widget.doctorDetail.awards);
-    _trainingControllers =
-        _initListControllers(widget.doctorDetail.trainingProcess);
-    _experienceControllers =
-        _initListControllers(widget.doctorDetail.experience);
-
+    _positions = List.from(widget.doctorDetail.position ?? []);
+    _memberships = List.from(widget.doctorDetail.memberships ?? []);
+    _awards = List.from(widget.doctorDetail.awards ?? []);
+    _trainings = List.from(widget.doctorDetail.trainingProcess ?? []);
+    _experiences = List.from(widget.doctorDetail.experience ?? []);
     _selectedSpecialties = List.from(widget.doctorDetail.specialties);
     _selectedWorkLocations = List.from(widget.doctorDetail.workLocations);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    _degreeController.dispose();
+    _introductionController.dispose();
+    _researchController.dispose();
+    super.dispose();
   }
 
   quill.QuillController _initializeQuillController(String? content) {
@@ -95,34 +87,6 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
     return quill.QuillController.basic();
   }
 
-  List<TextEditingController> _initListControllers(List<String>? items) {
-    if (items == null || items.isEmpty) return [TextEditingController()];
-    return items.map((item) => TextEditingController(text: item)).toList();
-  }
-
-  @override
-  void dispose() {
-    _degreeController.dispose();
-    _avatarUrlController.dispose();
-    _portraitController.dispose();
-    _introductionController.dispose();
-    _researchController.dispose();
-    _positionControllers.forEach((c) => c.dispose());
-    _membershipControllers.forEach((c) => c.dispose());
-    _awardControllers.forEach((c) => c.dispose());
-    _trainingControllers.forEach((c) => c.dispose());
-    _experienceControllers.forEach((c) => c.dispose());
-    super.dispose();
-  }
-
-  List<String> _getValuesFromControllers(
-      List<TextEditingController> controllers) {
-    return controllers
-        .map((c) => c.text.trim())
-        .where((s) => s.isNotEmpty)
-        .toList();
-  }
-
   void _saveProfile() {
     if (_formKey.currentState!.validate()) {
       final introductionJson =
@@ -130,21 +94,18 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
       final researchJson =
       jsonEncode(_researchController.document.toDelta().toJson());
 
-      // SỬA LỖI: Chỉ thêm 'staffAccountId' khi tạo mới
       final bool isCreating = widget.doctorDetail.profileId == null;
 
       final Map<String, dynamic> data = {
         if (isCreating) 'staffAccountId': widget.doctorDetail.id,
         'degree': _degreeController.text.trim(),
-        'avatarUrl': _avatarUrlController.text.trim(),
-        'portrait': _portraitController.text.trim(),
         'introduction': introductionJson,
         'research': researchJson,
-        'position': _getValuesFromControllers(_positionControllers),
-        'memberships': _getValuesFromControllers(_membershipControllers),
-        'awards': _getValuesFromControllers(_awardControllers),
-        'trainingProcess': _getValuesFromControllers(_trainingControllers),
-        'experience': _getValuesFromControllers(_experienceControllers),
+        'position': _positions,
+        'memberships': _memberships,
+        'awards': _awards,
+        'trainingProcess': _trainings,
+        'experience': _experiences,
         'specialtyIds': _selectedSpecialties.map((e) => e.id).toList(),
         'locationIds': _selectedWorkLocations.map((e) => e.id).toList(),
       };
@@ -171,93 +132,212 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final isOffline = context.watch<DoctorVm>().isOffline;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.doctorDetail.profileId != null
             ? 'Chỉnh sửa hồ sơ'
             : 'Tạo hồ sơ'),
-        actions: [IconButton(icon: const Icon(Icons.save), onPressed: _saveProfile)],
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.save),
+            onPressed: isOffline ? null : _saveProfile,
+            tooltip: isOffline ? 'Không thể lưu khi offline' : 'Lưu hồ sơ',
+          )
+        ],
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: const [
+            Tab(text: 'Cơ bản'),
+            Tab(text: 'Kinh nghiệm'),
+            Tab(text: 'Phân công'),
+          ],
+        ),
       ),
       body: Form(
         key: _formKey,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildTextField(_degreeController, 'Học vị', Icons.school),
-              _buildTextField(
-                  _avatarUrlController, 'URL Ảnh đại diện', Icons.image),
-              _buildTextField(
-                  _portraitController, 'URL Ảnh chân dung', Icons.face),
-              _buildQuillEditor("Giới thiệu", _introductionController),
-              _buildQuillEditor("Nghiên cứu khoa học", _researchController),
-              _buildDynamicListField('Chức vụ', _positionControllers),
-              _buildDynamicListField('Thành viên hiệp hội', _membershipControllers),
-              _buildDynamicListField('Giải thưởng', _awardControllers),
-              _buildDynamicListField('Quá trình đào tạo', _trainingControllers),
-              _buildDynamicListField('Kinh nghiệm', _experienceControllers),
-              _buildMultiSelectSpecialties(),
-              _buildMultiSelectLocations(),
-              const SizedBox(height: 32),
-              ElevatedButton(
-                onPressed: _saveProfile,
-                style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(double.infinity, 50)),
-                child: const Text('Lưu thay đổi'),
+        child: TabBarView(
+          controller: _tabController,
+          children: [
+            _buildBasicInfoTab(isOffline),
+            _buildExperienceTab(isOffline),
+            _buildAssignmentTab(isOffline),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBasicInfoTab(bool isReadOnly) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          _buildTextField(_degreeController, 'Học vị', Icons.school,
+              isReadOnly: isReadOnly),
+          const SizedBox(height: 16),
+          _QuillEditor(
+            label: "Giới thiệu",
+            controller: _introductionController,
+            isReadOnly: isReadOnly,
+          ),
+          const SizedBox(height: 16),
+          _QuillEditor(
+            label: "Nghiên cứu khoa học",
+            controller: _researchController,
+            isReadOnly: isReadOnly,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildExperienceTab(bool isReadOnly) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          _DynamicListInput(
+              label: 'Chức vụ',
+              items: _positions,
+              onChanged: (val) => setState(() => _positions = val),
+              isReadOnly: isReadOnly),
+          _DynamicListInput(
+              label: 'Kinh nghiệm',
+              items: _experiences,
+              onChanged: (val) => setState(() => _experiences = val),
+              isReadOnly: isReadOnly),
+          _DynamicListInput(
+              label: 'Quá trình đào tạo',
+              items: _trainings,
+              onChanged: (val) => setState(() => _trainings = val),
+              isReadOnly: isReadOnly),
+          _DynamicListInput(
+              label: 'Giải thưởng',
+              items: _awards,
+              onChanged: (val) => setState(() => _awards = val),
+              isReadOnly: isReadOnly),
+          _DynamicListInput(
+              label: 'Thành viên hiệp hội',
+              items: _memberships,
+              onChanged: (val) => setState(() => _memberships = val),
+              isReadOnly: isReadOnly),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAssignmentTab(bool isReadOnly) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          _buildMultiSelectSpecialties(isReadOnly),
+          const SizedBox(height: 24),
+          _buildMultiSelectLocations(isReadOnly),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTextField(
+      TextEditingController controller, String label, IconData icon,
+      {bool isReadOnly = false}) {
+    return TextFormField(
+      controller: controller,
+      readOnly: isReadOnly,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon, color: context.theme.primary),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        filled: isReadOnly,
+        fillColor: isReadOnly ? context.theme.input : null,
+      ),
+    );
+  }
+
+  Widget _buildMultiSelectSpecialties(bool isReadOnly) {
+    return Consumer<SpecialtyVm>(
+      builder: (context, specialtyVm, child) {
+        return _MultiSelectChipField<Specialty>(
+          label: 'Chuyên khoa',
+          allItems: specialtyVm.specialties,
+          initialSelectedItems: _selectedSpecialties,
+          itemName: (specialty) => specialty.name,
+          onSelectionChanged: (selectedItems) {
+            setState(() => _selectedSpecialties = selectedItems);
+          },
+          isReadOnly: isReadOnly,
+        );
+      },
+    );
+  }
+
+  Widget _buildMultiSelectLocations(bool isReadOnly) {
+    return Consumer<LocationWorkVm>(
+      builder: (context, locationVm, child) {
+        return _MultiSelectChipField<WorkLocation>(
+          label: 'Nơi công tác',
+          allItems: locationVm.locations,
+          initialSelectedItems: _selectedWorkLocations,
+          itemName: (location) => location.name,
+          onSelectionChanged: (selectedItems) {
+            setState(() => _selectedWorkLocations = selectedItems);
+          },
+          isReadOnly: isReadOnly,
+        );
+      },
+    );
+  }
+}
+
+// ===================================================================
+// WIDGET QUILL EDITOR (PHIÊN BẢN GỐC)
+// ===================================================================
+class _QuillEditor extends StatelessWidget {
+  final String label;
+  final quill.QuillController controller;
+  final bool isReadOnly;
+
+  const _QuillEditor({
+    required this.label,
+    required this.controller,
+    this.isReadOnly = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.theme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: theme.textColor,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: theme.border),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTextField(TextEditingController controller, String label, IconData icon) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10.0),
-      child: TextFormField(
-        controller: controller,
-        decoration: InputDecoration(
-          labelText: label,
-          prefixIcon: Icon(icon, color: context.theme.primary),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildQuillEditor(String label, quill.QuillController controller) {
-    final theme = context.theme;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: theme.textColor),
-          ),
-          const SizedBox(height: 8),
-          Container(
-            decoration: BoxDecoration(
-              border: Border.all(color: theme.border),
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Column(
-                children: [
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Column(
+              children: [
+                if (!isReadOnly)
                   Container(
                     decoration: BoxDecoration(
                       color: theme.input,
@@ -277,113 +357,123 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
                       ),
                     ),
                   ),
-                  const Divider(height: 1),
-                  Container(
-                    height: 200,
-                    color: theme.input,
-                    padding: const EdgeInsets.all(5),
-                    child: quill.QuillEditor.basic(
-                      controller: controller,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDynamicListField(
-      String label, List<TextEditingController> controllers) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label,
-              style:
-              const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-          ...controllers.asMap().entries.map((entry) {
-            int idx = entry.key;
-            TextEditingController controller = entry.value;
-            return Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
+                if (!isReadOnly) const Divider(height: 1),
+                Container(
+                  height: 300,
+                  color: isReadOnly ? theme.input : theme.card,
+                  padding: const EdgeInsets.all(5),
+                  child: quill.QuillEditor.basic(
                     controller: controller,
-                    decoration: InputDecoration(hintText: 'Mục ${idx + 1}'),
                   ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.remove_circle, color: Colors.red),
-                  onPressed: () {
-                    if (controllers.length > 1) {
-                      setState(() => controllers.removeAt(idx));
-                    } else {
-                      setState(() => controller.clear());
-                    }
-                  },
                 ),
               ],
-            );
-          }),
-          TextButton.icon(
-            icon: const Icon(Icons.add),
-            label: const Text('Thêm mục'),
-            onPressed: () =>
-                setState(() => controllers.add(TextEditingController())),
+            ),
           ),
-          const Divider(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMultiSelectSpecialties() {
-    return Consumer<SpecialtyVm>(
-      builder: (context, specialtyVm, child) {
-        return _MultiSelectChipField<Specialty>(
-          label: 'Chuyên khoa',
-          allItems: specialtyVm.specialties,
-          initialSelectedItems: _selectedSpecialties,
-          itemName: (specialty) => specialty.name,
-          onSelectionChanged: (selectedItems) {
-            setState(() {
-              _selectedSpecialties = selectedItems;
-            });
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildMultiSelectLocations() {
-    return Consumer<LocationWorkVm>(
-      builder: (context, locationVm, child) {
-        return _MultiSelectChipField<WorkLocation>(
-          label: 'Nơi công tác',
-          allItems: locationVm.locations,
-          initialSelectedItems: _selectedWorkLocations,
-          itemName: (location) => location.name,
-          onSelectionChanged: (selectedItems) {
-            setState(() {
-              _selectedWorkLocations = selectedItems;
-            });
-          },
-        );
-      },
+        ),
+      ],
     );
   }
 }
 
+class _DynamicListInput extends StatefulWidget {
+  final String label;
+  final List<String> items;
+  final ValueChanged<List<String>> onChanged;
+  final bool isReadOnly;
+
+  const _DynamicListInput(
+      {required this.label,
+        required this.items,
+        required this.onChanged,
+        this.isReadOnly = false});
+
+  @override
+  __DynamicListInputState createState() => __DynamicListInputState();
+}
+
+class __DynamicListInputState extends State<_DynamicListInput> {
+  final TextEditingController _textController = TextEditingController();
+
+  void _addItem() {
+    if (widget.isReadOnly) return;
+    if (_textController.text.trim().isNotEmpty) {
+      setState(() {
+        widget.items.add(_textController.text.trim());
+        widget.onChanged(widget.items);
+        _textController.clear();
+      });
+    }
+  }
+
+  void _removeItem(int index) {
+    if (widget.isReadOnly) return;
+    setState(() {
+      widget.items.removeAt(index);
+      widget.onChanged(widget.items);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(widget.label,
+            style:
+            const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+        const SizedBox(height: 8),
+        if (widget.items.isNotEmpty)
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: context.theme.border)
+            ),
+            child: Wrap(
+              spacing: 8.0,
+              runSpacing: 4.0,
+              children: widget.items
+                  .asMap()
+                  .entries
+                  .map((entry) => Chip(
+                label: Text(entry.value),
+                onDeleted:
+                widget.isReadOnly ? null : () => _removeItem(entry.key),
+              ))
+                  .toList(),
+            ),
+          ),
+        if (!widget.isReadOnly) ...[
+          const SizedBox(height: 8),
+          TextFormField(
+            controller: _textController,
+            readOnly: widget.isReadOnly,
+            decoration: InputDecoration(
+              hintText: 'Thêm ${widget.label.toLowerCase()}...',
+              suffixIcon: IconButton(
+                icon: const Icon(Icons.add_circle),
+                onPressed: _addItem,
+              ),
+            ),
+            onFieldSubmitted: (_) => _addItem(),
+          ),
+        ],
+        const SizedBox(height: 24),
+      ],
+    );
+  }
+}
+
+// ===================================================================
+// SỬA LỖI TẠI ĐÂY: _MultiSelectChipField được thiết kế lại
+// ===================================================================
 class _MultiSelectChipField<T> extends StatefulWidget {
   final String label;
   final List<T> allItems;
   final List<T> initialSelectedItems;
   final String Function(T) itemName;
   final ValueChanged<List<T>> onSelectionChanged;
+  final bool isReadOnly;
 
   const _MultiSelectChipField({
     required this.label,
@@ -391,6 +481,7 @@ class _MultiSelectChipField<T> extends StatefulWidget {
     required this.initialSelectedItems,
     required this.itemName,
     required this.onSelectionChanged,
+    this.isReadOnly = false,
   });
 
   @override
@@ -415,111 +506,111 @@ class _MultiSelectChipFieldState<T> extends State<_MultiSelectChipField<T>> {
     }
   }
 
-  void _showMultiSelect() async {
-    final List<T>? results = await showDialog(
+  void _showMultiSelectDialog() {
+    if (widget.isReadOnly) return;
+
+    showDialog(
       context: context,
-      builder: (BuildContext context) {
+      builder: (context) {
+        // Sử dụng một List tạm thời để người dùng có thể hủy thay đổi
         final tempSelectedItems = List<T>.from(_selectedItems);
-        return StatefulBuilder(
-          builder: (context, setStateDialog) {
-            return AlertDialog(
-              title: Text('Chọn ${widget.label}'),
-              content: SizedBox(
-                width: double.maxFinite,
-                child: ListView.builder(
-                  itemCount: widget.allItems.length,
-                  itemBuilder: (context, index) {
-                    final item = widget.allItems[index];
-                    final bool isSelected =
-                    tempSelectedItems.any((selectedItem) => selectedItem == item);
-                    return CheckboxListTile(
-                      title: Text(widget.itemName(item)),
-                      value: isSelected,
-                      onChanged: (bool? selected) {
-                        setStateDialog(() {
-                          if (selected == true) {
-                            if (!isSelected) {
-                              tempSelectedItems.add(item);
-                            }
-                          } else {
-                            tempSelectedItems.removeWhere(
-                                    (selectedItem) => selectedItem == item);
-                          }
-                        });
-                      },
-                    );
-                  },
-                ),
+        return StatefulBuilder(builder: (context, menuSetState) {
+          return AlertDialog(
+            title: Text('Chọn ${widget.label}'),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: ListView.builder(
+                shrinkWrap: true, // Quan trọng để AlertDialog có kích thước hợp lý
+                itemCount: widget.allItems.length,
+                itemBuilder: (context, index) {
+                  final item = widget.allItems[index];
+                  final isSelected = tempSelectedItems.contains(item);
+                  return CheckboxListTile(
+                    title: Text(widget.itemName(item)),
+                    value: isSelected,
+                    onChanged: (bool? selected) {
+                      menuSetState(() {
+                        if (selected == true) {
+                          tempSelectedItems.add(item);
+                        } else {
+                          tempSelectedItems.remove(item);
+                        }
+                      });
+                    },
+                  );
+                },
               ),
-              actions: [
-                TextButton(
-                  child: const Text('Hủy'),
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
-                ElevatedButton(
-                  child: const Text('Xong'),
-                  onPressed: () => Navigator.of(context).pop(tempSelectedItems),
-                ),
-              ],
-            );
-          },
-        );
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Hủy'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    _selectedItems = tempSelectedItems;
+                    widget.onSelectionChanged(_selectedItems);
+                  });
+                  Navigator.pop(context);
+                },
+                child: const Text('Xong'),
+              )
+            ],
+          );
+        });
       },
     );
-
-    if (results != null) {
-      setState(() {
-        _selectedItems = results;
-      });
-      widget.onSelectionChanged(_selectedItems);
-    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(widget.label,
-              style:
-              const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              border: Border.all(color: context.theme.border),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Wrap(
-                  spacing: 8.0,
-                  runSpacing: 4.0,
-                  children: _selectedItems
-                      .map((item) => Chip(
-                    label: Text(widget.itemName(item)),
-                    onDeleted: () {
-                      setState(() {
-                        _selectedItems.remove(item);
-                      });
-                      widget.onSelectionChanged(_selectedItems);
-                    },
-                  ))
-                      .toList(),
-                ),
-                TextButton.icon(
-                  icon: const Icon(Icons.add_circle_outline),
-                  label: Text('Chọn ${widget.label}'),
-                  onPressed: _showMultiSelect,
-                ),
-              ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(widget.label,
+            style:
+            const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+        const SizedBox(height: 8),
+
+        // Hiển thị các chip đã chọn
+        if (_selectedItems.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: Wrap(
+              spacing: 8.0,
+              runSpacing: 4.0,
+              children: _selectedItems
+                  .map((item) => Chip(
+                label: Text(widget.itemName(item)),
+                onDeleted: widget.isReadOnly
+                    ? null
+                    : () {
+                  setState(() {
+                    _selectedItems.remove(item);
+                  });
+                  widget.onSelectionChanged(_selectedItems);
+                },
+              ))
+                  .toList(),
             ),
           ),
-        ],
-      ),
+
+        // Nút để mở Dialog
+        OutlinedButton.icon(
+          icon: const Icon(Icons.add),
+          label: Text(_selectedItems.isEmpty
+              ? 'Thêm ${widget.label.toLowerCase()}'
+              : 'Thay đổi lựa chọn'),
+          onPressed: widget.isReadOnly ? null : _showMultiSelectDialog,
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size(double.infinity, 50),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        )
+      ],
     );
   }
 }
