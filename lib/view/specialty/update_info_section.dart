@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:pbl6mobile/view_model/specialty/specialty_vm.dart';
 import 'package:provider/provider.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
-
 import '../../shared/widgets/widget/info_section_form.dart';
 
 class UpdateInfoSectionPage extends StatelessWidget {
@@ -16,6 +15,7 @@ class UpdateInfoSectionPage extends StatelessWidget {
     final specialtyId = args['specialtyId'];
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: context.theme.appBar,
         title: Text(
           'Chỉnh sửa phần thông tin',
           style: TextStyle(color: context.theme.primaryForeground),
@@ -25,6 +25,7 @@ class UpdateInfoSectionPage extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
       ),
+      backgroundColor: context.theme.bg,
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: InfoSectionForm(

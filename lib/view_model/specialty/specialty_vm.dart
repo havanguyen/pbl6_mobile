@@ -15,6 +15,7 @@ class SpecialtyVm extends ChangeNotifier {
   final int _limit = 10;
   Map<String, dynamic> _meta = {};
 
+  String _searchQuery = '';
   String? _sortBy = 'createdAt';
   String? _sortOrder = 'DESC';
 
@@ -45,6 +46,13 @@ class SpecialtyVm extends ChangeNotifier {
     });
   }
 
+  void updateSearchQuery(String query) {
+    _searchQuery = query;
+    fetchSpecialties(forceRefresh: true);
+  }
+
+
+
   void updateSortFilter({String? sortBy, String? sortOrder}) {
     _sortBy = sortBy ?? _sortBy;
     _sortOrder = sortOrder ?? _sortOrder;
@@ -52,6 +60,7 @@ class SpecialtyVm extends ChangeNotifier {
   }
 
   void resetFilters() {
+    _searchQuery = '';
     _sortBy = 'createdAt';
     _sortOrder = 'DESC';
     fetchSpecialties(forceRefresh: true);
@@ -63,7 +72,7 @@ class SpecialtyVm extends ChangeNotifier {
       _meta = {};
       _isLoading = true;
     } else {
-      if (_isLoading || _isLoadingMore || !hasNext) return;
+      if (_isLoading || _isLoadingMore || !hasNext && !_isOffline) return;
       _isLoadingMore = true;
     }
     _error = null;
@@ -76,12 +85,17 @@ class SpecialtyVm extends ChangeNotifier {
     if (!isConnected) {
       _error = 'Bạn đang offline. Dữ liệu có thể đã cũ.';
       final offlineData = await _dbHelper.getSpecialties(
+        search: _searchQuery,
         page: _currentPage,
         limit: _limit,
         sortBy: _sortBy,
         sortOrder: _sortOrder,
       );
-      _specialties = offlineData;
+      if (forceRefresh) {
+        _specialties = offlineData;
+      } else {
+        _specialties.addAll(offlineData);
+      }
       _isLoading = false;
       _isLoadingMore = false;
       notifyListeners();
@@ -90,6 +104,7 @@ class SpecialtyVm extends ChangeNotifier {
 
     try {
       final result = await SpecialtyService.getAllSpecialties(
+        search: _searchQuery,
         page: _currentPage,
         limit: _limit,
         sortBy: _sortBy!,
@@ -105,7 +120,8 @@ class SpecialtyVm extends ChangeNotifier {
         _meta = result.meta;
         _currentPage++;
 
-        if (_specialties.isNotEmpty && _currentPage == 2) {
+        // Cache data only on the first page of a fresh fetch
+        if (_specialties.isNotEmpty && _currentPage == 2 && _searchQuery.isEmpty) {
           await _dbHelper.clearSpecialties();
           await _dbHelper.insertSpecialties(_specialties);
         }
@@ -128,15 +144,37 @@ class SpecialtyVm extends ChangeNotifier {
     _isInfoSectionLoading = true;
     notifyListeners();
 
-    final result = await SpecialtyService.getInfoSections(specialtyId);
-    if (result['success'] == true) {
-      final sections = (result['data'] as List)
-          .map((json) => InfoSection.fromJson(json))
-          .toList();
-      _infoSections[specialtyId] = sections;
-    } else {
-      _error = 'Failed to load info sections';
+    var connectivityResult = await Connectivity().checkConnectivity();
+    bool isConnected = !connectivityResult.contains(ConnectivityResult.none);
+    _isOffline = !isConnected;
+
+    if (!isConnected) {
+      final offlineSections = await _dbHelper.getInfoSections(specialtyId);
+      _infoSections[specialtyId] = offlineSections;
+      _isInfoSectionLoading = false;
+      notifyListeners();
+      return;
     }
+
+    try {
+      final result = await SpecialtyService.getInfoSections(specialtyId);
+      if (result['success'] == true) {
+        final sections = (result['data'] as List)
+            .map((json) => InfoSection.fromJson(json))
+            .toList();
+        _infoSections[specialtyId] = sections;
+
+        if (sections.isNotEmpty) {
+          await _dbHelper.clearInfoSections(specialtyId);
+          await _dbHelper.insertInfoSections(sections);
+        }
+      } else {
+        _error = 'Failed to load info sections';
+      }
+    } catch (e) {
+      _error = 'Lỗi kết nối khi tải chi tiết: $e';
+    }
+
 
     _isInfoSectionLoading = false;
     notifyListeners();

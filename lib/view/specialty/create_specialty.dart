@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:pbl6mobile/view_model/specialty/specialty_vm.dart';
 import 'package:provider/provider.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
-
 import '../../shared/widgets/widget/specialty_form.dart';
 
 class CreateSpecialtyPage extends StatelessWidget {
@@ -12,6 +11,7 @@ class CreateSpecialtyPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: context.theme.appBar,
         title: Text(
           'Tạo chuyên khoa',
           style: TextStyle(color: context.theme.primaryForeground),
@@ -21,6 +21,7 @@ class CreateSpecialtyPage extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
       ),
+      backgroundColor: context.theme.bg,
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SpecialtyForm(

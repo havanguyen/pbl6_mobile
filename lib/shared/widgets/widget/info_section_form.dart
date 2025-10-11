@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'package:flutter_quill_extensions/flutter_quill_extensions.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
-
 import 'doctor_form.dart';
 
 class InfoSectionForm extends StatefulWidget {
@@ -30,12 +29,13 @@ class InfoSectionForm extends StatefulWidget {
   State<InfoSectionForm> createState() => _InfoSectionFormState();
 }
 
-class _InfoSectionFormState extends State<InfoSectionForm> {
+class _InfoSectionFormState extends State<InfoSectionForm> with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late quill.QuillController _contentController;
   final FocusNode _focusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
+  late AnimationController _animationController;
 
   @override
   void initState() {
@@ -59,6 +59,12 @@ class _InfoSectionFormState extends State<InfoSectionForm> {
         );
       }
     }
+
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _animationController.forward();
   }
 
   @override
@@ -67,6 +73,7 @@ class _InfoSectionFormState extends State<InfoSectionForm> {
     _contentController.dispose();
     _focusNode.dispose();
     _scrollController.dispose();
+    _animationController.dispose();
     super.dispose();
   }
 
@@ -89,9 +96,7 @@ class _InfoSectionFormState extends State<InfoSectionForm> {
       if (success) {
         widget.onSuccess?.call();
         Future.delayed(const Duration(milliseconds: 1500), () {
-          if (mounted) {
-            Navigator.of(context).pop(true);
-          }
+          if (mounted) Navigator.of(context).pop(true);
         });
       }
       return success;
@@ -99,75 +104,136 @@ class _InfoSectionFormState extends State<InfoSectionForm> {
     return false;
   }
 
+  // Helper widget để tạo hiệu ứng động
+  Widget _buildAnimatedWrapper({required Widget child, required int index}) {
+    return FadeTransition(
+      opacity: CurvedAnimation(
+        parent: _animationController,
+        curve: Interval(0.2 * index, 1.0, curve: Curves.easeOut),
+      ),
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, 0.2),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(
+          parent: _animationController,
+          curve: Interval(0.2 * index, 1.0, curve: Curves.easeOut),
+        )),
+        child: child,
+      ),
+    );
+  }
+
+
   @override
   Widget build(BuildContext context) {
+    final theme = context.theme;
+
     return Form(
       key: _formKey,
-      child: Column(
-        children: [
-          TextFormField(
-            controller: _nameController,
-            decoration: InputDecoration(
-              labelText: 'Tên phần thông tin',
-              prefixIcon: Icon(Icons.title, color: context.theme.primary),
-            ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Vui lòng nhập tên';
-              }
-              if (value.length < 10 || value.length > 200) {
-                return 'Tên phải từ 10 đến 200 ký tự';
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: 20),
-          Text(
-            'Nội dung',
-            style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: context.theme.textColor),
-          ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                border: Border.all(color: context.theme.border),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Column(
-                children: [
-                  quill.QuillSimpleToolbar(
-                    controller: _contentController,
-                    config: const quill.QuillSimpleToolbarConfig(),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 24),
+            _buildAnimatedWrapper(
+              index: 1,
+              child: TextFormField(
+                controller: _nameController,
+                decoration: InputDecoration(
+                  labelText: 'Tên phần thông tin',
+                  hintText: 'Nhập tiêu đề mô tả rõ ràng...',
+                  prefixIcon: Icon(Icons.title_rounded, color: theme.primary),
+                  filled: true,
+                  fillColor: theme.input,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: theme.border),
                   ),
-                  const Divider(height: 1),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: quill.QuillEditor(
-                        controller: _contentController,
-                        focusNode: _focusNode,
-                        scrollController: _scrollController,
-                        config: quill.QuillEditorConfig(
-                          padding: const EdgeInsets.all(8),
-                          embedBuilders: FlutterQuillEmbeds.editorBuilders(),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: theme.primary, width: 1.5),
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Vui lòng nhập tên';
+                  }
+                  if (value.length < 10 || value.length > 200) {
+                    return 'Tên phải từ 10 đến 200 ký tự';
+                  }
+                  return null;
+                },
+              ),
+            ),
+            const SizedBox(height: 20),
+            _buildAnimatedWrapper(
+              index: 2,
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: theme.border),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Column(
+                    children: [
+                     Container(
+                          decoration: BoxDecoration(
+                            color: theme.input,
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(12),
+                            ),
+                          ),
+                          padding: const EdgeInsets.all(8.0),
+                          child: quill.QuillSimpleToolbar(
+                            controller: _contentController,
+                            config: const quill.QuillSimpleToolbarConfig(
+                              toolbarSize: 20,
+                              toolbarSectionSpacing: 2,
+                              showAlignmentButtons: true,
+                              showFontSize: false,
+                              showDividers: false,
+                              multiRowsDisplay: false,
+                            ),
+                          ),
+                        ),
+                      const Divider(height: 1),
+                      Container(
+                        height: 300,
+                        color: theme.input,
+                        child: quill.QuillEditor(
+                          controller: _contentController,
+                          focusNode: _focusNode,
+                          scrollController: _scrollController,
                         ),
                       ),
-                    ),
-                  )
-                ],
+                    ],
+                  ),
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 32),
-          AnimatedSubmitButton(
-            onSubmit: _submitForm,
-            idleText: '${widget.isUpdate ? 'Cập nhật' : 'Tạo'} phần thông tin',
-            loadingText: 'Đang xử lý...',
-          ),
-        ],
+            const SizedBox(height: 32),
+            _buildAnimatedWrapper(
+              index: 3,
+              child: AnimatedSubmitButton(
+                onSubmit: _submitForm,
+                idleText: widget.isUpdate
+                    ? '💾 Cập nhật'
+                    : '➕ Tạo mới',
+                loadingText: 'Đang xử lý...',
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
