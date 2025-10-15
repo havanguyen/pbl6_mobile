@@ -47,26 +47,26 @@ class _AnimatedSubmitButtonState extends State<AnimatedSubmitButton> {
   Widget _buildButtonChild() {
     switch (_state) {
       case ButtonState.loading:
-        return const SizedBox(
-          key: ValueKey('loading'),
+        return SizedBox(
+          key: const ValueKey('loading'),
           height: 52,
           child: Center(
               child: SizedBox(
                 width: 24,
                 height: 24,
                 child: CircularProgressIndicator(
-                  color: Colors.white,
+                  color: context.theme.white,
                   strokeWidth: 2,
                 ),
               )),
         );
       case ButtonState.success:
-        return const SizedBox(
-          key: ValueKey('success'),
+        return SizedBox(
+          key: const ValueKey('success'),
           height: 52,
           child: CircleAvatar(
-            backgroundColor: Colors.green,
-            child: Icon(Icons.check, color: Colors.white),
+            backgroundColor: context.theme.green,
+            child: Icon(Icons.check, color: context.theme.white),
           ),
         );
       case ButtonState.error:
@@ -75,7 +75,7 @@ class _AnimatedSubmitButtonState extends State<AnimatedSubmitButton> {
           height: 52,
           child: CircleAvatar(
             backgroundColor: context.theme.destructive,
-            child: const Icon(Icons.close, color: Colors.white),
+            child: Icon(Icons.close, color: context.theme.white),
           ),
         );
       case ButtonState.idle:

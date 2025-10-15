@@ -148,7 +148,7 @@ class _DoctorListPageState extends State<DoctorListPage> {
                     backgroundColor: MaterialStateProperty.resolveWith<Color?>(
                           (Set<MaterialState> states) {
                         if (states.contains(MaterialState.disabled)) {
-                          return Colors.grey;
+                          return context.theme.grey;
                         }
                         return context.theme.primary;
                       },
@@ -286,20 +286,20 @@ class _DoctorListPageState extends State<DoctorListPage> {
               Container(
                   width: 48.0,
                   height: 48.0,
-                  decoration: const BoxDecoration(
-                      color: Colors.white, shape: BoxShape.circle)),
+                  decoration:  BoxDecoration(
+                      color: context.theme.white, shape: BoxShape.circle)),
               const Padding(padding: EdgeInsets.symmetric(horizontal: 8.0)),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Container(
-                        width: double.infinity, height: 12.0, color: Colors.white),
+                        width: double.infinity, height: 12.0, color: context.theme.white),
                     const Padding(padding: EdgeInsets.symmetric(vertical: 4.0)),
                     Container(
-                        width: double.infinity, height: 10.0, color: Colors.white),
+                        width: double.infinity, height: 10.0, color: context.theme.white),
                     const Padding(padding: EdgeInsets.symmetric(vertical: 2.0)),
-                    Container(width: 100.0, height: 8.0, color: Colors.white),
+                    Container(width: 100.0, height: 8.0, color: context.theme.white),
                   ],
                 ),
               )
@@ -328,14 +328,14 @@ class _DoctorListPageState extends State<DoctorListPage> {
               }
             },
             backgroundColor: context.theme.blue,
-            foregroundColor: Colors.white,
+            foregroundColor: context.theme.white,
             icon: Icons.edit,
             label: 'Sửa',
           ),
           SlidableAction(
             onPressed: (context) => _showDeleteDialog(doctor),
             backgroundColor: context.theme.destructive,
-            foregroundColor: Colors.white,
+            foregroundColor: context.theme.white,
             icon: Icons.delete,
             label: 'Xóa',
           ),
@@ -428,12 +428,12 @@ class _DoctorListPageState extends State<DoctorListPage> {
               if (provider.isOffline && provider.error != null)
                 Container(
                   width: double.infinity,
-                  color: Colors.amber,
+                  color: context.theme.yellow,
                   padding: const EdgeInsets.all(8.0),
                   child: Text(
                     provider.error!,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.black),
+                    style:  TextStyle(color: context.theme.popover),
                   ),
                 ),
               if (provider.isLoading && provider.doctors.isNotEmpty)

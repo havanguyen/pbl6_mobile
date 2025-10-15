@@ -97,12 +97,12 @@ class _ListSpecialtyPageState extends State<ListSpecialtyPage> {
           if (specialtyVm.isOffline && specialtyVm.error != null)
             Container(
               width: double.infinity,
-              color: Colors.amber,
+              color: context.theme.yellow,
               padding: const EdgeInsets.all(8.0),
               child: Text(
                 specialtyVm.error!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.black),
+                style:  TextStyle(color: context.theme.popover),
               ),
             ),
           if (specialtyVm.isLoading && specialtyVm.specialties.isNotEmpty)
@@ -219,7 +219,7 @@ class _ListSpecialtyPageState extends State<ListSpecialtyPage> {
               backgroundColor: MaterialStateProperty.resolveWith<Color?>(
                     (Set<MaterialState> states) {
                   if (states.contains(MaterialState.disabled)) {
-                    return Colors.grey;
+                    return context.theme.grey;
                   }
                   return context.theme.primary;
                 },
@@ -275,8 +275,8 @@ class _ListSpecialtyPageState extends State<ListSpecialtyPage> {
           margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
           shape:
           RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          child: const ListTile(
-            leading: CircleAvatar(radius: 28, backgroundColor: Colors.white),
+          child:  ListTile(
+            leading: CircleAvatar(radius: 28, backgroundColor: context.theme.white),
             title: SizedBox(height: 16, width: 150),
             subtitle: SizedBox(height: 12, width: 100),
           ),
@@ -307,14 +307,14 @@ class _ListSpecialtyPageState extends State<ListSpecialtyPage> {
               }
             },
             backgroundColor: context.theme.blue,
-            foregroundColor: Colors.white,
+            foregroundColor: context.theme.white,
             icon: Icons.edit,
             label: 'Sửa',
           ),
           SlidableAction(
             onPressed: (context) => _showDeleteDialog(specialty),
             backgroundColor: context.theme.destructive,
-            foregroundColor: Colors.white,
+            foregroundColor: context.theme.white,
             icon: Icons.delete,
             label: 'Xóa',
           ),

@@ -108,12 +108,12 @@ class _SpecialtyDetailPageState extends State<SpecialtyDetailPage> {
           if (isOffline)
             Container(
               width: double.infinity,
-              color: Colors.amber,
+              color: context.theme.yellow,
               padding: const EdgeInsets.all(8.0),
-              child: const Text(
+              child:  Text(
                 'Bạn đang ở chế độ offline. Dữ liệu có thể đã cũ.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.black),
+                style: TextStyle(color: context.theme.popover),
               ),
             ),
           Expanded(
@@ -185,7 +185,7 @@ class _SpecialtyDetailPageState extends State<SpecialtyDetailPage> {
           }
         },
         backgroundColor: theme.primary,
-        child: const Icon(Icons.add, color: Colors.white),
+        child:  Icon(Icons.add, color: context.theme.white),
       ),
     );
   }
@@ -222,7 +222,7 @@ class _InfoSectionTileState extends State<_InfoSectionTile> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: context.theme.popover.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           )
@@ -379,7 +379,7 @@ class __ExpandableHtmlContentState extends State<_ExpandableHtmlContent> {
               return LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [Colors.black, Colors.black, Colors.transparent],
+                colors: [context.theme.popover, context.theme.popover, Colors.transparent],
                 stops: [0.0, 0.7, 1.0],
               ).createShader(Rect.fromLTRB(0, 0, rect.width, rect.height));
             },

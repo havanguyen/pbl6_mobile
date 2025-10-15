@@ -176,7 +176,7 @@ class _InfoSectionFormState extends State<InfoSectionForm> with SingleTickerProv
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: context.theme.popover.withOpacity(0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),

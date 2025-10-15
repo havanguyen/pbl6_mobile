@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 
 import '../../model/services/remote/auth_service.dart';
 import '../../shared/routes/routes.dart';
@@ -25,13 +26,13 @@ class _SplashPageState extends State<SplashPage> {
         image: DecorationImage(
           image: AssetImage('assets/images/background.jpg'),
           fit: BoxFit.cover,
-          colorFilter: ColorFilter.mode(Colors.blue.withOpacity(0.2), BlendMode.srcOver),
+          colorFilter: ColorFilter.mode(context.theme.blue.withOpacity(0.2), BlendMode.srcOver),
         ),
       ),
         child: Center(
           child: Image.asset(
               'assets/images/logo.png',
-              color: Colors.blue,
+              color: context.theme.blue,
               height: 200,
           ),
         ),

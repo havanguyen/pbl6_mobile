@@ -143,7 +143,7 @@ class _DoctorDetailPageState extends State<DoctorDetailPage>
         onPressed: () => _showEditOptions(context, doctor),
         backgroundColor: context.theme.primary,
         tooltip: 'Chỉnh sửa',
-        child: const Icon(Icons.edit, color: Colors.white),
+        child: Icon(Icons.edit, color: context.theme.white),
       ),
     );
   }
@@ -202,10 +202,10 @@ class _DoctorDetailPageState extends State<DoctorDetailPage>
                           .toggleDoctorStatus(doctor.profileId!, value);
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
+                        SnackBar(
+                          content: const Text(
                               'Bác sĩ này chưa có hồ sơ, không thể thay đổi trạng thái.'),
-                          backgroundColor: Colors.red,
+                          backgroundColor: context.theme.red,
                         ),
                       );
                     }
