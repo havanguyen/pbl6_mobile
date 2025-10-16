@@ -38,6 +38,7 @@ dependencies:
   vsc_quill_delta_to_html: ^1.0.5
   dio: ^5.9.0
   dio_smart_retry: ^7.0.1
+  cached_network_image: ^3.4.1
 
 dev_dependencies:
   flutter_test:

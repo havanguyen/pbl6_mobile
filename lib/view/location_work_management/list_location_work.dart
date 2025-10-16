@@ -15,7 +15,8 @@ class LocationWorkListPage extends StatefulWidget {
   State<LocationWorkListPage> createState() => _LocationWorkListPageState();
 }
 
-class _LocationWorkListPageState extends State<LocationWorkListPage> with SingleTickerProviderStateMixin {
+class _LocationWorkListPageState extends State<LocationWorkListPage>
+    with SingleTickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
@@ -34,7 +35,6 @@ class _LocationWorkListPageState extends State<LocationWorkListPage> with Single
       }
     });
 
-    // Khởi tạo animation controller
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
@@ -56,7 +56,6 @@ class _LocationWorkListPageState extends State<LocationWorkListPage> with Single
       curve: Curves.easeOutCubic,
     ));
 
-    // Bắt đầu animation sau khi widget được khởi tạo
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _animationController.forward();
     });
@@ -71,13 +70,16 @@ class _LocationWorkListPageState extends State<LocationWorkListPage> with Single
 
   void _loadData() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<LocationWorkVm>(context, listen: false).fetchLocations();
+      Provider.of<LocationWorkVm>(context, listen: false)
+          .fetchLocations(forceRefresh: true);
     });
   }
 
   void _showDeleteDialog(WorkLocation location) {
-    final snackbarService = Provider.of<SnackbarService>(context, listen: false);
-    final locationWorkVm = Provider.of<LocationWorkVm>(context, listen: false);
+    final snackbarService =
+    Provider.of<SnackbarService>(context, listen: false);
+    final locationWorkVm =
+    Provider.of<LocationWorkVm>(context, listen: false);
 
     showDialog(
       context: context,
@@ -103,15 +105,17 @@ class _LocationWorkListPageState extends State<LocationWorkListPage> with Single
         .updateLocationIsActive(location.id, newIsActive);
 
     if (success && mounted) {
-      final snackbarService = Provider.of<SnackbarService>(context, listen: false);
+      final snackbarService =
+      Provider.of<SnackbarService>(context, listen: false);
       snackbarService.showSuccess('Cập nhật trạng thái thành công!');
     } else if (mounted) {
-      final snackbarService = Provider.of<SnackbarService>(context, listen: false);
+      final snackbarService =
+      Provider.of<SnackbarService>(context, listen: false);
       snackbarService.showError('Cập nhật trạng thái thất bại.');
     }
   }
 
-  Widget _buildAnimatedSearchSection() {
+  Widget _buildAnimatedSearchSection(bool isOffline) {
     return AnimatedBuilder(
       animation: _animationController,
       builder: (context, child) {
@@ -127,7 +131,6 @@ class _LocationWorkListPageState extends State<LocationWorkListPage> with Single
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // Search Field với hiệu ứng focus animation
             Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
@@ -190,8 +193,6 @@ class _LocationWorkListPageState extends State<LocationWorkListPage> with Single
               ),
             ),
             const SizedBox(height: 16),
-
-            // Animated Button
             AnimatedContainer(
               duration: const Duration(milliseconds: 300),
               decoration: BoxDecoration(
@@ -205,8 +206,18 @@ class _LocationWorkListPageState extends State<LocationWorkListPage> with Single
                 ],
               ),
               child: CustomButtonBlue(
-                onTap: () async {
-                  final result = await Navigator.pushNamed(context, Routes.createLocationWork);
+                onTap: isOffline
+                    ? () {
+                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Không thể thêm khi đang offline'),
+                    ),
+                  );
+                }
+                    : () async {
+                  final result = await Navigator.pushNamed(
+                      context, Routes.createLocationWork);
                   if (result == true) {
                     _loadData();
                   }
@@ -220,7 +231,8 @@ class _LocationWorkListPageState extends State<LocationWorkListPage> with Single
     );
   }
 
-  Widget _buildAnimatedLocationCard(WorkLocation location, int index) {
+  Widget _buildAnimatedLocationCard(
+      WorkLocation location, int index, bool isOffline) {
     final bool activeStatus = location.isActive;
 
     return AnimatedContainer(
@@ -238,7 +250,14 @@ class _LocationWorkListPageState extends State<LocationWorkListPage> with Single
         color: context.theme.card,
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
-          onTap: () async {
+          onTap: isOffline
+              ? () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                  content: Text('Không thể chỉnh sửa khi đang offline')),
+            );
+          }
+              : () async {
             final result = await Navigator.pushNamed(
               context,
               Routes.updateLocationWork,
@@ -252,7 +271,6 @@ class _LocationWorkListPageState extends State<LocationWorkListPage> with Single
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                // Location Icon với animation
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
                   padding: const EdgeInsets.all(12),
@@ -264,13 +282,13 @@ class _LocationWorkListPageState extends State<LocationWorkListPage> with Single
                   ),
                   child: Icon(
                     Icons.location_on,
-                    color: activeStatus ? context.theme.green : context.theme.destructive,
+                    color: activeStatus
+                        ? context.theme.green
+                        : context.theme.destructive,
                     size: 24,
                   ),
                 ),
                 const SizedBox(width: 16),
-
-                // Content
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -297,7 +315,8 @@ class _LocationWorkListPageState extends State<LocationWorkListPage> with Single
                       ),
                       const SizedBox(height: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
                           color: activeStatus
                               ? context.theme.green.withOpacity(0.1)
@@ -307,7 +326,9 @@ class _LocationWorkListPageState extends State<LocationWorkListPage> with Single
                         child: Text(
                           activeStatus ? '🟢 Hoạt động' : '🔴 Không hoạt động',
                           style: TextStyle(
-                            color: activeStatus ? context.theme.green : context.theme.destructive,
+                            color: activeStatus
+                                ? context.theme.green
+                                : context.theme.destructive,
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
                           ),
@@ -316,48 +337,33 @@ class _LocationWorkListPageState extends State<LocationWorkListPage> with Single
                     ],
                   ),
                 ),
-
-                // Action Buttons
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Delete Button với hover effect
-                    MouseRegion(
-                      cursor: SystemMouseCursors.click,
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.transparent,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: IconButton(
-                          icon: Icon(
-                            Icons.delete_outline,
-                            color: context.theme.destructive,
-                            size: 20,
-                          ),
-                          onPressed: () => _showDeleteDialog(location),
-                        ),
+                    IconButton(
+                      icon: Icon(
+                        Icons.delete_outline,
+                        color: isOffline
+                            ? context.theme.mutedForeground
+                            : context.theme.destructive,
+                        size: 20,
                       ),
+                      onPressed: isOffline
+                          ? null
+                          : () => _showDeleteDialog(location),
                     ),
-
-                    // Toggle Button với animation
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.transparent,
-                        borderRadius: BorderRadius.circular(8),
+                    IconButton(
+                      icon: Icon(
+                        activeStatus ? Icons.toggle_on : Icons.toggle_off,
+                        color: isOffline
+                            ? context.theme.mutedForeground
+                            : (activeStatus
+                            ? context.theme.green
+                            : context.theme.mutedForeground),
+                        size: 32,
                       ),
-                      child: IconButton(
-                        icon: Icon(
-                          activeStatus ? Icons.toggle_on : Icons.toggle_off,
-                          color: activeStatus ? context.theme.green : context.theme.mutedForeground,
-                          size: 32,
-                        ),
-                        onPressed: () => _toggleIsActive(location),
-                      ),
+                      onPressed:
+                      isOffline ? null : () => _toggleIsActive(location),
                     ),
                   ],
                 ),
@@ -401,7 +407,9 @@ class _LocationWorkListPageState extends State<LocationWorkListPage> with Single
               ),
               const SizedBox(height: 24),
               Text(
-                _searchQuery.isEmpty ? 'Chưa có địa điểm nào' : 'Không tìm thấy địa điểm phù hợp',
+                _searchQuery.isEmpty
+                    ? 'Chưa có địa điểm nào'
+                    : 'Không tìm thấy địa điểm phù hợp',
                 style: TextStyle(
                   color: context.theme.mutedForeground,
                   fontSize: 18,
@@ -435,17 +443,19 @@ class _LocationWorkListPageState extends State<LocationWorkListPage> with Single
                     ],
                   ),
                   child: ElevatedButton(
-                    onPressed: () => Navigator.pushNamed(context, Routes.createLocationWork)
+                    onPressed: () => Navigator.pushNamed(
+                        context, Routes.createLocationWork)
                         .then((_) => _loadData()),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: context.theme.primary,
                       foregroundColor: context.theme.primaryForeground,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: Text(
+                    child: const Text(
                       'Thêm địa điểm đầu tiên',
                       style: TextStyle(
                         fontSize: 16,
@@ -482,7 +492,6 @@ class _LocationWorkListPageState extends State<LocationWorkListPage> with Single
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Previous Button
             AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               decoration: BoxDecoration(
@@ -500,25 +509,28 @@ class _LocationWorkListPageState extends State<LocationWorkListPage> with Single
               child: ElevatedButton(
                 onPressed: provider.hasPrev ? () => provider.prevPage() : null,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: provider.hasPrev ? context.theme.primary : context.theme.input,
-                  foregroundColor: provider.hasPrev ? context.theme.primaryForeground : context.theme.mutedForeground,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  backgroundColor: provider.hasPrev
+                      ? context.theme.primary
+                      : context.theme.input,
+                  foregroundColor: provider.hasPrev
+                      ? context.theme.primaryForeground
+                      : context.theme.mutedForeground,
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: Row(
+                child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(Icons.arrow_back_ios, size: 16),
-                    const SizedBox(width: 4),
+                    SizedBox(width: 4),
                     Text('Trước'),
                   ],
                 ),
               ),
             ),
-
-            // Page Info
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
@@ -533,8 +545,6 @@ class _LocationWorkListPageState extends State<LocationWorkListPage> with Single
                 ),
               ),
             ),
-
-            // Next Button
             AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               decoration: BoxDecoration(
@@ -552,18 +562,23 @@ class _LocationWorkListPageState extends State<LocationWorkListPage> with Single
               child: ElevatedButton(
                 onPressed: provider.hasNext ? () => provider.nextPage() : null,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: provider.hasNext ? context.theme.primary : context.theme.input,
-                  foregroundColor: provider.hasNext ? context.theme.primaryForeground : context.theme.mutedForeground,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  backgroundColor: provider.hasNext
+                      ? context.theme.primary
+                      : context.theme.input,
+                  foregroundColor: provider.hasNext
+                      ? context.theme.primaryForeground
+                      : context.theme.mutedForeground,
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: Row(
+                child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text('Sau'),
-                    const SizedBox(width: 4),
+                    SizedBox(width: 4),
                     Icon(Icons.arrow_forward_ios, size: 16),
                   ],
                 ),
@@ -594,9 +609,8 @@ class _LocationWorkListPageState extends State<LocationWorkListPage> with Single
                         : context.theme.primaryForeground,
                   ),
                 ),
-                backgroundColor: isError
-                    ? context.theme.destructive
-                    : context.theme.green,
+                backgroundColor:
+                isError ? context.theme.destructive : context.theme.green,
                 duration: const Duration(seconds: 3),
                 behavior: SnackBarBehavior.floating,
                 shape: RoundedRectangleBorder(
@@ -621,11 +635,11 @@ class _LocationWorkListPageState extends State<LocationWorkListPage> with Single
               ),
             ),
             leading: IconButton(
-              icon: Icon(Icons.arrow_back, color: context.theme.primaryForeground),
+              icon: Icon(Icons.arrow_back,
+                  color: context.theme.primaryForeground),
               onPressed: () => Navigator.pop(context),
             ),
             actions: [
-              // Animated Refresh Button
               AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
                 decoration: BoxDecoration(
@@ -633,90 +647,111 @@ class _LocationWorkListPageState extends State<LocationWorkListPage> with Single
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: IconButton(
-                  icon: Icon(Icons.refresh, color: context.theme.primaryForeground),
+                  icon: Icon(Icons.refresh,
+                      color: context.theme.primaryForeground),
                   onPressed: _loadData,
                 ),
               ),
             ],
           ),
           backgroundColor: context.theme.bg,
-          body: Column(
-            children: [
-              _buildAnimatedSearchSection(),
-              Expanded(
-                child: Consumer<LocationWorkVm>(
-                  builder: (context, provider, child) {
-                    if (provider.isLoading) {
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            CircularProgressIndicator(
-                              color: context.theme.primary,
-                              strokeWidth: 2,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Đang tải dữ liệu...',
-                              style: TextStyle(
-                                color: context.theme.mutedForeground,
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }
-
-                    if (provider.error != null) {
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        if (mounted) {
-                          final snackbarService = Provider.of<SnackbarService>(context, listen: false);
-                          if (provider.error!.contains('ThrottlerException')) {
-                            snackbarService.showError('Quá nhiều yêu cầu. Vui lòng thử lại sau!');
-                          } else {
-                            snackbarService.showError(provider.error!);
-                          }
-                          provider.clearError();
-                        }
-                      });
-
-                      return _buildAnimatedErrorState(provider);
-                    }
-
-                    final filteredLocations = provider.locations.where((loc) {
-                      final name = loc.name.toLowerCase();
-                      final address = loc.address.toLowerCase();
-                      final query = _searchQuery.toLowerCase();
-                      return name.contains(query) || address.contains(query);
-                    }).toList();
-
-                    if (filteredLocations.isEmpty) {
-                      return _buildAnimatedEmptyState();
-                    }
-
-                    return RefreshIndicator(
-                      color: context.theme.primary,
-                      backgroundColor: context.theme.bg,
-                      onRefresh: () => Provider.of<LocationWorkVm>(context, listen: false).fetchLocations(),
-                      child: ListView.builder(
-                        itemCount: filteredLocations.length,
-                        itemBuilder: (context, index) {
-                          return _buildAnimatedLocationCard(filteredLocations[index], index);
-                        },
+          body: Consumer<LocationWorkVm>(
+            builder: (context, provider, child) {
+              return Column(
+                children: [
+                  _buildAnimatedSearchSection(provider.isOffline),
+                  if (provider.isOffline && provider.error != null)
+                    Container(
+                      width: double.infinity,
+                      color: context.theme.yellow,
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        provider.error!,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: context.theme.popover),
                       ),
-                    );
-                  },
-                ),
-              ),
-              Consumer<LocationWorkVm>(
-                builder: (context, provider, child) {
-                  if (provider.total >= 10) {
-                    return _buildAnimatedPagination(provider);
-                  }
-                  return const SizedBox.shrink();
-                },
-              ),
-            ],
+                    ),
+                  Expanded(
+                    child: Builder(
+                      builder: (context) {
+                        if (provider.isLoading && provider.locations.isEmpty) {
+                          return Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                CircularProgressIndicator(
+                                  color: context.theme.primary,
+                                  strokeWidth: 2,
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'Đang tải dữ liệu...',
+                                  style: TextStyle(
+                                    color: context.theme.mutedForeground,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+
+                        if (provider.error != null && !provider.isOffline) {
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            if (mounted) {
+                              final snackbarService =
+                              Provider.of<SnackbarService>(context,
+                                  listen: false);
+                              if (provider.error!
+                                  .contains('ThrottlerException')) {
+                                snackbarService.showError(
+                                    'Quá nhiều yêu cầu. Vui lòng thử lại sau!');
+                              } else {
+                                snackbarService.showError(provider.error!);
+                              }
+                              provider.clearError();
+                            }
+                          });
+
+                          return _buildAnimatedErrorState(provider);
+                        }
+
+                        final filteredLocations =
+                        provider.locations.where((loc) {
+                          final name = loc.name.toLowerCase();
+                          final address = loc.address.toLowerCase();
+                          final query = _searchQuery.toLowerCase();
+                          return name.contains(query) || address.contains(query);
+                        }).toList();
+
+                        if (filteredLocations.isEmpty) {
+                          return _buildAnimatedEmptyState();
+                        }
+
+                        return RefreshIndicator(
+                          color: context.theme.primary,
+                          backgroundColor: context.theme.bg,
+                          onRefresh: () =>
+                              Provider.of<LocationWorkVm>(context,
+                                  listen: false)
+                                  .fetchLocations(forceRefresh: true),
+                          child: ListView.builder(
+                            itemCount: filteredLocations.length,
+                            itemBuilder: (context, index) {
+                              return _buildAnimatedLocationCard(
+                                  filteredLocations[index],
+                                  index,
+                                  provider.isOffline);
+                            },
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  if (provider.total >= 10 && !provider.isOffline)
+                    _buildAnimatedPagination(provider),
+                ],
+              );
+            },
           ),
         );
       },
@@ -764,7 +799,7 @@ class _LocationWorkListPageState extends State<LocationWorkListPage> with Single
               ),
               const SizedBox(height: 8),
               Text(
-                provider.error!,
+                provider.error ?? 'Lỗi không xác định',
                 style: TextStyle(
                   color: context.theme.mutedForeground,
                   fontSize: 14,
@@ -789,12 +824,13 @@ class _LocationWorkListPageState extends State<LocationWorkListPage> with Single
                   style: ElevatedButton.styleFrom(
                     backgroundColor: context.theme.primary,
                     foregroundColor: context.theme.primaryForeground,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: Text(
+                  child: const Text(
                     'Thử lại',
                     style: TextStyle(
                       fontSize: 16,

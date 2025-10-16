@@ -58,11 +58,16 @@ class DatabaseHelper {
     await batch.commit(noResult: true);
   }
 
-
   Future<List<WorkLocation>> getLocations() async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(_table);
-    return List.generate(maps.length, (i) => WorkLocation.fromJson(maps[i]));
+    return maps.map((map) {
+      final newMap = Map<String, dynamic>.from(map);
+      if (newMap.containsKey('isActive') && newMap['isActive'] != null) {
+        newMap['isActive'] = newMap['isActive'] == 1;
+      }
+      return WorkLocation.fromJson(newMap);
+    }).toList();
   }
 
   Future<void> clearLocations() async {

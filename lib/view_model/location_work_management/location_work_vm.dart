@@ -1,14 +1,15 @@
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:pbl6mobile/model/services/remote/work_location_service.dart';
 
 import '../../model/entities/work_location.dart';
 import '../../model/services/local/database_helper.dart';
 
-
 class LocationWorkVm extends ChangeNotifier {
   List<WorkLocation> _locations = [];
   bool _isLoading = false;
   String? _error;
+  bool _isOffline = false;
   int _currentPage = 1;
   int _limit = 10;
   Map<String, dynamic> _meta = {};
@@ -16,6 +17,7 @@ class LocationWorkVm extends ChangeNotifier {
   List<WorkLocation> get locations => _locations;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  bool get isOffline => _isOffline;
   int get currentPage => _currentPage;
   int get total => _meta['total'] ?? 0;
   int get totalPages => _meta['totalPages'] ?? 1;
@@ -24,9 +26,26 @@ class LocationWorkVm extends ChangeNotifier {
 
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
-  Future<void> fetchLocations({int? page, String? sortBy, String? sortOrder , bool forceRefresh = false,}) async {
+  LocationWorkVm() {
+    Connectivity()
+        .onConnectivityChanged
+        .listen((List<ConnectivityResult> results) {
+      bool isConnected = results.any((result) =>
+      result == ConnectivityResult.wifi ||
+          result == ConnectivityResult.mobile);
+      if (isConnected && _isOffline) {
+        _isOffline = false;
+        fetchLocations(forceRefresh: true);
+      }
+    });
+  }
 
-
+  Future<void> fetchLocations({
+    int? page,
+    String? sortBy,
+    String? sortOrder,
+    bool forceRefresh = false,
+  }) async {
     if (_locations.isNotEmpty && !forceRefresh && page == null) {
       return;
     }
@@ -39,6 +58,21 @@ class LocationWorkVm extends ChangeNotifier {
     _isLoading = true;
     _error = null;
     notifyListeners();
+
+    var connectivityResult = await Connectivity().checkConnectivity();
+    bool isConnected = !connectivityResult.contains(ConnectivityResult.none);
+    _isOffline = !isConnected;
+
+    if (!isConnected) {
+      _error = 'Bạn đang offline. Dữ liệu có thể đã cũ.';
+      _locations = await _dbHelper.getLocations();
+      if (_locations.isEmpty) {
+        _error = 'Không có dữ liệu offline';
+      }
+      _isLoading = false;
+      notifyListeners();
+      return;
+    }
 
     final targetPage = page ?? _currentPage;
 
@@ -55,12 +89,10 @@ class LocationWorkVm extends ChangeNotifier {
             .toList();
         _meta = result['meta'] ?? {};
         _currentPage = _meta['page'] ?? 1;
-        // Lưu page hiện tại vào db
         await _dbHelper.clearLocations();
         await _dbHelper.insertLocations(_locations);
       } else {
         _error = result['message'] ?? 'Failed to load locations from API';
-        // Lấy từ db nếu offline
         _locations = await _dbHelper.getLocations();
         if (_locations.isEmpty) {
           _error = 'No offline data available';

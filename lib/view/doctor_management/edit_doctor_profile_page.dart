@@ -19,12 +19,9 @@ class EditDoctorProfilePage extends StatefulWidget {
   State<EditDoctorProfilePage> createState() => _EditDoctorProfilePageState();
 }
 
-class _EditDoctorProfilePageState extends State<EditDoctorProfilePage>
-    with SingleTickerProviderStateMixin {
+class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
   final _formKey = GlobalKey<FormState>();
-  late TabController _tabController;
 
-  // Controllers
   late TextEditingController _degreeController;
   late quill.QuillController _introductionController;
   late quill.QuillController _researchController;
@@ -35,16 +32,15 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage>
   late List<String> _experiences;
   late List<Specialty> _selectedSpecialties;
   late List<WorkLocation> _selectedWorkLocations;
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        context.read<SpecialtyVm>().fetchSpecialties();
-        context.read<LocationWorkVm>().fetchLocations();
+        context.read<SpecialtyVm>().fetchSpecialties(forceRefresh: true);
+        context.read<LocationWorkVm>().fetchLocations(forceRefresh: true);
       }
     });
 
@@ -65,7 +61,6 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage>
 
   @override
   void dispose() {
-    _tabController.dispose();
     _degreeController.dispose();
     _introductionController.dispose();
     _researchController.dispose();
@@ -89,6 +84,7 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage>
 
   void _saveProfile() {
     if (_formKey.currentState!.validate()) {
+      setState(() => _isLoading = true);
       final introductionJson =
       jsonEncode(_introductionController.document.toDelta().toJson());
       final researchJson =
@@ -117,8 +113,10 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage>
 
       future.then((success) {
         if (mounted) {
+          setState(() => _isLoading = false);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
+                backgroundColor: success ? context.theme.green : context.theme.destructive,
                 content: Text(
                     '${isCreating ? 'Tạo' : 'Cập nhật'} hồ sơ ${success ? 'thành công' : 'thất bại'}')),
           );
@@ -140,102 +138,95 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage>
             ? 'Chỉnh sửa hồ sơ'
             : 'Tạo hồ sơ'),
         actions: [
-          IconButton(
+          _isLoading
+              ? const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2)),
+          )
+              : IconButton(
             icon: const Icon(Icons.save),
             onPressed: isOffline ? null : _saveProfile,
             tooltip: isOffline ? 'Không thể lưu khi offline' : 'Lưu hồ sơ',
           )
         ],
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(text: 'Cơ bản'),
-            Tab(text: 'Kinh nghiệm'),
-            Tab(text: 'Phân công'),
-          ],
-        ),
       ),
       body: Form(
         key: _formKey,
-        child: TabBarView(
-          controller: _tabController,
+        child: ListView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.all(16),
           children: [
-            _buildBasicInfoTab(isOffline),
-            _buildExperienceTab(isOffline),
-            _buildAssignmentTab(isOffline),
+            _buildSectionTitle("Thông tin cơ bản", Icons.person_outline),
+            _buildTextField(_degreeController, 'Học vị', Icons.school,
+                isReadOnly: isOffline),
+            const SizedBox(height: 16),
+            _QuillEditor(
+              label: "Giới thiệu",
+              controller: _introductionController,
+              isReadOnly: isOffline,
+            ),
+            const SizedBox(height: 16),
+            _QuillEditor(
+              label: "Nghiên cứu khoa học",
+              controller: _researchController,
+              isReadOnly: isOffline,
+            ),
+            const SizedBox(height: 24),
+            _buildSectionTitle("Kinh nghiệm & Thành tựu", Icons.work_outline),
+            _DynamicListInput(
+                label: 'Chức vụ',
+                items: _positions,
+                onChanged: (val) => setState(() => _positions = val),
+                isReadOnly: isOffline),
+            _DynamicListInput(
+                label: 'Kinh nghiệm',
+                items: _experiences,
+                onChanged: (val) => setState(() => _experiences = val),
+                isReadOnly: isOffline),
+            _DynamicListInput(
+                label: 'Quá trình đào tạo',
+                items: _trainings,
+                onChanged: (val) => setState(() => _trainings = val),
+                isReadOnly: isOffline),
+            _DynamicListInput(
+                label: 'Giải thưởng',
+                items: _awards,
+                onChanged: (val) => setState(() => _awards = val),
+                isReadOnly: isOffline),
+            _DynamicListInput(
+                label: 'Thành viên hiệp hội',
+                items: _memberships,
+                onChanged: (val) => setState(() => _memberships = val),
+                isReadOnly: isOffline),
+            const SizedBox(height: 24),
+            _buildSectionTitle("Phân công", Icons.assignment_ind_outlined),
+            _buildMultiSelectSpecialties(isOffline),
+            const SizedBox(height: 24),
+            _buildMultiSelectLocations(isOffline),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildBasicInfoTab(bool isReadOnly) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
+  Widget _buildSectionTitle(String title, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: Row(
         children: [
-          _buildTextField(_degreeController, 'Học vị', Icons.school,
-              isReadOnly: isReadOnly),
-          const SizedBox(height: 16),
-          _QuillEditor(
-            label: "Giới thiệu",
-            controller: _introductionController,
-            isReadOnly: isReadOnly,
+          Icon(icon, color: context.theme.primary, size: 20),
+          const SizedBox(width: 8),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: context.theme.textColor,
+            ),
           ),
-          const SizedBox(height: 16),
-          _QuillEditor(
-            label: "Nghiên cứu khoa học",
-            controller: _researchController,
-            isReadOnly: isReadOnly,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildExperienceTab(bool isReadOnly) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          _DynamicListInput(
-              label: 'Chức vụ',
-              items: _positions,
-              onChanged: (val) => setState(() => _positions = val),
-              isReadOnly: isReadOnly),
-          _DynamicListInput(
-              label: 'Kinh nghiệm',
-              items: _experiences,
-              onChanged: (val) => setState(() => _experiences = val),
-              isReadOnly: isReadOnly),
-          _DynamicListInput(
-              label: 'Quá trình đào tạo',
-              items: _trainings,
-              onChanged: (val) => setState(() => _trainings = val),
-              isReadOnly: isReadOnly),
-          _DynamicListInput(
-              label: 'Giải thưởng',
-              items: _awards,
-              onChanged: (val) => setState(() => _awards = val),
-              isReadOnly: isReadOnly),
-          _DynamicListInput(
-              label: 'Thành viên hiệp hội',
-              items: _memberships,
-              onChanged: (val) => setState(() => _memberships = val),
-              isReadOnly: isReadOnly),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAssignmentTab(bool isReadOnly) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          _buildMultiSelectSpecialties(isReadOnly),
-          const SizedBox(height: 24),
-          _buildMultiSelectLocations(isReadOnly),
         ],
       ),
     );
@@ -249,10 +240,21 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage>
       readOnly: isReadOnly,
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, color: context.theme.primary),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        filled: isReadOnly,
-        fillColor: isReadOnly ? context.theme.input : null,
+        prefixIcon: Icon(icon, color: context.theme.primary, size: 20),
+        filled: true,
+        fillColor: context.theme.input,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: context.theme.border),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: context.theme.border),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: context.theme.primary, width: 1.5),
+        ),
       ),
     );
   }
@@ -262,6 +264,7 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage>
       builder: (context, specialtyVm, child) {
         return _MultiSelectChipField<Specialty>(
           label: 'Chuyên khoa',
+          // SỬA LỖI: Sử dụng getter 'specialties'
           allItems: specialtyVm.specialties,
           initialSelectedItems: _selectedSpecialties,
           itemName: (specialty) => specialty.name,
@@ -279,6 +282,7 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage>
       builder: (context, locationVm, child) {
         return _MultiSelectChipField<WorkLocation>(
           label: 'Nơi công tác',
+          // SỬA LỖI: Sử dụng getter 'locations'
           allItems: locationVm.locations,
           initialSelectedItems: _selectedWorkLocations,
           itemName: (location) => location.name,
@@ -321,9 +325,10 @@ class _QuillEditor extends StatelessWidget {
           decoration: BoxDecoration(
             border: Border.all(color: theme.border),
             borderRadius: BorderRadius.circular(12),
+            color: theme.card,
             boxShadow: [
               BoxShadow(
-                color: context.theme.popover.withOpacity(0.05),
+                color: theme.textColor.withOpacity(0.05),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -344,20 +349,23 @@ class _QuillEditor extends StatelessWidget {
                     child: quill.QuillSimpleToolbar(
                       controller: controller,
                       config: const quill.QuillSimpleToolbarConfig(
-                        toolbarSize: 20,
-                        toolbarSectionSpacing: 2,
+                        toolbarSize: 24,
+                        toolbarSectionSpacing: 4,
                         showAlignmentButtons: true,
                         showFontSize: false,
-                        showDividers: false,
+                        showSubscript: false,
+                        showSuperscript: false,
+                        showInlineCode: false,
+                        showDividers: true,
                         multiRowsDisplay: false,
                       ),
                     ),
                   ),
                 if (!isReadOnly) const Divider(height: 1),
                 Container(
-                  height: 300,
+                  height: 250,
                   color: isReadOnly ? theme.input : theme.card,
-                  padding: const EdgeInsets.all(5),
+                  padding: const EdgeInsets.all(8),
                   child: quill.QuillEditor.basic(
                     controller: controller,
                   ),
@@ -391,14 +399,13 @@ class __DynamicListInputState extends State<_DynamicListInput> {
   final TextEditingController _textController = TextEditingController();
 
   void _addItem() {
-    if (widget.isReadOnly) return;
-    if (_textController.text.trim().isNotEmpty) {
-      setState(() {
-        widget.items.add(_textController.text.trim());
-        widget.onChanged(widget.items);
-        _textController.clear();
-      });
-    }
+    if (widget.isReadOnly || _textController.text.trim().isEmpty) return;
+
+    setState(() {
+      widget.items.add(_textController.text.trim());
+      widget.onChanged(widget.items);
+      _textController.clear();
+    });
   }
 
   void _removeItem(int index) {
@@ -414,55 +421,62 @@ class __DynamicListInputState extends State<_DynamicListInput> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(widget.label,
-            style:
-            const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-        const SizedBox(height: 8),
         if (widget.items.isNotEmpty)
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: context.theme.border)
-            ),
-            child: Wrap(
-              spacing: 8.0,
-              runSpacing: 4.0,
-              children: widget.items
-                  .asMap()
-                  .entries
-                  .map((entry) => Chip(
-                label: Text(entry.value),
-                onDeleted:
-                widget.isReadOnly ? null : () => _removeItem(entry.key),
-              ))
-                  .toList(),
-            ),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: widget.items.length,
+            itemBuilder: (context, index) {
+              return Card(
+                elevation: 0,
+                color: context.theme.input,
+                margin: const EdgeInsets.only(bottom: 8),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    side: BorderSide(color: context.theme.border)
+                ),
+                child: ListTile(
+                  title: Text(widget.items[index]),
+                  trailing: widget.isReadOnly ? null : IconButton(
+                    icon: Icon(Icons.delete_outline, color: context.theme.destructive),
+                    onPressed: () => _removeItem(index),
+                  ),
+                ),
+              );
+            },
           ),
-        if (!widget.isReadOnly) ...[
-          const SizedBox(height: 8),
+        if (!widget.isReadOnly)
           TextFormField(
             controller: _textController,
-            readOnly: widget.isReadOnly,
             decoration: InputDecoration(
-              hintText: 'Thêm ${widget.label.toLowerCase()}...',
+              labelText: 'Thêm ${widget.label.toLowerCase()}',
+              filled: true,
+              fillColor: context.theme.input,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: context.theme.border),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: context.theme.border),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: context.theme.primary, width: 1.5),
+              ),
               suffixIcon: IconButton(
-                icon: const Icon(Icons.add_circle),
+                icon: Icon(Icons.add_circle, color: context.theme.primary),
                 onPressed: _addItem,
               ),
             ),
             onFieldSubmitted: (_) => _addItem(),
           ),
-        ],
         const SizedBox(height: 24),
       ],
     );
   }
 }
 
-// ===================================================================
-// SỬA LỖI TẠI ĐÂY: _MultiSelectChipField được thiết kế lại
-// ===================================================================
 class _MultiSelectChipField<T> extends StatefulWidget {
   final String label;
   final List<T> allItems;
@@ -500,6 +514,9 @@ class _MultiSelectChipFieldState<T> extends State<_MultiSelectChipField<T>> {
     if (widget.initialSelectedItems != oldWidget.initialSelectedItems) {
       _selectedItems = List.from(widget.initialSelectedItems);
     }
+    if(widget.allItems != oldWidget.allItems) {
+      _selectedItems.removeWhere((item) => !widget.allItems.any((allItem) => (allItem as dynamic).id == (item as dynamic).id));
+    }
   }
 
   void _showMultiSelectDialog() {
@@ -508,28 +525,30 @@ class _MultiSelectChipFieldState<T> extends State<_MultiSelectChipField<T>> {
     showDialog(
       context: context,
       builder: (context) {
-        // Sử dụng một List tạm thời để người dùng có thể hủy thay đổi
         final tempSelectedItems = List<T>.from(_selectedItems);
         return StatefulBuilder(builder: (context, menuSetState) {
           return AlertDialog(
             title: Text('Chọn ${widget.label}'),
             content: SizedBox(
               width: double.maxFinite,
-              child: ListView.builder(
-                shrinkWrap: true, // Quan trọng để AlertDialog có kích thước hợp lý
+              child: widget.allItems.isEmpty
+                  ? const Center(child: Text("Không có dữ liệu"))
+                  : ListView.builder(
+                shrinkWrap: true,
                 itemCount: widget.allItems.length,
                 itemBuilder: (context, index) {
                   final item = widget.allItems[index];
-                  final isSelected = tempSelectedItems.contains(item);
+                  final isSelected = tempSelectedItems.any((selectedItem) => (selectedItem as dynamic).id == (item as dynamic).id);
                   return CheckboxListTile(
                     title: Text(widget.itemName(item)),
                     value: isSelected,
+                    activeColor: context.theme.primary,
                     onChanged: (bool? selected) {
                       menuSetState(() {
                         if (selected == true) {
                           tempSelectedItems.add(item);
                         } else {
-                          tempSelectedItems.remove(item);
+                          tempSelectedItems.removeWhere((selectedItem) => (selectedItem as dynamic).id == (item as dynamic).id);
                         }
                       });
                     },
@@ -543,6 +562,7 @@ class _MultiSelectChipFieldState<T> extends State<_MultiSelectChipField<T>> {
                 child: const Text('Hủy'),
               ),
               ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: context.theme.primary, foregroundColor: context.theme.primaryForeground),
                 onPressed: () {
                   setState(() {
                     _selectedItems = tempSelectedItems;
@@ -568,31 +588,38 @@ class _MultiSelectChipFieldState<T> extends State<_MultiSelectChipField<T>> {
             style:
             const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
-
-        // Hiển thị các chip đã chọn
-        if (_selectedItems.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8.0),
-            child: Wrap(
-              spacing: 8.0,
-              runSpacing: 4.0,
-              children: _selectedItems
-                  .map((item) => Chip(
-                label: Text(widget.itemName(item)),
-                onDeleted: widget.isReadOnly
-                    ? null
-                    : () {
-                  setState(() {
-                    _selectedItems.remove(item);
-                  });
-                  widget.onSelectionChanged(_selectedItems);
-                },
-              ))
-                  .toList(),
-            ),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: context.theme.input,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: context.theme.border),
           ),
-
-        // Nút để mở Dialog
+          child: _selectedItems.isEmpty
+              ? Text('Chưa có ${widget.label.toLowerCase()} nào được chọn', style: TextStyle(color: context.theme.mutedForeground),)
+              : Wrap(
+            spacing: 8.0,
+            runSpacing: 8.0,
+            children: _selectedItems
+                .map((item) => Chip(
+              label: Text(widget.itemName(item)),
+              backgroundColor: context.theme.primary.withOpacity(0.1),
+              labelStyle: TextStyle(color: context.theme.primary, fontWeight: FontWeight.w500),
+              onDeleted: widget.isReadOnly
+                  ? null
+                  : () {
+                setState(() {
+                  _selectedItems.remove(item);
+                  widget.onSelectionChanged(_selectedItems);
+                });
+              },
+              deleteIconColor: context.theme.destructive,
+            ))
+                .toList(),
+          ),
+        ),
+        const SizedBox(height: 8),
         OutlinedButton.icon(
           icon: const Icon(Icons.add),
           label: Text(_selectedItems.isEmpty
@@ -601,6 +628,8 @@ class _MultiSelectChipFieldState<T> extends State<_MultiSelectChipField<T>> {
           onPressed: widget.isReadOnly ? null : _showMultiSelectDialog,
           style: OutlinedButton.styleFrom(
             minimumSize: const Size(double.infinity, 50),
+            foregroundColor: context.theme.primary,
+            side: BorderSide(color: context.theme.primary),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),

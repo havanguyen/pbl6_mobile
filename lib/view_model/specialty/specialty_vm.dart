@@ -9,12 +9,15 @@ class SpecialtyVm extends ChangeNotifier {
   List<Specialty> _specialties = [];
   bool _isLoading = false;
   bool _isLoadingMore = false;
-  String? _error;
-  bool _isOffline = false;
   int _currentPage = 1;
   final int _limit = 10;
   Map<String, dynamic> _meta = {};
 
+  List<Specialty> _allSpecialties = [];
+  bool _isFetchingAll = false;
+
+  String? _error;
+  bool _isOffline = false;
   String _searchQuery = '';
   String? _sortBy = 'createdAt';
   String? _sortOrder = 'DESC';
@@ -25,9 +28,12 @@ class SpecialtyVm extends ChangeNotifier {
   List<Specialty> get specialties => _specialties;
   bool get isLoading => _isLoading;
   bool get isLoadingMore => _isLoadingMore;
+  bool get hasNext => _meta['hasNext'] ?? false;
+
+  List<Specialty> get allSpecialties => _allSpecialties;
+
   String? get error => _error;
   bool get isOffline => _isOffline;
-  bool get hasNext => _meta['hasNext'] ?? false;
   bool get isInfoSectionLoading => _isInfoSectionLoading;
 
   final SpecialtyDatabaseHelper _dbHelper = SpecialtyDatabaseHelper.instance;
@@ -45,6 +51,44 @@ class SpecialtyVm extends ChangeNotifier {
       }
     });
   }
+
+  Future<void> fetchAllSpecialties() async {
+    if (_allSpecialties.isNotEmpty || _isFetchingAll) return;
+
+    _isFetchingAll = true;
+    _error = null;
+    notifyListeners();
+
+    var connectivityResult = await Connectivity().checkConnectivity();
+    bool isConnected = !connectivityResult.contains(ConnectivityResult.none);
+    _isOffline = !isConnected;
+
+    if (!isConnected) {
+      _error = 'Cần kết nối mạng để tải danh sách chuyên khoa.';
+      _isFetchingAll = false;
+      notifyListeners();
+      return;
+    }
+
+    try {
+      final result = await SpecialtyService.getAllSpecialties(
+        limit: 1000,
+        page: 1,
+      );
+
+      if (result.success) {
+        _allSpecialties = result.data;
+      } else {
+        _error = result.message;
+      }
+    } catch (e) {
+      _error = 'Lỗi kết nối khi tải danh sách chuyên khoa: $e';
+    } finally {
+      _isFetchingAll = false;
+      notifyListeners();
+    }
+  }
+
 
   void updateSearchQuery(String query) {
     _searchQuery = query;
