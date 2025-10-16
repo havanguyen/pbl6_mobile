@@ -150,16 +150,33 @@ class DoctorService {
     }
   }
 
-  static Future<bool> toggleDoctorActive(String profileId, bool isActive) async {
+  static Future<DoctorProfile?> toggleDoctorActive(String profileId, bool isActive) async {
     try {
+      print("➡️ [SERVICE] Sending PATCH request to '/doctors/profile/$profileId/toggle-active'");
+      print("   - Payload: {'isActive': $isActive}");
+
       final response = await _dio.patch(
         '/doctors/profile/$profileId/toggle-active',
         data: {'isActive': isActive},
       );
-      return response.statusCode == 200;
+
+      print("⬅️ [SERVICE] Received response with statusCode: ${response.statusCode}");
+
+      if (response.statusCode == 200 && response.data['data'] != null) {
+        print("   - Response data: ${response.data['data']}");
+        final profile = DoctorProfile.fromJson(response.data['data']);
+        print("   - Successfully parsed DoctorProfile. New isActive: ${profile.isActive}");
+        return profile;
+      } else {
+        print("   - Response was successful but data is null or status code is not 200.");
+        return null;
+      }
     } catch (e) {
-      print('Toggle Doctor Active Error: $e');
-      return false;
+      print("🔥 [SERVICE-ERROR] Toggle Doctor Active failed: $e");
+      if (e is DioException) {
+        print("   - DioException details: ${e.response?.data}");
+      }
+      return null;
     }
   }
 

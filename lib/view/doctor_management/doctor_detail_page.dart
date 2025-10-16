@@ -196,6 +196,7 @@ class _DoctorDetailPageState extends State<DoctorDetailPage>
                   onChanged: isOffline
                       ? null
                       : (value) {
+                    print("🔄 [UI] Switch Toggled. New value: $value");
                     if (doctor.profileId != null) {
                       context
                           .read<DoctorVm>()

@@ -167,38 +167,33 @@ class DoctorVm extends ChangeNotifier {
   }
 
   Future<void> toggleDoctorStatus(String profileId, bool isActive) async {
-    final success = await DoctorService.toggleDoctorActive(profileId, isActive);
-    if (success && _doctorDetail != null) {
-      // Create a new DoctorDetail object with the updated isActive status
-      _doctorDetail = DoctorDetail(
-        id: _doctorDetail!.id,
-        fullName: _doctorDetail!.fullName,
-        email: _doctorDetail!.email,
-        phone: _doctorDetail!.phone,
-        isMale: _doctorDetail!.isMale,
-        dateOfBirth: _doctorDetail!.dateOfBirth,
-        role: _doctorDetail!.role,
-        profileId: _doctorDetail!.profileId,
-        isActive: isActive, // Update the isActive status
-        degree: _doctorDetail!.degree,
-        position: _doctorDetail!.position,
-        introduction: _doctorDetail!.introduction,
-        memberships: _doctorDetail!.memberships,
-        awards: _doctorDetail!.awards,
-        research: _doctorDetail!.research,
-        trainingProcess: _doctorDetail!.trainingProcess,
-        experience: _doctorDetail!.experience,
-        avatarUrl: _doctorDetail!.avatarUrl,
-        portrait: _doctorDetail!.portrait,
-        specialties: _doctorDetail!.specialties,
-        workLocations: _doctorDetail!.workLocations,
-        createdAt: _doctorDetail!.createdAt,
-        updatedAt: _doctorDetail!.updatedAt,
-        profileCreatedAt: _doctorDetail!.profileCreatedAt,
-        profileUpdatedAt: _doctorDetail!.profileUpdatedAt,
-      );
-      notifyListeners();
+    if (_doctorDetail == null) {
+      print("🔴 [VM-ERROR] _doctorDetail is null. Cannot proceed.");
+      return;
     }
+
+    print("--- START: Toggle Doctor Status ---");
+    print("🧠 [VM] Received request to set isActive = $isActive for profileId: $profileId");
+    print("   - Current local isActive state: ${_doctorDetail!.isActive}");
+
+    final updatedProfile = await DoctorService.toggleDoctorActive(profileId, isActive);
+
+    if (updatedProfile != null) {
+      print("✅ [VM] API call successful. Received updated profile.");
+      print("   - isActive from API: ${updatedProfile.isActive}");
+
+      _doctorDetail = _doctorDetail!.copyWith(
+        isActive: updatedProfile.isActive,
+        profileUpdatedAt: updatedProfile.updatedAt,
+      );
+
+      print("   - New local isActive state: ${_doctorDetail!.isActive}");
+      print("🔔 [VM] Calling notifyListeners() to update UI.");
+      notifyListeners();
+    } else {
+      print("❌ [VM-ERROR] API call failed or returned null.");
+    }
+    print("--- END: Toggle Doctor Status ---");
   }
 
   Future<void> loadMore() async {
