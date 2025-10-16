@@ -4,22 +4,20 @@ import 'package:pbl6mobile/model/services/remote/auth_service.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/shared/routes/routes.dart';
 
-class ProfileSuperadminPage extends StatefulWidget {
-  final Profile profile;
-
-  const ProfileSuperadminPage({super.key, required this.profile});
+class AccountDoctorPage extends StatefulWidget {
+  const AccountDoctorPage({super.key});
 
   @override
-  State<ProfileSuperadminPage> createState() => _ProfileSuperadminPageState();
+  State<AccountDoctorPage> createState() => _AccountDoctorPageState();
 }
 
-class _ProfileSuperadminPageState extends State<ProfileSuperadminPage> {
-  late Profile _currentProfile;
+class _AccountDoctorPageState extends State<AccountDoctorPage> {
+  Profile? _currentProfile;
 
   @override
   void initState() {
     super.initState();
-    _currentProfile = widget.profile;
+    _reloadProfile();
   }
 
   Future<void> _reloadProfile() async {
@@ -47,7 +45,7 @@ class _ProfileSuperadminPageState extends State<ProfileSuperadminPage> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Thông tin cá nhân',
+          'Thông tin tài khoản',
           style: TextStyle(
             color: context.theme.white,
             fontWeight: FontWeight.bold,
@@ -55,25 +53,28 @@ class _ProfileSuperadminPageState extends State<ProfileSuperadminPage> {
           ),
         ),
         actions: [
-          IconButton(
-            icon: Icon(
-              Icons.edit,
-              color: context.theme.white,
-            ),
-            onPressed: () async {
-              final shouldReload = await Navigator.pushNamed(
-                context,
-                Routes.editProfile,
-                arguments: _currentProfile,
-              );
-              if (shouldReload == true) {
-                _reloadProfile();
-              }
-            },
-          )
+          if (_currentProfile != null)
+            IconButton(
+              icon: Icon(
+                Icons.edit,
+                color: context.theme.white,
+              ),
+              onPressed: () async {
+                final shouldReload = await Navigator.pushNamed(
+                  context,
+                  Routes.editAccountDoctor,
+                  arguments: _currentProfile,
+                );
+                if (shouldReload == true) {
+                  _reloadProfile();
+                }
+              },
+            )
         ],
       ),
-      body: SingleChildScrollView(
+      body: _currentProfile == null
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
@@ -93,7 +94,7 @@ class _ProfileSuperadminPageState extends State<ProfileSuperadminPage> {
           radius: 50,
           backgroundColor: context.theme.primary.withOpacity(0.1),
           child: Text(
-            _currentProfile.fullName.isNotEmpty ? _currentProfile.fullName[0].toUpperCase() : 'A',
+            _currentProfile!.fullName.isNotEmpty ? _currentProfile!.fullName[0].toUpperCase() : 'D',
             style: TextStyle(
               fontSize: 48,
               fontWeight: FontWeight.bold,
@@ -103,7 +104,7 @@ class _ProfileSuperadminPageState extends State<ProfileSuperadminPage> {
         ),
         const SizedBox(height: 16),
         Text(
-          _currentProfile.fullName,
+          _currentProfile!.fullName,
           style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
@@ -112,7 +113,7 @@ class _ProfileSuperadminPageState extends State<ProfileSuperadminPage> {
         ),
         const SizedBox(height: 8),
         Text(
-          _currentProfile.email,
+          _currentProfile!.email,
           style: TextStyle(
             fontSize: 16,
             color: context.theme.mutedForeground,
@@ -133,30 +134,23 @@ class _ProfileSuperadminPageState extends State<ProfileSuperadminPage> {
           children: [
             _buildInfoItem(
               context,
-              icon: Icons.badge_outlined,
-              label: 'Vai trò',
-              value: _currentProfile.role,
-            ),
-            _buildInfoItem(
-              context,
               icon: Icons.transgender_outlined,
               label: 'Giới tính',
-              value: _currentProfile.isMale != null
-                  ? (_currentProfile.isMale! ? 'Nam' : 'Nữ')
+              value: _currentProfile!.isMale != null
+                  ? (_currentProfile!.isMale! ? 'Nam' : 'Nữ')
                   : 'Chưa cập nhật',
             ),
             _buildInfoItem(
               context,
               icon: Icons.cake_outlined,
               label: 'Ngày sinh',
-              value: _currentProfile.dateOfBirth?.toString().split(' ')[0] ??
-                  'Chưa cập nhật',
+              value: _currentProfile!.dateOfBirth?.toString().split(' ')[0] ?? 'Chưa cập nhật',
             ),
             _buildInfoItem(
               context,
               icon: Icons.phone_outlined,
               label: 'Số điện thoại',
-              value: _currentProfile.phone ?? 'Chưa cập nhật',
+              value: _currentProfile!.phone ?? 'Chưa cập nhật',
               isLast: true,
             ),
           ],
@@ -166,10 +160,7 @@ class _ProfileSuperadminPageState extends State<ProfileSuperadminPage> {
   }
 
   Widget _buildInfoItem(BuildContext context,
-      {required IconData icon,
-        required String label,
-        required String value,
-        bool isLast = false}) {
+      {required IconData icon, required String label, required String value, bool isLast = false}) {
     return Column(
       children: [
         Row(

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pbl6mobile/model/services/remote/auth_service.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/shared/routes/routes.dart';
 
 import '../../../shared/themes/cubit/theme_cubit.dart';
+import '../../../shared/widgets/widget/logout_confirm_dialog.dart';
 
 
 class SettingDoctorPage extends StatelessWidget {
@@ -38,6 +38,24 @@ class SettingDoctorPage extends StatelessWidget {
       ),
       body: ListView(
         children: [
+          ListTile(
+            leading: Icon(
+              Icons.account_circle_outlined,
+              color: context.theme.blue,
+              size: 28,
+            ),
+            title: Text(
+              'Quản lý tài khoản',
+              style: TextStyle(
+                fontSize: 16,
+                color: context.theme.textColor,
+              ),
+            ),
+            onTap: () {
+              Navigator.pushNamed(context, Routes.accountDoctor);
+            },
+          ),
+          const Divider(height: 1, color: Colors.grey),
           ListTile(
             leading: Icon(
               Icons.brightness_6_outlined,
@@ -77,21 +95,23 @@ class SettingDoctorPage extends StatelessWidget {
           ListTile(
             leading: Icon(
               Icons.logout,
-              color: context.theme.blue,
+              color: context.theme.destructive,
               size: 28,
             ),
             title: Text(
               'Đăng xuất',
               style: TextStyle(
                 fontSize: 16,
-                color: context.theme.textColor,
+                color: context.theme.destructive,
               ),
             ),
-            onTap: () async {
-              bool success = await AuthService.logout();
-              if (success && context.mounted) {
-                Navigator.pushReplacementNamed(context, Routes.login);
-              }
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return const LogoutConfirmationDialog();
+                },
+              );
             },
           ),
         ],

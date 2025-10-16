@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 
 import 'package:page_transition/page_transition.dart';
 import 'package:pbl6mobile/model/entities/doctor_detail.dart';
+import 'package:pbl6mobile/model/entities/profile.dart';
 import 'package:pbl6mobile/view/change_password/change_password.dart';
 import 'package:pbl6mobile/view/doctor_management/doctor_detail_page.dart';
 import 'package:pbl6mobile/view/doctor_management/edit_doctor_profile_page.dart';
 import 'package:pbl6mobile/view/main_page/doctor/main_page_doctor.dart';
 import 'package:pbl6mobile/view/main_page/super_admin/main_page_super_admin.dart';
+import 'package:pbl6mobile/view/setting/doctor/account_doctor_page.dart';
+import 'package:pbl6mobile/view/setting/doctor/edit_account_doctor_page.dart';
+import 'package:pbl6mobile/view/setting/doctor/profile_doctor_page.dart';
 import 'package:pbl6mobile/view/setting/super_admin/setting_supperadmin_page.dart';
 
 import '../../model/entities/work_location.dart';
@@ -29,6 +33,7 @@ import '../../view/specialty/list_specialty.dart';
 import '../../view/specialty/specialty_detail.dart';
 import '../../view/specialty/update_info_section.dart';
 import '../../view/specialty/update_specialty.dart';
+import '../widgets/widget/edit_profile_page.dart';
 
 class Routes {
   static const login = '/login';
@@ -56,11 +61,41 @@ class Routes {
   static const updateInfoSection = '/updateInfoSection';
   static const doctorDetail = '/doctorDetail';
   static const editDoctorProfile = '/editDoctorProfile';
+  static const editProfile = '/editProfile';
+  static const profileDoctor = '/profileDoctor';
+  static const accountDoctor = '/accountDoctor';
+  static const editAccountDoctor = '/editAccountDoctor';
 
 
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
+      case profileDoctor:
+        return PageTransition(
+          type: PageTransitionType.leftToRight,
+          settings: settings,
+          child: const ProfileDoctorPage(),
+        );
+      case accountDoctor:
+        return PageTransition(
+          type: PageTransitionType.leftToRight,
+          settings: settings,
+          child: const AccountDoctorPage(),
+        );
+      case editAccountDoctor:
+        final profile = settings.arguments as Profile;
+        return PageTransition(
+          type: PageTransitionType.leftToRight,
+          settings: settings,
+          child: EditAccountDoctorPage(profile: profile),
+        );
+      case editProfile:
+        final profile = settings.arguments as Profile;
+        return PageTransition(
+          type: PageTransitionType.leftToRight,
+          settings: settings,
+          child: EditProfilePage(profile: profile),
+        );
       case login:
         return PageTransition(
           type: PageTransitionType.fade,

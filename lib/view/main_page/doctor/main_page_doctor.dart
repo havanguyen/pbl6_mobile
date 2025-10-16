@@ -10,9 +10,7 @@ class MainPageDoctor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery
-        .of(context)
-        .size;
+    final size = MediaQuery.of(context).size;
 
     return Scaffold(
       body: Container(
@@ -36,12 +34,9 @@ class MainPageDoctor extends StatelessWidget {
               child: ScaleAnimatedButton(
                 child: Container(
                   decoration: BoxDecoration(
-                      color: context.theme.blue,
-                      shape: BoxShape.circle
-                  ),
+                      color: context.theme.blue, shape: BoxShape.circle),
                   child: IconButton(
-                    icon: Icon(
-                        Icons.menu, color: context.theme.white, size: 35),
+                    icon: Icon(Icons.menu, color: context.theme.white, size: 35),
                     onPressed: () {
                       Navigator.pushNamed(context, Routes.settingDoctor);
                     },
@@ -119,11 +114,12 @@ class MainPageDoctor extends StatelessWidget {
                   context,
                   size: 120,
                   icon: Icons.account_circle_outlined,
-                  label: 'QUẢN LÝ TÀI KHOẢN',
+                  label: 'QUẢN LÝ HỒ SƠ',
                   onTap: () {
-                    print('Quản lý tài khoản');
+                    Navigator.pushNamed(context, Routes.profileDoctor);
                   },
-                ),),
+                ),
+              ),
             ),
             Positioned(
               top: size.height * 0.63,
@@ -137,7 +133,8 @@ class MainPageDoctor extends StatelessWidget {
                   onTap: () {
                     Navigator.pushNamed(context, Routes.changePassword);
                   },
-                ),),
+                ),
+              ),
             ),
             Positioned(
               bottom: 30,

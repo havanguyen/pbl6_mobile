@@ -104,8 +104,13 @@ class AuthService {
 
   static Future<bool> logout() async {
     try {
-      await _secureDio.post('/auth/logout');
+      // Sửa từ .post thành .delete để khớp với yêu cầu của API
+      await _secureDio.delete('/auth/logout');
+    } catch (e) {
+      // Ghi lại lỗi nếu cần, nhưng không để ứng dụng bị crash
+      print("Error during API logout: $e");
     } finally {
+      // Luôn đảm bảo xóa token ở phía client
       await Store.clearStorage();
     }
     return true;

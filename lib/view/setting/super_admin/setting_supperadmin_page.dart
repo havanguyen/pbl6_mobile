@@ -6,6 +6,7 @@ import 'package:pbl6mobile/shared/routes/routes.dart';
 import 'package:pbl6mobile/view/setting/super_admin/profile_superadmin_page.dart';
 
 import '../../../shared/themes/cubit/theme_cubit.dart';
+import '../../../shared/widgets/widget/logout_confirm_dialog.dart';
 
 
 class SettingSupperAdminPage extends StatelessWidget {
@@ -63,7 +64,7 @@ class SettingSupperAdminPage extends StatelessWidget {
                 );
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
+                  const SnackBar(
                     content: Text('Không thể lấy thông tin cá nhân. Vui lòng thử lại.'),
                     backgroundColor: Colors.red,
                   ),
@@ -168,21 +169,23 @@ class SettingSupperAdminPage extends StatelessWidget {
           ListTile(
             leading: Icon(
               Icons.logout,
-              color: context.theme.blue,
+              color: context.theme.destructive,
               size: 28,
             ),
             title: Text(
               'Đăng xuất',
               style: TextStyle(
                 fontSize: 16,
-                color: context.theme.textColor,
+                color: context.theme.destructive,
               ),
             ),
-            onTap: () async {
-              bool success = await AuthService.logout();
-              if (success && context.mounted) {
-                Navigator.pushReplacementNamed(context, Routes.login);
-              }
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return const LogoutConfirmationDialog();
+                },
+              );
             },
           ),
         ],
