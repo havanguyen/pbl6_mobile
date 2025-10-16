@@ -24,7 +24,18 @@ class LocationWorkVm extends ChangeNotifier {
 
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
-  Future<void> fetchLocations({int? page, String? sortBy, String? sortOrder}) async {
+  Future<void> fetchLocations({int? page, String? sortBy, String? sortOrder , bool forceRefresh = false,}) async {
+
+
+    if (_locations.isNotEmpty && !forceRefresh && page == null) {
+      return;
+    }
+    if (forceRefresh) {
+      _currentPage = 1;
+      _locations.clear();
+      _meta = {};
+    }
+
     _isLoading = true;
     _error = null;
     notifyListeners();

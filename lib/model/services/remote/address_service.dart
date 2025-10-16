@@ -1,122 +1,68 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+
+import 'package:dio/dio.dart';
 
 class AddressService {
   const AddressService._();
   static const AddressService instance = AddressService._();
 
-  static const String _baseUrl = 'https://esgoo.net/api-tinhthanh';
+  static final Dio _dio = Dio(
+    BaseOptions(
+      baseUrl: 'https://esgoo.net/api-tinhthanh',
+      connectTimeout: const Duration(seconds: 10),
+      receiveTimeout: const Duration(seconds: 10),
+    ),
+  );
+
+  static Map<String, dynamic> _handleResponse(Response response) {
+    if (response.statusCode == 200) {
+      final json = response.data;
+      final data = (json is String) ? jsonDecode(json) : json;
+      final bool isSuccess = data['error'] == 0;
+      return {
+        'success': isSuccess,
+        'data': isSuccess ? data['data'] : [],
+        'message': !isSuccess ? data['message'] : null,
+      };
+    } else {
+      return {
+        'success': false,
+        'data': [],
+        'message': 'Lỗi kết nối: ${response.statusCode}',
+      };
+    }
+  }
+
+  static Map<String, dynamic> _handleError(e) {
+    String errorMessage = 'Lỗi không xác định: $e';
+    if (e is DioException) {
+      errorMessage = 'Lỗi Dio: ${e.message}';
+    }
+    return {
+      'success': false,
+      'data': [],
+      'message': errorMessage,
+    };
+  }
 
   static Future<Map<String, dynamic>> getProvinces() async {
-    try {
-      final response = await http.get(
-        Uri.parse('$_baseUrl/1/0.htm'),
-      ).timeout(const Duration(seconds: 10));
-
-      if (response.statusCode == 200) {
-        final json = jsonDecode(response.body);
-        return {
-          'success': json['error'] == 0,
-          'data': json['error'] == 0 ? json['data'] : [],
-          'message': json['error'] != 0 ? json['message'] : null,
-        };
-      } else {
-        return {
-          'success': false,
-          'data': [],
-          'message': 'Lỗi kết nối: ${response.statusCode}',
-        };
-      }
-    } catch (e) {
-      return {
-        'success': false,
-        'data': [],
-        'message': 'Lỗi: $e',
-      };
-    }
+    return getAddressByLevel(1, '0');
   }
+
   static Future<Map<String, dynamic>> getDistricts(String provinceId) async {
-    try {
-      final response = await http.get(
-        Uri.parse('$_baseUrl/2/$provinceId.htm'),
-      ).timeout(const Duration(seconds: 10));
-
-      if (response.statusCode == 200) {
-        final json = jsonDecode(response.body);
-        return {
-          'success': json['error'] == 0,
-          'data': json['error'] == 0 ? json['data'] : [],
-          'message': json['error'] != 0 ? json['message'] : null,
-        };
-      } else {
-        return {
-          'success': false,
-          'data': [],
-          'message': 'Lỗi kết nối: ${response.statusCode}',
-        };
-      }
-    } catch (e) {
-      return {
-        'success': false,
-        'data': [],
-        'message': 'Lỗi: $e',
-      };
-    }
+    return getAddressByLevel(2, provinceId);
   }
+
   static Future<Map<String, dynamic>> getWards(String districtId) async {
-    try {
-      final response = await http.get(
-        Uri.parse('$_baseUrl/3/$districtId.htm'),
-      ).timeout(const Duration(seconds: 10));
-
-      if (response.statusCode == 200) {
-        final json = jsonDecode(response.body);
-        return {
-          'success': json['error'] == 0,
-          'data': json['error'] == 0 ? json['data'] : [],
-          'message': json['error'] != 0 ? json['message'] : null,
-        };
-      } else {
-        return {
-          'success': false,
-          'data': [],
-          'message': 'Lỗi kết nối: ${response.statusCode}',
-        };
-      }
-    } catch (e) {
-      return {
-        'success': false,
-        'data': [],
-        'message': 'Lỗi: $e',
-      };
-    }
+    return getAddressByLevel(3, districtId);
   }
+
   static Future<Map<String, dynamic>> getAddressByLevel(int level, String parentId) async {
     try {
-      final response = await http.get(
-        Uri.parse('$_baseUrl/$level/$parentId.htm'),
-      ).timeout(const Duration(seconds: 10));
-
-      if (response.statusCode == 200) {
-        final json = jsonDecode(response.body);
-        return {
-          'success': json['error'] == 0,
-          'data': json['error'] == 0 ? json['data'] : [],
-          'message': json['error'] != 0 ? json['message'] : null,
-        };
-      } else {
-        return {
-          'success': false,
-          'data': [],
-          'message': 'Lỗi kết nối: ${response.statusCode}',
-        };
-      }
+      final response = await _dio.get('/$level/$parentId.htm');
+      return _handleResponse(response);
     } catch (e) {
-      return {
-        'success': false,
-        'data': [],
-        'message': 'Lỗi: $e',
-      };
+      return _handleError(e);
     }
   }
 }

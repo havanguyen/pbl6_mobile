@@ -1,13 +1,65 @@
-import 'dart:convert';
+import 'package:dio/dio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:http/http.dart' as http;
+import 'package:dio_smart_retry/dio_smart_retry.dart';
+
+import 'package:pbl6mobile/model/services/remote/auth_service.dart';
 import 'package:pbl6mobile/shared/services/store.dart';
-import 'auth_service.dart';
 
 class LocationWorkService {
   const LocationWorkService._();
-  static const LocationWorkService instance = LocationWorkService._();
+
   static final String? _baseUrl = dotenv.env['API_BASE_URL'];
+  static final Dio _dio = _initializeDio();
+
+  static Dio _initializeDio() {
+    final dio = Dio(
+      BaseOptions(
+        baseUrl: _baseUrl!,
+        connectTimeout: const Duration(seconds: 15),
+        receiveTimeout: const Duration(seconds: 15),
+      ),
+    );
+
+    dio.interceptors.add(
+      RetryInterceptor(
+        dio: dio,
+        logPrint: print,
+        retries: 3,
+        retryDelays: const [
+          Duration(seconds: 1),
+          Duration(seconds: 2),
+          Duration(seconds: 4),
+        ],
+        retryableExtraStatuses: {status429TooManyRequests},
+      ),
+    );
+
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) async {
+          final accessToken = await Store.getAccessToken();
+          if (accessToken != null) {
+            options.headers['Authorization'] = 'Bearer $accessToken';
+          }
+          return handler.next(options);
+        },
+        onError: (DioException e, handler) async {
+          if (e.response?.statusCode == 401) {
+            try {
+              if (await AuthService.refreshToken()) {
+                final response = await dio.fetch(e.requestOptions);
+                return handler.resolve(response);
+              }
+            } catch (err) {
+              return handler.reject(e);
+            }
+          }
+          return handler.next(e);
+        },
+      ),
+    );
+    return dio;
+  }
 
   static Future<Map<String, dynamic>> getAllLocations({
     String sortBy = 'createdAt',
@@ -16,119 +68,26 @@ class LocationWorkService {
     int limit = 10,
   }) async {
     try {
-      final String? accessToken = await Store.getAccessToken();
-      if (accessToken == null) {
-        return {'success': false, 'data': []};
-      }
-
-      final url = '$_baseUrl/work-locations?sortBy=$sortBy&sortOrder=$sortOrder&includeMetadata=true&page=$page';
-      print(url);
-      final response = await http.get(
-        Uri.parse(url),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $accessToken',
-        },
-      ).timeout(const Duration(seconds: 10));
-
-      if (response.statusCode == 200) {
-        return jsonDecode(response.body);
-      } else if (response.statusCode == 401) {
-        final refreshSuccess = await AuthService.refreshToken();
-        if (refreshSuccess) {
-          final newAccessToken = await Store.getAccessToken();
-          if (newAccessToken != null) {
-            final retryResponse = await http.get(
-              Uri.parse(url),
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer $newAccessToken',
-              },
-            ).timeout(const Duration(seconds: 10));
-            if (retryResponse.statusCode == 200) {
-              return jsonDecode(retryResponse.body);
-            }
-          }
-        }
-        return {'success': false, 'data': []};
-      } else if (response.statusCode == 429) {
-        return {
-          'success': false,
-          'data': [],
-          'message': 'ThrottlerException: Too Many Requests. Please try again later.'
-        };
-      } else {
-        if (response.body.isNotEmpty) {
-          try {
-            final Map<String, dynamic> errorData = jsonDecode(response.body);
-            print('Get locations error: ${errorData['message'] ?? 'Unknown error'}');
-          } catch (e) {
-            print('Get locations parse error: $e');
-          }
-        }
-        return {'success': false, 'data': []};
-      }
+      final params = {
+        'sortBy': sortBy,
+        'sortOrder': sortOrder,
+        'includeMetadata': true,
+        'page': page,
+        'limit': limit,
+      };
+      final response = await _dio.get('/work-locations', queryParameters: params);
+      return response.data;
     } catch (e) {
-      print('Get locations error: $e');
-      return {'success': false, 'data': []};
+      return {'success': false, 'data': [], 'message': e.toString()};
     }
   }
 
   static Future<Map<String, dynamic>> getLocationById(String id) async {
     try {
-      final String? accessToken = await Store.getAccessToken();
-      if (accessToken == null) {
-        return {'success': false, 'data': null};
-      }
-
-      final response = await http.get(
-        Uri.parse('$_baseUrl/work-locations/$id'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $accessToken',
-        },
-      ).timeout(const Duration(seconds: 10));
-
-      if (response.statusCode == 200) {
-        return jsonDecode(response.body);
-      } else if (response.statusCode == 401) {
-        final refreshSuccess = await AuthService.refreshToken();
-        if (refreshSuccess) {
-          final newAccessToken = await Store.getAccessToken();
-          if (newAccessToken != null) {
-            final retryResponse = await http.get(
-              Uri.parse('$_baseUrl/work-locations/$id'),
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer $newAccessToken',
-              },
-            ).timeout(const Duration(seconds: 10));
-            if (retryResponse.statusCode == 200) {
-              return jsonDecode(retryResponse.body);
-            }
-          }
-        }
-        return {'success': false, 'data': null};
-      } else if (response.statusCode == 429) {
-        return {
-          'success': false,
-          'data': [],
-          'message': 'ThrottlerException: Too Many Requests. Please try again later.'
-        };
-      } else {
-        if (response.body.isNotEmpty) {
-          try {
-            final Map<String, dynamic> errorData = jsonDecode(response.body);
-            print('Get location by ID error: ${errorData['message'] ?? 'Unknown error'}');
-          } catch (e) {
-            print('Get location by ID parse error: $e');
-          }
-        }
-        return {'success': false, 'data': null};
-      }
+      final response = await _dio.get('/work-locations/$id');
+      return response.data;
     } catch (e) {
-      print('Get location by ID error: $e');
-      return {'success': false, 'data': null};
+      return {'success': false, 'data': null, 'message': e.toString()};
     }
   }
 
@@ -139,61 +98,15 @@ class LocationWorkService {
     required String timezone,
   }) async {
     try {
-      final String? accessToken = await Store.getAccessToken();
-      if (accessToken == null) {
-        return false;
-      }
-
-      final Map<String, dynamic> requestBody = {
+      final requestBody = {
         'name': name,
         'address': address,
         'phone': phone,
         'timezone': timezone,
       };
-
-      final response = await http.post(
-        Uri.parse('$_baseUrl/work-locations'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $accessToken',
-        },
-        body: jsonEncode(requestBody),
-      ).timeout(const Duration(seconds: 10));
-
-      if (response.statusCode == 201) {
-        return true;
-      } else if (response.statusCode == 401) {
-        final refreshSuccess = await AuthService.refreshToken();
-        if (refreshSuccess) {
-          final newAccessToken = await Store.getAccessToken();
-          if (newAccessToken != null) {
-            final retryResponse = await http.post(
-              Uri.parse('$_baseUrl/work-locations'),
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer $newAccessToken',
-              },
-              body: jsonEncode(requestBody),
-            ).timeout(const Duration(seconds: 10));
-            if (retryResponse.statusCode == 201) {
-              return true;
-            }
-          }
-        }
-        return false;
-      } else {
-        if (response.body.isNotEmpty) {
-          try {
-            final Map<String, dynamic> errorData = jsonDecode(response.body);
-            print('Create location error: ${errorData['message'] ?? 'Unknown error'}');
-          } catch (e) {
-            print('Create location parse error: $e');
-          }
-        }
-        return false;
-      }
+      final response = await _dio.post('/work-locations', data: requestBody);
+      return response.statusCode == 201;
     } catch (e) {
-      print('Create location error: $e');
       return false;
     }
   }
@@ -207,147 +120,29 @@ class LocationWorkService {
     bool? isActive,
   }) async {
     try {
-      final String? accessToken = await Store.getAccessToken();
-      if (accessToken == null) {
-        return false;
-      }
-
-      final Map<String, dynamic> requestBody = {};
-      if (name != null && name.isNotEmpty) requestBody['name'] = name;
-      if (address != null && address.isNotEmpty) requestBody['address'] = address;
-      if (phone != null && phone.isNotEmpty) requestBody['phone'] = phone;
-      if (timezone != null && timezone.isNotEmpty) requestBody['timezone'] = timezone;
-      if (isActive != null) requestBody['isActive'] = isActive;
-
-      if (requestBody.isEmpty) {
-        print('No fields to update');
-        return false;
-      }
-
-      final response = await http.patch(
-        Uri.parse('$_baseUrl/work-locations/$id'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $accessToken',
-        },
-        body: jsonEncode(requestBody),
-      ).timeout(const Duration(seconds: 10));
-
-      if (response.statusCode == 200) {
-        return true;
-      } else if (response.statusCode == 401) {
-        final refreshSuccess = await AuthService.refreshToken();
-        if (refreshSuccess) {
-          final newAccessToken = await Store.getAccessToken();
-          if (newAccessToken != null) {
-            final retryResponse = await http.patch(
-              Uri.parse('$_baseUrl/work-locations/$id'),
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer $newAccessToken',
-              },
-              body: jsonEncode(requestBody),
-            ).timeout(const Duration(seconds: 10));
-            if (retryResponse.statusCode == 200) {
-              return true;
-            }
-          }
-        }
-        return false;
-      } else {
-        if (response.body.isNotEmpty) {
-          try {
-            final Map<String, dynamic> errorData = jsonDecode(response.body);
-            print('Update location error: ${errorData['message'] ?? 'Unknown error'}');
-          } catch (e) {
-            print('Update location parse error: $e');
-          }
-        }
-        return false;
-      }
+      final requestBody = {
+        if (name != null && name.isNotEmpty) 'name': name,
+        if (address != null && address.isNotEmpty) 'address': address,
+        if (phone != null && phone.isNotEmpty) 'phone': phone,
+        if (timezone != null && timezone.isNotEmpty) 'timezone': timezone,
+        if (isActive != null) 'isActive': isActive,
+      };
+      if (requestBody.isEmpty) return false;
+      final response = await _dio.patch('/work-locations/$id', data: requestBody);
+      return response.statusCode == 200;
     } catch (e) {
-      print('Update location error: $e');
       return false;
     }
   }
 
   static Future<bool> deleteLocation(String id, {required String password}) async {
     try {
-      final String? accessToken = await Store.getAccessToken();
-      if (accessToken == null) {
-        print('No access token for delete location');
+      if (!await AuthService.verifyPassword(password: password)) {
         return false;
       }
-      final bool isPasswordValid = await AuthService.verifyPassword(password: password);
-      if (!isPasswordValid) {
-        print('Password verification failed');
-        return false;
-      }
-
-      final response = await http.delete(
-        Uri.parse('$_baseUrl/work-locations/$id'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $accessToken',
-        },
-      ).timeout(const Duration(seconds: 10));
-
-      if (response.statusCode == 200 || response.statusCode == 204) {
-        print('Location deleted successfully');
-        return true;
-      } else if (response.statusCode == 401) {
-        final bool refreshSuccess = await AuthService.refreshToken();
-        if (!refreshSuccess) {
-          print('Failed to refresh token for delete location');
-          return false;
-        }
-
-        final String? newAccessToken = await Store.getAccessToken();
-        if (newAccessToken == null) {
-          print('No new access token after refresh for delete location');
-          return false;
-        }
-        final bool retryPasswordValid = await AuthService.verifyPassword(password: password);
-        if (!retryPasswordValid) {
-          print('Password verification failed after refresh');
-          return false;
-        }
-
-        final retryResponse = await http.delete(
-          Uri.parse('$_baseUrl/work-locations/$id'),
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer $newAccessToken',
-          },
-        ).timeout(const Duration(seconds: 10));
-
-        if (retryResponse.statusCode == 200 || retryResponse.statusCode == 204) {
-          print('Location deleted successfully after refresh');
-          return true;
-        } else {
-          if (retryResponse.body.isNotEmpty) {
-            try {
-              final Map<String, dynamic> errorData = jsonDecode(retryResponse.body);
-              print('Delete location error after refresh: ${errorData['message'] ?? 'Unknown error'}');
-            } catch (e) {
-              print('Delete location parse error after refresh: $e');
-            }
-          }
-          return false;
-        }
-      } else {
-        if (response.body.isNotEmpty) {
-          try {
-            final Map<String, dynamic> errorData = jsonDecode(response.body);
-            print('Delete location error: ${errorData['message'] ?? 'Unknown error'}');
-          } catch (e) {
-            print('Delete location parse error: $e');
-          }
-        }
-        return false;
-      }
+      final response = await _dio.delete('/work-locations/$id');
+      return response.statusCode == 200 || response.statusCode == 204;
     } catch (e) {
-      print('Delete location network error: $e');
       return false;
     }
   }

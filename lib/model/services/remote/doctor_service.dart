@@ -1,8 +1,7 @@
-import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:http/http.dart' as http;
+import 'package:dio_smart_retry/dio_smart_retry.dart';
+
 import 'package:pbl6mobile/model/entities/doctor.dart';
 import 'package:pbl6mobile/model/entities/doctor_detail.dart';
 import 'package:pbl6mobile/model/entities/doctor_profile.dart';
@@ -12,37 +11,62 @@ import 'package:pbl6mobile/shared/services/store.dart';
 
 class DoctorService {
   const DoctorService._();
-  static final String? _baseUrl = dotenv.env['API_BASE_URL'];
 
-  static Future<http.Response> _httpRetry(
-      Future<http.Response> Function() request,
-      {int maxRetries = 3}) async {
-    int attempt = 0;
-    while (true) {
-      try {
-        final response = await request();
-        if (response.statusCode == 429) {
-          if (attempt >= maxRetries) return response;
-          attempt++;
-          final delay = Duration(seconds: 1 << (attempt - 1));
-          await Future.delayed(delay);
-          continue;
-        }
-        return response;
-      } on SocketException {
-        attempt++;
-        if (attempt >= maxRetries) rethrow;
-        final delay = Duration(seconds: 1 << (attempt - 1));
-        await Future.delayed(delay);
-      } on TimeoutException {
-        attempt++;
-        if (attempt >= maxRetries) rethrow;
-        final delay = Duration(seconds: 1 << (attempt - 1));
-        await Future.delayed(delay);
-      } catch (e) {
-        rethrow;
-      }
-    }
+  static final String? _baseUrl = dotenv.env['API_BASE_URL'];
+  static final Dio _dio = _initializeDio();
+
+  static Dio _initializeDio() {
+    final dio = Dio(
+      BaseOptions(
+        baseUrl: _baseUrl!,
+        connectTimeout: const Duration(seconds: 15),
+        receiveTimeout: const Duration(seconds: 15),
+      ),
+    );
+
+    dio.interceptors.add(
+      RetryInterceptor(
+        dio: dio,
+        logPrint: print,
+        retries: 3,
+        retryDelays: const [
+          Duration(seconds: 1),
+          Duration(seconds: 2),
+          Duration(seconds: 4),
+        ],
+        retryableExtraStatuses: {status429TooManyRequests},
+      ),
+    );
+
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) async {
+          final accessToken = await Store.getAccessToken();
+          if (accessToken != null) {
+            options.headers['Authorization'] = 'Bearer $accessToken';
+          }
+          return handler.next(options);
+        },
+        onError: (DioException e, handler) async {
+          if (e.response?.statusCode == 401) {
+            try {
+              final refreshSuccess = await AuthService.refreshToken();
+              if (refreshSuccess) {
+                final newAccessToken = await Store.getAccessToken();
+                e.requestOptions.headers['Authorization'] = 'Bearer $newAccessToken';
+                final response = await dio.fetch(e.requestOptions);
+                return handler.resolve(response);
+              }
+            } catch (err) {
+              return handler.reject(e);
+            }
+          }
+          return handler.next(e);
+        },
+      ),
+    );
+
+    return dio;
   }
 
   static Future<GetDoctorsResponse> getDoctors({
@@ -56,83 +80,42 @@ class DoctorService {
     String? sortOrder,
   }) async {
     try {
-      final String? accessToken = await Store.getAccessToken();
-      if (accessToken == null) {
-        return GetDoctorsResponse(
-            success: false, message: 'No access token available');
-      }
+      final params = {
+        'page': page,
+        'limit': limit,
+        if (search.isNotEmpty) 'search': search,
+        if (isMale != null) 'isMale': isMale,
+        if (createdFrom != null && createdFrom.isNotEmpty) 'createdFrom': createdFrom,
+        if (createdTo != null && createdTo.isNotEmpty) 'createdTo': createdTo,
+        if (sortBy != null && sortBy.isNotEmpty) 'sortBy': sortBy,
+        if (sortOrder != null && sortOrder.isNotEmpty) 'sortOrder': sortOrder,
+      };
 
-      String url = '$_baseUrl/doctors?page=$page&limit=$limit';
-      if (search.isNotEmpty) url += '&search=$search';
-      if (isMale != null) url += '&isMale=$isMale';
-      if (createdFrom != null && createdFrom.isNotEmpty) {
-        url += '&createdFrom=$createdFrom';
-      }
-      if (createdTo != null && createdTo.isNotEmpty) url += '&createdTo=$createdTo';
-      if (sortBy != null && sortBy.isNotEmpty) url += '&sortBy=$sortBy';
-      if (sortOrder != null && sortOrder.isNotEmpty) {
-        url += '&sortOrder=$sortOrder';
-      }
-
-      final response = await _httpRetry(() => http.get(
-        Uri.parse(url),
-        headers: {'Authorization': 'Bearer $accessToken'},
-      ).timeout(const Duration(seconds: 15)));
-
-      final responseData = jsonDecode(response.body);
+      final response = await _dio.get('/doctors', queryParameters: params);
 
       if (response.statusCode == 200) {
-        final doctorList = (responseData['data'] as List)
+        final doctorList = (response.data['data'] as List)
             .map((json) => Doctor.fromJson(json as Map<String, dynamic>))
             .toList();
         return GetDoctorsResponse(
           success: true,
           data: doctorList,
-          meta: responseData['meta'] ?? {},
-          message: responseData['message'] ?? 'Success',
+          meta: response.data['meta'] ?? {},
         );
-      } else if (response.statusCode == 401) {
-        if (await AuthService.refreshToken()) {
-          return getDoctors(
-            search: search,
-            page: page,
-            limit: limit,
-            isMale: isMale,
-            createdFrom: createdFrom,
-            createdTo: createdTo,
-            sortBy: sortBy,
-            sortOrder: sortOrder,
-          );
-        }
       }
-      return GetDoctorsResponse(
-          success: false,
-          message: responseData['message'] ?? 'API call failed');
+      return GetDoctorsResponse(success: false, message: response.data['message'] ?? 'API call failed');
+    } on DioException catch (e) {
+      return GetDoctorsResponse(success: false, message: 'Lỗi kết nối: ${e.message}');
     } catch (e) {
-      return GetDoctorsResponse(
-          success: false, message: 'Network error or too many requests.');
+      return GetDoctorsResponse(success: false, message: 'Đã xảy ra lỗi không mong muốn.');
     }
   }
+
   static Future<DoctorDetail?> getDoctorWithProfile(String doctorId) async {
     try {
-      final String? accessToken = await Store.getAccessToken();
-      if (accessToken == null) return null;
-
-      final url = '$_baseUrl/doctors/$doctorId/complete';
-      final response = await _httpRetry(
-            () => http.get(
-          Uri.parse(url),
-          headers: {'Authorization': 'Bearer $accessToken'},
-        ).timeout(const Duration(seconds: 15)),
-      );
-
+      final response = await _dio.get('/doctors/$doctorId/complete');
       if (response.statusCode == 200) {
-        final responseData = jsonDecode(response.body);
-        return DoctorDetail.fromJson(responseData['data']);
-      } else if (response.statusCode == 401) {
-        if (await AuthService.refreshToken()) {
-          return getDoctorWithProfile(doctorId);
-        }
+        return DoctorDetail.fromJson(response.data['data']);
       }
       return null;
     } catch (e) {
@@ -142,131 +125,38 @@ class DoctorService {
   }
 
   static Future<DoctorProfile?> createDoctorProfile(Map<String, dynamic> data) async {
-    print("--- DEBUG: CREATE DOCTOR PROFILE ---");
     try {
-      final String? accessToken = await Store.getAccessToken();
-      if (accessToken == null) {
-        print("DEBUG: Access Token is NULL. Aborting.");
-        return null;
-      }
-
-      final url = '$_baseUrl/doctors/profile';
-      final body = jsonEncode(data);
-
-      print("DEBUG: URL: $url");
-      print("DEBUG: Access Token: Bearer $accessToken");
-      print("DEBUG: Request Body: $body");
-
-      final response = await _httpRetry(
-            () => http.post(
-          Uri.parse(url),
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer $accessToken'
-          },
-          body: body,
-        ).timeout(const Duration(seconds: 15)),
-      );
-
-      print("DEBUG: Response Status Code: ${response.statusCode}");
-      print("DEBUG: Response Body: ${response.body}");
-
+      final response = await _dio.post('/doctors/profile', data: data);
       if (response.statusCode == 201) {
-        print("DEBUG: Profile created successfully.");
-        final responseData = jsonDecode(response.body);
-        return DoctorProfile.fromJson(responseData['data']);
-      } else if (response.statusCode == 401) {
-        print("DEBUG: Token expired. Attempting to refresh...");
-        if (await AuthService.refreshToken()) {
-          print("DEBUG: Token refreshed. Retrying request...");
-          return createDoctorProfile(data); // Retry the request
-        }
+        return DoctorProfile.fromJson(response.data['data']);
       }
-      print("DEBUG: Failed to create profile with status ${response.statusCode}.");
       return null;
     } catch (e) {
-      print('--- DEBUG: CREATE DOCTOR PROFILE CRASHED ---');
       print('Create Doctor Profile Error: $e');
       return null;
     }
   }
 
   static Future<DoctorProfile?> updateDoctorProfile(String profileId, Map<String, dynamic> data) async {
-    print("--- DEBUG: UPDATE DOCTOR PROFILE ---");
     try {
-      final String? accessToken = await Store.getAccessToken();
-      if (accessToken == null) {
-        print("DEBUG: Access Token is NULL. Aborting.");
-        return null;
-      }
-
-      final url = '$_baseUrl/doctors/profile/$profileId';
-      final body = jsonEncode(data);
-
-      print("DEBUG: URL: $url");
-      print("DEBUG: Access Token: Bearer $accessToken");
-      print("DEBUG: Request Body: $body");
-
-      final response = await _httpRetry(
-            () => http.patch(
-          Uri.parse(url),
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer $accessToken'
-          },
-          body: body,
-        ).timeout(const Duration(seconds: 15)),
-      );
-
-      print("DEBUG: Response Status Code: ${response.statusCode}");
-      print("DEBUG: Response Body: ${response.body}");
-
+      final response = await _dio.patch('/doctors/profile/$profileId', data: data);
       if (response.statusCode == 200) {
-        print("DEBUG: Profile updated successfully.");
-        final responseData = jsonDecode(response.body);
-        return DoctorProfile.fromJson(responseData['data']);
-      } else if (response.statusCode == 401) {
-        print("DEBUG: Token expired. Attempting to refresh...");
-        if (await AuthService.refreshToken()) {
-          print("DEBUG: Token refreshed. Retrying request...");
-          return updateDoctorProfile(profileId, data); // Retry the request
-        }
+        return DoctorProfile.fromJson(response.data['data']);
       }
-      print("DEBUG: Failed to update profile with status ${response.statusCode}.");
       return null;
     } catch (e) {
-      print('--- DEBUG: UPDATE DOCTOR PROFILE CRASHED ---');
       print('Update Doctor Profile Error: $e');
       return null;
     }
   }
 
-
   static Future<bool> toggleDoctorActive(String profileId, bool isActive) async {
     try {
-      final String? accessToken = await Store.getAccessToken();
-      if (accessToken == null) return false;
-
-      final url = '$_baseUrl/doctors/profile/$profileId/toggle-active';
-      final response = await _httpRetry(
-            () => http.patch(
-          Uri.parse(url),
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer $accessToken'
-          },
-          body: jsonEncode({'isActive': isActive}),
-        ).timeout(const Duration(seconds: 15)),
+      final response = await _dio.patch(
+        '/doctors/profile/$profileId/toggle-active',
+        data: {'isActive': isActive},
       );
-
-      if (response.statusCode == 200) {
-        return true;
-      } else if (response.statusCode == 401) {
-        if (await AuthService.refreshToken()) {
-          return toggleDoctorActive(profileId, isActive);
-        }
-      }
-      return false;
+      return response.statusCode == 200;
     } catch (e) {
       print('Toggle Doctor Active Error: $e');
       return false;
@@ -282,10 +172,7 @@ class DoctorService {
     required bool isMale,
   }) async {
     try {
-      final String? accessToken = await Store.getAccessToken();
-      if (accessToken == null) return false;
-
-      final Map<String, dynamic> requestBody = {
+      final requestBody = {
         'email': email,
         'password': password,
         'fullName': fullName,
@@ -294,34 +181,18 @@ class DoctorService {
         if (phone != null && phone.isNotEmpty) 'phone': phone,
       };
 
-      final url = '$_baseUrl/doctors';
-      final response = await _httpRetry(() => http.post(
-        Uri.parse(url),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $accessToken'
-        },
-        body: jsonEncode(requestBody),
-      ).timeout(const Duration(seconds: 15)));
+      final response = await _dio.post('/doctors', data: requestBody);
 
-      if (response.statusCode == 201) return true;
-
-      if (response.statusCode == 401) {
-        if (await AuthService.refreshToken()) {
-          final newAccessToken = await Store.getAccessToken();
-          final retryResponse = await _httpRetry(() => http.post(
-            Uri.parse(url),
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer $newAccessToken'
-            },
-            body: jsonEncode(requestBody),
-          ).timeout(const Duration(seconds: 15)));
-          return retryResponse.statusCode == 201;
+      if (response.statusCode == 201) {
+        final newDoctorId = response.data['data']?['id'];
+        if (newDoctorId != null) {
+          final profile = await createDoctorProfile({'staffAccountId': newDoctorId});
+          return profile != null;
         }
       }
       return false;
     } catch (e) {
+      print('Lỗi khi tạo bác sĩ và hồ sơ: $e');
       return false;
     }
   }
@@ -336,81 +207,37 @@ class DoctorService {
         bool? isMale,
       }) async {
     try {
-      final String? accessToken = await Store.getAccessToken();
-      if (accessToken == null) return false;
-
-      final Map<String, dynamic> requestBody = {};
-      if (fullName != null && fullName.isNotEmpty) requestBody['fullName'] = fullName;
-      if (email != null && email.isNotEmpty) requestBody['email'] = email;
-      if (password != null && password.isNotEmpty) requestBody['password'] = password;
-      if (phone != null && phone.isNotEmpty) requestBody['phone'] = phone;
-      if (dateOfBirth != null && dateOfBirth.isNotEmpty) {
-        requestBody['dateOfBirth'] = dateOfBirth;
-      }
-      if (isMale != null) requestBody['isMale'] = isMale.toString();
+      final requestBody = {
+        if (fullName != null && fullName.isNotEmpty) 'fullName': fullName,
+        if (email != null && email.isNotEmpty) 'email': email,
+        if (password != null && password.isNotEmpty) 'password': password,
+        if (phone != null && phone.isNotEmpty) 'phone': phone,
+        if (dateOfBirth != null && dateOfBirth.isNotEmpty) 'dateOfBirth': dateOfBirth,
+        if (isMale != null) 'isMale': isMale.toString(),
+      };
 
       if (requestBody.isEmpty) return false;
 
-      final url = '$_baseUrl/doctors/$id';
-      final response = await _httpRetry(() => http.patch(
-        Uri.parse(url),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $accessToken'
-        },
-        body: jsonEncode(requestBody),
-      ).timeout(const Duration(seconds: 15)));
-
-      if (response.statusCode == 200) return true;
-      if (response.statusCode == 401) {
-        if (await AuthService.refreshToken()) {
-          final newAccessToken = await Store.getAccessToken();
-          final retryResponse = await _httpRetry(() => http.patch(
-            Uri.parse(url),
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer $newAccessToken'
-            },
-            body: jsonEncode(requestBody),
-          ).timeout(const Duration(seconds: 15)));
-          return retryResponse.statusCode == 200;
-        }
-      }
-      return false;
+      final response = await _dio.patch('/doctors/$id', data: requestBody);
+      return response.statusCode == 200;
     } catch (e) {
+      print('Update Doctor Error: $e');
       return false;
     }
   }
 
   static Future<bool> deleteDoctor(String id, {required String password}) async {
     try {
-      final String? accessToken = await Store.getAccessToken();
-      if (accessToken == null) return false;
-
-      if (!await AuthService.verifyPassword(password: password)) {
+      final isPasswordValid = await AuthService.verifyPassword(password: password);
+      if (!isPasswordValid) {
+        print('Password verification failed');
         return false;
       }
 
-      final url = '$_baseUrl/doctors/$id';
-      final response = await _httpRetry(() => http.delete(
-        Uri.parse(url),
-        headers: {'Authorization': 'Bearer $accessToken'},
-      ).timeout(const Duration(seconds: 15)));
-
-      if (response.statusCode == 200 || response.statusCode == 204) return true;
-      if (response.statusCode == 401) {
-        if (await AuthService.refreshToken()) {
-          final newAccessToken = await Store.getAccessToken();
-          final retryResponse = await _httpRetry(() => http.delete(
-            Uri.parse(url),
-            headers: {'Authorization': 'Bearer $newAccessToken'},
-          ).timeout(const Duration(seconds: 15)));
-          return retryResponse.statusCode == 200 ||
-              retryResponse.statusCode == 204;
-        }
-      }
-      return false;
+      final response = await _dio.delete('/doctors/$id');
+      return response.statusCode == 200 || response.statusCode == 204;
     } catch (e) {
+      print('Delete Doctor Error: $e');
       return false;
     }
   }

@@ -67,6 +67,8 @@ class SpecialtyVm extends ChangeNotifier {
   }
 
   Future<void> fetchSpecialties({bool forceRefresh = false}) async {
+
+    if (_specialties.isNotEmpty && !forceRefresh) return;
     if (forceRefresh) {
       _currentPage = 1;
       _meta = {};

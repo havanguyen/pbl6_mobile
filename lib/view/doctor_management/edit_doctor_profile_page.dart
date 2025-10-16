@@ -43,7 +43,7 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage>
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        context.read<SpecialtyVm>().fetchSpecialties(forceRefresh: true);
+        context.read<SpecialtyVm>().fetchSpecialties();
         context.read<LocationWorkVm>().fetchLocations();
       }
     });
@@ -291,10 +291,6 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage>
     );
   }
 }
-
-// ===================================================================
-// WIDGET QUILL EDITOR (PHIÊN BẢN GỐC)
-// ===================================================================
 class _QuillEditor extends StatelessWidget {
   final String label;
   final quill.QuillController controller;
