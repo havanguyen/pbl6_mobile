@@ -39,6 +39,7 @@ dependencies:
   dio: ^5.9.0
   dio_smart_retry: ^7.0.1
   cached_network_image: ^3.4.1
+  image_picker: ^1.2.0
 
 dev_dependencies:
   flutter_test:

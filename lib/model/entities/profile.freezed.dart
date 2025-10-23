@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Profile {
 
- String get id; String get fullName; String get email; String get role; String? get phone; bool? get isMale; DateTime? get dateOfBirth; DateTime? get deletedAt; DateTime get createdAt; DateTime get updatedAt;
+ String get id; String get fullName; String get email; String get role; String? get phone; bool? get isMale; DateTime? get dateOfBirth; String? get avatarUrl; DateTime? get deletedAt; DateTime get createdAt; DateTime get updatedAt;
 /// Create a copy of Profile
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $ProfileCopyWith<Profile> get copyWith => _$ProfileCopyWithImpl<Profile>(this as
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Profile&&(identical(other.id, id) || other.id == id)&&(identical(other.fullName, fullName) || other.fullName == fullName)&&(identical(other.email, email) || other.email == email)&&(identical(other.role, role) || other.role == role)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.isMale, isMale) || other.isMale == isMale)&&(identical(other.dateOfBirth, dateOfBirth) || other.dateOfBirth == dateOfBirth)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Profile&&(identical(other.id, id) || other.id == id)&&(identical(other.fullName, fullName) || other.fullName == fullName)&&(identical(other.email, email) || other.email == email)&&(identical(other.role, role) || other.role == role)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.isMale, isMale) || other.isMale == isMale)&&(identical(other.dateOfBirth, dateOfBirth) || other.dateOfBirth == dateOfBirth)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,fullName,email,role,phone,isMale,dateOfBirth,deletedAt,createdAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,fullName,email,role,phone,isMale,dateOfBirth,avatarUrl,deletedAt,createdAt,updatedAt);
 
 @override
 String toString() {
-  return 'Profile(id: $id, fullName: $fullName, email: $email, role: $role, phone: $phone, isMale: $isMale, dateOfBirth: $dateOfBirth, deletedAt: $deletedAt, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'Profile(id: $id, fullName: $fullName, email: $email, role: $role, phone: $phone, isMale: $isMale, dateOfBirth: $dateOfBirth, avatarUrl: $avatarUrl, deletedAt: $deletedAt, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $ProfileCopyWith<$Res>  {
   factory $ProfileCopyWith(Profile value, $Res Function(Profile) _then) = _$ProfileCopyWithImpl;
 @useResult
 $Res call({
- String id, String fullName, String email, String role, String? phone, bool? isMale, DateTime? dateOfBirth, DateTime? deletedAt, DateTime createdAt, DateTime updatedAt
+ String id, String fullName, String email, String role, String? phone, bool? isMale, DateTime? dateOfBirth, String? avatarUrl, DateTime? deletedAt, DateTime createdAt, DateTime updatedAt
 });
 
 
@@ -65,7 +65,7 @@ class _$ProfileCopyWithImpl<$Res>
 
 /// Create a copy of Profile
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? fullName = null,Object? email = null,Object? role = null,Object? phone = freezed,Object? isMale = freezed,Object? dateOfBirth = freezed,Object? deletedAt = freezed,Object? createdAt = null,Object? updatedAt = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? fullName = null,Object? email = null,Object? role = null,Object? phone = freezed,Object? isMale = freezed,Object? dateOfBirth = freezed,Object? avatarUrl = freezed,Object? deletedAt = freezed,Object? createdAt = null,Object? updatedAt = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,fullName: null == fullName ? _self.fullName : fullName // ignore: cast_nullable_to_non_nullable
@@ -74,7 +74,8 @@ as String,role: null == role ? _self.role : role // ignore: cast_nullable_to_non
 as String,phone: freezed == phone ? _self.phone : phone // ignore: cast_nullable_to_non_nullable
 as String?,isMale: freezed == isMale ? _self.isMale : isMale // ignore: cast_nullable_to_non_nullable
 as bool?,dateOfBirth: freezed == dateOfBirth ? _self.dateOfBirth : dateOfBirth // ignore: cast_nullable_to_non_nullable
-as DateTime?,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,avatarUrl: freezed == avatarUrl ? _self.avatarUrl : avatarUrl // ignore: cast_nullable_to_non_nullable
+as String?,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,
@@ -162,10 +163,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String fullName,  String email,  String role,  String? phone,  bool? isMale,  DateTime? dateOfBirth,  DateTime? deletedAt,  DateTime createdAt,  DateTime updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String fullName,  String email,  String role,  String? phone,  bool? isMale,  DateTime? dateOfBirth,  String? avatarUrl,  DateTime? deletedAt,  DateTime createdAt,  DateTime updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Profile() when $default != null:
-return $default(_that.id,_that.fullName,_that.email,_that.role,_that.phone,_that.isMale,_that.dateOfBirth,_that.deletedAt,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.fullName,_that.email,_that.role,_that.phone,_that.isMale,_that.dateOfBirth,_that.avatarUrl,_that.deletedAt,_that.createdAt,_that.updatedAt);case _:
   return orElse();
 
 }
@@ -183,10 +184,10 @@ return $default(_that.id,_that.fullName,_that.email,_that.role,_that.phone,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String fullName,  String email,  String role,  String? phone,  bool? isMale,  DateTime? dateOfBirth,  DateTime? deletedAt,  DateTime createdAt,  DateTime updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String fullName,  String email,  String role,  String? phone,  bool? isMale,  DateTime? dateOfBirth,  String? avatarUrl,  DateTime? deletedAt,  DateTime createdAt,  DateTime updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _Profile():
-return $default(_that.id,_that.fullName,_that.email,_that.role,_that.phone,_that.isMale,_that.dateOfBirth,_that.deletedAt,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.fullName,_that.email,_that.role,_that.phone,_that.isMale,_that.dateOfBirth,_that.avatarUrl,_that.deletedAt,_that.createdAt,_that.updatedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -203,10 +204,10 @@ return $default(_that.id,_that.fullName,_that.email,_that.role,_that.phone,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String fullName,  String email,  String role,  String? phone,  bool? isMale,  DateTime? dateOfBirth,  DateTime? deletedAt,  DateTime createdAt,  DateTime updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String fullName,  String email,  String role,  String? phone,  bool? isMale,  DateTime? dateOfBirth,  String? avatarUrl,  DateTime? deletedAt,  DateTime createdAt,  DateTime updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _Profile() when $default != null:
-return $default(_that.id,_that.fullName,_that.email,_that.role,_that.phone,_that.isMale,_that.dateOfBirth,_that.deletedAt,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.fullName,_that.email,_that.role,_that.phone,_that.isMale,_that.dateOfBirth,_that.avatarUrl,_that.deletedAt,_that.createdAt,_that.updatedAt);case _:
   return null;
 
 }
@@ -218,7 +219,7 @@ return $default(_that.id,_that.fullName,_that.email,_that.role,_that.phone,_that
 @JsonSerializable()
 
 class _Profile implements Profile {
-  const _Profile({required this.id, required this.fullName, required this.email, required this.role, this.phone, this.isMale, this.dateOfBirth, this.deletedAt, required this.createdAt, required this.updatedAt});
+  const _Profile({required this.id, required this.fullName, required this.email, required this.role, this.phone, this.isMale, this.dateOfBirth, this.avatarUrl, this.deletedAt, required this.createdAt, required this.updatedAt});
   factory _Profile.fromJson(Map<String, dynamic> json) => _$ProfileFromJson(json);
 
 @override final  String id;
@@ -228,6 +229,7 @@ class _Profile implements Profile {
 @override final  String? phone;
 @override final  bool? isMale;
 @override final  DateTime? dateOfBirth;
+@override final  String? avatarUrl;
 @override final  DateTime? deletedAt;
 @override final  DateTime createdAt;
 @override final  DateTime updatedAt;
@@ -245,16 +247,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Profile&&(identical(other.id, id) || other.id == id)&&(identical(other.fullName, fullName) || other.fullName == fullName)&&(identical(other.email, email) || other.email == email)&&(identical(other.role, role) || other.role == role)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.isMale, isMale) || other.isMale == isMale)&&(identical(other.dateOfBirth, dateOfBirth) || other.dateOfBirth == dateOfBirth)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Profile&&(identical(other.id, id) || other.id == id)&&(identical(other.fullName, fullName) || other.fullName == fullName)&&(identical(other.email, email) || other.email == email)&&(identical(other.role, role) || other.role == role)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.isMale, isMale) || other.isMale == isMale)&&(identical(other.dateOfBirth, dateOfBirth) || other.dateOfBirth == dateOfBirth)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,fullName,email,role,phone,isMale,dateOfBirth,deletedAt,createdAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,fullName,email,role,phone,isMale,dateOfBirth,avatarUrl,deletedAt,createdAt,updatedAt);
 
 @override
 String toString() {
-  return 'Profile(id: $id, fullName: $fullName, email: $email, role: $role, phone: $phone, isMale: $isMale, dateOfBirth: $dateOfBirth, deletedAt: $deletedAt, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'Profile(id: $id, fullName: $fullName, email: $email, role: $role, phone: $phone, isMale: $isMale, dateOfBirth: $dateOfBirth, avatarUrl: $avatarUrl, deletedAt: $deletedAt, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -265,7 +267,7 @@ abstract mixin class _$ProfileCopyWith<$Res> implements $ProfileCopyWith<$Res> {
   factory _$ProfileCopyWith(_Profile value, $Res Function(_Profile) _then) = __$ProfileCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String fullName, String email, String role, String? phone, bool? isMale, DateTime? dateOfBirth, DateTime? deletedAt, DateTime createdAt, DateTime updatedAt
+ String id, String fullName, String email, String role, String? phone, bool? isMale, DateTime? dateOfBirth, String? avatarUrl, DateTime? deletedAt, DateTime createdAt, DateTime updatedAt
 });
 
 
@@ -282,7 +284,7 @@ class __$ProfileCopyWithImpl<$Res>
 
 /// Create a copy of Profile
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? fullName = null,Object? email = null,Object? role = null,Object? phone = freezed,Object? isMale = freezed,Object? dateOfBirth = freezed,Object? deletedAt = freezed,Object? createdAt = null,Object? updatedAt = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? fullName = null,Object? email = null,Object? role = null,Object? phone = freezed,Object? isMale = freezed,Object? dateOfBirth = freezed,Object? avatarUrl = freezed,Object? deletedAt = freezed,Object? createdAt = null,Object? updatedAt = null,}) {
   return _then(_Profile(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,fullName: null == fullName ? _self.fullName : fullName // ignore: cast_nullable_to_non_nullable
@@ -291,7 +293,8 @@ as String,role: null == role ? _self.role : role // ignore: cast_nullable_to_non
 as String,phone: freezed == phone ? _self.phone : phone // ignore: cast_nullable_to_non_nullable
 as String?,isMale: freezed == isMale ? _self.isMale : isMale // ignore: cast_nullable_to_non_nullable
 as bool?,dateOfBirth: freezed == dateOfBirth ? _self.dateOfBirth : dateOfBirth // ignore: cast_nullable_to_non_nullable
-as DateTime?,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,avatarUrl: freezed == avatarUrl ? _self.avatarUrl : avatarUrl // ignore: cast_nullable_to_non_nullable
+as String?,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,

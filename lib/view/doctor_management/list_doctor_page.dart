@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:pbl6mobile/model/entities/doctor.dart';
@@ -72,7 +73,7 @@ class _DoctorListPageState extends State<DoctorListPage> {
       context: context,
       barrierDismissible: false,
       builder: (context) => DeleteDoctorConfirmationDialog(
-        doctor: doctor.toJson(),
+        doctor: doctor.toJson(), // Đảm bảo Doctor có hàm toJson() đúng
         onDeleteSuccess: () {
           doctorVm.fetchDoctors(forceRefresh: true);
         },
@@ -135,7 +136,9 @@ class _DoctorListPageState extends State<DoctorListPage> {
                     final result = await Navigator.pushNamed(
                         context, Routes.createDoctor);
                     if (result == true) {
-                      context.read<DoctorVm>().fetchDoctors(forceRefresh: true);
+                      context
+                          .read<DoctorVm>()
+                          .fetchDoctors(forceRefresh: true);
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -286,7 +289,7 @@ class _DoctorListPageState extends State<DoctorListPage> {
               Container(
                   width: 48.0,
                   height: 48.0,
-                  decoration:  BoxDecoration(
+                  decoration: BoxDecoration(
                       color: context.theme.white, shape: BoxShape.circle)),
               const Padding(padding: EdgeInsets.symmetric(horizontal: 8.0)),
               Expanded(
@@ -294,10 +297,14 @@ class _DoctorListPageState extends State<DoctorListPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Container(
-                        width: double.infinity, height: 12.0, color: context.theme.white),
+                        width: double.infinity,
+                        height: 12.0,
+                        color: context.theme.white),
                     const Padding(padding: EdgeInsets.symmetric(vertical: 4.0)),
                     Container(
-                        width: double.infinity, height: 10.0, color: context.theme.white),
+                        width: double.infinity,
+                        height: 10.0,
+                        color: context.theme.white),
                     const Padding(padding: EdgeInsets.symmetric(vertical: 2.0)),
                     Container(width: 100.0, height: 8.0, color: context.theme.white),
                   ],
@@ -311,6 +318,12 @@ class _DoctorListPageState extends State<DoctorListPage> {
   }
 
   Widget _buildAnimatedDoctorCard(Doctor doctor, int index, bool isOffline) {
+    // --- BẮT ĐẦU CHỈNH SỬA ---
+    // Kiểm tra xem doctor có avatarUrl không (cần cập nhật model Doctor hoặc API)
+    // Giả sử doctor CÓ thuộc tính avatarUrl
+    final String? avatarUrl = (doctor as dynamic).avatarUrl; // <-- Cần ép kiểu hoặc cập nhật model
+    // --- KẾT THÚC CHỈNH SỬA ---
+
     return Slidable(
       key: ValueKey(doctor.id),
       endActionPane: isOffline
@@ -322,7 +335,7 @@ class _DoctorListPageState extends State<DoctorListPage> {
             onPressed: (context) async {
               final result = await Navigator.pushNamed(
                   context, Routes.updateDoctor,
-                  arguments: doctor.toJson());
+                  arguments: doctor.toJson()); // Đảm bảo toJson() đúng
               if (result == true) {
                 context.read<DoctorVm>().fetchDoctors(forceRefresh: true);
               }
@@ -362,7 +375,12 @@ class _DoctorListPageState extends State<DoctorListPage> {
                     child: CircleAvatar(
                       radius: 24,
                       backgroundColor: context.theme.primary.withOpacity(0.1),
-                      child: Text(
+                      // --- BẮT ĐẦU CHỈNH SỬA ---
+                      backgroundImage: (avatarUrl != null && avatarUrl.isNotEmpty)
+                          ? CachedNetworkImageProvider(avatarUrl)
+                          : null,
+                      child: (avatarUrl == null || avatarUrl.isEmpty)
+                          ? Text(
                         doctor.fullName.isNotEmpty
                             ? doctor.fullName[0].toUpperCase()
                             : 'D',
@@ -370,7 +388,9 @@ class _DoctorListPageState extends State<DoctorListPage> {
                             fontSize: 20,
                             color: context.theme.primary,
                             fontWeight: FontWeight.bold),
-                      ),
+                      )
+                          : null,
+                      // --- KẾT THÚC CHỈNH SỬA ---
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -416,7 +436,8 @@ class _DoctorListPageState extends State<DoctorListPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () => context.read<DoctorVm>().fetchDoctors(forceRefresh: true),
+            onPressed: () =>
+                context.read<DoctorVm>().fetchDoctors(forceRefresh: true),
           )
         ],
       ),
@@ -433,7 +454,7 @@ class _DoctorListPageState extends State<DoctorListPage> {
                   child: Text(
                     provider.error!,
                     textAlign: TextAlign.center,
-                    style:  TextStyle(color: context.theme.popover),
+                    style: TextStyle(color: context.theme.popover),
                   ),
                 ),
               if (provider.isLoading && provider.doctors.isNotEmpty)
@@ -450,8 +471,9 @@ class _DoctorListPageState extends State<DoctorListPage> {
                     }
 
                     return RefreshIndicator(
-                      onRefresh: () async =>
-                          context.read<DoctorVm>().fetchDoctors(forceRefresh: true),
+                      onRefresh: () async => context
+                          .read<DoctorVm>()
+                          .fetchDoctors(forceRefresh: true),
                       child: ListView.builder(
                         controller: _scrollController,
                         itemCount: provider.doctors.length +

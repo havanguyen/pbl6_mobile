@@ -12,30 +12,22 @@ Staff _$StaffFromJson(Map<String, dynamic> json) => Staff(
   fullName: json['fullName'] as String,
   phone: json['phone'] as String?,
   role: json['role'] as String,
-  isMale: json['isMale'] as bool?,
-  dateOfBirth: json['dateOfBirth'] == null
-      ? null
-      : DateTime.parse(json['dateOfBirth'] as String),
-  createdAt: json['createdAt'] == null
-      ? null
-      : DateTime.parse(json['createdAt'] as String),
-  updatedAt: json['updatedAt'] == null
-      ? null
-      : DateTime.parse(json['updatedAt'] as String),
-  deletedAt: json['deletedAt'] == null
-      ? null
-      : DateTime.parse(json['deletedAt'] as String),
+  isMale: Staff._boolFromJson(json['isMale']),
+  dateOfBirth: Staff._dateTimeFromJson(json['dateOfBirth']),
+  createdAt: Staff._dateTimeFromJson(json['createdAt']),
+  updatedAt: Staff._dateTimeFromJson(json['updatedAt']),
+  deletedAt: Staff._dateTimeFromJson(json['deletedAt']),
 );
 
 Map<String, dynamic> _$StaffToJson(Staff instance) => <String, dynamic>{
   'id': instance.id,
   'email': instance.email,
   'fullName': instance.fullName,
-  'phone': instance.phone,
+  'phone': ?instance.phone,
   'role': instance.role,
   'isMale': instance.isMale,
-  'dateOfBirth': instance.dateOfBirth?.toIso8601String(),
-  'createdAt': instance.createdAt?.toIso8601String(),
-  'updatedAt': instance.updatedAt?.toIso8601String(),
-  'deletedAt': instance.deletedAt?.toIso8601String(),
+  'dateOfBirth': Staff._dateTimeToJson(instance.dateOfBirth),
+  'createdAt': Staff._dateTimeToJson(instance.createdAt),
+  'updatedAt': Staff._dateTimeToJson(instance.updatedAt),
+  'deletedAt': Staff._dateTimeToJson(instance.deletedAt),
 };

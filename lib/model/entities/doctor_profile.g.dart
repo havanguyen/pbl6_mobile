@@ -12,14 +12,16 @@ DoctorProfile _$DoctorProfileFromJson(Map<String, dynamic> json) =>
       staffAccountId: json['staffAccountId'] as String,
       isActive: json['isActive'] as bool,
       degree: json['degree'] as String?,
-      position:
-      (json['position'] as List<dynamic>).map((e) => e as String).toList(),
+      position: (json['position'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
       introduction: json['introduction'] as String?,
       memberships: (json['memberships'] as List<dynamic>)
           .map((e) => e as String)
           .toList(),
-      awards:
-      (json['awards'] as List<dynamic>).map((e) => e as String).toList(),
+      awards: (json['awards'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
       research: json['research'] as String?,
       trainingProcess: (json['trainingProcess'] as List<dynamic>)
           .map((e) => e as String)

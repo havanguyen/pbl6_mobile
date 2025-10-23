@@ -1,5 +1,7 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
+
 
 enum ButtonState { idle, loading, success, error }
 
@@ -62,8 +64,8 @@ class _AnimatedSubmitButtonState extends State<AnimatedSubmitButton> {
               )),
         );
       case ButtonState.success:
-        return  SizedBox(
-          key: ValueKey('success'),
+        return SizedBox(
+          key: const ValueKey('success'),
           height: 52,
           child: CircleAvatar(
             backgroundColor: context.theme.green,
@@ -76,11 +78,11 @@ class _AnimatedSubmitButtonState extends State<AnimatedSubmitButton> {
           height: 52,
           child: CircleAvatar(
             backgroundColor: context.theme.destructive,
-            child:  Icon(Icons.close, color: context.theme.white),
+            child: Icon(Icons.close, color: context.theme.white),
           ),
         );
       case ButtonState.idle:
-      return SizedBox(
+        return SizedBox(
           key: const ValueKey('idle'),
           width: double.infinity,
           height: 52,
@@ -102,6 +104,7 @@ class _AnimatedSubmitButtonState extends State<AnimatedSubmitButton> {
     }
   }
 }
+
 
 class DoctorForm extends StatefulWidget {
   final bool isUpdate;
@@ -168,8 +171,10 @@ class _DoctorFormState extends State<DoctorForm>
         '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
       } catch (e) {
         _dateOfBirthController.text = dob.toString();
+        print("Could not parse dateOfBirth as ISO string: $dob. Error: $e");
       }
     }
+
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _animationController.forward();
@@ -188,9 +193,22 @@ class _DoctorFormState extends State<DoctorForm>
   }
 
   Future<void> _selectDate() async {
+    DateTime initial;
+    try {
+      if (_dateOfBirthController.text.contains('/')) {
+        final parts = _dateOfBirthController.text.split('/');
+        initial = DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
+      } else {
+        initial = DateTime.tryParse(_dateOfBirthController.text) ?? DateTime.now();
+      }
+    } catch (e) {
+      initial = DateTime.now();
+    }
+
+
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
+      initialDate: initial.isAfter(DateTime(1900)) && initial.isBefore(DateTime.now()) ? initial : DateTime.now(), // Đảm bảo initialDate hợp lệ
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
       builder: (context, child) => Theme(
@@ -200,6 +218,11 @@ class _DoctorFormState extends State<DoctorForm>
             onPrimary: context.theme.primaryForeground,
             surface: context.theme.popover,
             onSurface: context.theme.popoverForeground,
+          ),
+          textButtonTheme: TextButtonThemeData(
+            style: TextButton.styleFrom(
+              foregroundColor: context.theme.primary,
+            ),
           ),
         ),
         child: child!,
@@ -211,7 +234,9 @@ class _DoctorFormState extends State<DoctorForm>
       final month = picked.month.toString().padLeft(2, '0');
       final year = picked.year.toString();
       final formattedDate = '$day/$month/$year';
-      _dateOfBirthController.text = formattedDate;
+      setState(() {
+        _dateOfBirthController.text = formattedDate;
+      });
     }
   }
 
@@ -223,18 +248,13 @@ class _DoctorFormState extends State<DoctorForm>
         password: _passwordController.text,
         fullName: _fullNameController.text,
         phone: _phoneController.text.isEmpty ? null : _phoneController.text,
-        dateOfBirth: _dateOfBirthController.text,
+        dateOfBirth: _dateOfBirthController.text, // Giữ định dạng dd/MM/yyyy
         isMale: _isMale,
       );
 
-      if (success) {
+      if (success && mounted) {
         widget.onSuccess?.call();
-        Future.delayed(const Duration(milliseconds: 1500), () {
-          if (mounted) {
-            Navigator.of(context).pop(true);
-          }
-        });
-      } else {
+      } else if (!success && mounted) {
         _showErrorDialog(
             '${widget.isUpdate ? 'Cập nhật' : 'Tạo'} ${widget.role.toLowerCase()} thất bại.');
       }
@@ -244,6 +264,7 @@ class _DoctorFormState extends State<DoctorForm>
   }
 
   void _showErrorDialog(String message) {
+    if (!mounted) return;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -303,15 +324,24 @@ class _DoctorFormState extends State<DoctorForm>
                 child: CircleAvatar(
                   radius: 50,
                   backgroundColor: context.theme.primary.withOpacity(0.1),
-                  child: Text(
+                  // --- BẮT ĐẦU CHỈNH SỬA ---
+                  backgroundImage: (widget.initialData?['avatarUrl'] != null &&
+                      widget.initialData!['avatarUrl']!.isNotEmpty)
+                      ? CachedNetworkImageProvider(widget.initialData!['avatarUrl']!)
+                      : null,
+                  child: (widget.initialData?['avatarUrl'] == null ||
+                      widget.initialData!['avatarUrl']!.isEmpty)
+                      ? Text(
                     widget.initialData?['fullName']?.isNotEmpty == true
                         ? widget.initialData!['fullName'][0].toUpperCase()
-                        : 'D',
+                        : 'D', // Hoặc chữ cái mặc định khác
                     style: TextStyle(
                         fontSize: 40,
                         color: context.theme.primary,
                         fontWeight: FontWeight.bold),
-                  ),
+                  )
+                      : null,
+                  // --- KẾT THÚC CHỈNH SỬA ---
                 ),
               ),
               const SizedBox(height: 16),
@@ -337,6 +367,9 @@ class _DoctorFormState extends State<DoctorForm>
                 decoration: InputDecoration(
                   labelText: 'Họ và tên',
                   prefixIcon: Icon(Icons.person, color: context.theme.primary),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  filled: true,
+                  fillColor: context.theme.input,
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -354,6 +387,9 @@ class _DoctorFormState extends State<DoctorForm>
                 decoration: InputDecoration(
                   labelText: 'Email',
                   prefixIcon: Icon(Icons.email, color: context.theme.primary),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  filled: true,
+                  fillColor: context.theme.input,
                 ),
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) {
@@ -376,20 +412,33 @@ class _DoctorFormState extends State<DoctorForm>
                       ? 'Mật khẩu mới (để trống nếu không đổi)'
                       : 'Mật khẩu',
                   prefixIcon: Icon(Icons.lock, color: context.theme.primary),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  filled: true,
+                  fillColor: context.theme.input,
                 ),
                 obscureText: true,
                 validator: (value) {
                   if (!widget.isUpdate && (value == null || value.isEmpty)) {
                     return 'Vui lòng nhập mật khẩu';
                   }
-                  if (value != null &&
-                      value.isNotEmpty &&
-                      (value.length < 8 ||
-                          !value.contains(RegExp(r'[a-zA-Z]')) ||
-                          !value.contains(RegExp(r'[0-9]')))) {
-                    return 'Mật khẩu tối thiểu 8 ký tự, có chữ và số';
+                  // Chỉ validate mật khẩu mới nếu người dùng nhập gì đó
+                  if (widget.isUpdate && value != null && value.isNotEmpty) {
+                    if (value.length < 8 ||
+                        !value.contains(RegExp(r'[a-zA-Z]')) ||
+                        !value.contains(RegExp(r'[0-9]'))) {
+                      return 'Mật khẩu tối thiểu 8 ký tự, có chữ và số';
+                    }
+                  } else if (!widget.isUpdate) { // Validate khi tạo mới
+                    if (value == null || value.isEmpty) {
+                      return 'Vui lòng nhập mật khẩu';
+                    }
+                    if (value.length < 8 ||
+                        !value.contains(RegExp(r'[a-zA-Z]')) ||
+                        !value.contains(RegExp(r'[0-9]'))) {
+                      return 'Mật khẩu tối thiểu 8 ký tự, có chữ và số';
+                    }
                   }
-                  return null;
+                  return null; // Hợp lệ nếu để trống khi cập nhật hoặc đúng định dạng
                 },
               ),
             ),
@@ -399,17 +448,22 @@ class _DoctorFormState extends State<DoctorForm>
               child: TextFormField(
                 controller: _phoneController,
                 decoration: InputDecoration(
-                  labelText: 'Số điện thoại',
+                  labelText: 'Số điện thoại (tùy chọn)',
                   prefixIcon: Icon(Icons.phone, color: context.theme.primary),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  filled: true,
+                  fillColor: context.theme.input,
                 ),
                 keyboardType: TextInputType.phone,
                 validator: (value) {
-                  if (value != null &&
-                      value.isNotEmpty &&
-                      !RegExp(r'^\d{10}$').hasMatch(value)) {
-                    return 'Số điện thoại phải là 10 chữ số';
+                  // Chỉ validate nếu người dùng nhập số điện thoại
+                  if (value != null && value.isNotEmpty) {
+                    // Regex linh hoạt hơn cho số điện thoại VN (có thể có +84)
+                    if (!RegExp(r'^(?:\+84|0)\d{9}$').hasMatch(value)) {
+                      return 'Số điện thoại không hợp lệ (VD: 0xxxxxxxxx hoặc +84xxxxxxxxx)';
+                    }
                   }
-                  return null;
+                  return null; // Hợp lệ nếu để trống hoặc đúng định dạng
                 },
               ),
             ),
@@ -422,12 +476,23 @@ class _DoctorFormState extends State<DoctorForm>
                   labelText: 'Ngày sinh (dd/mm/yyyy)',
                   prefixIcon:
                   Icon(Icons.calendar_today, color: context.theme.primary),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  filled: true,
+                  fillColor: context.theme.input,
                 ),
                 readOnly: true,
                 onTap: _selectDate,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Vui lòng chọn ngày sinh';
+                  }
+                  // Thêm kiểm tra định dạng nếu cần
+                  try {
+                    final parts = value.split('/');
+                    if (parts.length != 3) throw FormatException();
+                    DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
+                  } catch (e) {
+                    return 'Định dạng ngày không hợp lệ (dd/mm/yyyy)';
                   }
                   return null;
                 },
@@ -436,22 +501,41 @@ class _DoctorFormState extends State<DoctorForm>
             const SizedBox(height: 20),
             _buildAnimatedFormField(
                 index: 5,
-                child: Row(
-                  children: [
-                    Text('Giới tính:',
-                        style: TextStyle(color: context.theme.textColor)),
-                    Radio<bool>(
-                        value: true,
-                        groupValue: _isMale,
-                        onChanged: (value) => setState(() => _isMale = true)),
-                    Text('Nam', style: TextStyle(color: context.theme.textColor)),
-                    Radio<bool>(
-                        value: false,
-                        groupValue: _isMale,
-                        onChanged: (value) => setState(() => _isMale = false)),
-                    Text('Nữ', style: TextStyle(color: context.theme.textColor)),
-                  ],
-                )),
+                child: Container( // Bọc Row trong Container để thêm padding/margin nếu cần
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    decoration: BoxDecoration(
+                      color: context.theme.input,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly, // Phân bố đều hơn
+                      children: [
+                        Text('Giới tính:',
+                            style: TextStyle(color: context.theme.textColor, fontSize: 16)),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Radio<bool>(
+                                value: true,
+                                groupValue: _isMale,
+                                activeColor: context.theme.primary,
+                                onChanged: (value) => setState(() => _isMale = true)),
+                            Text('Nam', style: TextStyle(color: context.theme.textColor, fontSize: 16)),
+                          ],
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Radio<bool>(
+                                value: false,
+                                groupValue: _isMale,
+                                activeColor: context.theme.primary,
+                                onChanged: (value) => setState(() => _isMale = false)),
+                            Text('Nữ', style: TextStyle(color: context.theme.textColor, fontSize: 16)),
+                          ],
+                        )
+                      ],
+                    ))),
             const SizedBox(height: 32),
             _buildAnimatedFormField(
               index: 6,

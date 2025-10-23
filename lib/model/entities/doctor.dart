@@ -14,6 +14,8 @@ class Doctor {
   final bool? isMale;
   @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   final DateTime? dateOfBirth;
+  final String? avatarUrl;
+
   @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   final DateTime? createdAt;
   @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
@@ -29,6 +31,7 @@ class Doctor {
     required this.role,
     this.isMale,
     this.dateOfBirth,
+    this.avatarUrl,
     required this.createdAt,
     required this.updatedAt,
     this.deletedAt,
@@ -36,7 +39,6 @@ class Doctor {
 
   factory Doctor.fromJson(Map<String, dynamic> json) => _$DoctorFromJson(json);
   Map<String, dynamic> toJson() => _$DoctorToJson(this);
-
   static bool? _boolFromJson(dynamic value) {
     if (value == null) return null;
     if (value is bool) return value;

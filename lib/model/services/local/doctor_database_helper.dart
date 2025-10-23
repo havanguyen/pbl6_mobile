@@ -4,7 +4,7 @@ import 'package:pbl6mobile/model/entities/doctor.dart';
 
 class DoctorDatabaseHelper {
   static const _databaseName = "doctors.db";
-  static const _databaseVersion = 1;
+  static const _databaseVersion = 2;
   static const _table = "doctors";
 
   DoctorDatabaseHelper._privateConstructor();
@@ -25,10 +25,16 @@ class DoctorDatabaseHelper {
       path,
       version: _databaseVersion,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
   }
 
   Future<void> _onCreate(Database db, int version) async {
+    await _createTableV1(db);
+    await _onUpgrade(db, 1, version);
+  }
+
+  Future<void> _createTableV1(Database db) async {
     await db.execute('''
       CREATE TABLE $_table (
         id TEXT PRIMARY KEY,
@@ -43,6 +49,12 @@ class DoctorDatabaseHelper {
         deletedAt TEXT
       )
     ''');
+  }
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('ALTER TABLE $_table ADD COLUMN avatarUrl TEXT');
+      print("Database upgraded: Added avatarUrl column to doctors table.");
+    }
   }
 
   Future<void> insertDoctors(List<Doctor> doctors) async {
@@ -91,10 +103,16 @@ class DoctorDatabaseHelper {
 
       String? orderByClause;
       if (sortBy != null && sortBy.isNotEmpty) {
-        orderByClause = '$sortBy ${sortOrder ?? 'ASC'}';
+        final columns = ['id', 'email', 'fullName', 'createdAt', 'updatedAt'];
+        if (columns.contains(sortBy)) {
+          orderByClause = '$sortBy ${sortOrder ?? 'ASC'}';
+        } else {
+          orderByClause = 'createdAt DESC';
+        }
       } else {
         orderByClause = 'createdAt DESC';
       }
+
 
       final offset = (page - 1) * limit;
       final maps = await db.query(
@@ -114,6 +132,7 @@ class DoctorDatabaseHelper {
         return Doctor.fromJson(newMap);
       }).toList();
     } catch (e) {
+      print("Error getting doctors from database: $e");
       return [];
     }
   }

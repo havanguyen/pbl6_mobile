@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:pbl6mobile/model/entities/profile.dart';
 import 'package:pbl6mobile/model/services/remote/auth_service.dart';
@@ -23,9 +24,18 @@ class _AccountDoctorPageState extends State<AccountDoctorPage> {
   Future<void> _reloadProfile() async {
     final updatedProfile = await AuthService.getProfile();
     if (updatedProfile != null && mounted) {
-      setState(() {
-        _currentProfile = updatedProfile;
-      });
+      if (updatedProfile.role == 'DOCTOR') {
+        setState(() {
+          _currentProfile = updatedProfile;
+        });
+      } else {
+        if(mounted) Navigator.pop(context);
+      }
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Không thể tải thông tin tài khoản.'))
+      );
+      Navigator.pop(context);
     }
   }
 
@@ -88,19 +98,28 @@ class _AccountDoctorPageState extends State<AccountDoctorPage> {
   }
 
   Widget _buildProfileHeader(BuildContext context) {
+    final String? avatarUrl = _currentProfile?.avatarUrl;
+
     return Column(
       children: [
         CircleAvatar(
           radius: 50,
           backgroundColor: context.theme.primary.withOpacity(0.1),
-          child: Text(
-            _currentProfile!.fullName.isNotEmpty ? _currentProfile!.fullName[0].toUpperCase() : 'D',
+          backgroundImage: (avatarUrl != null && avatarUrl.isNotEmpty)
+              ? CachedNetworkImageProvider(avatarUrl)
+              : null,
+          child: (avatarUrl == null || avatarUrl.isEmpty)
+              ? Text(
+            _currentProfile!.fullName.isNotEmpty
+                ? _currentProfile!.fullName[0].toUpperCase()
+                : 'D',
             style: TextStyle(
               fontSize: 48,
               fontWeight: FontWeight.bold,
               color: context.theme.primary,
             ),
-          ),
+          )
+              : null,
         ),
         const SizedBox(height: 16),
         Text(
@@ -144,7 +163,7 @@ class _AccountDoctorPageState extends State<AccountDoctorPage> {
               context,
               icon: Icons.cake_outlined,
               label: 'Ngày sinh',
-              value: _currentProfile!.dateOfBirth?.toString().split(' ')[0] ?? 'Chưa cập nhật',
+              value: _currentProfile!.dateOfBirth?.toIso8601String().split('T')[0] ?? 'Chưa cập nhật',
             ),
             _buildInfoItem(
               context,
@@ -176,12 +195,16 @@ class _AccountDoctorPageState extends State<AccountDoctorPage> {
               ),
             ),
             const Spacer(),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: context.theme.textColor,
+            Expanded(
+              child: Text(
+                value,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: context.theme.textColor,
+                ),
+                textAlign: TextAlign.end,
+                overflow: TextOverflow.fade,
               ),
             ),
           ],

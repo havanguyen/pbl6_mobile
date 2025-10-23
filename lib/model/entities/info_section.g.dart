@@ -15,21 +15,12 @@ InfoSection _$InfoSectionFromJson(Map<String, dynamic> json) => InfoSection(
   updatedAt: InfoSection._dateTimeFromJson(json['updatedAt']),
 );
 
-Map<String, dynamic> _$InfoSectionToJson(InfoSection instance) {
-  final val = <String, dynamic>{
-    'id': instance.id,
-    'name': instance.name,
-    'content': instance.content,
-    'specialtyId': instance.specialtyId,
-  };
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('createdAt', InfoSection._dateTimeToJson(instance.createdAt));
-  writeNotNull('updatedAt', InfoSection._dateTimeToJson(instance.updatedAt));
-  return val;
-}
+Map<String, dynamic> _$InfoSectionToJson(InfoSection instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'name': instance.name,
+      'content': instance.content,
+      'specialtyId': instance.specialtyId,
+      'createdAt': InfoSection._dateTimeToJson(instance.createdAt),
+      'updatedAt': InfoSection._dateTimeToJson(instance.updatedAt),
+    };

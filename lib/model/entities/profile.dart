@@ -13,6 +13,7 @@ class Profile with _$Profile {
     String? phone,
     bool? isMale,
     DateTime? dateOfBirth,
+    String? avatarUrl,
     DateTime? deletedAt,
     required DateTime createdAt,
     required DateTime updatedAt,
@@ -20,6 +21,10 @@ class Profile with _$Profile {
 
   factory Profile.fromJson(Map<String, dynamic> json) =>
       _$ProfileFromJson(json);
+
+  @override
+  // TODO: implement avatarUrl
+  String? get avatarUrl => throw UnimplementedError();
 
   @override
   // TODO: implement createdAt

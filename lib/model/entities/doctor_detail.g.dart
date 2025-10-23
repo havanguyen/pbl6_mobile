@@ -26,8 +26,7 @@ DoctorDetail _$DoctorDetailFromJson(Map<String, dynamic> json) => DoctorDetail(
   memberships: (json['memberships'] as List<dynamic>?)
       ?.map((e) => e as String)
       .toList(),
-  awards:
-  (json['awards'] as List<dynamic>?)?.map((e) => e as String).toList(),
+  awards: (json['awards'] as List<dynamic>?)?.map((e) => e as String).toList(),
   research: json['research'] as String?,
   trainingProcess: (json['trainingProcess'] as List<dynamic>?)
       ?.map((e) => e as String)

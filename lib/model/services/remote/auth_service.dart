@@ -4,7 +4,6 @@ import 'package:pbl6mobile/shared/services/store.dart';
 
 import '../../entities/profile.dart';
 
-
 class AuthService {
   const AuthService._();
 
@@ -19,6 +18,8 @@ class AuthService {
   );
 
   static final Dio _secureDio = _initializeSecureDio();
+
+  static Dio getSecureDioInstance() => _secureDio;
 
   static Dio _initializeSecureDio() {
     final dio = Dio(
@@ -36,16 +37,52 @@ class AuthService {
           if (accessToken != null) {
             options.headers['Authorization'] = 'Bearer $accessToken';
           }
+          print('--> ${options.method.toUpperCase()} ${options.uri}');
+          print('Headers: ${options.headers}');
+          if (options.data != null) {
+            print('Body: ${options.data}');
+          }
           return handler.next(options);
         },
+        onResponse: (response, handler) {
+          print('<-- ${response.statusCode} ${response.requestOptions.uri}');
+          print('Response: ${response.data}');
+          return handler.next(response);
+        },
         onError: (DioException e, handler) async {
+          print('*** DioError ***');
+          print('Error: ${e.message}');
+          if (e.response != null) {
+            print('Error Response Status: ${e.response?.statusCode}');
+            print('Error Response Data: ${e.response?.data}');
+          } else {
+            print('Error Request Options: ${e.requestOptions}');
+          }
+
           if (e.response?.statusCode == 401) {
+            print('--- Handling 401 Unauthorized ---');
+            if (e.requestOptions.path == '/auth/refresh') {
+              print('Refresh token failed with 401, logging out.');
+              await logout();
+              return handler.reject(e);
+            }
+
             try {
+              print('Attempting to refresh token...');
               if (await refreshToken()) {
-                final response = await dio.fetch(e.requestOptions);
+                print('Token refreshed successfully. Retrying original request...');
+                final newAccessToken = await Store.getAccessToken();
+                e.requestOptions.headers['Authorization'] = 'Bearer $newAccessToken';
+
+                final response = await _secureDio.fetch(e.requestOptions);
                 return handler.resolve(response);
+              } else {
+                print('Refresh token failed, logging out.');
+                await logout();
               }
             } catch (err) {
+              print('Error during token refresh or retry: $err');
+              await logout();
               return handler.reject(e);
             }
           }
@@ -68,13 +105,24 @@ class AuthService {
       );
       if (response.statusCode == 201 || response.statusCode == 200) {
         final data = response.data['data'];
-        await Store.setAccessToken(data['access_token']);
-        await Store.setRefreshToken(data['refresh_token']);
-        await Store.setUserRole(data['user']['role']);
-        return true;
+        if (data != null && data['access_token'] != null && data['refresh_token'] != null && data['user']?['role'] != null) {
+          await Store.setAccessToken(data['access_token']);
+          await Store.setRefreshToken(data['refresh_token']);
+          await Store.setUserRole(data['user']['role']);
+          print('Login successful for role: ${data['user']['role']}');
+          return true;
+        } else {
+          print('Login response missing data: ${response.data}');
+          return false;
+        }
       }
+      print('Login failed with status: ${response.statusCode}');
       return false;
     } catch (e) {
+      print("Login error: $e");
+      if (e is DioException) {
+        print("DioException Response: ${e.response?.data}");
+      }
       return false;
     }
   }
@@ -83,35 +131,65 @@ class AuthService {
     try {
       final refreshToken = await Store.getRefreshToken();
       if (refreshToken == null) {
+        print('No refresh token found.');
         return false;
       }
+      print('Attempting to refresh token...');
       final response = await _dio.post(
         '/auth/refresh',
         data: {'refresh_token': refreshToken},
       );
       if (response.statusCode == 201 || response.statusCode == 200) {
         final data = response.data['data'];
-        await Store.setAccessToken(data['access_token']);
-        await Store.setRefreshToken(data['refresh_token']);
-        return true;
+        if (data != null && data['access_token'] != null && data['refresh_token'] != null) {
+          await Store.setAccessToken(data['access_token']);
+          await Store.setRefreshToken(data['refresh_token']);
+          print('Token refreshed successfully.');
+          return true;
+        } else {
+          print('Refresh token response missing data: ${response.data}');
+          await logout();
+          return false;
+        }
       }
+      print('Refresh token failed with status: ${response.statusCode}');
       await logout();
       return false;
     } catch (e) {
+      print("Refresh token error: $e");
+      if (e is DioException) {
+        print("DioException Response: ${e.response?.data}");
+        if (e.response?.statusCode == 401 || e.response?.statusCode == 403) {
+          print('Refresh token invalid, logging out.');
+          await logout();
+        }
+      } else {
+        print('Non-Dio error during refresh: $e');
+      }
       return false;
     }
   }
 
   static Future<bool> logout() async {
+    print('Logging out...');
     try {
-      // Sửa từ .post thành .delete để khớp với yêu cầu của API
-      await _secureDio.delete('/auth/logout');
+      final refreshToken = await Store.getRefreshToken();
+      if (refreshToken != null) {
+        await _secureDio.delete(
+          '/auth/logout',
+        );
+        print('API logout call successful.');
+      } else {
+        print('No refresh token found, skipping API logout call.');
+      }
     } catch (e) {
-      // Ghi lại lỗi nếu cần, nhưng không để ứng dụng bị crash
-      print("Error during API logout: $e");
+      print("Error during API logout call: $e");
+      if (e is DioException) {
+        print("DioException Response: ${e.response?.data}");
+      }
     } finally {
-      // Luôn đảm bảo xóa token ở phía client
       await Store.clearStorage();
+      print('Local storage cleared.');
     }
     return true;
   }
@@ -130,6 +208,10 @@ class AuthService {
       );
       return response.statusCode == 200;
     } catch (e) {
+      print("Change password error: $e");
+      if (e is DioException) {
+        print("DioException Response: ${e.response?.data}");
+      }
       return false;
     }
   }
@@ -142,11 +224,16 @@ class AuthService {
   static Future<Profile?> getProfile() async {
     try {
       final response = await _secureDio.get('/auth/profile');
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 && response.data?['data'] != null) {
         return Profile.fromJson(response.data['data']);
       }
+      print('Get profile failed with status: ${response.statusCode}');
       return null;
     } catch (e) {
+      print("Get profile error: $e");
+      if (e is DioException) {
+        print("DioException Response: ${e.response?.data}");
+      }
       return null;
     }
   }
@@ -159,11 +246,16 @@ class AuthService {
         '/auth/verify-password',
         data: {'password': password},
       );
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 && response.data != null) {
         return response.data['success'] ?? false;
       }
+      print('Verify password failed with status: ${response.statusCode}');
       return false;
     } catch (e) {
+      print("Verify password error: $e");
+      if (e is DioException) {
+        print("DioException Response: ${e.response?.data}");
+      }
       return false;
     }
   }
