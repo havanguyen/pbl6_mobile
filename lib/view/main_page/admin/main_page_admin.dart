@@ -116,9 +116,11 @@ class MainPageAdmin extends StatelessWidget {
                 child: CustomCircularButton(
                   context,
                   size: 120,
-                  icon: Icons.account_circle_outlined,
+                  icon: Icons.article_outlined,
                   label: 'QUẢN LÝ BLOG',
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.pushNamed(context, Routes.listBlog);
+                  },
                 ),),
             ),
             Positioned(

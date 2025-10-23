@@ -12,6 +12,9 @@ import 'package:pbl6mobile/view/setting/doctor/account_doctor_page.dart';
 import 'package:pbl6mobile/view/setting/doctor/edit_account_doctor_page.dart';
 import 'package:pbl6mobile/view/setting/doctor/profile_doctor_page.dart';
 import 'package:pbl6mobile/view/setting/super_admin/setting_supperadmin_page.dart';
+import 'package:pbl6mobile/view/blog/create_blog_page.dart'; // Import mới
+import 'package:pbl6mobile/view/blog/list_blog_page.dart'; // Import mới
+import 'package:pbl6mobile/view/blog/update_blog_page.dart'; // Import mới
 
 import '../../model/entities/work_location.dart';
 import '../../view/admin_management/create_admin_page.dart';
@@ -65,6 +68,9 @@ class Routes {
   static const profileDoctor = '/profileDoctor';
   static const accountDoctor = '/accountDoctor';
   static const editAccountDoctor = '/editAccountDoctor';
+  static const listBlog = '/listBlog'; // Thêm route
+  static const createBlog = '/createBlog'; // Thêm route
+  static const updateBlog = '/updateBlog'; // Thêm route
 
 
 
@@ -259,6 +265,25 @@ class Routes {
           type: PageTransitionType.leftToRight,
           settings: settings,
           child:  UpdateAdminPage(admin: admin!,),
+        );
+      case listBlog: // Thêm case
+        return PageTransition(
+          type: PageTransitionType.fade,
+          settings: settings,
+          child: const ListBlogPage(),
+        );
+      case createBlog: // Thêm case
+        return PageTransition(
+          type: PageTransitionType.leftToRight,
+          settings: settings,
+          child: const CreateBlogPage(),
+        );
+      case updateBlog: // Thêm case
+        final blogId = settings.arguments as String;
+        return PageTransition(
+          type: PageTransitionType.leftToRight,
+          settings: settings,
+          child: UpdateBlogPage(blogId: blogId),
         );
       default:
         return MaterialPageRoute(

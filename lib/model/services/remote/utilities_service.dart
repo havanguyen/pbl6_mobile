@@ -1,13 +1,11 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:pbl6mobile/model/services/remote/auth_service.dart';
 
 class UtilitiesService {
   const UtilitiesService._();
 
-  static final String? _baseUrl = dotenv.env['API_BASE_URL'];
   static final Dio _secureDio = AuthService.getSecureDioInstance();
 
   static Future<Map<String, dynamic>?> getUploadSignature() async {

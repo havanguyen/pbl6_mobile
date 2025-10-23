@@ -40,6 +40,7 @@ dependencies:
   dio_smart_retry: ^7.0.1
   cached_network_image: ^3.4.1
   image_picker: ^1.2.0
+  flutter_svg: ^2.2.1
 
 dev_dependencies:
   flutter_test:

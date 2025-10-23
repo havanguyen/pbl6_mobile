@@ -10,6 +10,7 @@ import 'package:pbl6mobile/shared/themes/cubit/theme_state.dart';
 import 'package:pbl6mobile/view/splash/splash.dart';
 import 'package:pbl6mobile/view_model/admin_management/admin_management_vm.dart';
 import 'package:pbl6mobile/view_model/admin_management/doctor_management_vm.dart';
+import 'package:pbl6mobile/view_model/blog/blog_vm.dart';
 import 'package:pbl6mobile/view_model/location_work_management/location_work_vm.dart';
 import 'package:pbl6mobile/view_model/location_work_management/snackbar_service.dart';
 import 'package:pbl6mobile/view_model/specialty/specialty_vm.dart';
@@ -33,6 +34,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider<StaffVm>(create: (_) => StaffVm()),
         ChangeNotifierProvider<DoctorVm>(create: (_) => DoctorVm()),
         ChangeNotifierProvider<SpecialtyVm>(create: (_) => SpecialtyVm()),
+        ChangeNotifierProvider<BlogVm>(create: (_) => BlogVm()), // Thêm provider
         BlocProvider<ThemeCubit>(
           create: (_) => ThemeCubit()..loadTheme(),
         ),
@@ -57,6 +59,7 @@ class MyApp extends StatelessWidget {
               Locale('en'),
               Locale('vi'),
             ],
+            locale: const Locale('vi'), // Set default locale to Vietnamese if needed
           );
         },
       ),
