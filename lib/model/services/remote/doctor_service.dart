@@ -13,9 +13,9 @@ class DoctorService {
   const DoctorService._();
 
   static final String? _baseUrl = dotenv.env['API_BASE_URL'];
-  static final Dio _dio = _initializeDio();
+  static final Dio _secureDio = _initializeSecureDio();
 
-  static Dio _initializeDio() {
+  static Dio _initializeSecureDio() {
     final dio = Dio(
       BaseOptions(
         baseUrl: _baseUrl!,
@@ -54,11 +54,27 @@ class DoctorService {
               if (refreshSuccess) {
                 final newAccessToken = await Store.getAccessToken();
                 e.requestOptions.headers['Authorization'] = 'Bearer $newAccessToken';
-                final response = await dio.fetch(e.requestOptions);
+                final options = Options(
+                  method: e.requestOptions.method,
+                  headers: e.requestOptions.headers,
+                );
+                final response = await dio.request(
+                  e.requestOptions.path,
+                  options: options,
+                  data: e.requestOptions.data,
+                  queryParameters: e.requestOptions.queryParameters,
+                );
                 return handler.resolve(response);
+              } else {
+                await AuthService.logout();
               }
             } catch (err) {
-              return handler.reject(e);
+              await AuthService.logout();
+              return handler.reject(DioException(
+                requestOptions: e.requestOptions,
+                error: err,
+                response: e.response,
+              ));
             }
           }
           return handler.next(e);
@@ -91,7 +107,7 @@ class DoctorService {
         if (sortOrder != null && sortOrder.isNotEmpty) 'sortOrder': sortOrder,
       };
 
-      final response = await _dio.get('/doctors', queryParameters: params);
+      final response = await _secureDio.get('/doctors', queryParameters: params);
 
       if (response.statusCode == 200) {
         final doctorList = (response.data['data'] as List)
@@ -113,39 +129,48 @@ class DoctorService {
 
   static Future<DoctorDetail?> getDoctorWithProfile(String doctorId) async {
     try {
-      final response = await _dio.get('/doctors/$doctorId/complete');
-      if (response.statusCode == 200) {
+      final response = await _secureDio.get('/doctors/$doctorId/complete');
+      if (response.statusCode == 200 && response.data['data'] != null) {
         return DoctorDetail.fromJson(response.data['data']);
       }
       return null;
     } catch (e) {
       print('Get Doctor with Profile Error: $e');
+      if (e is DioException) {
+        print('DioException response: ${e.response?.data}');
+      }
       return null;
     }
   }
 
   static Future<DoctorProfile?> createDoctorProfile(Map<String, dynamic> data) async {
     try {
-      final response = await _dio.post('/doctors/profile', data: data);
-      if (response.statusCode == 201) {
+      final response = await _secureDio.post('/doctors/profile', data: data);
+      if (response.statusCode == 201 && response.data['data'] != null) {
         return DoctorProfile.fromJson(response.data['data']);
       }
       return null;
     } catch (e) {
       print('Create Doctor Profile Error: $e');
+      if (e is DioException) {
+        print('DioException response: ${e.response?.data}');
+      }
       return null;
     }
   }
 
   static Future<DoctorProfile?> updateDoctorProfile(String profileId, Map<String, dynamic> data) async {
     try {
-      final response = await _dio.patch('/doctors/profile/$profileId', data: data);
-      if (response.statusCode == 200) {
+      final response = await _secureDio.patch('/doctors/profile/$profileId', data: data);
+      if (response.statusCode == 200 && response.data['data'] != null) {
         return DoctorProfile.fromJson(response.data['data']);
       }
       return null;
     } catch (e) {
       print('Update Doctor Profile Error: $e');
+      if (e is DioException) {
+        print('DioException response: ${e.response?.data}');
+      }
       return null;
     }
   }
@@ -155,7 +180,7 @@ class DoctorService {
       print("➡️ [SERVICE] Sending PATCH request to '/doctors/profile/$profileId/toggle-active'");
       print("   - Payload: {'isActive': $isActive}");
 
-      final response = await _dio.patch(
+      final response = await _secureDio.patch(
         '/doctors/profile/$profileId/toggle-active',
         data: {'isActive': isActive},
       );
@@ -198,7 +223,7 @@ class DoctorService {
         if (phone != null && phone.isNotEmpty) 'phone': phone,
       };
 
-      final response = await _dio.post('/doctors', data: requestBody);
+      final response = await _secureDio.post('/doctors', data: requestBody);
 
       if (response.statusCode == 201) {
         final newDoctorId = response.data['data']?['id'];
@@ -210,6 +235,9 @@ class DoctorService {
       return false;
     } catch (e) {
       print('Lỗi khi tạo bác sĩ và hồ sơ: $e');
+      if (e is DioException) {
+        print('DioException response: ${e.response?.data}');
+      }
       return false;
     }
   }
@@ -235,10 +263,13 @@ class DoctorService {
 
       if (requestBody.isEmpty) return false;
 
-      final response = await _dio.patch('/doctors/$id', data: requestBody);
+      final response = await _secureDio.patch('/doctors/$id', data: requestBody);
       return response.statusCode == 200;
     } catch (e) {
       print('Update Doctor Error: $e');
+      if (e is DioException) {
+        print('DioException response: ${e.response?.data}');
+      }
       return false;
     }
   }
@@ -251,11 +282,46 @@ class DoctorService {
         return false;
       }
 
-      final response = await _dio.delete('/doctors/$id');
+      final response = await _secureDio.delete('/doctors/$id');
       return response.statusCode == 200 || response.statusCode == 204;
     } catch (e) {
       print('Delete Doctor Error: $e');
+      if (e is DioException) {
+        print('DioException response: ${e.response?.data}');
+      }
       return false;
+    }
+  }
+
+  static Future<DoctorDetail?> getSelfProfileComplete() async {
+    try {
+      final response = await _secureDio.get('/doctors/profile/me');
+      if (response.statusCode == 200 && response.data['data'] != null) {
+        return DoctorDetail.fromJson(response.data['data']);
+      }
+      return null;
+    } catch (e) {
+      print('Get Self Profile Complete Error: $e');
+      if (e is DioException) {
+        print('DioException response: ${e.response?.data}');
+      }
+      return null;
+    }
+  }
+
+  static Future<DoctorProfile?> updateSelfProfile(Map<String, dynamic> data) async {
+    try {
+      final response = await _secureDio.patch('/doctors/profile/me', data: data);
+      if (response.statusCode == 200 && response.data['data'] != null) {
+        return DoctorProfile.fromJson(response.data['data']);
+      }
+      return null;
+    } catch (e) {
+      print('Update Self Profile Error: $e');
+      if (e is DioException) {
+        print('DioException response: ${e.response?.data}');
+      }
+      return null;
     }
   }
 }

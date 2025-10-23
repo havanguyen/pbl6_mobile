@@ -212,11 +212,16 @@ class Routes {
           child: DoctorDetailPage(doctorId: doctorId),
         );
       case editDoctorProfile:
-        final doctorDetail = settings.arguments as DoctorDetail;
+        final args = settings.arguments as Map<String, dynamic>;
+        final doctorDetail = args['doctorDetail'] as DoctorDetail;
+        final isSelfEdit = args['isSelfEdit'] as bool? ?? false;
         return PageTransition(
           type: PageTransitionType.leftToRight,
           settings: settings,
-          child: EditDoctorProfilePage(doctorDetail: doctorDetail),
+          child: EditDoctorProfilePage(
+            doctorDetail: doctorDetail,
+            isSelfEdit: isSelfEdit,
+          ),
         );
       case createAdmin:
         return PageTransition(

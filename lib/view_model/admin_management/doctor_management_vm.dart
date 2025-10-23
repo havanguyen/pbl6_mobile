@@ -52,6 +52,9 @@ class DoctorVm extends ChangeNotifier {
       if (isConnected && _isOffline) {
         _isOffline = false;
         fetchDoctors(forceRefresh: true);
+        if (_doctorDetail != null) {
+          fetchDoctorDetail(_doctorDetail!.id);
+        }
       }
     });
   }
@@ -86,6 +89,7 @@ class DoctorVm extends ChangeNotifier {
       _meta = {};
       _isLoading = true;
     } else {
+      if (_isLoading || _isLoadingMore || !hasNext && !_isOffline) return;
       _isLoadingMore = true;
     }
     _error = null;
@@ -106,7 +110,15 @@ class DoctorVm extends ChangeNotifier {
         sortBy: _sortBy,
         sortOrder: _sortOrder,
       );
-      _doctors = offlineDoctors;
+      if (forceRefresh) {
+        _doctors = offlineDoctors;
+      } else {
+        _doctors.addAll(offlineDoctors);
+      }
+      if (_doctors.isEmpty && forceRefresh) {
+        _error = 'Không có dữ liệu offline.';
+      }
+
       _isLoading = false;
       _isLoadingMore = false;
       notifyListeners();
@@ -130,31 +142,87 @@ class DoctorVm extends ChangeNotifier {
           _doctors.addAll(result.data);
         }
         _meta = result.meta;
+        _currentPage++;
 
-        if (_doctors.isNotEmpty && _currentPage == 1) {
+        if (_doctors.isNotEmpty && _currentPage == 2 && _searchQuery.isEmpty && _isMale == null) {
           await _dbHelper.clearDoctors(role: _role);
           await _dbHelper.insertDoctors(_doctors);
         }
       } else {
         _error = result.message;
+        if (forceRefresh) { // Try loading offline data if API fails on refresh
+          _doctors = await _dbHelper.getDoctors(
+            role: _role,
+            search: _searchQuery,
+            isMale: _isMale,
+            page: 1, // Reset to page 1 for offline
+            limit: _limit,
+            sortBy: _sortBy,
+            sortOrder: _sortOrder,
+          );
+          if (_doctors.isEmpty) {
+            _error = result.message + " Không có dữ liệu offline.";
+          } else {
+            _error = result.message + " Đang hiển thị dữ liệu offline.";
+          }
+        }
       }
     } catch (e) {
       _error = 'Lỗi kết nối: $e';
+      if (forceRefresh) { // Try loading offline data on connection error
+        _doctors = await _dbHelper.getDoctors(
+          role: _role,
+          search: _searchQuery,
+          isMale: _isMale,
+          page: 1, // Reset to page 1 for offline
+          limit: _limit,
+          sortBy: _sortBy,
+          sortOrder: _sortOrder,
+        );
+        if (_doctors.isEmpty) {
+          _error = "Lỗi kết nối: $e. Không có dữ liệu offline.";
+        } else {
+          _error = "Lỗi kết nối: $e. Đang hiển thị dữ liệu offline.";
+        }
+      }
     } finally {
       _isLoading = false;
       _isLoadingMore = false;
       notifyListeners();
     }
   }
-  Future<void> fetchDoctorDetail(String doctorId) async {
+
+  Future<void> fetchDoctorDetail(String doctorId, {bool isSelf = false}) async {
     _isLoadingDetail = true;
+    _doctorDetail = null;
+    _error = null;
     notifyListeners();
 
-    _doctorDetail = await DoctorService.getDoctorWithProfile(doctorId);
+    var connectivityResult = await Connectivity().checkConnectivity();
+    bool isConnected = !connectivityResult.contains(ConnectivityResult.none);
+    _isOffline = !isConnected;
 
-    _isLoadingDetail = false;
-    notifyListeners();
+    try {
+      if (isConnected) {
+        if (isSelf) {
+          _doctorDetail = await DoctorService.getSelfProfileComplete();
+        } else {
+          _doctorDetail = await DoctorService.getDoctorWithProfile(doctorId);
+        }
+        if (_doctorDetail == null) {
+          _error = "Không tìm thấy thông tin bác sĩ hoặc có lỗi xảy ra.";
+        }
+      } else {
+        _error = "Bạn đang offline, không thể tải chi tiết.";
+      }
+    } catch (e) {
+      _error = "Lỗi khi tải chi tiết bác sĩ: $e";
+    } finally {
+      _isLoadingDetail = false;
+      notifyListeners();
+    }
   }
+
 
   Future<bool> createDoctorProfile(Map<String, dynamic> data) async {
     final profile = await DoctorService.createDoctorProfile(data);
@@ -163,53 +231,101 @@ class DoctorVm extends ChangeNotifier {
 
   Future<bool> updateDoctorProfile(String profileId, Map<String, dynamic> data) async {
     final profile = await DoctorService.updateDoctorProfile(profileId, data);
+    if (profile != null && _doctorDetail != null && _doctorDetail!.profileId == profileId) {
+      await fetchDoctorDetail(_doctorDetail!.id);
+    }
     return profile != null;
+  }
+
+  Future<bool> updateSelfProfile(Map<String, dynamic> data) async {
+    bool success = false;
+    _error = null; // Clear previous errors
+    notifyListeners(); // Indicate loading potentially
+    try {
+      final profile = await DoctorService.updateSelfProfile(data);
+      success = profile != null;
+      if (success && _doctorDetail != null && _doctorDetail!.profileId == profile!.id) {
+        await fetchDoctorDetail(_doctorDetail!.id, isSelf: true); // Refetch self profile
+      } else if (!success) {
+        _error = "Cập nhật hồ sơ thất bại.";
+      }
+    } catch (e) {
+      _error = "Lỗi khi cập nhật hồ sơ: $e";
+      success = false;
+    } finally {
+      notifyListeners(); // Notify UI about success/failure/new data
+    }
+    return success;
   }
 
   Future<void> toggleDoctorStatus(String profileId, bool isActive) async {
     if (_doctorDetail == null) {
       print("🔴 [VM-ERROR] _doctorDetail is null. Cannot proceed.");
+      _error = "Không có thông tin chi tiết bác sĩ để cập nhật.";
+      notifyListeners();
       return;
     }
+    _error = null; // Clear previous errors
+
+
+    final originalStatus = _doctorDetail!.isActive;
+    // Optimistic UI update
+    _doctorDetail = _doctorDetail!.copyWith(isActive: isActive);
+    notifyListeners();
+
 
     print("--- START: Toggle Doctor Status ---");
-    print("🧠 [VM] Received request to set isActive = $isActive for profileId: $profileId");
-    print("   - Current local isActive state: ${_doctorDetail!.isActive}");
+    print("🧠 [VM] Requesting isActive = $isActive for profileId: $profileId");
+
 
     final updatedProfile = await DoctorService.toggleDoctorActive(profileId, isActive);
 
     if (updatedProfile != null) {
-      print("✅ [VM] API call successful. Received updated profile.");
-      print("   - isActive from API: ${updatedProfile.isActive}");
+      print("✅ [VM] API call successful. isActive from API: ${updatedProfile.isActive}");
 
       _doctorDetail = _doctorDetail!.copyWith(
-        isActive: updatedProfile.isActive,
+        isActive: updatedProfile.isActive, // Use status from API response
         profileUpdatedAt: updatedProfile.updatedAt,
       );
 
-      print("   - New local isActive state: ${_doctorDetail!.isActive}");
-      print("🔔 [VM] Calling notifyListeners() to update UI.");
-      notifyListeners();
     } else {
       print("❌ [VM-ERROR] API call failed or returned null.");
+      _error = "Cập nhật trạng thái thất bại.";
+      // Revert optimistic update
+      _doctorDetail = _doctorDetail!.copyWith(isActive: originalStatus);
+
     }
+    notifyListeners(); // Notify UI about the final state (success or reverted error)
     print("--- END: Toggle Doctor Status ---");
   }
 
   Future<void> loadMore() async {
     if (hasNext && !_isLoading && !_isLoadingMore && !_isOffline) {
-      _currentPage++;
       await fetchDoctors();
     }
   }
 
   Future<bool> deleteDoctor(String id, String password) async {
-    final success = await DoctorService.deleteDoctor(id, password: password);
-    if (success) {
-      _doctors.removeWhere((doctor) => doctor.id == id);
-      await _dbHelper.deleteDoctor(id);
-      notifyListeners();
+    _error = null;
+    bool success = false;
+    try {
+      success = await DoctorService.deleteDoctor(id, password: password);
+      if (success) {
+        _doctors.removeWhere((doctor) => doctor.id == id);
+        await _dbHelper.deleteDoctor(id);
+      } else {
+        _error = "Xóa bác sĩ thất bại. Vui lòng kiểm tra lại mật khẩu.";
+      }
+    } catch (e) {
+      _error = "Lỗi khi xóa bác sĩ: $e";
+      success = false;
     }
+    notifyListeners();
     return success;
+  }
+
+  void clearError() {
+    _error = null;
+    notifyListeners();
   }
 }

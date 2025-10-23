@@ -79,8 +79,7 @@ class _AnimatedSubmitButtonState extends State<AnimatedSubmitButton> {
           ),
         );
       case ButtonState.idle:
-      default:
-        return SizedBox(
+      return SizedBox(
           key: const ValueKey('idle'),
           width: double.infinity,
           height: 52,
@@ -140,8 +139,6 @@ class _StaffFormState extends State<StaffForm> with SingleTickerProviderStateMix
   late TextEditingController _dateOfBirthController;
   late bool _isMale;
   late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-  late Animation<double> _slideAnimation;
 
   @override
   void initState() {
@@ -158,15 +155,7 @@ class _StaffFormState extends State<StaffForm> with SingleTickerProviderStateMix
       duration: const Duration(milliseconds: 800),
     );
 
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
 
-    _slideAnimation = Tween<double>(begin: 30.0, end: 0.0).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOutCubic,
-    ));
 
     final dob = widget.initialData?['dateOfBirth'];
     if (dob != null) {

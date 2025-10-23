@@ -37,7 +37,7 @@ class _ProfileDoctorPageState extends State<ProfileDoctorPage> {
             body: const Center(child: Text('Không thể tải hồ sơ chuyên môn.')),
           );
         }
-        return DoctorDetailPage(doctorId: snapshot.data!.id);
+        return DoctorDetailPage(doctorId: snapshot.data!.id, isSelfView: true);
       },
     );
   }

@@ -10,10 +10,17 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:vsc_quill_delta_to_html/vsc_quill_delta_to_html.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
+import '../../model/entities/profile.dart';
+
 class DoctorDetailPage extends StatefulWidget {
   final String doctorId;
+  final bool isSelfView;
 
-  const DoctorDetailPage({super.key, required this.doctorId});
+  const DoctorDetailPage({
+    super.key,
+    required this.doctorId,
+    this.isSelfView = false,
+  });
 
   @override
   State<DoctorDetailPage> createState() => _DoctorDetailPageState();
@@ -34,7 +41,10 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
     final result = await Navigator.pushNamed(
       context,
       Routes.editDoctorProfile,
-      arguments: doctor,
+      arguments: {
+        'doctorDetail': doctor,
+        'isSelfEdit': widget.isSelfView,
+      },
     );
     if (result == true && mounted) {
       context.read<DoctorVm>().fetchDoctorDetail(widget.doctorId);
@@ -42,24 +52,47 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
   }
 
   void _editAccount(DoctorDetail doctor) async {
-    final doctorAsMap = {
-      'id': doctor.id,
-      'fullName': doctor.fullName,
-      'email': doctor.email,
-      'phone': doctor.phone,
-      'isMale': doctor.isMale,
-      'dateOfBirth': doctor.dateOfBirth?.toIso8601String(),
-      'role': doctor.role,
-    };
-    final result = await Navigator.pushNamed(
-      context,
-      Routes.updateDoctor,
-      arguments: doctorAsMap,
-    );
-    if (result == true && mounted) {
-      context.read<DoctorVm>().fetchDoctorDetail(widget.doctorId);
+    if (widget.isSelfView) {
+      final profileArgs = Profile(
+        id: doctor.id,
+        fullName: doctor.fullName,
+        email: doctor.email,
+        role: doctor.role,
+        phone: doctor.phone,
+        isMale: doctor.isMale,
+        dateOfBirth: doctor.dateOfBirth,
+        createdAt: doctor.createdAt ?? DateTime.now(),
+        updatedAt: doctor.updatedAt ?? DateTime.now(),
+      );
+      final result = await Navigator.pushNamed(
+        context,
+        Routes.editAccountDoctor,
+        arguments: profileArgs,
+      );
+      if (result == true && mounted) {
+        context.read<DoctorVm>().fetchDoctorDetail(widget.doctorId);
+      }
+    } else {
+      final doctorAsMap = {
+        'id': doctor.id,
+        'fullName': doctor.fullName,
+        'email': doctor.email,
+        'phone': doctor.phone,
+        'isMale': doctor.isMale,
+        'dateOfBirth': doctor.dateOfBirth?.toIso8601String(),
+        'role': doctor.role,
+      };
+      final result = await Navigator.pushNamed(
+        context,
+        Routes.updateDoctor,
+        arguments: doctorAsMap,
+      );
+      if (result == true && mounted) {
+        context.read<DoctorVm>().fetchDoctorDetail(widget.doctorId);
+      }
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -75,7 +108,7 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
           ? const Center(child: Text('Không thể tải dữ liệu bác sĩ'))
           : CustomScrollView(
         slivers: [
-          _buildSliverAppBar(doctor, isOffline, context), // Truyền isOffline vào đây
+          _buildSliverAppBar(doctor, isOffline, context),
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
@@ -225,12 +258,11 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  // ===== ĐÂY LÀ PHẦN THAY ĐỔI =====
-                  _StatusBadge(
-                    doctor: doctor,
-                    isOffline: isOffline,
-                  ),
-                  // ===================================
+                  if (!widget.isSelfView)
+                    _StatusBadge(
+                      doctor: doctor,
+                      isOffline: isOffline,
+                    ),
                 ],
               ),
             ),
@@ -411,7 +443,6 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
   }
 }
 
-// ===== WIDGET _STATUSBADGE ĐÃ ĐƯỢC CẬP NHẬT =====
 class _StatusBadge extends StatelessWidget {
   final DoctorDetail doctor;
   final bool isOffline;
@@ -425,7 +456,6 @@ class _StatusBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool isActive = doctor.isActive;
 
-    // Hàm xử lý khi nhấn vào
     void handleTap() {
       if (isOffline) {
         ScaffoldMessenger.of(context).showSnackBar(
