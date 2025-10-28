@@ -13,6 +13,7 @@ import 'package:pbl6mobile/view_model/admin_management/doctor_management_vm.dart
 import 'package:pbl6mobile/view_model/blog/blog_vm.dart';
 import 'package:pbl6mobile/view_model/location_work_management/location_work_vm.dart';
 import 'package:pbl6mobile/view_model/location_work_management/snackbar_service.dart';
+import 'package:pbl6mobile/view_model/question/question_vm.dart';
 import 'package:pbl6mobile/view_model/specialty/specialty_vm.dart';
 import 'package:provider/provider.dart';
 
@@ -34,7 +35,8 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider<StaffVm>(create: (_) => StaffVm()),
         ChangeNotifierProvider<DoctorVm>(create: (_) => DoctorVm()),
         ChangeNotifierProvider<SpecialtyVm>(create: (_) => SpecialtyVm()),
-        ChangeNotifierProvider<BlogVm>(create: (_) => BlogVm()), // Thêm provider
+        ChangeNotifierProvider<BlogVm>(create: (_) => BlogVm()),
+        ChangeNotifierProvider<QuestionVm>(create: (_) => QuestionVm()),
         BlocProvider<ThemeCubit>(
           create: (_) => ThemeCubit()..loadTheme(),
         ),

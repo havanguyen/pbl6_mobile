@@ -5,16 +5,12 @@ import '../../../shared/routes/routes.dart';
 import '../../../shared/widgets/animation/scale_animation.dart';
 import '../../../shared/widgets/button/custom_circular_button.dart';
 
-
-
 class MainPageAdmin extends StatelessWidget {
   const MainPageAdmin({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery
-        .of(context)
-        .size;
+    final size = MediaQuery.of(context).size;
 
     return Scaffold(
       body: Container(
@@ -38,12 +34,9 @@ class MainPageAdmin extends StatelessWidget {
               child: ScaleAnimatedButton(
                 child: Container(
                   decoration: BoxDecoration(
-                      color: context.theme.blue,
-                      shape: BoxShape.circle
-                  ),
+                      color: context.theme.blue, shape: BoxShape.circle),
                   child: IconButton(
-                    icon: Icon(
-                        Icons.menu, color: context.theme.white, size: 35),
+                    icon: Icon(Icons.menu, color: context.theme.white, size: 35),
                     onPressed: () {
                       Navigator.pushNamed(context, Routes.settingAdmin);
                     },
@@ -105,7 +98,9 @@ class MainPageAdmin extends StatelessWidget {
                   size: 140,
                   icon: Icons.rate_review_outlined,
                   label: 'QUẢN LÝ MỤC HỎI ĐÁP',
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.pushNamed(context, Routes.listQuestion);
+                  },
                 ),
               ),
             ),
@@ -121,7 +116,8 @@ class MainPageAdmin extends StatelessWidget {
                   onTap: () {
                     Navigator.pushNamed(context, Routes.listBlog);
                   },
-                ),),
+                ),
+              ),
             ),
             Positioned(
               top: size.height * 0.63,
@@ -135,7 +131,8 @@ class MainPageAdmin extends StatelessWidget {
                   onTap: () {
                     Navigator.pushNamed(context, Routes.changePassword);
                   },
-                ),),
+                ),
+              ),
             ),
             Positioned(
               bottom: 30,

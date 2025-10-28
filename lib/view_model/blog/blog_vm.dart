@@ -460,7 +460,7 @@ class BlogVm extends ChangeNotifier {
         _blogDetail = updatedBlog;
         int index = _blogs.indexWhere((blog) => blog.id == id);
         if (index != -1) {
-          _blogs[index] = updatedBlog!;
+          _blogs[index] = updatedBlog;
         } else {
           await fetchBlogs(forceRefresh: true);
         }

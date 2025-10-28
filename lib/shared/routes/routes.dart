@@ -12,9 +12,9 @@ import 'package:pbl6mobile/view/setting/doctor/account_doctor_page.dart';
 import 'package:pbl6mobile/view/setting/doctor/edit_account_doctor_page.dart';
 import 'package:pbl6mobile/view/setting/doctor/profile_doctor_page.dart';
 import 'package:pbl6mobile/view/setting/super_admin/setting_supperadmin_page.dart';
-import 'package:pbl6mobile/view/blog/create_blog_page.dart'; // Import mới
-import 'package:pbl6mobile/view/blog/list_blog_page.dart'; // Import mới
-import 'package:pbl6mobile/view/blog/update_blog_page.dart'; // Import mới
+import 'package:pbl6mobile/view/blog/create_blog_page.dart';
+import 'package:pbl6mobile/view/blog/list_blog_page.dart';
+import 'package:pbl6mobile/view/blog/update_blog_page.dart';
 
 import '../../model/entities/work_location.dart';
 import '../../view/admin_management/create_admin_page.dart';
@@ -29,6 +29,8 @@ import '../../view/location_work_management/create_location_work.dart';
 import '../../view/location_work_management/list_location_work.dart';
 import '../../view/location_work_management/update_location_work.dart';
 import '../../view/main_page/admin/main_page_admin.dart';
+import '../../view/question_management/list_question_page.dart';
+import '../../view/question_management/question_detail_page.dart';
 import '../../view/setting/admin/setting_admin_page.dart';
 import '../../view/setting/doctor/setting_doctor_page.dart';
 import '../../view/specialty/create_info_section.dart';
@@ -69,11 +71,12 @@ class Routes {
   static const profileDoctor = '/profileDoctor';
   static const accountDoctor = '/accountDoctor';
   static const editAccountDoctor = '/editAccountDoctor';
-  static const listBlog = '/listBlog'; // Thêm route
-  static const createBlog = '/createBlog'; // Thêm route
-  static const updateBlog = '/updateBlog'; // Thêm route
+  static const listBlog = '/listBlog';
+  static const createBlog = '/createBlog';
+  static const updateBlog = '/updateBlog';
   static const String manageBlogCategories = '/manage-blog-categories';
-
+  static const String listQuestion = '/listQuestion';
+  static const String questionDetail = '/questionDetail';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -148,14 +151,18 @@ class Routes {
         return PageTransition(
           type: PageTransitionType.leftToRight,
           settings: settings,
-          child:  UpdateSpecialtyPage(specialty: specialty!,),
+          child: UpdateSpecialtyPage(
+            specialty: specialty!,
+          ),
         );
       case specialtyDetail:
         final specialty = settings.arguments as Map<String, dynamic>?;
         return PageTransition(
           type: PageTransitionType.leftToRight,
           settings: settings,
-          child:  SpecialtyDetailPage(specialty: specialty!,),
+          child: SpecialtyDetailPage(
+            specialty: specialty!,
+          ),
         );
       case listLocationWork:
         return PageTransition(
@@ -174,7 +181,9 @@ class Routes {
         return PageTransition(
           type: PageTransitionType.leftToRight,
           settings: settings,
-          child: UpdateLocationWorkPage(location: location,),
+          child: UpdateLocationWorkPage(
+            location: location,
+          ),
         );
       case settingDoctor:
         return PageTransition(
@@ -211,7 +220,9 @@ class Routes {
         return PageTransition(
           type: PageTransitionType.leftToRight,
           settings: settings,
-          child:  UpdateDoctorPage(doctor: doctor!,),
+          child: UpdateDoctorPage(
+            doctor: doctor!,
+          ),
         );
       case doctorDetail:
         final doctorId = settings.arguments as String;
@@ -267,31 +278,45 @@ class Routes {
         return PageTransition(
           type: PageTransitionType.leftToRight,
           settings: settings,
-          child:  UpdateAdminPage(admin: admin!,),
+          child: UpdateAdminPage(
+            admin: admin!,
+          ),
         );
-      case listBlog: // Thêm case
+      case listBlog:
         return PageTransition(
           type: PageTransitionType.fade,
           settings: settings,
           child: const ListBlogPage(),
         );
-      case createBlog: // Thêm case
+      case createBlog:
         return PageTransition(
           type: PageTransitionType.leftToRight,
           settings: settings,
           child: const CreateBlogPage(),
         );
-      case updateBlog: // Thêm case
+      case updateBlog:
         final blogId = settings.arguments as String;
         return PageTransition(
           type: PageTransitionType.leftToRight,
           settings: settings,
           child: UpdateBlogPage(blogId: blogId),
         );
+      case listQuestion:
+        return PageTransition(
+          type: PageTransitionType.fade,
+          settings: settings,
+          child: const ListQuestionPage(),
+        );
+      case questionDetail:
+        final questionId = settings.arguments as String;
+        return PageTransition(
+          type: PageTransitionType.leftToRight,
+          settings: settings,
+          child: QuestionDetailPage(questionId: questionId),
+        );
       default:
         return MaterialPageRoute(
-          builder: (context) =>
-          const Scaffold(
+          builder: (context) => const Scaffold(
             body: Center(child: Text('No page route provided')),
           ),
         );
