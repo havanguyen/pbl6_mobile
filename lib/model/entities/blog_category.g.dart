@@ -1,15 +1,9 @@
-// GENERATED CODE - DO NOT MODIFY BY HAND
-
 part of 'blog_category.dart';
-
-// **************************************************************************
-// JsonSerializableGenerator
-// **************************************************************************
 
 BlogCategory _$BlogCategoryFromJson(Map<String, dynamic> json) => BlogCategory(
   id: json['id'] as String,
   name: json['name'] as String,
-  slug: json['slug'] as String,
+  slug: json['slug'] as String?,
   description: json['description'] as String?,
   createdAt: BlogCategory.dateTimeFromJson(json['createdAt']),
   updatedAt: BlogCategory.dateTimeFromJson(json['updatedAt']),

@@ -1,10 +1,4 @@
-// GENERATED CODE - DO NOT MODIFY BY HAND
-
 part of 'blog.dart';
-
-// **************************************************************************
-// JsonSerializableGenerator
-// **************************************************************************
 
 Blog _$BlogFromJson(Map<String, dynamic> json) => Blog(
   id: json['id'] as String,
@@ -16,9 +10,15 @@ Blog _$BlogFromJson(Map<String, dynamic> json) => Blog(
   BlogCategory.fromJson(json['category'] as Map<String, dynamic>),
   status: json['status'] as String,
   publishedAt: BlogCategory.dateTimeFromJson(json['publishedAt']),
-  createdAt: BlogCategory.dateTimeFromJson(json['createdAt'])!,
-  updatedAt: BlogCategory.dateTimeFromJson(json['updatedAt'])!,
+  createdAt:
+  BlogCategory.dateTimeFromJson(json['createdAt']) as DateTime,
+  updatedAt:
+  BlogCategory.dateTimeFromJson(json['updatedAt']) as DateTime,
   content: json['content'] as String?,
+  authorName: json['authorName'] as String?,
+  publicIds: (json['publicIds'] as List<dynamic>?)
+      ?.map((e) => e as String)
+      .toList(),
 );
 
 Map<String, dynamic> _$BlogToJson(Blog instance) => <String, dynamic>{
@@ -30,7 +30,9 @@ Map<String, dynamic> _$BlogToJson(Blog instance) => <String, dynamic>{
   'category': instance.category.toJson(),
   'status': instance.status,
   'publishedAt': BlogCategory.dateTimeToJson(instance.publishedAt),
-  'createdAt': BlogCategory.dateTimeToJson(instance.createdAt)!,
-  'updatedAt': BlogCategory.dateTimeToJson(instance.updatedAt)!,
+  'createdAt': BlogCategory.dateTimeToJson(instance.createdAt),
+  'updatedAt': BlogCategory.dateTimeToJson(instance.updatedAt),
   'content': instance.content,
+  'authorName': instance.authorName,
+  'publicIds': instance.publicIds,
 };

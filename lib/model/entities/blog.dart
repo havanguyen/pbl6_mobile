@@ -19,6 +19,8 @@ class Blog {
   @JsonKey(fromJson: BlogCategory.dateTimeFromJson, toJson: BlogCategory.dateTimeToJson)
   final DateTime updatedAt;
   final String? content;
+  final String? authorName;
+  final List<String>? publicIds;
 
   Blog({
     required this.id,
@@ -32,6 +34,8 @@ class Blog {
     required this.createdAt,
     required this.updatedAt,
     this.content,
+    this.authorName,
+    this.publicIds,
   });
 
   factory Blog.fromJson(Map<String, dynamic> json) => _$BlogFromJson(json);

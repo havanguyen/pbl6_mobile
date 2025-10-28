@@ -12,7 +12,6 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
 
-
 import 'package:pbl6mobile/view_model/location_work_management/snackbar_service.dart';
 
 import '../../shared/widgets/widget/blog_delete_confirm.dart';
@@ -77,17 +76,22 @@ class _ListBlogPageState extends State<ListBlogPage> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => BlogDeleteConfirmationDialog(
-        blog: blog.toJson(),
-        onDeleteSuccess: () {},
-        snackbarService: snackbarService,
+      builder: (context) => ChangeNotifierProvider.value(
+        value: blogVm,
+        child: BlogDeleteConfirmationDialog(
+          blog: blog.toJson(),
+          onDeleteSuccess: () {},
+          snackbarService: snackbarService,
+        ),
       ),
     );
   }
 
   void _showFilterSheet() {
     final blogVm = context.read<BlogVm>();
-    if (blogVm.categories.isEmpty && !blogVm.isLoadingCategories && !blogVm.isCategoryOffline) {
+    if (blogVm.categories.isEmpty &&
+        !blogVm.isLoadingCategories &&
+        !blogVm.isCategoryOffline) {
       blogVm.fetchBlogCategories(forceRefresh: true);
     }
     showModalBottomSheet(
@@ -120,8 +124,10 @@ class _ListBlogPageState extends State<ListBlogPage> {
             style: TextStyle(color: context.theme.textColor),
             decoration: InputDecoration(
               hintText: 'Tìm kiếm theo tiêu đề',
-              hintStyle: TextStyle(color: context.theme.mutedForeground.withOpacity(0.7)),
-              prefixIcon: Icon(Icons.search, color: context.theme.primary, size: 20),
+              hintStyle: TextStyle(
+                  color: context.theme.mutedForeground.withOpacity(0.7)),
+              prefixIcon:
+              Icon(Icons.search, color: context.theme.primary, size: 20),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide(color: context.theme.border),
@@ -136,13 +142,14 @@ class _ListBlogPageState extends State<ListBlogPage> {
               ),
               filled: true,
               fillColor: context.theme.input,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               suffixIcon: _searchController.text.isNotEmpty
                   ? IconButton(
-                icon: Icon(Icons.clear, color: context.theme.mutedForeground, size: 20),
+                icon: Icon(Icons.clear,
+                    color: context.theme.mutedForeground, size: 20),
                 onPressed: () {
                   _searchController.clear();
-                  context.read<BlogVm>().updateSearchQuery('');
                 },
               )
                   : null,
@@ -153,15 +160,15 @@ class _ListBlogPageState extends State<ListBlogPage> {
             children: [
               Expanded(
                 child: ElevatedButton.icon(
-                  icon: Icon(Icons.add, size: 20),
-                  label: const Text('Thêm bài viết', style: TextStyle(fontSize: 15)),
+                  icon: const Icon(Icons.add, size: 20),
+                  label:
+                  const Text('Thêm bài viết', style: TextStyle(fontSize: 15)),
                   onPressed: isOffline
                       ? null
                       : () async {
                     final result =
                     await Navigator.pushNamed(context, Routes.createBlog);
-                    if (result == true) {
-                    }
+                    if (result == true) {}
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: context.theme.primary,
@@ -202,8 +209,7 @@ class _ListBlogPageState extends State<ListBlogPage> {
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: context.theme.border)
-                    ),
+                        border: Border.all(color: context.theme.border)),
                     child: Icon(Icons.filter_list_rounded,
                         color: context.theme.primary, size: 24),
                   ),
@@ -233,8 +239,10 @@ class _ListBlogPageState extends State<ListBlogPage> {
                         fontWeight: FontWeight.bold,
                         color: context.theme.textColor)),
                 TextButton.icon(
-                  icon: Icon(Icons.refresh, size: 18, color: context.theme.mutedForeground),
-                  label: Text('Đặt lại', style: TextStyle(color: context.theme.mutedForeground)),
+                  icon: Icon(Icons.refresh,
+                      size: 18, color: context.theme.mutedForeground),
+                  label: Text('Đặt lại',
+                      style: TextStyle(color: context.theme.mutedForeground)),
                   onPressed: () {
                     blogVm.resetFilters();
                     Navigator.pop(context);
@@ -244,60 +252,101 @@ class _ListBlogPageState extends State<ListBlogPage> {
               ],
             ),
             const Divider(height: 24),
-
             Text('Danh mục',
                 style: TextStyle(
                     color: context.theme.textColor,
                     fontWeight: FontWeight.w500)),
             const SizedBox(height: 8),
             blogVm.isLoadingCategories
-                ? const Center(child: Padding(padding: EdgeInsets.symmetric(vertical: 10), child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))))
+                ? const Center(
+                child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 10),
+                    child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2))))
                 : blogVm.isCategoryOffline || blogVm.categoryError != null
                 ? Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                   color: context.theme.destructive.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: context.theme.destructive.withOpacity(0.3))
-              ),
+                  border: Border.all(
+                      color: context.theme.destructive
+                          .withOpacity(0.3))),
               child: Row(
                 children: [
-                  Icon(blogVm.isCategoryOffline ? Icons.wifi_off_rounded : Icons.error_outline_rounded, color: context.theme.destructive, size: 16),
+                  Icon(
+                      blogVm.isCategoryOffline
+                          ? Icons.wifi_off_rounded
+                          : Icons.error_outline_rounded,
+                      color: context.theme.destructive,
+                      size: 16),
                   const SizedBox(width: 8),
-                  Expanded(child: Text(blogVm.categoryError ?? 'Lỗi không xác định', style: TextStyle(color: context.theme.destructive, fontSize: 13))),
+                  Expanded(
+                      child: Text(
+                          blogVm.categoryError ?? 'Lỗi không xác định',
+                          style: TextStyle(
+                              color: context.theme.destructive,
+                              fontSize: 13))),
                   TextButton(
-                    onPressed: () => blogVm.fetchBlogCategories(forceRefresh: true),
-                    child: Text("Thử lại", style: TextStyle(color: context.theme.primary)),
+                    onPressed: () =>
+                        blogVm.fetchBlogCategories(forceRefresh: true),
+                    child: Text("Thử lại",
+                        style:
+                        TextStyle(color: context.theme.primary)),
                   )
                 ],
               ),
             )
                 : DropdownButtonFormField<String>(
-              value: blogVm.categories.any((c) => c.id == blogVm.selectedCategoryId)
+              value: blogVm.categories
+                  .any((c) => c.id == blogVm.selectedCategoryId)
                   ? blogVm.selectedCategoryId
                   : null,
-              hint: Text('Tất cả danh mục', style: TextStyle(color: context.theme.mutedForeground)),
+              hint: Text('Tất cả danh mục',
+                  style:
+                  TextStyle(color: context.theme.mutedForeground)),
               isExpanded: true,
-              style: TextStyle(color: context.theme.textColor, fontSize: 15),
+              style:
+              TextStyle(color: context.theme.textColor, fontSize: 15),
               decoration: InputDecoration(
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: context.theme.border)),
-                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: context.theme.border)),
-                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: context.theme.primary)),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide:
+                      BorderSide(color: context.theme.border)),
+                  enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide:
+                      BorderSide(color: context.theme.border)),
+                  focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide:
+                      BorderSide(color: context.theme.primary)),
                   filled: true,
                   fillColor: context.theme.input,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  prefixIcon: Icon(Icons.category_outlined, size: 18, color: context.theme.mutedForeground,)
-              ),
-              icon: Icon(Icons.keyboard_arrow_down_rounded, color: context.theme.mutedForeground),
+                  contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 12),
+                  prefixIcon: Icon(
+                    Icons.category_outlined,
+                    size: 18,
+                    color: context.theme.mutedForeground,
+                  )),
+              icon: Icon(Icons.keyboard_arrow_down_rounded,
+                  color: context.theme.mutedForeground),
               dropdownColor: context.theme.popover,
               items: [
                 DropdownMenuItem<String>(
                     value: null,
-                    child: Text('Tất cả danh mục', style: TextStyle(color: context.theme.mutedForeground))),
+                    child: Text('Tất cả danh mục',
+                        style: TextStyle(
+                            color: context.theme.mutedForeground))),
                 ...blogVm.categories.map((category) {
                   return DropdownMenuItem<String>(
                     value: category.id,
-                    child: Text(category.name, style: TextStyle(color: context.theme.popoverForeground)),
+                    child: Text(category.name,
+                        style: TextStyle(
+                            color: context.theme.popoverForeground)),
                   );
                 }).toList(),
               ],
@@ -305,13 +354,14 @@ class _ListBlogPageState extends State<ListBlogPage> {
                 blogVm.updateCategoryFilter(value);
               },
               validator: (value) {
-                if(blogVm.categories.isEmpty && !blogVm.isLoadingCategories && blogVm.categoryError != null){
+                if (blogVm.categories.isEmpty &&
+                    !blogVm.isLoadingCategories &&
+                    blogVm.categoryError != null) {
                   return 'Không thể tải danh mục';
                 }
                 return null;
               },
             ),
-
             const SizedBox(height: 20),
             Text('Trạng thái',
                 style: TextStyle(
@@ -320,25 +370,53 @@ class _ListBlogPageState extends State<ListBlogPage> {
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
               value: blogVm.selectedStatus,
-              hint: Text('Tất cả trạng thái', style: TextStyle(color: context.theme.mutedForeground)),
+              hint: Text('Tất cả trạng thái',
+                  style: TextStyle(color: context.theme.mutedForeground)),
               isExpanded: true,
               style: TextStyle(color: context.theme.textColor, fontSize: 15),
               decoration: InputDecoration(
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: context.theme.border)),
-                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: context.theme.border)),
-                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: context.theme.primary)),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: context.theme.border)),
+                  enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: context.theme.border)),
+                  focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: context.theme.primary)),
                   filled: true,
                   fillColor: context.theme.input,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  prefixIcon: Icon(Icons.toggle_on_outlined, size: 18, color: context.theme.mutedForeground,)
-              ),
-              icon: Icon(Icons.keyboard_arrow_down_rounded, color: context.theme.mutedForeground),
+                  contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  prefixIcon: Icon(
+                    Icons.toggle_on_outlined,
+                    size: 18,
+                    color: context.theme.mutedForeground,
+                  )),
+              icon: Icon(Icons.keyboard_arrow_down_rounded,
+                  color: context.theme.mutedForeground),
               dropdownColor: context.theme.popover,
               items: [
-                DropdownMenuItem<String>(value: null, child: Text('Tất cả trạng thái', style: TextStyle(color: context.theme.mutedForeground))),
-                DropdownMenuItem<String>(value: 'DRAFT', child: Text('Bản nháp', style: TextStyle(color: context.theme.popoverForeground))),
-                DropdownMenuItem<String>(value: 'PUBLISHED', child: Text('Đã xuất bản', style: TextStyle(color: context.theme.popoverForeground))),
-                DropdownMenuItem<String>(value: 'ARCHIVED', child: Text('Đã lưu trữ', style: TextStyle(color: context.theme.popoverForeground))),
+                DropdownMenuItem<String>(
+                    value: null,
+                    child: Text('Tất cả trạng thái',
+                        style:
+                        TextStyle(color: context.theme.mutedForeground))),
+                DropdownMenuItem<String>(
+                    value: 'DRAFT',
+                    child: Text('Bản nháp',
+                        style: TextStyle(
+                            color: context.theme.popoverForeground))),
+                DropdownMenuItem<String>(
+                    value: 'PUBLISHED',
+                    child: Text('Đã xuất bản',
+                        style: TextStyle(
+                            color: context.theme.popoverForeground))),
+                DropdownMenuItem<String>(
+                    value: 'ARCHIVED',
+                    child: Text('Đã lưu trữ',
+                        style: TextStyle(
+                            color: context.theme.popoverForeground))),
               ],
               onChanged: (value) {
                 blogVm.updateStatusFilter(value);
@@ -355,49 +433,95 @@ class _ListBlogPageState extends State<ListBlogPage> {
                 Expanded(
                   child: DropdownButtonFormField<String>(
                       value: blogVm.sortBy,
-                      style: TextStyle(color: context.theme.textColor, fontSize: 15),
+                      style:
+                      TextStyle(color: context.theme.textColor, fontSize: 15),
                       decoration: InputDecoration(
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: context.theme.border)),
-                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: context.theme.border)),
-                          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: context.theme.primary)),
-                          filled: true,
-                          fillColor: context.theme.input,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          prefixIcon: Icon(Icons.sort_by_alpha_rounded, size: 18, color: context.theme.mutedForeground,)
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide:
+                            BorderSide(color: context.theme.border)),
+                        enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide:
+                            BorderSide(color: context.theme.border)),
+                        focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide:
+                            BorderSide(color: context.theme.primary)),
+                        filled: true,
+                        fillColor: context.theme.input,
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 12),
                       ),
-                      icon: Icon(Icons.keyboard_arrow_down_rounded, color: context.theme.mutedForeground),
+                      icon: Icon(Icons.keyboard_arrow_down_rounded,
+                          color: context.theme.mutedForeground),
                       dropdownColor: context.theme.popover,
                       items: [
-                        DropdownMenuItem(value: 'createdAt', child: Text('Ngày tạo', style: TextStyle(color: context.theme.popoverForeground))),
-                        DropdownMenuItem(value: 'updatedAt', child: Text('Ngày cập nhật', style: TextStyle(color: context.theme.popoverForeground))),
-                        DropdownMenuItem(value: 'publishedAt', child: Text('Ngày xuất bản', style: TextStyle(color: context.theme.popoverForeground))),
-                        DropdownMenuItem(value: 'title', child: Text('Tiêu đề', style: TextStyle(color: context.theme.popoverForeground))),
+                        DropdownMenuItem(
+                            value: 'createdAt',
+                            child: Text('Ngày tạo',
+                                style: TextStyle(
+                                    color: context.theme.popoverForeground))),
+                        DropdownMenuItem(
+                            value: 'updatedAt',
+                            child: Text('Ngày cập nhật',
+                                style: TextStyle(
+                                    color: context.theme.popoverForeground))),
+                        DropdownMenuItem(
+                            value: 'publishedAt',
+                            child: Text('Ngày xuất bản',
+                                style: TextStyle(
+                                    color: context.theme.popoverForeground))),
+                        DropdownMenuItem(
+                            value: 'title',
+                            child: Text('Tiêu đề',
+                                style: TextStyle(
+                                    color: context.theme.popoverForeground))),
                       ],
-                      onChanged: (value) => blogVm.updateSortFilter(sortBy: value)
-                  ),
+                      onChanged: (value) =>
+                          blogVm.updateSortFilter(sortBy: value)),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: DropdownButtonFormField<String>(
                       value: blogVm.sortOrder,
-                      style: TextStyle(color: context.theme.textColor, fontSize: 15),
+                      style:
+                      TextStyle(color: context.theme.textColor, fontSize: 15),
                       decoration: InputDecoration(
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: context.theme.border)),
-                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: context.theme.border)),
-                          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: context.theme.primary)),
-                          filled: true,
-                          fillColor: context.theme.input,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          prefixIcon: Icon(Icons.sort_rounded, size: 18, color: context.theme.mutedForeground,)
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide:
+                            BorderSide(color: context.theme.border)),
+                        enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide:
+                            BorderSide(color: context.theme.border)),
+                        focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide:
+                            BorderSide(color: context.theme.primary)),
+                        filled: true,
+                        fillColor: context.theme.input,
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 12),
                       ),
-                      icon: Icon(Icons.keyboard_arrow_down_rounded, color: context.theme.mutedForeground),
+                      icon: Icon(Icons.keyboard_arrow_down_rounded,
+                          color: context.theme.mutedForeground),
                       dropdownColor: context.theme.popover,
                       items: [
-                        DropdownMenuItem(value: 'ASC', child: Text('Tăng dần', style: TextStyle(color: context.theme.popoverForeground))),
-                        DropdownMenuItem(value: 'DESC', child: Text('Giảm dần', style: TextStyle(color: context.theme.popoverForeground))),
+                        DropdownMenuItem(
+                            value: 'ASC',
+                            child: Text('Tăng dần',
+                                style: TextStyle(
+                                    color: context.theme.popoverForeground))),
+                        DropdownMenuItem(
+                            value: 'DESC',
+                            child: Text('Giảm dần',
+                                style: TextStyle(
+                                    color: context.theme.popoverForeground))),
                       ],
-                      onChanged: (value) => blogVm.updateSortFilter(sortOrder: value)
-                  ),
+                      onChanged: (value) =>
+                          blogVm.updateSortFilter(sortOrder: value)),
                 ),
               ],
             ),
@@ -410,10 +534,10 @@ class _ListBlogPageState extends State<ListBlogPage> {
                     backgroundColor: context.theme.primary,
                     foregroundColor: context.theme.primaryForeground,
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: const Text('Áp dụng')
-              ),
+                  child: const Text('Áp dụng')),
             )
           ],
         ),
@@ -443,25 +567,48 @@ class _ListBlogPageState extends State<ListBlogPage> {
                   height: 60.0,
                   decoration: BoxDecoration(
                       color: context.theme.muted,
-                      borderRadius: BorderRadius.circular(8)
-                  )
-              ),
+                      borderRadius: BorderRadius.circular(8))),
               const Padding(padding: EdgeInsets.symmetric(horizontal: 8.0)),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Container(width: double.infinity, height: 16.0, decoration: BoxDecoration(color: context.theme.muted, borderRadius: BorderRadius.circular(4))),
+                    Container(
+                        width: double.infinity,
+                        height: 16.0,
+                        decoration: BoxDecoration(
+                            color: context.theme.muted,
+                            borderRadius: BorderRadius.circular(4))),
                     const Padding(padding: EdgeInsets.symmetric(vertical: 4.0)),
-                    Container(width: double.infinity, height: 12.0, decoration: BoxDecoration(color: context.theme.muted, borderRadius: BorderRadius.circular(4))),
+                    Container(
+                        width: double.infinity,
+                        height: 12.0,
+                        decoration: BoxDecoration(
+                            color: context.theme.muted,
+                            borderRadius: BorderRadius.circular(4))),
                     const Padding(padding: EdgeInsets.symmetric(vertical: 3.0)),
-                    Container(width: 150.0, height: 12.0, decoration: BoxDecoration(color: context.theme.muted, borderRadius: BorderRadius.circular(4))),
+                    Container(
+                        width: 150.0,
+                        height: 12.0,
+                        decoration: BoxDecoration(
+                            color: context.theme.muted,
+                            borderRadius: BorderRadius.circular(4))),
                     const Padding(padding: EdgeInsets.symmetric(vertical: 6.0)),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Container(width: 70.0, height: 10.0, decoration: BoxDecoration(color: context.theme.muted, borderRadius: BorderRadius.circular(4))),
-                        Container(width: 100.0, height: 10.0, decoration: BoxDecoration(color: context.theme.muted, borderRadius: BorderRadius.circular(4))),
+                        Container(
+                            width: 70.0,
+                            height: 10.0,
+                            decoration: BoxDecoration(
+                                color: context.theme.muted,
+                                borderRadius: BorderRadius.circular(4))),
+                        Container(
+                            width: 100.0,
+                            height: 10.0,
+                            decoration: BoxDecoration(
+                                color: context.theme.muted,
+                                borderRadius: BorderRadius.circular(4))),
                       ],
                     )
                   ],
@@ -475,7 +622,8 @@ class _ListBlogPageState extends State<ListBlogPage> {
   }
 
   Widget _buildAnimatedBlogCard(Blog blog, int index, bool isOffline) {
-    String formattedDate = DateFormat('dd/MM/yyyy HH:mm').format(blog.updatedAt.toLocal());
+    String formattedDate =
+    DateFormat('dd/MM/yyyy HH:mm').format(blog.updatedAt.toLocal());
     Color statusColor;
     String statusText;
     IconData statusIcon;
@@ -498,7 +646,6 @@ class _ListBlogPageState extends State<ListBlogPage> {
         break;
     }
 
-
     return Slidable(
       key: ValueKey(blog.id),
       endActionPane: isOffline
@@ -510,12 +657,9 @@ class _ListBlogPageState extends State<ListBlogPage> {
           SlidableAction(
             onPressed: (context) async {
               final result = await Navigator.pushNamed(
-                  context,
-                  Routes.updateBlog,
-                  arguments: blog.id
-              );
-              if (result == true) {
-              }
+                  context, Routes.updateBlog,
+                  arguments: blog.id);
+              if (result == true) {}
             },
             backgroundColor: context.theme.blue,
             foregroundColor: context.theme.white,
@@ -538,17 +682,18 @@ class _ListBlogPageState extends State<ListBlogPage> {
       child: Card(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         elevation: 1,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: context.theme.border.withOpacity(0.5))),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: context.theme.border.withOpacity(0.5))),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
-            onTap: isOffline ? null : () async {
+            onTap: isOffline
+                ? null
+                : () async {
               final result = await Navigator.pushNamed(
-                  context,
-                  Routes.updateBlog,
-                  arguments: blog.id
-              );
-              if (result == true) {
-              }
+                  context, Routes.updateBlog,
+                  arguments: blog.id);
+              if (result == true) {}
             },
             borderRadius: BorderRadius.circular(12),
             child: Padding(
@@ -558,26 +703,48 @@ class _ListBlogPageState extends State<ListBlogPage> {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: (blog.thumbnailUrl != null && blog.thumbnailUrl!.isNotEmpty)
+                    child: (blog.thumbnailUrl != null &&
+                        blog.thumbnailUrl!.isNotEmpty)
                         ? (blog.thumbnailUrl!.toLowerCase().endsWith('.svg'))
                         ? SvgPicture.network(
                       blog.thumbnailUrl!,
                       width: 70,
                       height: 70,
                       fit: BoxFit.cover,
-                      placeholderBuilder: (context) => Container(width: 70, height: 70, color: context.theme.muted),
+                      placeholderBuilder: (context) => Container(
+                          width: 70,
+                          height: 70,
+                          color: context.theme.muted),
                     )
                         : CachedNetworkImage(
                       imageUrl: blog.thumbnailUrl!,
                       width: 70,
                       height: 70,
                       fit: BoxFit.cover,
-                      placeholder: (context, url) => Container(width: 70, height: 70, color: context.theme.muted),
-                      errorWidget: (context, url, error) => Container(width: 70, height: 70, color: context.theme.muted.withOpacity(0.5), child: Icon(Icons.broken_image_outlined, color: context.theme.mutedForeground, size: 30)),
+                      placeholder: (context, url) => Container(
+                          width: 70,
+                          height: 70,
+                          color: context.theme.muted),
+                      errorWidget: (context, url, error) => Container(
+                          width: 70,
+                          height: 70,
+                          color: context.theme.muted.withOpacity(0.5),
+                          child: Icon(
+                            Icons.broken_image_outlined,
+                            color: context.theme.mutedForeground,
+                            size: 30,
+                          )),
                     )
-                        : Container(width: 70, height: 70, color: context.theme.muted.withOpacity(0.5), child: Icon(Icons.image_not_supported_outlined, color: context.theme.mutedForeground, size: 30)),
+                        : Container(
+                        width: 70,
+                        height: 70,
+                        color: context.theme.muted.withOpacity(0.5),
+                        child: Icon(
+                          Icons.image_not_supported_outlined,
+                          color: context.theme.mutedForeground,
+                          size: 30,
+                        )),
                   ),
-
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -596,7 +763,9 @@ class _ListBlogPageState extends State<ListBlogPage> {
                         const SizedBox(height: 6),
                         Row(
                           children: [
-                            Icon(Icons.category_outlined, size: 14, color: context.theme.mutedForeground),
+                            Icon(Icons.category_outlined,
+                                size: 14,
+                                color: context.theme.mutedForeground),
                             const SizedBox(width: 4),
                             Expanded(
                               child: Text(
@@ -620,14 +789,18 @@ class _ListBlogPageState extends State<ListBlogPage> {
                                 const SizedBox(width: 4),
                                 Text(
                                   statusText,
-                                  style: TextStyle(color: statusColor, fontSize: 11, fontWeight: FontWeight.w500),
+                                  style: TextStyle(
+                                      color: statusColor,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w500),
                                 ),
                               ],
                             ),
                             Text(
                               formattedDate,
                               style: TextStyle(
-                                  color: context.theme.mutedForeground.withOpacity(0.8),
+                                  color: context.theme.mutedForeground
+                                      .withOpacity(0.8),
                                   fontSize: 11),
                             ),
                           ],
@@ -672,7 +845,8 @@ class _ListBlogPageState extends State<ListBlogPage> {
                 _searchController.text.isEmpty
                     ? 'Nhấn nút "+" để thêm bài viết mới.'
                     : 'Hãy thử tìm kiếm với từ khóa khác hoặc xóa bộ lọc.',
-                style: TextStyle(color: context.theme.mutedForeground, fontSize: 13),
+                style:
+                TextStyle(color: context.theme.mutedForeground, fontSize: 13),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -681,7 +855,6 @@ class _ListBlogPageState extends State<ListBlogPage> {
       ),
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -697,6 +870,14 @@ class _ListBlogPageState extends State<ListBlogPage> {
         ),
         iconTheme: IconThemeData(color: context.theme.textColor),
         actions: [
+          IconButton(
+            icon: Icon(Icons.category_outlined,
+                color: context.theme.mutedForeground),
+            tooltip: "Quản lý danh mục",
+            onPressed: () {
+              Navigator.pushNamed(context, Routes.manageBlogCategories);
+            },
+          ),
           IconButton(
             icon: Icon(Icons.refresh, color: context.theme.mutedForeground),
             tooltip: "Làm mới",
@@ -715,26 +896,34 @@ class _ListBlogPageState extends State<ListBlogPage> {
                 Container(
                   width: double.infinity,
                   color: context.theme.yellow.withOpacity(0.15),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.wifi_off_rounded, size: 16, color: context.theme.yellow),
+                      Icon(Icons.wifi_off_rounded,
+                          size: 16, color: context.theme.yellow),
                       const SizedBox(width: 8),
                       Text(
                         provider.error ?? 'Bạn đang offline. Dữ liệu có thể đã cũ.',
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: context.theme.yellow, fontSize: 13),
+                        style:
+                        TextStyle(color: context.theme.yellow, fontSize: 13),
                       ),
                     ],
                   ),
                 ),
               if (provider.isLoading && provider.blogs.isNotEmpty)
-                LinearProgressIndicator(minHeight: 2, color: context.theme.primary.withOpacity(0.5)),
+                LinearProgressIndicator(
+                    minHeight: 2,
+                    color: context.theme.primary.withOpacity(0.5)),
               Expanded(
                 child: Builder(
                   builder: (innerContext) {
-                    if (provider.error != null && !provider.isLoading && !provider.isLoadingMore && !provider.isOffline) {
+                    if (provider.error != null &&
+                        !provider.isLoading &&
+                        !provider.isLoadingMore &&
+                        !provider.isOffline) {
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         if (mounted) {
                           ScaffoldMessenger.of(innerContext).showSnackBar(SnackBar(
@@ -745,7 +934,8 @@ class _ListBlogPageState extends State<ListBlogPage> {
                             action: SnackBarAction(
                               label: "Thử lại",
                               textColor: context.theme.destructiveForeground,
-                              onPressed: () => provider.fetchBlogs(forceRefresh: true),
+                              onPressed: () =>
+                                  provider.fetchBlogs(forceRefresh: true),
                             ),
                           ));
                           provider.clearError();
@@ -764,19 +954,23 @@ class _ListBlogPageState extends State<ListBlogPage> {
                     return RefreshIndicator(
                       color: context.theme.primary,
                       backgroundColor: context.theme.card,
-                      onRefresh: () async => context
-                          .read<BlogVm>()
-                          .fetchBlogs(forceRefresh: true),
+                      onRefresh: () async =>
+                          context.read<BlogVm>().fetchBlogs(forceRefresh: true),
                       child: ListView.builder(
                         padding: const EdgeInsets.only(bottom: 80, top: 8),
                         controller: _scrollController,
-                        itemCount: provider.blogs.length + (provider.isLoadingMore ? 1 : 0),
+                        itemCount: provider.blogs.length +
+                            (provider.isLoadingMore ? 1 : 0),
                         itemBuilder: (context, index) {
                           if (index == provider.blogs.length) {
                             return const Center(
                               child: Padding(
                                 padding: EdgeInsets.symmetric(vertical: 24.0),
-                                child: SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2)),
+                                child: SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2)),
                               ),
                             );
                           }

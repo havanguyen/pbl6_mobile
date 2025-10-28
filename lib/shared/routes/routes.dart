@@ -21,6 +21,7 @@ import '../../view/admin_management/create_admin_page.dart';
 import '../../view/admin_management/list_admin_page.dart';
 import '../../view/admin_management/update_admin_page.dart';
 import '../../view/auth/login_page.dart';
+import '../../view/blog/manage_categories_page.dart';
 import '../../view/doctor_management/create_doctor_page.dart';
 import '../../view/doctor_management/list_doctor_page.dart';
 import '../../view/doctor_management/update_doctor_page.dart';
@@ -71,7 +72,7 @@ class Routes {
   static const listBlog = '/listBlog'; // Thêm route
   static const createBlog = '/createBlog'; // Thêm route
   static const updateBlog = '/updateBlog'; // Thêm route
-
+  static const String manageBlogCategories = '/manage-blog-categories';
 
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
@@ -95,6 +96,8 @@ class Routes {
           settings: settings,
           child: EditAccountDoctorPage(profile: profile),
         );
+      case manageBlogCategories:
+        return MaterialPageRoute(builder: (_) => const ManageCategoriesPage());
       case editProfile:
         final profile = settings.arguments as Profile;
         return PageTransition(

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -31,6 +30,9 @@ class BlogVm extends ChangeNotifier {
   Blog? _blogDetail;
   bool _isLoadingDetail = false;
 
+  bool _isUpdatingEntity = false;
+  bool get isUpdatingEntity => _isUpdatingEntity;
+
   List<Blog> get blogs => _blogs;
   bool get isLoading => _isLoading;
   bool get isLoadingMore => _isLoadingMore;
@@ -43,7 +45,6 @@ class BlogVm extends ChangeNotifier {
   String? get categoryError => _categoryError;
   bool get isCategoryOffline => _isCategoryOffline;
 
-
   Blog? get blogDetail => _blogDetail;
   bool get isLoadingDetail => _isLoadingDetail;
   String? get selectedCategoryId => _selectedCategoryId;
@@ -51,26 +52,47 @@ class BlogVm extends ChangeNotifier {
   String get sortBy => _sortBy;
   String get sortOrder => _sortOrder;
 
+  // Helper to check current connectivity
+  Future<bool> _checkConnectivity() async {
+    var connectivityResult = await Connectivity().checkConnectivity();
+    // Use contains instead of == for broader compatibility (e.g., ethernet)
+    bool isConnected = connectivityResult.any((result) =>
+    result == ConnectivityResult.wifi ||
+        result == ConnectivityResult.mobile ||
+        result == ConnectivityResult.ethernet);
+    _isOffline = !isConnected; // Update internal flag
+    return isConnected;
+  }
+
   BlogVm() {
+    // Initial check
+    _checkConnectivity().then((_) => notifyListeners());
+
+    // Listen for changes
     Connectivity()
         .onConnectivityChanged
         .listen((List<ConnectivityResult> results) {
       bool isConnected = results.any((result) =>
-      result == ConnectivityResult.wifi || result == ConnectivityResult.mobile);
-      if (isConnected && (_isOffline || _isCategoryOffline)) {
-        _isOffline = false;
-        _isCategoryOffline = false;
-        fetchBlogs(forceRefresh: true);
-        fetchBlogCategories(forceRefresh: true);
-      } else if (!isConnected) {
-        _isOffline = true;
-        _isCategoryOffline = true;
+      result == ConnectivityResult.wifi ||
+          result == ConnectivityResult.mobile ||
+          result == ConnectivityResult.ethernet);
+      bool wasOffline = _isOffline || _isCategoryOffline; // Check previous state
+      _isOffline = !isConnected;
+      _isCategoryOffline = !isConnected; // Assume both affected by offline
+
+      if (!isConnected) {
         _error = 'Bạn đang offline. Dữ liệu có thể đã cũ.';
         _categoryError = 'Bạn đang offline, không thể tải danh mục.';
-        notifyListeners();
+      } else if (isConnected && wasOffline) {
+        // Only refresh if coming back online
+        _error = null;
+        _categoryError = null;
+        fetchBlogs(forceRefresh: true);
+        fetchBlogCategories(forceRefresh: true);
       }
+      notifyListeners(); // Notify UI about connectivity change
     });
-    fetchBlogCategories();
+    fetchBlogCategories(); // Fetch categories initially
   }
 
   void updateSearchQuery(String query) {
@@ -118,60 +140,79 @@ class BlogVm extends ChangeNotifier {
     fetchBlogs(forceRefresh: true);
   }
 
+  // Common error handler focusing on non-offline Dio errors
+  void _handleError(dynamic e, {bool isCategoryError = false}) {
+    String message;
+    if (e is DioException) {
+      // Check for specific Dio errors if needed, otherwise generic message
+      message = 'Lỗi máy chủ: ${e.response?.data['message'] ?? e.message}';
+    } else {
+      message = 'Lỗi không mong muốn: $e';
+    }
+
+    if (isCategoryError) {
+      _categoryError = message;
+    } else {
+      _error = message;
+    }
+  }
+
   Future<void> fetchBlogCategories({bool forceRefresh = false}) async {
     if (_isLoadingCategories && !forceRefresh) return;
+    if (!await _checkConnectivity()) { // Check connection first
+      _categoryError = 'Bạn đang offline, không thể tải danh mục.';
+      _isCategoryOffline = true;
+      notifyListeners();
+      return;
+    }
 
     _isLoadingCategories = true;
     _categoryError = null;
     _isCategoryOffline = false;
-    notifyListeners();
+    if (forceRefresh) {
+      notifyListeners(); // Show loading indicator immediately on refresh
+    }
 
     try {
       final result = await BlogService.getBlogCategories();
       if (result.success) {
         _categories = result.data;
-        _categoryError = null;
-        _isCategoryOffline = false;
       } else {
         _categoryError = "Lỗi tải danh mục: ${result.message}";
-        _isCategoryOffline = false;
       }
-    } on DioException catch (e) {
-      if (e.type == DioExceptionType.connectionTimeout ||
-          e.type == DioExceptionType.sendTimeout ||
-          e.type == DioExceptionType.receiveTimeout ||
-          e.type == DioExceptionType.connectionError ||
-          e.type == DioExceptionType.unknown && e.error is SocketException)
-      {
-        _isCategoryOffline = true;
-        _categoryError = 'Bạn đang offline, không thể tải danh mục.';
-      } else {
-        _isCategoryOffline = false;
-        _categoryError = 'Lỗi máy chủ khi tải danh mục: ${e.response?.data['message'] ?? e.message}';
-      }
-    }
-    catch (e) {
-      _isCategoryOffline = false;
-      _categoryError = 'Lỗi không mong muốn khi tải danh mục: $e';
+    } catch (e) {
+      _handleError(e, isCategoryError: true);
     } finally {
       _isLoadingCategories = false;
       notifyListeners();
     }
   }
 
-
   Future<void> fetchBlogs({bool forceRefresh = false}) async {
     if (forceRefresh) {
+      if (!await _checkConnectivity()) { // Check connection first
+        _error = 'Bạn đang offline, không thể tải dữ liệu.';
+        _isOffline = true;
+        _isLoading = false; // Ensure loading stops if offline check fails early
+        notifyListeners();
+        return;
+      }
       _currentPage = 1;
       _meta = {};
       _blogs.clear();
       _isLoading = true;
     } else {
-      if (_isLoading || _isLoadingMore || _isOffline || !hasNext) return;
+      if (_isLoading || _isLoadingMore || !hasNext) return; // Removed offline check here, handled below
+      if (!await _checkConnectivity()) { // Also check when loading more
+        _error = 'Bạn đang offline, không thể tải thêm.';
+        _isOffline = true;
+        notifyListeners();
+        return;
+      }
       _isLoadingMore = true;
     }
     _error = null;
-    _isOffline = false;
+    _isOffline = false; // Assume online if check passes
     notifyListeners();
 
     try {
@@ -195,31 +236,11 @@ class BlogVm extends ChangeNotifier {
         if (hasNext) {
           _currentPage++;
         }
-        _error = null;
-        _isOffline = false;
-      }
-      else {
-        _error = "Lỗi tải dữ liệu: ${result.message}";
-        _isOffline = false;
-      }
-    }
-    on DioException catch (e) {
-      if (e.type == DioExceptionType.connectionTimeout ||
-          e.type == DioExceptionType.sendTimeout ||
-          e.type == DioExceptionType.receiveTimeout ||
-          e.type == DioExceptionType.connectionError ||
-          e.type == DioExceptionType.unknown && e.error is SocketException)
-      {
-        _isOffline = true;
-        _error = 'Bạn đang offline. Dữ liệu có thể đã cũ.';
       } else {
-        _isOffline = false;
-        _error = 'Lỗi máy chủ hoặc yêu cầu: ${e.response?.data['message'] ?? e.message}';
+        _error = "Lỗi tải dữ liệu: ${result.message}";
       }
-    }
-    catch (e) {
-      _isOffline = false;
-      _error = 'Lỗi không mong muốn: $e';
+    } catch (e) {
+      _handleError(e); // Handle non-offline errors
     } finally {
       _isLoading = false;
       _isLoadingMore = false;
@@ -228,20 +249,17 @@ class BlogVm extends ChangeNotifier {
   }
 
   Future<void> fetchBlogDetail(String id) async {
-    _isLoadingDetail = true;
-    _blogDetail = null;
-    _error = null;
-    notifyListeners();
-
-    var connectivityResult = await Connectivity().checkConnectivity();
-    bool localIsOffline = !connectivityResult.contains(ConnectivityResult.none);
-
-    if (localIsOffline) {
+    if (!await _checkConnectivity()) {
       _error = 'Bạn đang offline, không thể tải chi tiết.';
       _isLoadingDetail = false;
       notifyListeners();
       return;
     }
+
+    _isLoadingDetail = true;
+    _blogDetail = null;
+    _error = null;
+    notifyListeners();
 
     try {
       _blogDetail = await BlogService.getBlogDetail(id);
@@ -249,13 +267,13 @@ class BlogVm extends ChangeNotifier {
         _error = "Không tải được chi tiết blog hoặc blog không tồn tại.";
       }
     } catch (e) {
-      _error = "Lỗi khi tải chi tiết blog: $e";
+      _handleError(e);
+      _error = "Lỗi khi tải chi tiết blog: $_error"; // Append generic error
     } finally {
       _isLoadingDetail = false;
       notifyListeners();
     }
   }
-
 
   Future<void> loadMore() async {
     await fetchBlogs();
@@ -267,7 +285,13 @@ class BlogVm extends ChangeNotifier {
     required String categoryId,
     String? thumbnailUrl,
   }) async {
-    _isLoading = true;
+    if (!await _checkConnectivity()) {
+      _error = 'Bạn đang offline, không thể tạo blog.';
+      notifyListeners();
+      return false;
+    }
+
+    _isUpdatingEntity = true;
     _error = null;
     notifyListeners();
     bool success = false;
@@ -285,23 +309,31 @@ class BlogVm extends ChangeNotifier {
         _error = "Tạo blog thất bại.";
       }
     } catch (e) {
-      _error = "Lỗi khi tạo blog: $e";
+      _handleError(e);
+      _error = "Lỗi khi tạo blog: $_error";
       success = false;
     } finally {
-      _isLoading = false;
+      _isUpdatingEntity = false;
       notifyListeners();
     }
     return success;
   }
 
-  Future<bool> updateBlog(String id, {
-    String? title,
-    String? content,
-    String? categoryId,
-    String? status,
-    String? thumbnailUrl,
-  }) async {
-    _isLoading = true;
+  Future<bool> updateBlog(
+      String id, {
+        String? title,
+        String? content,
+        String? categoryId,
+        String? status,
+        String? thumbnailUrl,
+      }) async {
+    if (!await _checkConnectivity()) {
+      _error = 'Bạn đang offline, không thể cập nhật blog.';
+      notifyListeners();
+      return false;
+    }
+
+    _isUpdatingEntity = true;
     _error = null;
     notifyListeners();
     bool success = false;
@@ -316,14 +348,10 @@ class BlogVm extends ChangeNotifier {
       );
       success = updatedBlog != null;
       if (success) {
+        _blogDetail = updatedBlog;
         int index = _blogs.indexWhere((blog) => blog.id == id);
         if (index != -1) {
-          Blog? detail = await BlogService.getBlogDetail(id);
-          if (detail != null) {
-            _blogs[index] = detail;
-          } else {
-            await fetchBlogs(forceRefresh: true);
-          }
+          _blogs[index] = updatedBlog!;
         } else {
           await fetchBlogs(forceRefresh: true);
         }
@@ -331,17 +359,24 @@ class BlogVm extends ChangeNotifier {
         _error = "Cập nhật blog thất bại.";
       }
     } catch (e) {
-      _error = "Lỗi khi cập nhật blog: $e";
+      _handleError(e);
+      _error = "Lỗi khi cập nhật blog: $_error";
       success = false;
     } finally {
-      _isLoading = false;
+      _isUpdatingEntity = false;
       notifyListeners();
     }
     return success;
   }
 
   Future<bool> deleteBlog(String id, String password) async {
-    _isLoading = true;
+    if (!await _checkConnectivity()) {
+      _error = 'Bạn đang offline, không thể xóa blog.';
+      notifyListeners();
+      return false;
+    }
+
+    _isUpdatingEntity = true;
     _error = null;
     notifyListeners();
     bool success = false;
@@ -353,10 +388,115 @@ class BlogVm extends ChangeNotifier {
         _error = "Xóa blog thất bại. Vui lòng kiểm tra lại mật khẩu.";
       }
     } catch (e) {
-      _error = "Lỗi khi xóa blog: $e";
+      _handleError(e);
+      _error = "Lỗi khi xóa blog: $_error";
       success = false;
     } finally {
-      _isLoading = false;
+      _isUpdatingEntity = false;
+      notifyListeners();
+    }
+    return success;
+  }
+
+  Future<bool> createBlogCategory({
+    required String name,
+    String? description,
+  }) async {
+    if (!await _checkConnectivity()) {
+      _categoryError = 'Bạn đang offline, không thể tạo danh mục.';
+      notifyListeners();
+      return false;
+    }
+    _isUpdatingEntity = true;
+    _categoryError = null;
+    notifyListeners();
+    bool success = false;
+    try {
+      final newCategory = await BlogService.createBlogCategory(
+        name: name,
+        description: description,
+      );
+      success = newCategory != null;
+      if (success) {
+        await fetchBlogCategories(forceRefresh: true);
+      } else {
+        _categoryError = "Tạo danh mục thất bại.";
+      }
+    } catch (e) {
+      _handleError(e, isCategoryError: true);
+      _categoryError = "Lỗi khi tạo danh mục: $_categoryError";
+      success = false;
+    } finally {
+      _isUpdatingEntity = false;
+      notifyListeners();
+    }
+    return success;
+  }
+
+  Future<bool> updateBlogCategory(
+      String id, {
+        String? name,
+        String? description,
+      }) async {
+    if (!await _checkConnectivity()) {
+      _categoryError = 'Bạn đang offline, không thể cập nhật danh mục.';
+      notifyListeners();
+      return false;
+    }
+    _isUpdatingEntity = true;
+    _categoryError = null;
+    notifyListeners();
+    bool success = false;
+    try {
+      final updatedCategory = await BlogService.updateBlogCategory(
+        id,
+        name: name,
+        description: description,
+      );
+      success = updatedCategory != null;
+      if (success) {
+        await fetchBlogCategories(forceRefresh: true);
+      } else {
+        _categoryError = "Cập nhật danh mục thất bại.";
+      }
+    } catch (e) {
+      _handleError(e, isCategoryError: true);
+      _categoryError = "Lỗi khi cập nhật danh mục: $_categoryError";
+      success = false;
+    } finally {
+      _isUpdatingEntity = false;
+      notifyListeners();
+    }
+    return success;
+  }
+
+  Future<bool> deleteBlogCategory(String id,
+      {required String password, bool forceBulkDelete = false}) async {
+    if (!await _checkConnectivity()) {
+      _categoryError = 'Bạn đang offline, không thể xóa danh mục.';
+      notifyListeners();
+      return false;
+    }
+    _isUpdatingEntity = true;
+    _categoryError = null;
+    notifyListeners();
+    bool success = false;
+    try {
+      success = await BlogService.deleteBlogCategory(id,
+          password: password, forceBulkDelete: forceBulkDelete);
+      if (success) {
+        _categories.removeWhere((cat) => cat.id == id);
+        await fetchBlogs(forceRefresh: true);
+      } else {
+        _categoryError =
+        "Xóa thất bại. Sai mật khẩu hoặc danh mục đang được sử dụng.";
+      }
+    } catch (e) {
+      _handleError(e, isCategoryError: true);
+      _categoryError = "Lỗi khi xóa danh mục: $_categoryError";
+      success = false;
+    } finally {
+      _isUpdatingEntity = false;
       notifyListeners();
     }
     return success;
@@ -365,6 +505,13 @@ class BlogVm extends ChangeNotifier {
   void clearError() {
     if (_error != null) {
       _error = null;
+      notifyListeners();
+    }
+  }
+
+  void clearCategoryError() {
+    if (_categoryError != null) {
+      _categoryError = null;
       notifyListeners();
     }
   }

@@ -31,7 +31,7 @@ class BlogService {
 
       final response = await _secureDio.get('/blogs', queryParameters: params);
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 && response.data['success'] == true) {
         final blogList = (response.data['data'] as List)
             .map((json) => Blog.fromJson(json as Map<String, dynamic>))
             .toList();
@@ -41,33 +41,30 @@ class BlogService {
           meta: response.data['meta'] ?? {},
         );
       }
-      return GetBlogsResponse(success: false, message: response.data['message'] ?? 'API call failed');
+      return GetBlogsResponse(
+          success: false, message: response.data['message'] ?? 'API call failed');
     } on DioException catch (e) {
-      return GetBlogsResponse(success: false, message: 'Lỗi kết nối: ${e.message} ${e.response?.data['message']}');
+      return GetBlogsResponse(
+          success: false,
+          message: 'Lỗi kết nối: ${e.message} ${e.response?.data['message']}');
     } catch (e) {
       return GetBlogsResponse(success: false, message: 'Lỗi không mong muốn: $e');
     }
   }
 
   static Future<Blog?> getBlogDetail(String id) async {
-    try {
-      final response = await _secureDio.get('/blogs/$id');
-      if (response.statusCode == 200 && response.data['data'] != null) {
-        return Blog.fromJson(response.data['data']);
-      }
-      return null;
-    } catch (e) {
-      print("Get Blog Detail Error: $e");
-      if (e is DioException) print("DioException: ${e.response?.data}");
-      return null;
+    final response = await _secureDio.get('/blogs/$id');
+    if (response.statusCode == 200 && response.data['data'] != null) {
+      return Blog.fromJson(response.data['data']);
     }
+    return null;
   }
 
   static Future<GetBlogCategoriesResponse> getBlogCategories() async {
     try {
       final response = await _secureDio.get('/blogs/categories');
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 && response.data['success'] == true) {
         final categoryList = (response.data['data'] as List)
             .map((json) => BlogCategory.fromJson(json as Map<String, dynamic>))
             .toList();
@@ -76,11 +73,15 @@ class BlogService {
           data: categoryList,
         );
       }
-      return GetBlogCategoriesResponse(success: false, message: response.data['message'] ?? 'API call failed');
+      return GetBlogCategoriesResponse(
+          success: false, message: response.data['message'] ?? 'API call failed');
     } on DioException catch (e) {
-      return GetBlogCategoriesResponse(success: false, message: 'Lỗi kết nối: ${e.message} ${e.response?.data['message']}');
+      return GetBlogCategoriesResponse(
+          success: false,
+          message: 'Lỗi kết nối: ${e.message} ${e.response?.data['message']}');
     } catch (e) {
-      return GetBlogCategoriesResponse(success: false, message: 'Lỗi không mong muốn: $e');
+      return GetBlogCategoriesResponse(
+          success: false, message: 'Lỗi không mong muốn: $e');
     }
   }
 
@@ -90,65 +91,101 @@ class BlogService {
     required String categoryId,
     String? thumbnailUrl,
   }) async {
-    try {
-      final requestBody = {
-        'title': title,
-        'content': content,
-        'categoryId': categoryId,
-        if (thumbnailUrl != null && thumbnailUrl.isNotEmpty) 'thumbnailUrl': thumbnailUrl,
-      };
-      final response = await _secureDio.post('/blogs', data: requestBody);
-      if (response.statusCode == 201 && response.data['data'] != null) {
-        return Blog.fromJson(response.data['data']);
-      }
-      return null;
-    } catch (e) {
-      print("Create Blog Error: $e");
-      if (e is DioException) print("DioException: ${e.response?.data}");
-      return null;
+    final requestBody = {
+      'title': title,
+      'content': content,
+      'categoryId': categoryId,
+      if (thumbnailUrl != null && thumbnailUrl.isNotEmpty)
+        'thumbnailUrl': thumbnailUrl,
+    };
+    final response = await _secureDio.post('/blogs', data: requestBody);
+    if (response.statusCode == 201 && response.data['data'] != null) {
+      return Blog.fromJson(response.data['data']);
     }
+    return null;
   }
 
-  static Future<Blog?> updateBlog(String id, {
-    String? title,
-    String? content,
-    String? categoryId,
-    String? status,
-    String? thumbnailUrl,
-  }) async {
-    try {
-      final requestBody = {
-        if (title != null && title.isNotEmpty) 'title': title,
-        if (content != null && content.isNotEmpty) 'content': content,
-        if (categoryId != null && categoryId.isNotEmpty) 'categoryId': categoryId,
-        if (status != null && status.isNotEmpty) 'status': status,
-      };
-      if (requestBody.isEmpty) return null;
+  static Future<Blog?> updateBlog(
+      String id, {
+        String? title,
+        String? content,
+        String? categoryId,
+        String? status,
+        String? thumbnailUrl,
+      }) async {
+    final requestBody = {
+      if (title != null && title.isNotEmpty) 'title': title,
+      if (content != null && content.isNotEmpty) 'content': content,
+      if (categoryId != null && categoryId.isNotEmpty) 'categoryId': categoryId,
+      if (status != null && status.isNotEmpty) 'status': status,
+      if (thumbnailUrl != null && thumbnailUrl.isNotEmpty)
+        'thumbnailUrl': thumbnailUrl,
+    };
+    if (requestBody.isEmpty) return null;
 
-      final response = await _secureDio.patch('/blogs/$id', data: requestBody);
-      if (response.statusCode == 200 && response.data['data'] != null) {
-        return Blog.fromJson(response.data['data']);
-      }
-      return null;
-    } catch (e) {
-      print("Update Blog Error: $e");
-      if (e is DioException) print("DioException: ${e.response?.data}");
-      return null;
+    final response = await _secureDio.patch('/blogs/$id', data: requestBody);
+    if (response.statusCode == 200 && response.data['data'] != null) {
+      return Blog.fromJson(response.data['data']);
     }
+    return null;
   }
 
   static Future<bool> deleteBlog(String id, {required String password}) async {
-    try {
-      if (!await AuthService.verifyPassword(password: password)) {
-        print('Password verification failed for deleting blog');
-        return false;
-      }
-      final response = await _secureDio.delete('/blogs/$id');
-      return response.statusCode == 200 || response.statusCode == 204;
-    } catch (e) {
-      print("Delete Blog Error: $e");
-      if (e is DioException) print("DioException: ${e.response?.data}");
+    if (!await AuthService.verifyPassword(password: password)) {
+      print('Password verification failed for deleting blog');
       return false;
     }
+    final response = await _secureDio.delete('/blogs/$id');
+    return response.statusCode == 200 || response.statusCode == 204;
+  }
+
+  static Future<BlogCategory?> createBlogCategory({
+    required String name,
+    String? description,
+  }) async {
+    final requestBody = {
+      'name': name,
+      if (description != null && description.isNotEmpty)
+        'description': description,
+    };
+    final response =
+    await _secureDio.post('/blogs/categories', data: requestBody);
+    if (response.statusCode == 201 && response.data['data'] != null) {
+      return BlogCategory.fromJson(response.data['data']);
+    }
+    return null;
+  }
+
+  static Future<BlogCategory?> updateBlogCategory(
+      String id, {
+        String? name,
+        String? description,
+      }) async {
+    final requestBody = {
+      if (name != null && name.isNotEmpty) 'name': name,
+      if (description != null && description.isNotEmpty)
+        'description': description,
+    };
+    if (requestBody.isEmpty) return null;
+
+    final response =
+    await _secureDio.patch('/blogs/categories/$id', data: requestBody);
+    if (response.statusCode == 200 && response.data['data'] != null) {
+      return BlogCategory.fromJson(response.data['data']);
+    }
+    return null;
+  }
+
+  static Future<bool> deleteBlogCategory(String id,
+      {required String password, bool forceBulkDelete = false}) async {
+    if (!await AuthService.verifyPassword(password: password)) {
+      print('Password verification failed for deleting blog category');
+      return false;
+    }
+    final response = await _secureDio.delete(
+      '/blogs/categories/$id',
+      queryParameters: {'forceBulkDelete': forceBulkDelete},
+    );
+    return response.statusCode == 200 || response.statusCode == 204;
   }
 }

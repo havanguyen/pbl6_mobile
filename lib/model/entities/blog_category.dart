@@ -6,7 +6,7 @@ part 'blog_category.g.dart';
 class BlogCategory {
   final String id;
   final String name;
-  final String slug;
+  final String? slug;
   final String? description;
   @JsonKey(fromJson: dateTimeFromJson, toJson: dateTimeToJson)
   final DateTime? createdAt;
@@ -16,7 +16,7 @@ class BlogCategory {
   BlogCategory({
     required this.id,
     required this.name,
-    required this.slug,
+    this.slug,
     this.description,
     this.createdAt,
     this.updatedAt,
