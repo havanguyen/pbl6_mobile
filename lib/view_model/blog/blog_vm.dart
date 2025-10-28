@@ -1,10 +1,13 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:pbl6mobile/model/entities/blog.dart';
 import 'package:pbl6mobile/model/entities/blog_category.dart';
 import 'package:pbl6mobile/model/services/remote/blog_service.dart';
+import 'package:pbl6mobile/model/services/remote/utilities_service.dart';
 
 class BlogVm extends ChangeNotifier {
   List<Blog> _blogs = [];
@@ -33,6 +36,16 @@ class BlogVm extends ChangeNotifier {
   bool _isUpdatingEntity = false;
   bool get isUpdatingEntity => _isUpdatingEntity;
 
+  File? _selectedThumbnailFile;
+  File? get selectedThumbnailFile => _selectedThumbnailFile;
+
+  String? _uploadedThumbnailUrl;
+  String? get uploadedThumbnailUrl => _uploadedThumbnailUrl;
+  bool _isUploadingThumbnail = false;
+  bool get isUploadingThumbnail => _isUploadingThumbnail;
+  String? _thumbnailUploadError;
+  String? get thumbnailUploadError => _thumbnailUploadError;
+
   List<Blog> get blogs => _blogs;
   bool get isLoading => _isLoading;
   bool get isLoadingMore => _isLoadingMore;
@@ -52,23 +65,19 @@ class BlogVm extends ChangeNotifier {
   String get sortBy => _sortBy;
   String get sortOrder => _sortOrder;
 
-  // Helper to check current connectivity
   Future<bool> _checkConnectivity() async {
     var connectivityResult = await Connectivity().checkConnectivity();
-    // Use contains instead of == for broader compatibility (e.g., ethernet)
     bool isConnected = connectivityResult.any((result) =>
     result == ConnectivityResult.wifi ||
         result == ConnectivityResult.mobile ||
         result == ConnectivityResult.ethernet);
-    _isOffline = !isConnected; // Update internal flag
+    _isOffline = !isConnected;
     return isConnected;
   }
 
   BlogVm() {
-    // Initial check
     _checkConnectivity().then((_) => notifyListeners());
 
-    // Listen for changes
     Connectivity()
         .onConnectivityChanged
         .listen((List<ConnectivityResult> results) {
@@ -76,23 +85,22 @@ class BlogVm extends ChangeNotifier {
       result == ConnectivityResult.wifi ||
           result == ConnectivityResult.mobile ||
           result == ConnectivityResult.ethernet);
-      bool wasOffline = _isOffline || _isCategoryOffline; // Check previous state
+      bool wasOffline = _isOffline || _isCategoryOffline;
       _isOffline = !isConnected;
-      _isCategoryOffline = !isConnected; // Assume both affected by offline
+      _isCategoryOffline = !isConnected;
 
       if (!isConnected) {
         _error = 'Bạn đang offline. Dữ liệu có thể đã cũ.';
         _categoryError = 'Bạn đang offline, không thể tải danh mục.';
       } else if (isConnected && wasOffline) {
-        // Only refresh if coming back online
         _error = null;
         _categoryError = null;
         fetchBlogs(forceRefresh: true);
         fetchBlogCategories(forceRefresh: true);
       }
-      notifyListeners(); // Notify UI about connectivity change
+      notifyListeners();
     });
-    fetchBlogCategories(); // Fetch categories initially
+    fetchBlogCategories();
   }
 
   void updateSearchQuery(String query) {
@@ -140,11 +148,9 @@ class BlogVm extends ChangeNotifier {
     fetchBlogs(forceRefresh: true);
   }
 
-  // Common error handler focusing on non-offline Dio errors
   void _handleError(dynamic e, {bool isCategoryError = false}) {
     String message;
     if (e is DioException) {
-      // Check for specific Dio errors if needed, otherwise generic message
       message = 'Lỗi máy chủ: ${e.response?.data['message'] ?? e.message}';
     } else {
       message = 'Lỗi không mong muốn: $e';
@@ -159,7 +165,7 @@ class BlogVm extends ChangeNotifier {
 
   Future<void> fetchBlogCategories({bool forceRefresh = false}) async {
     if (_isLoadingCategories && !forceRefresh) return;
-    if (!await _checkConnectivity()) { // Check connection first
+    if (!await _checkConnectivity()) {
       _categoryError = 'Bạn đang offline, không thể tải danh mục.';
       _isCategoryOffline = true;
       notifyListeners();
@@ -170,7 +176,7 @@ class BlogVm extends ChangeNotifier {
     _categoryError = null;
     _isCategoryOffline = false;
     if (forceRefresh) {
-      notifyListeners(); // Show loading indicator immediately on refresh
+      notifyListeners();
     }
 
     try {
@@ -190,10 +196,10 @@ class BlogVm extends ChangeNotifier {
 
   Future<void> fetchBlogs({bool forceRefresh = false}) async {
     if (forceRefresh) {
-      if (!await _checkConnectivity()) { // Check connection first
+      if (!await _checkConnectivity()) {
         _error = 'Bạn đang offline, không thể tải dữ liệu.';
         _isOffline = true;
-        _isLoading = false; // Ensure loading stops if offline check fails early
+        _isLoading = false;
         notifyListeners();
         return;
       }
@@ -202,8 +208,8 @@ class BlogVm extends ChangeNotifier {
       _blogs.clear();
       _isLoading = true;
     } else {
-      if (_isLoading || _isLoadingMore || !hasNext) return; // Removed offline check here, handled below
-      if (!await _checkConnectivity()) { // Also check when loading more
+      if (_isLoading || _isLoadingMore || !hasNext) return;
+      if (!await _checkConnectivity()) {
         _error = 'Bạn đang offline, không thể tải thêm.';
         _isOffline = true;
         notifyListeners();
@@ -212,7 +218,7 @@ class BlogVm extends ChangeNotifier {
       _isLoadingMore = true;
     }
     _error = null;
-    _isOffline = false; // Assume online if check passes
+    _isOffline = false;
     notifyListeners();
 
     try {
@@ -240,7 +246,7 @@ class BlogVm extends ChangeNotifier {
         _error = "Lỗi tải dữ liệu: ${result.message}";
       }
     } catch (e) {
-      _handleError(e); // Handle non-offline errors
+      _handleError(e);
     } finally {
       _isLoading = false;
       _isLoadingMore = false;
@@ -268,7 +274,7 @@ class BlogVm extends ChangeNotifier {
       }
     } catch (e) {
       _handleError(e);
-      _error = "Lỗi khi tải chi tiết blog: $_error"; // Append generic error
+      _error = "Lỗi khi tải chi tiết blog: $_error";
     } finally {
       _isLoadingDetail = false;
       notifyListeners();
@@ -277,6 +283,82 @@ class BlogVm extends ChangeNotifier {
 
   Future<void> loadMore() async {
     await fetchBlogs();
+  }
+
+  Future<void> pickThumbnailImage() async {
+    _selectedThumbnailFile = null;
+    _thumbnailUploadError = null;
+    notifyListeners();
+    try {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(
+          source: ImageSource.gallery,
+          imageQuality: 80, // Giảm chất lượng ảnh
+          maxWidth: 1024,   // Giới hạn chiều rộng tối đa
+          maxHeight: 1024   // Giới hạn chiều cao tối đa (quan trọng cho ảnh dọc)
+      );
+      if (pickedFile != null) {
+        _selectedThumbnailFile = File(pickedFile.path);
+        notifyListeners();
+      }
+    } catch (e) {
+      _thumbnailUploadError = "Lỗi khi chọn ảnh: $e";
+      notifyListeners();
+    }
+  }
+
+  Future<String?> uploadThumbnailImage() async {
+    if (_selectedThumbnailFile == null) return null;
+    if (!await _checkConnectivity()) {
+      _thumbnailUploadError = 'Bạn đang offline, không thể upload ảnh.';
+      notifyListeners();
+      return null;
+    }
+
+    _isUploadingThumbnail = true;
+    _thumbnailUploadError = null;
+    notifyListeners();
+
+    String? imageUrl;
+    Map<String, dynamic>? signatureData;
+
+    try {
+      signatureData = await UtilitiesService.getUploadSignature();
+      if (signatureData == null) {
+        _thumbnailUploadError = "Không thể lấy chữ ký upload.";
+        _isUploadingThumbnail = false;
+        notifyListeners();
+        return null;
+      }
+
+      imageUrl = await UtilitiesService.uploadImageToCloudinary(
+          _selectedThumbnailFile!.path, signatureData);
+
+      if (imageUrl != null) {
+        _uploadedThumbnailUrl = imageUrl;
+        _selectedThumbnailFile = null;
+      } else {
+        _thumbnailUploadError = "Upload ảnh lên Cloudinary thất bại.";
+      }
+    } catch (e) {
+      _handleError(e);
+      _thumbnailUploadError = "Lỗi upload ảnh: $_error";
+      _error = null;
+    } finally {
+      _isUploadingThumbnail = false;
+      notifyListeners();
+    }
+    return imageUrl;
+  }
+
+  void resetThumbnailState({bool notify = true}) {
+    _selectedThumbnailFile = null;
+
+    _thumbnailUploadError = null;
+    _isUploadingThumbnail = false;
+    if (notify) {
+      notifyListeners();
+    }
   }
 
   Future<bool> createBlog({
@@ -295,15 +377,28 @@ class BlogVm extends ChangeNotifier {
     _error = null;
     notifyListeners();
     bool success = false;
+
+    String? finalThumbnailUrl = thumbnailUrl;
+    if (_selectedThumbnailFile != null) {
+      finalThumbnailUrl = await uploadThumbnailImage();
+      if (finalThumbnailUrl == null) {
+        _error = thumbnailUploadError ?? "Lỗi upload ảnh thumbnail.";
+        _isUpdatingEntity = false;
+        notifyListeners();
+        return false;
+      }
+    }
+
     try {
       final newBlog = await BlogService.createBlog(
         title: title,
         content: content,
         categoryId: categoryId,
-        thumbnailUrl: thumbnailUrl,
+        thumbnailUrl: finalThumbnailUrl,
       );
       success = newBlog != null;
       if (success) {
+        resetThumbnailState(notify: false);
         await fetchBlogs(forceRefresh: true);
       } else {
         _error = "Tạo blog thất bại.";
@@ -337,17 +432,31 @@ class BlogVm extends ChangeNotifier {
     _error = null;
     notifyListeners();
     bool success = false;
+
+    String? finalThumbnailUrl = thumbnailUrl;
+    if (_selectedThumbnailFile != null) {
+      finalThumbnailUrl = await uploadThumbnailImage();
+      if (finalThumbnailUrl == null) {
+        _error = thumbnailUploadError ?? "Lỗi upload ảnh thumbnail.";
+        _isUpdatingEntity = false;
+        notifyListeners();
+        return false;
+      }
+    }
+
     try {
       final updatedBlog = await BlogService.updateBlog(
-        id,
-        title: title,
-        content: content,
-        categoryId: categoryId,
-        status: status,
-        thumbnailUrl: thumbnailUrl,
+          id,
+          title: title,
+          content: content,
+          categoryId: categoryId,
+          status: status,
+          thumbnailUrl: finalThumbnailUrl
       );
+
       success = updatedBlog != null;
       if (success) {
+        resetThumbnailState(notify: false);
         _blogDetail = updatedBlog;
         int index = _blogs.indexWhere((blog) => blog.id == id);
         if (index != -1) {

@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'package:pbl6mobile/model/entities/blog.dart';
@@ -7,7 +9,7 @@ import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/shared/widgets/widget/quill_edittor.dart';
 import 'package:pbl6mobile/view_model/blog/blog_vm.dart';
 import 'package:provider/provider.dart';
-import 'doctor_form.dart';
+import 'doctor_form.dart'; // Keep for AnimatedSubmitButton
 
 class BlogForm extends StatefulWidget {
   final bool isUpdate;
@@ -31,6 +33,8 @@ class _BlogFormState extends State<BlogForm> with SingleTickerProviderStateMixin
   late quill.QuillController _contentController;
   BlogCategory? _selectedCategory;
   String? _selectedStatus;
+  String? _initialThumbnailUrl;
+  String? _imageFileError;
 
   late AnimationController _animationController;
 
@@ -38,7 +42,8 @@ class _BlogFormState extends State<BlogForm> with SingleTickerProviderStateMixin
   void initState() {
     super.initState();
 
-    _titleController = TextEditingController(text: widget.initialData?.title ?? '');
+    _titleController =
+        TextEditingController(text: widget.initialData?.title ?? '');
     _selectedCategory = context.read<BlogVm>().categories.firstWhere(
           (cat) => cat.id == widget.initialData?.category.id,
       orElse: () => context.read<BlogVm>().categories.isNotEmpty
@@ -46,41 +51,47 @@ class _BlogFormState extends State<BlogForm> with SingleTickerProviderStateMixin
           : BlogCategory(id: '', name: 'Loading...', slug: ''),
     );
 
-    if (widget.initialData != null && !context.read<BlogVm>().categories.any((c) => c.id == _selectedCategory?.id)) {
+    if (widget.initialData != null &&
+        !context
+            .read<BlogVm>()
+            .categories
+            .any((c) => c.id == _selectedCategory?.id)) {
       _selectedCategory = null;
     }
 
-    _selectedStatus = widget.isUpdate ? (widget.initialData?.status ?? 'DRAFT') : null;
+    _selectedStatus =
+    widget.isUpdate ? (widget.initialData?.status ?? 'DRAFT') : null;
+    _initialThumbnailUrl = widget.initialData?.thumbnailUrl;
 
-    _contentController = _initializeQuillController(widget.initialData?.content);
+    _contentController =
+        _initializeQuillController(widget.initialData?.content);
 
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),
     );
 
+    context.read<BlogVm>().resetThumbnailState(notify: false);
+
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final blogVm = context.read<BlogVm>();
         if (blogVm.categories.isEmpty && !blogVm.isLoadingCategories) {
           blogVm.fetchBlogCategories().then((_) {
-            if (widget.initialData != null && _selectedCategory?.id == '') {
+            if (mounted && widget.initialData != null && (_selectedCategory == null || _selectedCategory!.id.isEmpty) ) {
               BlogCategory? newSelectedCategory;
               try {
                 newSelectedCategory = blogVm.categories.firstWhere(
                       (cat) => cat.id == widget.initialData!.category.id,
                 );
               } catch (e) {
-                newSelectedCategory = blogVm.categories.isNotEmpty
-                    ? blogVm.categories.first
-                    : null;
+                newSelectedCategory =
+                blogVm.categories.isNotEmpty ? blogVm.categories.first : null;
               }
-
-              if (mounted) {
-                setState(() {
-                  _selectedCategory = newSelectedCategory;
-                });
-              }
+              setState(() {
+                _selectedCategory = newSelectedCategory;
+              });
             }
           });
         }
@@ -119,19 +130,35 @@ class _BlogFormState extends State<BlogForm> with SingleTickerProviderStateMixin
     _titleController.dispose();
     _contentController.dispose();
     _animationController.dispose();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        Provider.of<BlogVm>(context, listen: false).resetThumbnailState(notify: false);
+      }
+    });
     super.dispose();
   }
 
   Future<bool> _submitForm() async {
+    setState(() {
+      _imageFileError = null;
+    });
     if (_formKey.currentState!.validate()) {
+      final blogVm = context.read<BlogVm>();
+      if (blogVm.isUploadingThumbnail || blogVm.isUpdatingEntity) {
+        return false;
+      }
+
       if (_selectedCategory == null || _selectedCategory!.id.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: const Text('Vui lòng chọn danh mục hợp lệ'), backgroundColor: context.theme.destructive),
+          SnackBar(
+              content: const Text('Vui lòng chọn danh mục hợp lệ'),
+              backgroundColor: context.theme.destructive),
         );
         return false;
       }
       String? getQuillJsonOrNull(quill.QuillController controller) {
-        if (controller.document.isEmpty() || controller.document.toPlainText().trim().isEmpty) {
+        if (controller.document.isEmpty() ||
+            controller.document.toPlainText().trim().isEmpty) {
           return null;
         }
         try {
@@ -145,14 +172,18 @@ class _BlogFormState extends State<BlogForm> with SingleTickerProviderStateMixin
       final jsonContent = getQuillJsonOrNull(_contentController);
       if (jsonContent == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: const Text('Nội dung không được để trống'), backgroundColor: context.theme.destructive),
+          SnackBar(
+              content: const Text('Nội dung không được để trống'),
+              backgroundColor: context.theme.destructive),
         );
         return false;
       }
 
-      final blogVm = context.read<BlogVm>();
+
       bool success;
       final messenger = ScaffoldMessenger.of(context);
+
+      final currentThumbnailUrl = _initialThumbnailUrl;
 
       if (widget.isUpdate) {
         success = await blogVm.updateBlog(
@@ -161,34 +192,35 @@ class _BlogFormState extends State<BlogForm> with SingleTickerProviderStateMixin
           content: jsonContent,
           categoryId: _selectedCategory!.id,
           status: _selectedStatus,
+          thumbnailUrl: currentThumbnailUrl,
         );
       } else {
         success = await blogVm.createBlog(
           title: _titleController.text.trim(),
           content: jsonContent,
           categoryId: _selectedCategory!.id,
+          thumbnailUrl: currentThumbnailUrl,
         );
       }
 
       if (mounted) {
         if (success) {
-          messenger.showSnackBar(
-              SnackBar(
-                content: Text('${widget.isUpdate ? 'Cập nhật' : 'Tạo'} bài viết thành công!'),
-                backgroundColor: context.theme.green,
-                duration: const Duration(seconds: 2),
-              )
-          );
+          messenger.showSnackBar(SnackBar(
+            content: Text(
+                '${widget.isUpdate ? 'Cập nhật' : 'Tạo'} bài viết thành công!'),
+            backgroundColor: context.theme.green,
+            duration: const Duration(seconds: 2),
+          ));
           await Future.delayed(const Duration(milliseconds: 500));
           if (mounted) Navigator.of(context).pop(true);
         } else {
-          messenger.showSnackBar(
-              SnackBar(
-                content: Text(blogVm.error ?? '${widget.isUpdate ? 'Cập nhật' : 'Tạo'} bài viết thất bại.'),
-                backgroundColor: context.theme.destructive,
-              )
-          );
+          messenger.showSnackBar(SnackBar(
+            content: Text(blogVm.error ??
+                '${widget.isUpdate ? 'Cập nhật' : 'Tạo'} bài viết thất bại.'),
+            backgroundColor: context.theme.destructive,
+          ));
           blogVm.clearError();
+          blogVm.clearCategoryError();
         }
       }
       return success;
@@ -215,189 +247,443 @@ class _BlogFormState extends State<BlogForm> with SingleTickerProviderStateMixin
     );
   }
 
+  Widget _buildThumbnailPicker(BlogVm blogVm, CustomThemeExtension theme) {
+    File? selectedFile = blogVm.selectedThumbnailFile;
+    String? displayUrl = blogVm.uploadedThumbnailUrl ?? _initialThumbnailUrl;
+
+    Widget imageWidget;
+    if (selectedFile != null) {
+      imageWidget = Image.file(
+        selectedFile,
+        key: ValueKey(selectedFile.path),
+        width: double.infinity,
+        height: 180,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          print("Error loading selected file image: $error");
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              setState(() {
+                _imageFileError = 'Ảnh đã chọn bị lỗi hoặc có định dạng không được hỗ trợ.';
+              });
+              context.read<BlogVm>().resetThumbnailState();
+            }
+          });
+          return Center(
+              child: Icon(Icons.error_outline,
+                  color: theme.destructive, size: 40));
+        },
+      );
+    } else if (displayUrl != null && displayUrl.isNotEmpty) {
+      imageWidget = CachedNetworkImage(
+        imageUrl: displayUrl,
+        key: ValueKey(displayUrl),
+        width: double.infinity,
+        height: 180,
+        fit: BoxFit.cover,
+        placeholder: (context, url) =>
+        const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+        errorWidget: (context, url, error) => Center(
+            child: Icon(Icons.broken_image_outlined,
+                color: theme.mutedForeground, size: 40)),
+      );
+    } else {
+      imageWidget = Center(
+        child: Icon(Icons.image_search_rounded,
+            key: const ValueKey('placeholder'),
+            size: 50, color: theme.mutedForeground.withOpacity(0.5)),
+      );
+    }
+
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Ảnh bìa (Thumbnail)",
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: theme.textColor,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          width: double.infinity,
+          height: 180,
+          decoration: BoxDecoration(
+            border: Border.all(color: _imageFileError != null || blogVm.thumbnailUploadError != null ? theme.destructive : theme.border),
+            borderRadius: BorderRadius.circular(12),
+            color: theme.input,
+          ),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              ClipRRect(
+                  borderRadius: BorderRadius.circular(11),
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    child: imageWidget,
+                  )
+              ),
+
+              Positioned.fill(
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: blogVm.isUploadingThumbnail ? null : () {
+                      setState(() {_imageFileError = null;});
+                      blogVm.pickThumbnailImage();
+                    },
+
+                  ),
+                ),
+              ),
+              if (!blogVm.isUploadingThumbnail && (selectedFile != null || (displayUrl != null && displayUrl.isNotEmpty)))
+                Positioned(
+                    bottom: 8,
+                    right: 8,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (selectedFile != null || (displayUrl != null && displayUrl.isNotEmpty))
+                          ElevatedButton.icon(
+                              icon: const Icon(Icons.delete_outline, size: 18),
+                              label: const Text('Xóa ảnh'),
+                              style: ElevatedButton.styleFrom(
+                                foregroundColor: theme.destructiveForeground,
+                                backgroundColor: theme.destructive.withOpacity(0.8),
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                textStyle: const TextStyle(fontSize: 12),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _initialThumbnailUrl = null;
+                                  _imageFileError = null;
+                                });
+                                context.read<BlogVm>().resetThumbnailState();
+                              }),
+                        const SizedBox(width: 8),
+                        ElevatedButton.icon(
+                          icon: const Icon(Icons.edit_outlined, size: 18),
+                          label: const Text('Đổi ảnh'),
+                          style: ElevatedButton.styleFrom(
+                            foregroundColor: theme.primaryForeground,
+                            backgroundColor: theme.primary.withOpacity(0.8),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                            textStyle: const TextStyle(fontSize: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                          onPressed: () {
+                            setState(() {_imageFileError = null;});
+                            blogVm.pickThumbnailImage();
+                          },
+                        ),
+                      ],
+                    )),
+              if (!blogVm.isUploadingThumbnail && selectedFile == null && (displayUrl == null || displayUrl.isEmpty))
+                Center(
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.add_photo_alternate_outlined, size: 20),
+                    label: const Text('Chọn ảnh bìa'),
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: theme.primaryForeground,
+                      backgroundColor: theme.primary.withOpacity(0.8),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    ),
+                    onPressed: () {
+                      setState(() {_imageFileError = null;});
+                      blogVm.pickThumbnailImage();
+                    },
+                  ),
+                )
+            ],
+          ),
+        ),
+        if (_imageFileError != null) ...[
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4.0),
+            child: Text(
+              _imageFileError!,
+              style: TextStyle(color: theme.destructive, fontSize: 13),
+            ),
+          ),
+        ] else if (blogVm.thumbnailUploadError != null) ...[
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4.0),
+            child: Text(
+              blogVm.thumbnailUploadError!,
+              style: TextStyle(color: theme.destructive, fontSize: 13),
+            ),
+          ),
+        ]
+      ],
+    );
+  }
+
+
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
     final blogVm = context.watch<BlogVm>();
+    int animationIndex = 0;
 
-    return Form(
-      key: _formKey,
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildAnimatedFormField(
-              index: 0,
-              child: TextFormField(
-                controller: _titleController,
-                style: TextStyle(color: theme.textColor),
-                decoration: InputDecoration(
-                    labelText: 'Tiêu đề bài viết',
-                    labelStyle: TextStyle(color: theme.mutedForeground),
-                    prefixIcon: Icon(Icons.title_rounded, color: theme.primary, size: 20),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: theme.border)),
-                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: theme.border)),
-                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: theme.primary, width: 1.5)),
-                    filled: true,
-                    fillColor: theme.input,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14)
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Vui lòng nhập tiêu đề';
-                  }
-                  if (value.trim().length < 10 || value.trim().length > 500) {
-                    return 'Tiêu đề phải từ 10 đến 500 ký tự';
-                  }
-                  return null;
-                },
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            _buildAnimatedFormField(
-              index: 1,
-              child: blogVm.isLoadingCategories
-                  ? Container(
-                height: 58,
-                alignment: Alignment.centerLeft,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                    color: theme.input,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: theme.border)
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.category_outlined, size: 20, color: theme.mutedForeground),
-                    const SizedBox(width: 12),
-                    const Text('Đang tải danh mục...', style: TextStyle(color: Colors.grey))
-                  ],
-                ),
-              )
-                  : DropdownButtonFormField<BlogCategory>(
-                value: _selectedCategory,
-                hint: Text('Chọn danh mục', style: TextStyle(color: theme.mutedForeground)),
-                isExpanded: true,
-                style: TextStyle(color: theme.textColor, fontSize: 15),
-                decoration: InputDecoration(
-                    labelText: 'Danh mục',
-                    labelStyle: TextStyle(color: theme.mutedForeground),
-                    prefixIcon: Icon(Icons.category_outlined, color: theme.primary, size: 20),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: theme.border)),
-                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: theme.border)),
-                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: theme.primary, width: 1.5)),
-                    filled: true,
-                    fillColor: theme.input,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14)
-                ),
-                icon: Icon(Icons.keyboard_arrow_down_rounded, color: theme.mutedForeground),
-                dropdownColor: theme.popover,
-                items: blogVm.categories.map((category) {
-                  return DropdownMenuItem<BlogCategory>(
-                    value: category,
-                    child: Text(category.name, style: TextStyle(color: theme.popoverForeground)),
-                  );
-                }).toList(),
-                onChanged: blogVm.categories.isEmpty ? null : (value) {
-                  setState(() {
-                    _selectedCategory = value;
-                  });
-                },
-                validator: (value) => (value == null || value.id.isEmpty) ? 'Vui lòng chọn danh mục' : null,
-              ),
-            ),
-            if (blogVm.categoryError != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 8.0, left: 12),
-                child: Text(blogVm.categoryError!, style: TextStyle(color: theme.destructive, fontSize: 12)),
-              ),
-            const SizedBox(height: 20),
-
-            if (widget.isUpdate) ...[
-              _buildAnimatedFormField(
-                index: 2,
-                child: DropdownButtonFormField<String>(
-                  value: _selectedStatus,
-                  style: TextStyle(color: theme.textColor, fontSize: 15),
-                  decoration: InputDecoration(
-                      labelText: 'Trạng thái',
-                      labelStyle: TextStyle(color: theme.mutedForeground),
-                      prefixIcon: Icon(Icons.toggle_on_outlined, color: theme.primary, size: 20),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: theme.border)),
-                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: theme.border)),
-                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: theme.primary, width: 1.5)),
-                      filled: true,
-                      fillColor: theme.input,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14)
+    return Stack( // Bọc toàn bộ Form bằng Stack
+      children: [
+        Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildAnimatedFormField(
+                  index: animationIndex++,
+                  child: TextFormField(
+                    controller: _titleController,
+                    style: TextStyle(color: theme.textColor),
+                    enabled: !blogVm.isUploadingThumbnail, // Disable khi đang upload
+                    decoration: InputDecoration(
+                        labelText: 'Tiêu đề bài viết',
+                        labelStyle: TextStyle(color: theme.mutedForeground),
+                        prefixIcon: Icon(Icons.title_rounded,
+                            color: theme.primary, size: 20),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: theme.border)),
+                        enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: theme.border)),
+                        focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide:
+                            BorderSide(color: theme.primary, width: 1.5)),
+                        filled: true,
+                        fillColor: theme.input,
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 14)),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Vui lòng nhập tiêu đề';
+                      }
+                      if (value.trim().length < 10 || value.trim().length > 500) {
+                        return 'Tiêu đề phải từ 10 đến 500 ký tự';
+                      }
+                      return null;
+                    },
                   ),
-                  icon: Icon(Icons.keyboard_arrow_down_rounded, color: theme.mutedForeground),
-                  dropdownColor: theme.popover,
-                  items: ['DRAFT', 'PUBLISHED', 'ARCHIVED'].map((status) {
-                    String statusText;
-                    Color statusColor;
-                    switch (status) {
-                      case 'PUBLISHED':
-                        statusText = 'Xuất bản';
-                        statusColor = theme.green;
-                        break;
-                      case 'ARCHIVED':
-                        statusText = 'Lưu trữ';
-                        statusColor = theme.mutedForeground;
-                        break;
-                      case 'DRAFT':
-                      default:
-                        statusText = 'Bản nháp';
-                        statusColor = theme.yellow;
-                        break;
-                    }
-                    return DropdownMenuItem<String>(
-                      value: status,
-                      child: Row(
-                        children: [
-                          Icon(Icons.circle, size: 10, color: statusColor),
-                          const SizedBox(width: 8),
-                          Text(statusText, style: TextStyle(color: theme.popoverForeground))
-                        ],
+                ),
+                const SizedBox(height: 24),
+
+                _buildAnimatedFormField(
+                  index: animationIndex++,
+                  child: _buildThumbnailPicker(blogVm, theme),
+                ),
+                const SizedBox(height: 24),
+
+
+                _buildAnimatedFormField(
+                  index: animationIndex++,
+                  child: blogVm.isLoadingCategories
+                      ? Container(
+                    height: 58,
+                    alignment: Alignment.centerLeft,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                        color: theme.input,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: theme.border)),
+                    child: Row(
+                      children: [
+                        Icon(Icons.category_outlined,
+                            size: 20, color: theme.mutedForeground),
+                        const SizedBox(width: 12),
+                        const Text('Đang tải danh mục...',
+                            style: TextStyle(color: Colors.grey))
+                      ],
+                    ),
+                  )
+                      : AbsorbPointer( // Ngăn tương tác khi đang upload
+                    absorbing: blogVm.isUploadingThumbnail,
+                    child: DropdownButtonFormField<BlogCategory>(
+                      value: _selectedCategory,
+                      hint: Text('Chọn danh mục',
+                          style: TextStyle(color: theme.mutedForeground)),
+                      isExpanded: true,
+                      style: TextStyle(color: theme.textColor, fontSize: 15),
+                      decoration: InputDecoration(
+                          labelText: 'Danh mục',
+                          labelStyle: TextStyle(color: theme.mutedForeground),
+                          prefixIcon: Icon(Icons.category_outlined,
+                              color: theme.primary, size: 20),
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: theme.border)),
+                          enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: theme.border)),
+                          focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                  color: theme.primary, width: 1.5)),
+                          filled: true,
+                          fillColor: theme.input,
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 14)),
+                      icon: Icon(Icons.keyboard_arrow_down_rounded,
+                          color: theme.mutedForeground),
+                      dropdownColor: theme.popover,
+                      items: blogVm.categories.map((category) {
+                        return DropdownMenuItem<BlogCategory>(
+                          value: category,
+                          child: Text(category.name,
+                              style:
+                              TextStyle(color: theme.popoverForeground)),
+                        );
+                      }).toList(),
+                      onChanged: blogVm.categories.isEmpty
+                          ? null
+                          : (value) {
+                        setState(() {
+                          _selectedCategory = value;
+                        });
+                      },
+                      validator: (value) => (value == null || value.id.isEmpty)
+                          ? 'Vui lòng chọn danh mục'
+                          : null,
+                    ),
+                  ),
+                ),
+                if (blogVm.categoryError != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0, left: 12),
+                    child: Text(blogVm.categoryError!,
+                        style: TextStyle(color: theme.destructive, fontSize: 12)),
+                  ),
+                const SizedBox(height: 20),
+
+                if (widget.isUpdate) ...[
+                  _buildAnimatedFormField(
+                    index: animationIndex++,
+                    child: AbsorbPointer( // Ngăn tương tác khi đang upload
+                      absorbing: blogVm.isUploadingThumbnail,
+                      child: DropdownButtonFormField<String>(
+                        value: _selectedStatus,
+                        style: TextStyle(color: theme.textColor, fontSize: 15),
+                        decoration: InputDecoration(
+                            labelText: 'Trạng thái',
+                            labelStyle: TextStyle(color: theme.mutedForeground),
+                            prefixIcon: Icon(Icons.toggle_on_outlined,
+                                color: theme.primary, size: 20),
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(color: theme.border)),
+                            enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(color: theme.border)),
+                            focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                    color: theme.primary, width: 1.5)),
+                            filled: true,
+                            fillColor: theme.input,
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 14)),
+                        icon: Icon(Icons.keyboard_arrow_down_rounded,
+                            color: theme.mutedForeground),
+                        dropdownColor: theme.popover,
+                        items: ['DRAFT', 'PUBLISHED', 'ARCHIVED'].map((status) {
+                          String statusText;
+                          Color statusColor;
+                          switch (status) {
+                            case 'PUBLISHED':
+                              statusText = 'Xuất bản';
+                              statusColor = theme.green;
+                              break;
+                            case 'ARCHIVED':
+                              statusText = 'Lưu trữ';
+                              statusColor = theme.mutedForeground;
+                              break;
+                            case 'DRAFT':
+                            default:
+                              statusText = 'Bản nháp';
+                              statusColor = theme.yellow;
+                              break;
+                          }
+                          return DropdownMenuItem<String>(
+                            value: status,
+                            child: Row(
+                              children: [
+                                Icon(Icons.circle, size: 10, color: statusColor),
+                                const SizedBox(width: 8),
+                                Text(statusText,
+                                    style: TextStyle(color: theme.popoverForeground))
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedStatus = value;
+                          });
+                        },
+                        validator: (value) =>
+                        value == null ? 'Vui lòng chọn trạng thái' : null,
                       ),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedStatus = value;
-                    });
-                  },
-                  validator: (value) => value == null ? 'Vui lòng chọn trạng thái' : null,
-                ),
-              ),
-              const SizedBox(height: 20),
-            ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                ],
 
-            _buildAnimatedFormField(
-              index: widget.isUpdate ? 3 : 2,
-              child: QuillEditor(
-                label: "Nội dung bài viết",
-                controller: _contentController,
-                isReadOnly: false,
-              ),
-            ),
-            const SizedBox(height: 32),
-
-            _buildAnimatedFormField(
-              index: widget.isUpdate ? 4 : 3,
-              child: Center(
-                child: AnimatedSubmitButton(
-                  onSubmit: _submitForm,
-                  idleText: widget.isUpdate ? 'Lưu thay đổi' : 'Tạo bài viết',
-                  loadingText: 'Đang xử lý...',
+                _buildAnimatedFormField(
+                  index: animationIndex++,
+                  child: AbsorbPointer( // Ngăn tương tác khi đang upload
+                    absorbing: blogVm.isUploadingThumbnail,
+                    child: QuillEditor(
+                      label: "Nội dung bài viết",
+                      controller: _contentController,
+                      isReadOnly: false, // ReadOnly được quản lý bởi AbsorbPointer
+                    ),
+                  ),
                 ),
-              ),
+                const SizedBox(height: 32),
+
+                _buildAnimatedFormField(
+                  index: animationIndex++,
+                  child: Center(
+                    child: AnimatedSubmitButton(
+                      onSubmit: _submitForm,
+                      idleText: widget.isUpdate ? 'Lưu thay đổi' : 'Tạo bài viết',
+                      loadingText: 'Đang xử lý...',
+                      // forceDisabled vẫn không tồn tại, sẽ dùng logic bên trong button
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
             ),
-            const SizedBox(height: 20),
-          ],
+          ),
         ),
-      ),
+
+        // Lớp phủ loading khi upload ảnh
+        Visibility(
+          visible: blogVm.isUploadingThumbnail,
+          child: Positioned.fill(
+            child: Container(
+              color: Colors.black.withOpacity(0.5),
+              child: Center(
+                child: CircularProgressIndicator(
+                  color: theme.primary,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
