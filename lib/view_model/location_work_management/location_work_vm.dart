@@ -11,7 +11,7 @@ class LocationWorkVm extends ChangeNotifier {
   String? _error;
   bool _isOffline = false;
   int _currentPage = 1;
-  int _limit = 10;
+  final int _limit = 10;
   Map<String, dynamic> _meta = {};
 
   List<WorkLocation> get locations => _locations;
@@ -42,6 +42,7 @@ class LocationWorkVm extends ChangeNotifier {
 
   Future<void> fetchLocations({
     int? page,
+    int? limit,
     String? sortBy,
     String? sortOrder,
     bool forceRefresh = false,
@@ -79,7 +80,7 @@ class LocationWorkVm extends ChangeNotifier {
     try {
       final result = await LocationWorkService.getAllLocations(
         page: targetPage,
-        limit: _limit,
+        limit: limit ?? _limit,
         sortBy: sortBy ?? 'name',
         sortOrder: sortOrder ?? 'DESC',
       );

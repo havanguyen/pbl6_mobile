@@ -67,6 +67,9 @@ class CreateDoctorPage extends StatelessWidget {
         initialData: null,
         role: 'Bác sĩ',
         onSubmit: _onSubmit,
+        onSuccess: () {
+          Navigator.pop(context, true);
+        },
       ),
     );
   }

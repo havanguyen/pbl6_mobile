@@ -75,7 +75,10 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
   void _fetchInitialDropdownData() {
     if (!_initialDataFetched) {
       Provider.of<SpecialtyVm>(context, listen: false).fetchAllSpecialties();
-      Provider.of<LocationWorkVm>(context, listen: false).fetchLocations(forceRefresh: true);
+      Provider.of<LocationWorkVm>(context, listen: false).fetchLocations(
+        forceRefresh: true,
+        limit: 1000,
+      );
       _initialDataFetched = true;
     }
   }
@@ -578,9 +581,21 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
   Widget _buildMultiSelectSpecialties(bool isReadOnly) {
     return Consumer<SpecialtyVm>(
       builder: (context, specialtyVm, child) {
-        if (specialtyVm.allSpecialties.isEmpty && !specialtyVm.isLoading && !_initialDataFetched) {
-          return const Center(child: Text("Đang tải danh sách chuyên khoa..."));
+        if (specialtyVm.isLoadingAll) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 8),
+                  Text("Đang tải danh sách chuyên khoa..."),
+                ],
+              ),
+            ),
+          );
         }
+
         return MultiSelectChipField<Specialty>(
           label: 'Chuyên khoa',
           allItems: specialtyVm.allSpecialties,
@@ -600,9 +615,21 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
   Widget _buildMultiSelectLocations(bool isReadOnly) {
     return Consumer<LocationWorkVm>(
       builder: (context, locationVm, child) {
-        if (locationVm.locations.isEmpty && !locationVm.isLoading && !_initialDataFetched) {
-          return const Center(child: Text("Đang tải danh sách địa điểm..."));
+        if (locationVm.isLoading) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 8),
+                  Text("Đang tải danh sách địa điểm..."),
+                ],
+              ),
+            ),
+          );
         }
+
         return MultiSelectChipField<WorkLocation>(
           label: 'Nơi công tác',
           allItems: locationVm.locations,

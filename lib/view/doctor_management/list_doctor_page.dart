@@ -133,13 +133,11 @@ class _DoctorListPageState extends State<DoctorListPage> {
                   onPressed: isOffline
                       ? null
                       : () async {
-                    final result = await Navigator.pushNamed(
+                    final doctorVm =
+                    Provider.of<DoctorVm>(context, listen: false);
+                    await Navigator.pushNamed(
                         context, Routes.createDoctor);
-                    if (result == true) {
-                      context
-                          .read<DoctorVm>()
-                          .fetchDoctors(forceRefresh: true);
-                    }
+                    doctorVm.fetchDoctors(forceRefresh: true);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: context.theme.primary,
@@ -318,11 +316,7 @@ class _DoctorListPageState extends State<DoctorListPage> {
   }
 
   Widget _buildAnimatedDoctorCard(Doctor doctor, int index, bool isOffline) {
-    // --- BẮT ĐẦU CHỈNH SỬA ---
-    // Kiểm tra xem doctor có avatarUrl không (cần cập nhật model Doctor hoặc API)
-    // Giả sử doctor CÓ thuộc tính avatarUrl
-    final String? avatarUrl = (doctor as dynamic).avatarUrl; // <-- Cần ép kiểu hoặc cập nhật model
-    // --- KẾT THÚC CHỈNH SỬA ---
+    final String? avatarUrl = (doctor as dynamic).avatarUrl;
 
     return Slidable(
       key: ValueKey(doctor.id),
@@ -333,12 +327,14 @@ class _DoctorListPageState extends State<DoctorListPage> {
         children: [
           SlidableAction(
             onPressed: (context) async {
-              final result = await Navigator.pushNamed(
-                  context, Routes.updateDoctor,
-                  arguments: doctor.toJson()); // Đảm bảo toJson() đúng
-              if (result == true) {
-                context.read<DoctorVm>().fetchDoctors(forceRefresh: true);
-              }
+              final doctorVm =
+              Provider.of<DoctorVm>(context, listen: false);
+              await Navigator.pushNamed(
+                context,
+                Routes.updateDoctor,
+                arguments: doctor.toJson(),
+              );
+              doctorVm.fetchDoctors(forceRefresh: true);
             },
             backgroundColor: context.theme.blue,
             foregroundColor: context.theme.white,
@@ -375,7 +371,6 @@ class _DoctorListPageState extends State<DoctorListPage> {
                     child: CircleAvatar(
                       radius: 24,
                       backgroundColor: context.theme.primary.withOpacity(0.1),
-                      // --- BẮT ĐẦU CHỈNH SỬA ---
                       backgroundImage: (avatarUrl != null && avatarUrl.isNotEmpty)
                           ? CachedNetworkImageProvider(avatarUrl)
                           : null,
@@ -390,7 +385,6 @@ class _DoctorListPageState extends State<DoctorListPage> {
                             fontWeight: FontWeight.bold),
                       )
                           : null,
-                      // --- KẾT THÚC CHỈNH SỬA ---
                     ),
                   ),
                   const SizedBox(width: 16),

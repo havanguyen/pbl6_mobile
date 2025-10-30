@@ -225,16 +225,9 @@ class DoctorService {
 
       final response = await _secureDio.post('/doctors', data: requestBody);
 
-      if (response.statusCode == 201) {
-        final newDoctorId = response.data['data']?['id'];
-        if (newDoctorId != null) {
-          final profile = await createDoctorProfile({'staffAccountId': newDoctorId});
-          return profile != null;
-        }
-      }
-      return false;
+      return response.statusCode == 201;
     } catch (e) {
-      print('Lỗi khi tạo bác sĩ và hồ sơ: $e');
+      print('Lỗi khi tạo bác sĩ: $e');
       if (e is DioException) {
         print('DioException response: ${e.response?.data}');
       }

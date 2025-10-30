@@ -70,6 +70,9 @@ class UpdateDoctorPage extends StatelessWidget {
         initialData: doctor,
         role: 'Bác sĩ',
         onSubmit: _onSubmit,
+        onSuccess: () {
+          Navigator.pop(context, true);
+        },
       ),
     );
   }

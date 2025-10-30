@@ -9,12 +9,14 @@ class AnimatedSubmitButton extends StatefulWidget {
   final Future<bool> Function() onSubmit;
   final String idleText;
   final String loadingText;
+  final VoidCallback? onSuccess;
 
   const AnimatedSubmitButton({
     super.key,
     required this.onSubmit,
     required this.idleText,
     required this.loadingText,
+    this.onSuccess,
   });
 
   @override
@@ -30,9 +32,17 @@ class _AnimatedSubmitButtonState extends State<AnimatedSubmitButton> {
     setState(() => _state = ButtonState.loading);
     final success = await widget.onSubmit();
     setState(() => _state = success ? ButtonState.success : ButtonState.error);
-    await Future.delayed(const Duration(seconds: 2));
-    if (mounted) {
-      setState(() => _state = ButtonState.idle);
+
+    if (success) {
+      await Future.delayed(const Duration(milliseconds: 1500));
+      if (mounted) {
+        widget.onSuccess?.call();
+      }
+    } else {
+      await Future.delayed(const Duration(seconds: 2));
+      if (mounted) {
+        setState(() => _state = ButtonState.idle);
+      }
     }
   }
 
@@ -208,7 +218,7 @@ class _DoctorFormState extends State<DoctorForm>
 
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: initial.isAfter(DateTime(1900)) && initial.isBefore(DateTime.now()) ? initial : DateTime.now(), // Đảm bảo initialDate hợp lệ
+      initialDate: initial.isAfter(DateTime(1900)) && initial.isBefore(DateTime.now()) ? initial : DateTime.now(),
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
       builder: (context, child) => Theme(
@@ -248,13 +258,11 @@ class _DoctorFormState extends State<DoctorForm>
         password: _passwordController.text,
         fullName: _fullNameController.text,
         phone: _phoneController.text.isEmpty ? null : _phoneController.text,
-        dateOfBirth: _dateOfBirthController.text, // Giữ định dạng dd/MM/yyyy
+        dateOfBirth: _dateOfBirthController.text,
         isMale: _isMale,
       );
 
-      if (success && mounted) {
-        widget.onSuccess?.call();
-      } else if (!success && mounted) {
+      if (!success && mounted) {
         _showErrorDialog(
             '${widget.isUpdate ? 'Cập nhật' : 'Tạo'} ${widget.role.toLowerCase()} thất bại.');
       }
@@ -324,7 +332,6 @@ class _DoctorFormState extends State<DoctorForm>
                 child: CircleAvatar(
                   radius: 50,
                   backgroundColor: context.theme.primary.withOpacity(0.1),
-                  // --- BẮT ĐẦU CHỈNH SỬA ---
                   backgroundImage: (widget.initialData?['avatarUrl'] != null &&
                       widget.initialData!['avatarUrl']!.isNotEmpty)
                       ? CachedNetworkImageProvider(widget.initialData!['avatarUrl']!)
@@ -334,14 +341,13 @@ class _DoctorFormState extends State<DoctorForm>
                       ? Text(
                     widget.initialData?['fullName']?.isNotEmpty == true
                         ? widget.initialData!['fullName'][0].toUpperCase()
-                        : 'D', // Hoặc chữ cái mặc định khác
+                        : 'D',
                     style: TextStyle(
                         fontSize: 40,
                         color: context.theme.primary,
                         fontWeight: FontWeight.bold),
                   )
                       : null,
-                  // --- KẾT THÚC CHỈNH SỬA ---
                 ),
               ),
               const SizedBox(height: 16),
@@ -421,14 +427,13 @@ class _DoctorFormState extends State<DoctorForm>
                   if (!widget.isUpdate && (value == null || value.isEmpty)) {
                     return 'Vui lòng nhập mật khẩu';
                   }
-                  // Chỉ validate mật khẩu mới nếu người dùng nhập gì đó
                   if (widget.isUpdate && value != null && value.isNotEmpty) {
                     if (value.length < 8 ||
                         !value.contains(RegExp(r'[a-zA-Z]')) ||
                         !value.contains(RegExp(r'[0-9]'))) {
                       return 'Mật khẩu tối thiểu 8 ký tự, có chữ và số';
                     }
-                  } else if (!widget.isUpdate) { // Validate khi tạo mới
+                  } else if (!widget.isUpdate) {
                     if (value == null || value.isEmpty) {
                       return 'Vui lòng nhập mật khẩu';
                     }
@@ -438,7 +443,7 @@ class _DoctorFormState extends State<DoctorForm>
                       return 'Mật khẩu tối thiểu 8 ký tự, có chữ và số';
                     }
                   }
-                  return null; // Hợp lệ nếu để trống khi cập nhật hoặc đúng định dạng
+                  return null;
                 },
               ),
             ),
@@ -456,14 +461,12 @@ class _DoctorFormState extends State<DoctorForm>
                 ),
                 keyboardType: TextInputType.phone,
                 validator: (value) {
-                  // Chỉ validate nếu người dùng nhập số điện thoại
                   if (value != null && value.isNotEmpty) {
-                    // Regex linh hoạt hơn cho số điện thoại VN (có thể có +84)
                     if (!RegExp(r'^(?:\+84|0)\d{9}$').hasMatch(value)) {
                       return 'Số điện thoại không hợp lệ (VD: 0xxxxxxxxx hoặc +84xxxxxxxxx)';
                     }
                   }
-                  return null; // Hợp lệ nếu để trống hoặc đúng định dạng
+                  return null;
                 },
               ),
             ),
@@ -486,7 +489,6 @@ class _DoctorFormState extends State<DoctorForm>
                   if (value == null || value.isEmpty) {
                     return 'Vui lòng chọn ngày sinh';
                   }
-                  // Thêm kiểm tra định dạng nếu cần
                   try {
                     final parts = value.split('/');
                     if (parts.length != 3) throw FormatException();
@@ -501,14 +503,14 @@ class _DoctorFormState extends State<DoctorForm>
             const SizedBox(height: 20),
             _buildAnimatedFormField(
                 index: 5,
-                child: Container( // Bọc Row trong Container để thêm padding/margin nếu cần
+                child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 8.0),
                     decoration: BoxDecoration(
                       color: context.theme.input,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly, // Phân bố đều hơn
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         Text('Giới tính:',
                             style: TextStyle(color: context.theme.textColor, fontSize: 16)),
@@ -544,6 +546,7 @@ class _DoctorFormState extends State<DoctorForm>
                 idleText:
                 '${widget.isUpdate ? 'Cập nhật' : 'Tạo'} ${widget.role.toLowerCase()}',
                 loadingText: 'Đang xử lý...',
+                onSuccess: widget.onSuccess,
               ),
             ),
             const SizedBox(height: 20),

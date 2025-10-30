@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
+import 'package:intl/intl.dart';
 import 'package:pbl6mobile/model/entities/doctor_detail.dart';
+import 'package:pbl6mobile/model/entities/review.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/shared/routes/routes.dart';
 import 'package:pbl6mobile/view_model/admin_management/doctor_management_vm.dart';
@@ -93,12 +95,14 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     final doctorVm = context.watch<DoctorVm>();
     final doctor = doctorVm.doctorDetail;
     final isOffline = doctorVm.isOffline;
+
+    final reviews = doctorVm.reviews;
+    final isLoadingReviews = doctorVm.isLoadingReviews;
 
     return Scaffold(
       backgroundColor: context.theme.bg,
@@ -154,24 +158,91 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                     isOffline: isOffline,
                     children: [
                       if (doctor.specialties.isNotEmpty)
-                        _buildTitledChipList("Chuyên khoa",
-                            doctor.specialties.map((e) => e.name).toList(), context),
+                        _buildTitledChipList(
+                            "Chuyên khoa",
+                            doctor.specialties.map((e) => e.name).toList(),
+                            context),
                       if (doctor.workLocations.isNotEmpty)
-                        _buildTitledChipList("Nơi công tác",
-                            doctor.workLocations.map((e) => e.name).toList(), context),
-                      _buildExpansionListSection("Chức vụ", doctor.position, context),
-                      _buildExpansionListSection("Kinh nghiệm", doctor.experience, context),
-                      _buildExpansionListSection("Quá trình đào tạo", doctor.trainingProcess, context),
-                      _buildExpansionListSection("Giải thưởng", doctor.awards, context),
-                      _buildExpansionListSection("Thành viên hiệp hội", doctor.memberships, context),
+                        _buildTitledChipList(
+                            "Nơi công tác",
+                            doctor.workLocations
+                                .map((e) => e.name)
+                                .toList(),
+                            context),
+                      _buildExpansionListSection(
+                          "Chức vụ", doctor.position, context),
+                      _buildExpansionListSection(
+                          "Kinh nghiệm", doctor.experience, context),
+                      _buildExpansionListSection("Quá trình đào tạo",
+                          doctor.trainingProcess, context),
+                      _buildExpansionListSection(
+                          "Giải thưởng", doctor.awards, context),
+                      _buildExpansionListSection("Thành viên hiệp hội",
+                          doctor.memberships, context),
                       if (doctor.introduction != null &&
                           doctor.introduction!.isNotEmpty)
                         _buildExpansionHtmlSection(
                             "Giới thiệu", doctor.introduction!, context),
                       if (doctor.research != null &&
                           doctor.research!.isNotEmpty)
-                        _buildExpansionHtmlSection("Nghiên cứu khoa học",
-                            doctor.research!, context),
+                        _buildExpansionHtmlSection(
+                            "Nghiên cứu khoa học",
+                            doctor.research!,
+                            context),
+                    ],
+                  ),
+                  _buildInfoSection(
+                    context,
+                    title: "Đánh giá của bệnh nhân",
+                    icon: Icons.reviews_outlined,
+                    isOffline: isOffline,
+                    children: [
+                      if (isLoadingReviews && reviews.isEmpty)
+                        const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(16.0),
+                              child: CircularProgressIndicator(),
+                            ))
+                      else if (reviews.isEmpty)
+                        const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(16.0),
+                              child: Text('Chưa có đánh giá nào'),
+                            ))
+                      else
+                        Column(
+                          children: [
+                            ListView.builder(
+                              shrinkWrap: true,
+                              physics:
+                              const NeverScrollableScrollPhysics(),
+                              itemCount: reviews.length,
+                              itemBuilder: (ctx, index) {
+                                final review = reviews[index];
+                                return _buildReviewCard(
+                                    context, review);
+                              },
+                            ),
+                            const Divider(height: 1),
+                            Center(
+                              child: TextButton(
+                                child: Text('Xem tất cả đánh giá',
+                                    style: TextStyle(
+                                        color: context.theme.primary)),
+                                onPressed: () {
+                                  Navigator.pushNamed(
+                                    context,
+                                    Routes.doctorReviewPage,
+                                    arguments: {
+                                      'doctorId': doctor.id,
+                                      'doctorName': doctor.fullName,
+                                    },
+                                  );
+                                },
+                              ),
+                            )
+                          ],
+                        ),
                     ],
                   ),
                   const SizedBox(height: 80),
@@ -184,8 +255,72 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
     );
   }
 
-  SliverAppBar _buildSliverAppBar(DoctorDetail doctor, bool isOffline, BuildContext context) {
-    bool isValidUrl(String? url) => url != null && url.isNotEmpty && Uri.tryParse(url)?.hasAbsolutePath == true;
+  Widget _buildReviewCard(BuildContext context, Review review) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12.0),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: context.theme.border, width: 1),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _StarRating(
+                        rating: review.rating, color: context.theme.yellow),
+                    const SizedBox(height: 8),
+                    Text(
+                      review.title,
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            review.body,
+            style: TextStyle(color: context.theme.mutedForeground, fontSize: 14),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  review.authorName,
+                  style: TextStyle(
+                      color: context.theme.mutedForeground,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500),
+                ),
+              ),
+              Text(
+                DateFormat('dd/MM/yyyy').format(review.createdAt.toLocal()),
+                style:
+                TextStyle(color: context.theme.mutedForeground, fontSize: 12),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  SliverAppBar _buildSliverAppBar(
+      DoctorDetail doctor, bool isOffline, BuildContext context) {
+    bool isValidUrl(String? url) =>
+        url != null && url.isNotEmpty && Uri.tryParse(url)?.hasAbsolutePath == true;
 
     return SliverAppBar(
       expandedHeight: 250.0,
@@ -211,8 +346,10 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
               CachedNetworkImage(
                 imageUrl: doctor.portrait!,
                 fit: BoxFit.cover,
-                placeholder: (context, url) => Container(color: context.theme.muted),
-                errorWidget: (context, url, error) => Container(color: context.theme.muted),
+                placeholder: (context, url) =>
+                    Container(color: context.theme.muted),
+                errorWidget: (context, url, error) =>
+                    Container(color: context.theme.muted),
               )
             else
               Container(color: context.theme.muted),
@@ -306,7 +443,8 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                 ),
                 if (!isOffline && onEdit != null)
                   IconButton(
-                    icon: Icon(Icons.edit_outlined, color: context.theme.primary, size: 20),
+                    icon: Icon(Icons.edit_outlined,
+                        color: context.theme.primary, size: 20),
                     onPressed: onEdit,
                     tooltip: 'Chỉnh sửa',
                   ),
@@ -320,7 +458,8 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
     );
   }
 
-  Widget _buildTitledChipList(String title, List<String> items, BuildContext context) {
+  Widget _buildTitledChipList(
+      String title, List<String> items, BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
       child: Column(
@@ -341,7 +480,8 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
     );
   }
 
-  Widget _buildExpansionHtmlSection(String title, String content, BuildContext context) {
+  Widget _buildExpansionHtmlSection(
+      String title, String content, BuildContext context) {
     String htmlContent;
     try {
       final deltaJson = jsonDecode(content);
@@ -378,9 +518,7 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
               "h1,h2,h3,h4,h5,h6": Style(
                 color: context.theme.textColor,
               ),
-              "li": Style(
-                  padding: HtmlPaddings.only(left: 8)
-              ),
+              "li": Style(padding: HtmlPaddings.only(left: 8)),
             },
           ),
         )
@@ -388,7 +526,8 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
     );
   }
 
-  Widget _buildExpansionListSection(String title, List<String>? items, BuildContext context) {
+  Widget _buildExpansionListSection(
+      String title, List<String>? items, BuildContext context) {
     if (items == null || items.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -401,13 +540,17 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
           .map((item) => ListTile(
         leading: Icon(Icons.check_circle_outline,
             color: context.theme.green, size: 18),
-        title: Text(item, style: TextStyle(color: context.theme.mutedForeground),),
+        title: Text(
+          item,
+          style: TextStyle(color: context.theme.mutedForeground),
+        ),
       ))
           .toList(),
     );
   }
 
-  Widget _buildInfoRow(IconData? icon, String label, String value, BuildContext context) {
+  Widget _buildInfoRow(
+      IconData? icon, String label, String value, BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
@@ -424,7 +567,8 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
           Expanded(
             child: Text(
               value,
-              style: TextStyle(color: context.theme.mutedForeground, fontSize: 15),
+              style:
+              TextStyle(color: context.theme.mutedForeground, fontSize: 15),
             ),
           ),
         ],
@@ -437,7 +581,8 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
       avatar: Icon(Icons.check_circle, color: context.theme.primary, size: 16),
       label: Text(label),
       backgroundColor: context.theme.primary.withOpacity(0.1),
-      labelStyle: TextStyle(color: context.theme.primary, fontWeight: FontWeight.w500),
+      labelStyle:
+      TextStyle(color: context.theme.primary, fontWeight: FontWeight.w500),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
     );
   }
@@ -459,7 +604,8 @@ class _StatusBadge extends StatelessWidget {
     void handleTap() {
       if (isOffline) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Không thể thay đổi trạng thái khi offline')),
+          const SnackBar(
+              content: Text('Không thể thay đổi trạng thái khi offline')),
         );
         return;
       }
@@ -471,7 +617,8 @@ class _StatusBadge extends StatelessWidget {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Bác sĩ này chưa có hồ sơ, không thể thay đổi trạng thái.'),
+            content: const Text(
+                'Bác sĩ này chưa có hồ sơ, không thể thay đổi trạng thái.'),
             backgroundColor: context.theme.destructive,
           ),
         );
@@ -486,7 +633,8 @@ class _StatusBadge extends StatelessWidget {
         child: Ink(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: (isActive ? context.theme.green : context.theme.grey).withOpacity(0.2),
+            color: (isActive ? context.theme.green : context.theme.grey)
+                .withOpacity(0.2),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: (isActive ? context.theme.green : context.theme.grey),
@@ -513,6 +661,32 @@ class _StatusBadge extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _StarRating extends StatelessWidget {
+  final int rating;
+  final Color color;
+  final double size;
+
+  const _StarRating({
+    required this.rating,
+    this.color = Colors.amber,
+    this.size = 16,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(5, (index) {
+        return Icon(
+          index < rating ? Icons.star : Icons.star_border,
+          color: color,
+          size: size,
+        );
+      }),
     );
   }
 }

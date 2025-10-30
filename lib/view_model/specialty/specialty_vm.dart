@@ -31,6 +31,7 @@ class SpecialtyVm extends ChangeNotifier {
   bool get hasNext => _meta['hasNext'] ?? false;
 
   List<Specialty> get allSpecialties => _allSpecialties;
+  bool get isLoadingAll => _isFetchingAll;
 
   String? get error => _error;
   bool get isOffline => _isOffline;
@@ -166,7 +167,6 @@ class SpecialtyVm extends ChangeNotifier {
         _meta = result.meta;
         _currentPage++;
 
-        // Cache data only on the first page of a fresh fetch
         if (_specialties.isNotEmpty && _currentPage == 2 && _searchQuery.isEmpty) {
           await _dbHelper.clearSpecialties();
           await _dbHelper.insertSpecialties(_specialties);

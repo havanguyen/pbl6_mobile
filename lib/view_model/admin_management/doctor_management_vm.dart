@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pbl6mobile/model/entities/doctor.dart';
 import 'package:pbl6mobile/model/entities/doctor_detail.dart';
+import 'package:pbl6mobile/model/entities/review.dart';
 import 'package:pbl6mobile/model/services/local/doctor_database_helper.dart';
 import 'package:pbl6mobile/model/services/remote/doctor_service.dart';
+import 'package:pbl6mobile/model/services/remote/review_service.dart';
 import 'package:pbl6mobile/model/services/remote/utilities_service.dart';
 
 class DoctorVm extends ChangeNotifier {
@@ -27,13 +29,15 @@ class DoctorVm extends ChangeNotifier {
   DoctorDetail? _doctorDetail;
   bool _isLoadingDetail = false;
 
-  // === THAY ĐỔI: Biến state thành công khai ===
   String? selectedAvatarPath;
   String? selectedPortraitPath;
-  // ===========================================
   bool _isUploadingAvatar = false;
   bool _isUploadingPortrait = false;
   String? _uploadError;
+
+  List<Review> _reviews = [];
+  bool _isLoadingReviews = false;
+  String? _reviewError;
 
   List<Doctor> get doctors => _doctors;
   bool get isLoading => _isLoading;
@@ -52,6 +56,10 @@ class DoctorVm extends ChangeNotifier {
   bool get isUploadingAvatar => _isUploadingAvatar;
   bool get isUploadingPortrait => _isUploadingPortrait;
   String? get uploadError => _uploadError;
+
+  List<Review> get reviews => _reviews;
+  bool get isLoadingReviews => _isLoadingReviews;
+  String? get reviewError => _reviewError;
 
   final DoctorDatabaseHelper _dbHelper = DoctorDatabaseHelper.instance;
 
@@ -157,7 +165,10 @@ class DoctorVm extends ChangeNotifier {
         _meta = result.meta;
         _currentPage++;
 
-        if (_doctors.isNotEmpty && _currentPage == 2 && _searchQuery.isEmpty && _isMale == null) {
+        if (_doctors.isNotEmpty &&
+            _currentPage == 2 &&
+            _searchQuery.isEmpty &&
+            _isMale == null) {
           await _dbHelper.clearDoctors(role: _role);
           await _dbHelper.insertDoctors(_doctors);
         }
@@ -209,6 +220,8 @@ class DoctorVm extends ChangeNotifier {
     _isLoadingDetail = true;
     _doctorDetail = null;
     _error = null;
+    _reviews = [];
+    _reviewError = null;
     notifyListeners();
 
     var connectivityResult = await Connectivity().checkConnectivity();
@@ -222,7 +235,9 @@ class DoctorVm extends ChangeNotifier {
         } else {
           _doctorDetail = await DoctorService.getDoctorWithProfile(doctorId);
         }
-        if (_doctorDetail == null) {
+        if (_doctorDetail != null) {
+          await fetchReviewPreview(_doctorDetail!.id);
+        } else {
           _error = "Không tìm thấy thông tin bác sĩ hoặc có lỗi xảy ra.";
         }
       } else {
@@ -251,7 +266,7 @@ class DoctorVm extends ChangeNotifier {
       final XFile? image = await picker.pickImage(
           source: ImageSource.gallery, imageQuality: 80, maxWidth: 800);
       if (image != null) {
-        selectedAvatarPath = image.path; // Sử dụng biến công khai
+        selectedAvatarPath = image.path;
         notifyListeners();
       }
     } catch (e) {
@@ -269,7 +284,7 @@ class DoctorVm extends ChangeNotifier {
       final XFile? image = await picker.pickImage(
           source: ImageSource.gallery, imageQuality: 80, maxWidth: 1200);
       if (image != null) {
-        selectedPortraitPath = image.path; // Sử dụng biến công khai
+        selectedPortraitPath = image.path;
         notifyListeners();
       }
     } catch (e) {
@@ -284,7 +299,11 @@ class DoctorVm extends ChangeNotifier {
 
     final fieldName = isAvatar ? "avatar" : "portrait";
 
-    if (isAvatar) _isUploadingAvatar = true; else _isUploadingPortrait = true;
+    if (isAvatar) {
+      _isUploadingAvatar = true;
+    } else {
+      _isUploadingPortrait = true;
+    }
     _uploadError = null;
     notifyListeners();
 
@@ -293,7 +312,8 @@ class DoctorVm extends ChangeNotifier {
       print("⏳ [DoctorVm] Bắt đầu upload $fieldName...");
       final signatureData = await UtilitiesService.getUploadSignature();
       if (signatureData != null) {
-        imageUrl = await UtilitiesService.uploadImageToCloudinary(filePath, signatureData);
+        imageUrl =
+        await UtilitiesService.uploadImageToCloudinary(filePath, signatureData);
         if (imageUrl == null) {
           _uploadError = 'Lỗi: Không thể upload $fieldName lên Cloudinary.';
           print("❌ [DoctorVm] $_uploadError");
@@ -308,7 +328,11 @@ class DoctorVm extends ChangeNotifier {
       _uploadError = 'Lỗi khi đang upload $fieldName: $e';
       print("🔥 [DoctorVm] $_uploadError");
     } finally {
-      if (isAvatar) _isUploadingAvatar = false; else _isUploadingPortrait = false;
+      if (isAvatar) {
+        _isUploadingAvatar = false;
+      } else {
+        _isUploadingPortrait = false;
+      }
       notifyListeners();
     }
     return imageUrl;
@@ -324,7 +348,7 @@ class DoctorVm extends ChangeNotifier {
     try {
       final Map<String, dynamic> dataToSend = Map.from(data);
 
-      if (selectedAvatarPath != null) { // Sử dụng biến công khai
+      if (selectedAvatarPath != null) {
         final newAvatarUrl = await _uploadImage(selectedAvatarPath, true);
         if (newAvatarUrl == null) {
           _isLoading = false;
@@ -334,7 +358,7 @@ class DoctorVm extends ChangeNotifier {
         dataToSend['avatarUrl'] = newAvatarUrl;
       }
 
-      if (selectedPortraitPath != null) { // Sử dụng biến công khai
+      if (selectedPortraitPath != null) {
         final newPortraitUrl = await _uploadImage(selectedPortraitPath, false);
         if (newPortraitUrl == null) {
           _isLoading = false;
@@ -350,7 +374,7 @@ class DoctorVm extends ChangeNotifier {
 
       if (success) {
         print("✅ [DoctorVm] createDoctorProfile successful.");
-        selectedAvatarPath = null; // Reset biến công khai
+        selectedAvatarPath = null;
         selectedPortraitPath = null;
       } else {
         _error = "Tạo hồ sơ thất bại.";
@@ -369,7 +393,8 @@ class DoctorVm extends ChangeNotifier {
     return success;
   }
 
-  Future<bool> updateDoctorProfile(String profileId, Map<String, dynamic> data) async {
+  Future<bool> updateDoctorProfile(
+      String profileId, Map<String, dynamic> data) async {
     _isLoading = true;
     _error = null;
     _uploadError = null;
@@ -379,30 +404,40 @@ class DoctorVm extends ChangeNotifier {
     try {
       final Map<String, dynamic> dataToSend = Map.from(data);
 
-      if (selectedAvatarPath != null) { // Sử dụng biến công khai
+      if (selectedAvatarPath != null) {
         final newAvatarUrl = await _uploadImage(selectedAvatarPath, true);
-        if (newAvatarUrl == null) { _isLoading = false; notifyListeners(); return false; }
+        if (newAvatarUrl == null) {
+          _isLoading = false;
+          notifyListeners();
+          return false;
+        }
         dataToSend['avatarUrl'] = newAvatarUrl;
-      } else if (dataToSend.containsKey('avatarUrl') && dataToSend['avatarUrl'] == null) {
+      } else if (dataToSend.containsKey('avatarUrl') &&
+          dataToSend['avatarUrl'] == null) {
         dataToSend['avatarUrl'] = null;
       }
 
-
-      if (selectedPortraitPath != null) { // Sử dụng biến công khai
+      if (selectedPortraitPath != null) {
         final newPortraitUrl = await _uploadImage(selectedPortraitPath, false);
-        if (newPortraitUrl == null) { _isLoading = false; notifyListeners(); return false; }
+        if (newPortraitUrl == null) {
+          _isLoading = false;
+          notifyListeners();
+          return false;
+        }
         dataToSend['portrait'] = newPortraitUrl;
-      } else if (dataToSend.containsKey('portrait') && dataToSend['portrait'] == null) {
+      } else if (dataToSend.containsKey('portrait') &&
+          dataToSend['portrait'] == null) {
         dataToSend['portrait'] = null;
       }
 
       print("⏳ [DoctorVm] Calling DoctorService.updateDoctorProfile...");
-      final profile = await DoctorService.updateDoctorProfile(profileId, dataToSend);
+      final profile =
+      await DoctorService.updateDoctorProfile(profileId, dataToSend);
       success = profile != null;
 
       if (success) {
         print("✅ [DoctorVm] updateDoctorProfile successful.");
-        selectedAvatarPath = null; // Reset biến công khai
+        selectedAvatarPath = null;
         selectedPortraitPath = null;
         if (_doctorDetail != null && _doctorDetail!.profileId == profileId) {
           await fetchDoctorDetail(_doctorDetail!.id);
@@ -434,19 +469,29 @@ class DoctorVm extends ChangeNotifier {
     try {
       final Map<String, dynamic> dataToSend = Map.from(data);
 
-      if (selectedAvatarPath != null) { // Sử dụng biến công khai
+      if (selectedAvatarPath != null) {
         final newAvatarUrl = await _uploadImage(selectedAvatarPath, true);
-        if (newAvatarUrl == null) { _isLoading = false; notifyListeners(); return false; }
+        if (newAvatarUrl == null) {
+          _isLoading = false;
+          notifyListeners();
+          return false;
+        }
         dataToSend['avatarUrl'] = newAvatarUrl;
-      } else if (dataToSend.containsKey('avatarUrl') && dataToSend['avatarUrl'] == null) {
+      } else if (dataToSend.containsKey('avatarUrl') &&
+          dataToSend['avatarUrl'] == null) {
         dataToSend['avatarUrl'] = null;
       }
 
-      if (selectedPortraitPath != null) { // Sử dụng biến công khai
+      if (selectedPortraitPath != null) {
         final newPortraitUrl = await _uploadImage(selectedPortraitPath, false);
-        if (newPortraitUrl == null) { _isLoading = false; notifyListeners(); return false; }
+        if (newPortraitUrl == null) {
+          _isLoading = false;
+          notifyListeners();
+          return false;
+        }
         dataToSend['portrait'] = newPortraitUrl;
-      } else if (dataToSend.containsKey('portrait') && dataToSend['portrait'] == null) {
+      } else if (dataToSend.containsKey('portrait') &&
+          dataToSend['portrait'] == null) {
         dataToSend['portrait'] = null;
       }
 
@@ -456,7 +501,7 @@ class DoctorVm extends ChangeNotifier {
 
       if (success) {
         print("✅ [DoctorVm] updateSelfProfile successful.");
-        selectedAvatarPath = null; // Reset biến công khai
+        selectedAvatarPath = null;
         selectedPortraitPath = null;
         if (_doctorDetail != null) {
           await fetchDoctorDetail(_doctorDetail!.id, isSelf: true);
@@ -478,7 +523,6 @@ class DoctorVm extends ChangeNotifier {
     return success;
   }
 
-
   Future<void> toggleDoctorStatus(String profileId, bool isActive) async {
     if (_doctorDetail == null) {
       print("🔴 [VM-ERROR] _doctorDetail is null. Cannot proceed.");
@@ -492,26 +536,24 @@ class DoctorVm extends ChangeNotifier {
     _doctorDetail = _doctorDetail!.copyWith(isActive: isActive);
     notifyListeners();
 
-
     print("--- START: Toggle Doctor Status ---");
     print("🧠 [VM] Requesting isActive = $isActive for profileId: $profileId");
 
-
-    final updatedProfile = await DoctorService.toggleDoctorActive(profileId, isActive);
+    final updatedProfile =
+    await DoctorService.toggleDoctorActive(profileId, isActive);
 
     if (updatedProfile != null) {
-      print("✅ [VM] API call successful. isActive from API: ${updatedProfile.isActive}");
+      print(
+          "✅ [VM] API call successful. isActive from API: ${updatedProfile.isActive}");
 
       _doctorDetail = _doctorDetail!.copyWith(
         isActive: updatedProfile.isActive,
         profileUpdatedAt: updatedProfile.updatedAt,
       );
-
     } else {
       print("❌ [VM-ERROR] API call failed or returned null.");
       _error = "Cập nhật trạng thái thất bại.";
       _doctorDetail = _doctorDetail!.copyWith(isActive: originalStatus);
-
     }
     notifyListeners();
     print("--- END: Toggle Doctor Status ---");
@@ -545,5 +587,30 @@ class DoctorVm extends ChangeNotifier {
   void clearError() {
     _error = null;
     notifyListeners();
+  }
+
+  Future<void> fetchReviewPreview(String doctorId) async {
+    _isLoadingReviews = true;
+    _reviewError = null;
+    notifyListeners();
+
+    try {
+      final result = await ReviewService.getReviewsForDoctor(
+        doctorId: doctorId,
+        page: 1,
+        limit: 5,
+      );
+
+      if (result.success) {
+        _reviews = result.data;
+      } else {
+        _reviewError = result.message;
+      }
+    } catch (e) {
+      _reviewError = 'Lỗi kết nối: $e';
+    } finally {
+      _isLoadingReviews = false;
+      notifyListeners();
+    }
   }
 }

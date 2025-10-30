@@ -15,6 +15,7 @@ import 'package:pbl6mobile/view/setting/super_admin/setting_supperadmin_page.dar
 import 'package:pbl6mobile/view/blog/create_blog_page.dart';
 import 'package:pbl6mobile/view/blog/list_blog_page.dart';
 import 'package:pbl6mobile/view/blog/update_blog_page.dart';
+import 'package:provider/provider.dart';
 
 import '../../model/entities/work_location.dart';
 import '../../view/admin_management/create_admin_page.dart';
@@ -23,6 +24,7 @@ import '../../view/admin_management/update_admin_page.dart';
 import '../../view/auth/login_page.dart';
 import '../../view/blog/manage_categories_page.dart';
 import '../../view/doctor_management/create_doctor_page.dart';
+import '../../view/doctor_management/doctor_review_page.dart';
 import '../../view/doctor_management/list_doctor_page.dart';
 import '../../view/doctor_management/update_doctor_page.dart';
 import '../../view/location_work_management/create_location_work.dart';
@@ -39,6 +41,7 @@ import '../../view/specialty/list_specialty.dart';
 import '../../view/specialty/specialty_detail.dart';
 import '../../view/specialty/update_info_section.dart';
 import '../../view/specialty/update_specialty.dart';
+import '../../view_model/review/review_vm.dart';
 import '../widgets/widget/edit_profile_page.dart';
 
 class Routes {
@@ -77,6 +80,7 @@ class Routes {
   static const String manageBlogCategories = '/manage-blog-categories';
   static const String listQuestion = '/listQuestion';
   static const String questionDetail = '/questionDetail';
+  static const String doctorReviewPage = '/doctor-review-page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -272,6 +276,21 @@ class Routes {
           type: PageTransitionType.fade,
           settings: settings,
           child: const MainPageSuperAdmin(),
+        );
+      case doctorReviewPage:
+        final args = settings.arguments as Map<String, dynamic>;
+        final doctorId = args['doctorId'] as String;
+        final doctorName = args['doctorName'] as String;
+        return PageTransition(
+          type: PageTransitionType.leftToRight,
+          settings: settings,
+          child: ChangeNotifierProvider(
+            create: (_) => ReviewVm(doctorId: doctorId),
+            child: DoctorReviewPage(
+              doctorId: doctorId,
+              doctorName: doctorName,
+            ),
+          ),
         );
       case updateAdmin:
         final admin = settings.arguments as Map<String, dynamic>?;
