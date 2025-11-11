@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:pbl6mobile/model/entities/question.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/shared/routes/routes.dart';
+import 'package:pbl6mobile/shared/services/store.dart';
 import 'package:pbl6mobile/view_model/question/question_vm.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
@@ -23,10 +24,12 @@ class _ListQuestionPageState extends State<ListQuestionPage> {
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   Timer? _debounceTimer;
+  bool _canDelete = false;
 
   @override
   void initState() {
     super.initState();
+    _loadUserRole();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         context.read<QuestionVm>().fetchQuestions(forceRefresh: true);
@@ -36,6 +39,15 @@ class _ListQuestionPageState extends State<ListQuestionPage> {
 
     _searchController.addListener(_debounceSearch);
     _scrollController.addListener(_onScroll);
+  }
+
+  Future<void> _loadUserRole() async {
+    final role = await Store.getUserRole();
+    if (mounted) {
+      setState(() {
+        _canDelete = (role == 'ADMIN' || role == 'SUPER_ADMIN');
+      });
+    }
   }
 
   @override
@@ -578,7 +590,7 @@ class _ListQuestionPageState extends State<ListQuestionPage> {
 
     return Slidable(
       key: ValueKey(question.id),
-      endActionPane: isOffline
+      endActionPane: (isOffline || !_canDelete)
           ? null
           : ActionPane(
         motion: const BehindMotion(),

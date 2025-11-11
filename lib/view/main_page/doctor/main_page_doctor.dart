@@ -1,12 +1,66 @@
 import 'package:flutter/material.dart';
+import 'package:pbl6mobile/model/services/remote/auth_service.dart';
+import 'package:pbl6mobile/model/services/remote/doctor_service.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 
 import '../../../shared/routes/routes.dart';
 import '../../../shared/widgets/animation/scale_animation.dart';
 import '../../../shared/widgets/button/custom_circular_button.dart';
 
-class MainPageDoctor extends StatelessWidget {
+class MainPageDoctor extends StatefulWidget {
   const MainPageDoctor({super.key});
+
+  @override
+  State<MainPageDoctor> createState() => _MainPageDoctorState();
+}
+
+class _MainPageDoctorState extends State<MainPageDoctor> {
+  bool _isNavigating = false;
+
+  Future<void> _navigateToReviews(BuildContext context) async {
+    if (_isNavigating) return;
+
+    setState(() {
+      _isNavigating = true;
+    });
+
+    try {
+      final profile = await AuthService.getProfile();
+      if (profile == null || !mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Không thể tải hồ sơ bác sĩ.')));
+        return;
+      }
+
+      final doctorDetail =
+      await DoctorService.getDoctorWithProfile(profile.id);
+      if (doctorDetail == null || !mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Không thể tải hồ sơ chuyên môn.')));
+        return;
+      }
+
+      Navigator.pushNamed(
+        context,
+        Routes.doctorReviewPage,
+        arguments: {
+          'doctorId': doctorDetail.id,
+          'doctorName': profile.fullName,
+        },
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Đã xảy ra lỗi: ${e.toString()}')));
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isNavigating = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,19 +100,18 @@ class MainPageDoctor extends StatelessWidget {
             ),
             Positioned(
               top: size.height * 0.05,
-              right: size.width * 0.05,
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Image.asset(
-                      'assets/images/logo.png',
-                      height: 100,
-                      color: context.theme.blue,
-                    ),
-                    const SizedBox(height: 8),
-                  ],
-                ),
+              right: size.width * 0.01,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset(
+                    'assets/images/logo.png',
+                    height: 100,
+                    width: 200,
+                    color: context.theme.blue,
+                  ),
+                  const SizedBox(height: 8),
+                ],
               ),
             ),
             Positioned(
@@ -86,7 +139,7 @@ class MainPageDoctor extends StatelessWidget {
                   icon: Icons.question_answer_outlined,
                   label: 'TRẢ LỜI CÂU HỎI',
                   onTap: () {
-                    print('Trả lời câu hỏi');
+                    Navigator.pushNamed(context, Routes.listQuestion);
                   },
                 ),
               ),
@@ -100,9 +153,7 @@ class MainPageDoctor extends StatelessWidget {
                   size: 140,
                   icon: Icons.rate_review_outlined,
                   label: 'CẢM NHẬN BỆNH NHÂN',
-                  onTap: () {
-                    print('Cảm nhận bệnh nhân');
-                  },
+                  onTap: () => _navigateToReviews(context),
                 ),
               ),
             ),

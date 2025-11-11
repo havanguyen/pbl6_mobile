@@ -46,19 +46,18 @@ class MainPageSuperAdmin extends StatelessWidget {
             ),
             Positioned(
               top: size.height * 0.05,
-              right: size.width * 0.05,
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Image.asset(
-                      'assets/images/logo.png',
-                      height: 100,
-                      color: context.theme.blue,
-                    ),
-                    const SizedBox(height: 8),
-                  ],
-                ),
+              right: size.width * 0.01,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset(
+                    'assets/images/logo.png',
+                    height: 100,
+                    width: 200,
+                    color: context.theme.blue,
+                  ),
+                  const SizedBox(height: 8),
+                ],
               ),
             ),
             Positioned(

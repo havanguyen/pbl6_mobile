@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pbl6mobile/model/services/remote/auth_service.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/shared/routes/routes.dart';
 import 'package:pbl6mobile/view/setting/super_admin/profile_superadmin_page.dart';
 
 import '../../../shared/themes/cubit/theme_cubit.dart';
 import '../../../shared/widgets/widget/logout_confirm_dialog.dart';
-
 
 class SettingSupperAdminPage extends StatelessWidget {
   const SettingSupperAdminPage({super.key});
@@ -53,23 +51,13 @@ class SettingSupperAdminPage extends StatelessWidget {
                 color: context.theme.textColor,
               ),
             ),
-            onTap: () async {
-              final profile = await AuthService.getProfile();
-              if (profile != null && context.mounted) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ProfileSuperadminPage(profile: profile),
-                  ),
-                );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Không thể lấy thông tin cá nhân. Vui lòng thử lại.'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-              }
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ProfileSuperadminPage(),
+                ),
+              );
             },
           ),
           const Divider(height: 1, color: Colors.grey),
@@ -141,20 +129,20 @@ class SettingSupperAdminPage extends StatelessWidget {
               ),
             ),
             trailing: DropdownButton<ThemeMode>(
-              value: context
-                  .read<ThemeCubit>()
-                  .state
-                  .themeMode,
+              value: context.read<ThemeCubit>().state.themeMode,
               dropdownColor: context.theme.bg,
               focusColor: context.theme.grey,
               items: [
-                DropdownMenuItem(value: ThemeMode.light,
+                DropdownMenuItem(
+                    value: ThemeMode.light,
                     child: Text('Light',
                         style: TextStyle(color: context.theme.textColor))),
-                DropdownMenuItem(value: ThemeMode.dark,
+                DropdownMenuItem(
+                    value: ThemeMode.dark,
                     child: Text('Dark',
                         style: TextStyle(color: context.theme.textColor))),
-                DropdownMenuItem(value: ThemeMode.system,
+                DropdownMenuItem(
+                    value: ThemeMode.system,
                     child: Text('System',
                         style: TextStyle(color: context.theme.textColor))),
               ],

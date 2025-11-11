@@ -6,6 +6,7 @@ import 'package:pbl6mobile/model/entities/doctor.dart';
 import 'package:pbl6mobile/model/entities/doctor_detail.dart';
 import 'package:pbl6mobile/model/entities/review.dart';
 import 'package:pbl6mobile/model/services/local/doctor_database_helper.dart';
+import 'package:pbl6mobile/model/services/local/profile_cache_service.dart';
 import 'package:pbl6mobile/model/services/remote/doctor_service.dart';
 import 'package:pbl6mobile/model/services/remote/review_service.dart';
 import 'package:pbl6mobile/model/services/remote/utilities_service.dart';
@@ -62,6 +63,7 @@ class DoctorVm extends ChangeNotifier {
   String? get reviewError => _reviewError;
 
   final DoctorDatabaseHelper _dbHelper = DoctorDatabaseHelper.instance;
+  final ProfileCacheService _profileCache = ProfileCacheService.instance;
 
   DoctorVm() {
     Connectivity()
@@ -74,7 +76,8 @@ class DoctorVm extends ChangeNotifier {
         _isOffline = false;
         fetchDoctors(forceRefresh: true);
         if (_doctorDetail != null) {
-          fetchDoctorDetail(_doctorDetail!.id);
+          fetchDoctorDetail(_doctorDetail!.id,
+              isSelf: _doctorDetail!.id == _doctorDetail!.id);
         }
       }
     });
@@ -232,6 +235,9 @@ class DoctorVm extends ChangeNotifier {
       if (isConnected) {
         if (isSelf) {
           _doctorDetail = await DoctorService.getSelfProfileComplete();
+          if (_doctorDetail != null) {
+            await _profileCache.saveProfile(_doctorDetail!.toJson());
+          }
         } else {
           _doctorDetail = await DoctorService.getDoctorWithProfile(doctorId);
         }
@@ -241,10 +247,31 @@ class DoctorVm extends ChangeNotifier {
           _error = "Không tìm thấy thông tin bác sĩ hoặc có lỗi xảy ra.";
         }
       } else {
-        _error = "Bạn đang offline, không thể tải chi tiết.";
+        if (isSelf) {
+          print("Đang offline, thử tải profile bác sĩ từ cache...");
+          final cachedProfile = await _profileCache.getProfile();
+          if (cachedProfile != null) {
+            _doctorDetail = DoctorDetail.fromJson(cachedProfile);
+            _error = "Bạn đang offline. Đang hiển thị thông tin đã lưu.";
+          } else {
+            _error = "Bạn đang offline và không có dữ liệu cache.";
+          }
+        } else {
+          _error = "Bạn đang offline, không thể tải chi tiết.";
+        }
       }
     } catch (e) {
       _error = "Lỗi khi tải chi tiết bác sĩ: $e";
+      if (isSelf && _doctorDetail == null) {
+        print("API lỗi, thử tải profile từ cache...");
+        final cachedProfile = await _profileCache.getProfile();
+        if (cachedProfile != null) {
+          _doctorDetail = DoctorDetail.fromJson(cachedProfile);
+          _error = "Lỗi kết nối. Đang hiển thị thông tin đã lưu.";
+        } else {
+          _error = "Lỗi kết nối và không có dữ liệu cache. $e";
+        }
+      }
     } finally {
       _isLoadingDetail = false;
       notifyListeners();

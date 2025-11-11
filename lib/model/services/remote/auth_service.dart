@@ -3,6 +3,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:pbl6mobile/shared/services/store.dart';
 
 import '../../entities/profile.dart';
+import '../local/profile_cache_service.dart';
 
 class AuthService {
   const AuthService._();
@@ -189,6 +190,7 @@ class AuthService {
       }
     } finally {
       await Store.clearStorage();
+      await ProfileCacheService.instance.clearProfile();
       print('Local storage cleared.');
     }
     return true;

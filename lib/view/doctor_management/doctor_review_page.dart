@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:pbl6mobile/model/entities/review.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
+import 'package:pbl6mobile/shared/services/store.dart';
 import 'package:pbl6mobile/view_model/review/review_vm.dart';
 
 class DoctorReviewPage extends StatefulWidget {
@@ -18,10 +19,12 @@ class DoctorReviewPage extends StatefulWidget {
 
 class _DoctorReviewPageState extends State<DoctorReviewPage> {
   final _scrollController = ScrollController();
+  bool _canDelete = false;
 
   @override
   void initState() {
     super.initState();
+    _loadUserRole();
     final reviewVm = Provider.of<ReviewVm>(context, listen: false);
     _scrollController.addListener(() {
       if (_scrollController.position.pixels >=
@@ -29,6 +32,15 @@ class _DoctorReviewPageState extends State<DoctorReviewPage> {
         reviewVm.loadMoreReviews();
       }
     });
+  }
+
+  Future<void> _loadUserRole() async {
+    final role = await Store.getUserRole();
+    if (mounted) {
+      setState(() {
+        _canDelete = (role == 'ADMIN' || role == 'SUPER_ADMIN');
+      });
+    }
   }
 
   @override
@@ -127,12 +139,13 @@ class _DoctorReviewPageState extends State<DoctorReviewPage> {
                     ],
                   ),
                 ),
-                _DeleteReviewButton(
-                  review: review,
-                  onDelete: () async {
-                    return await reviewVm.deleteReview(review.id);
-                  },
-                ),
+                if (_canDelete)
+                  _DeleteReviewButton(
+                    review: review,
+                    onDelete: () async {
+                      return await reviewVm.deleteReview(review.id);
+                    },
+                  ),
               ],
             ),
             const SizedBox(height: 8),

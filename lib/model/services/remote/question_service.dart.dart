@@ -1,11 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:pbl6mobile/model/entities/answer.dart';
 import 'package:pbl6mobile/model/entities/question.dart';
-// Sử dụng AuthService để lấy Dio instance đã được xác thực
 import 'package:pbl6mobile/model/services/remote/auth_service.dart';
 
 class QuestionService {
-  // Lấy instance Dio đã cấu hình sẵn từ AuthService
   static final Dio _secureDio = AuthService.getSecureDioInstance();
 
   static Future<Map<String, dynamic>> getQuestions({
@@ -32,7 +30,6 @@ class QuestionService {
           if (sortOrder != null && sortOrder.isNotEmpty) 'sortOrder': sortOrder,
         },
       );
-      // Kiểm tra response trước khi parse
       if (response.statusCode == 200 && response.data['success'] == true) {
         final List<Question> questions = (response.data['data'] as List)
             .map((json) => Question.fromJson(json))
@@ -40,7 +37,6 @@ class QuestionService {
         final meta = response.data['meta'];
         return {'questions': questions, 'meta': meta};
       } else {
-        // Ném lỗi nếu API trả về không thành công hoặc status code không phải 200
         throw DioException(
           requestOptions: response.requestOptions,
           response: response,
@@ -48,7 +44,6 @@ class QuestionService {
         );
       }
     } catch (e) {
-      // Ném lại lỗi để ViewModel xử lý
       rethrow;
     }
   }
@@ -72,12 +67,9 @@ class QuestionService {
 
   static Future<bool> deleteQuestion(String id) async {
     try {
-      // AuthService.verifyPassword đã được gọi trong ViewModel
       final response = await _secureDio.delete('/questions/$id');
-      // API trả về 200 khi thành công
       return response.statusCode == 200 && response.data['success'] == true;
     } catch (e) {
-      // Không cần ném lại lỗi, ViewModel sẽ lấy lỗi từ AuthService.verifyPassword nếu có
       return false;
     }
   }
@@ -113,7 +105,7 @@ class QuestionService {
       final response = await _secureDio.delete('/questions/answers/$answerId');
       return response.statusCode == 200 && response.data['success'] == true;
     } catch (e) {
-      return false; // Trả về false nếu có lỗi
+      return false;
     }
   }
 
@@ -122,7 +114,51 @@ class QuestionService {
       final response = await _secureDio.patch('/questions/answers/$answerId/accept');
       return response.statusCode == 200 && response.data['success'] == true;
     } catch (e) {
-      return false; // Trả về false nếu có lỗi
+      return false;
+    }
+  }
+
+  static Future<Question> updateQuestion(String questionId, Map<String, dynamic> data) async {
+    try {
+      final response = await _secureDio.patch(
+        '/questions/$questionId',
+        data: data,
+      );
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        return Question.fromJson(response.data['data']);
+      } else {
+        throw DioException(
+          requestOptions: response.requestOptions,
+          response: response,
+          message: response.data['message'] ?? 'Cập nhật câu hỏi thất bại',
+        );
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  static Future<Answer> postAnswer(String questionId, String body) async {
+    try {
+      final response = await _secureDio.post(
+        '/questions/$questionId/answers',
+        data: {'body': body},
+      );
+      return Answer.fromJson(response.data['data']);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  static Future<Answer> updateAnswer(String answerId, String body) async {
+    try {
+      final response = await _secureDio.patch(
+        '/questions/answers/$answerId',
+        data: {'body': body},
+      );
+      return Answer.fromJson(response.data['data']);
+    } catch (e) {
+      rethrow;
     }
   }
 }

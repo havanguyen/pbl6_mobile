@@ -331,13 +331,9 @@ class QuestionVm extends ChangeNotifier {
         }
       }
     } on DioException catch (e) {
-      if (error == null) {
-        error = _handleDioError(e, "Lỗi tải câu trả lời");
-      }
+      error ??= _handleDioError(e, "Lỗi tải câu trả lời");
     } catch (e) {
-      if (error == null) {
-        error = 'Lỗi không mong muốn khi tải câu trả lời: $e';
-      }
+      error ??= 'Lỗi không mong muốn khi tải câu trả lời: $e';
     } finally {
       isLoading = false;
       notifyListeners();
@@ -394,6 +390,81 @@ class QuestionVm extends ChangeNotifier {
       return false;
     } catch (e) {
       error = 'Lỗi không mong muốn khi duyệt câu trả lời: $e';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> postAnswer(String questionId, String body) async {
+    await _checkConnectivity();
+    if (isOffline) {
+      error = 'Không thể gửi câu trả lời khi offline';
+      notifyListeners();
+      return false;
+    }
+    try {
+      final newAnswer = await QuestionService.postAnswer(questionId, body);
+      currentAnswers.add(newAnswer);
+      error = null;
+      notifyListeners();
+      return true;
+    } on DioException catch (e) {
+      error = _handleDioError(e, "Lỗi gửi câu trả lời");
+      notifyListeners();
+      return false;
+    } catch (e) {
+      error = 'Lỗi không mong muốn khi gửi câu trả lời: $e';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> updateAnswer(String answerId, String body) async {
+    await _checkConnectivity();
+    if (isOffline) {
+      error = 'Không thể cập nhật khi offline';
+      notifyListeners();
+      return false;
+    }
+    try {
+      final updatedAnswer = await QuestionService.updateAnswer(answerId, body);
+      final index = currentAnswers.indexWhere((a) => a.id == answerId);
+      if (index != -1) {
+        currentAnswers[index] = updatedAnswer;
+        error = null;
+        notifyListeners();
+      }
+      return true;
+    } on DioException catch (e) {
+      error = _handleDioError(e, "Lỗi cập nhật câu trả lời");
+      notifyListeners();
+      return false;
+    } catch (e) {
+      error = 'Lỗi không mong muốn khi cập nhật câu trả lời: $e';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> updateQuestion(String questionId, Map<String, dynamic> data) async {
+    await _checkConnectivity();
+    if (isOffline) {
+      error = 'Không thể cập nhật khi offline';
+      notifyListeners();
+      return false;
+    }
+    try {
+      final updatedQuestion = await QuestionService.updateQuestion(questionId, data);
+      currentQuestion = updatedQuestion;
+      error = null;
+      notifyListeners();
+      return true;
+    } on DioException catch (e) {
+      error = _handleDioError(e, "Lỗi cập nhật câu hỏi");
+      notifyListeners();
+      return false;
+    } catch (e) {
+      error = 'Lỗi không mong muốn khi cập nhật câu hỏi: $e';
       notifyListeners();
       return false;
     }
