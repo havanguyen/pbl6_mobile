@@ -236,6 +236,7 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
             builder: (context, vm, child) {
               final isProcessing = vm.isLoading || vm.isUploadingAvatar || vm.isUploadingPortrait;
               return IconButton(
+                key: const ValueKey('edit_profile_save_button'),
                 icon: isProcessing
                     ? SizedBox(
                   width: 20,
@@ -386,6 +387,7 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
                     bottom: -5,
                     right: -5,
                     child: IconButton(
+                      key: const ValueKey('edit_profile_avatar_picker'),
                       icon: CircleAvatar(
                         radius: 18,
                         backgroundColor: context.theme.primary.withOpacity(0.9),

@@ -369,6 +369,7 @@ class _DoctorFormState extends State<DoctorForm>
             _buildAnimatedFormField(
               index: 0,
               child: TextFormField(
+                key: const ValueKey('edit_profile_name_field'),
                 controller: _fullNameController,
                 decoration: InputDecoration(
                   labelText: 'Họ và tên',
@@ -451,6 +452,7 @@ class _DoctorFormState extends State<DoctorForm>
             _buildAnimatedFormField(
               index: 3,
               child: TextFormField(
+                key: const ValueKey('edit_profile_phone_field'),
                 controller: _phoneController,
                 decoration: InputDecoration(
                   labelText: 'Số điện thoại (tùy chọn)',
@@ -542,6 +544,7 @@ class _DoctorFormState extends State<DoctorForm>
             _buildAnimatedFormField(
               index: 6,
               child: AnimatedSubmitButton(
+                key: const ValueKey('edit_profile_save_button'),
                 onSubmit: _submitForm,
                 idleText:
                 '${widget.isUpdate ? 'Cập nhật' : 'Tạo'} ${widget.role.toLowerCase()}',

@@ -122,6 +122,7 @@ class MainPageSuperAdmin extends StatelessWidget {
               top: size.height * 0.63,
               left: size.width * 0.25,
               child: ScaleAnimatedButton(
+                key: const ValueKey('admin_management_button'),
                 child: CustomCircularButton(
                   context,
                   size: 140,

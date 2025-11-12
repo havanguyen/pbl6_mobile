@@ -206,6 +206,7 @@ class LoginPageState extends State<LoginPage> with SingleTickerProviderStateMixi
                       );
                     },
                     child: TextFormField(
+                      key: const ValueKey('login_email_field'),
                       controller: _emailController,
                       focusNode: _focusEmail,
                       decoration: InputDecoration(
@@ -244,6 +245,7 @@ class LoginPageState extends State<LoginPage> with SingleTickerProviderStateMixi
                       );
                     },
                     child: TextFormField(
+                      key: const ValueKey('login_password_field'),
                       controller: _passwordController,
                       focusNode: _focusPassword,
                       decoration: InputDecoration(
@@ -291,6 +293,7 @@ class LoginPageState extends State<LoginPage> with SingleTickerProviderStateMixi
                     },
                     child: ScaleAnimatedButton(
                       child: CustomButtonBlue(
+                        key: const ValueKey('login_button'),
                         onTap:  _login,
                         text: _isLoading ? 'Đang đăng nhập...' : 'Đăng Nhập',
                       ),

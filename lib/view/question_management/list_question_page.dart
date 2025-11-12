@@ -589,7 +589,7 @@ class _ListQuestionPageState extends State<ListQuestionPage> {
     }
 
     return Slidable(
-      key: ValueKey(question.id),
+      key: ValueKey('question_item_${question.id}'),
       endActionPane: (isOffline || !_canDelete)
           ? null
           : ActionPane(
@@ -685,6 +685,7 @@ class _ListQuestionPageState extends State<ListQuestionPage> {
                               ),
                               child: Text(
                                 statusText.toUpperCase(),
+                                key: ValueKey('question_status_${question.status}'),
                                 style: TextStyle(
                                     color: statusColor,
                                     fontSize: 10,
@@ -873,6 +874,7 @@ class _ListQuestionPageState extends State<ListQuestionPage> {
                             .read<QuestionVm>()
                             .fetchQuestions(forceRefresh: true),
                         child: ListView.builder(
+                          key: const ValueKey('question_list_scroll_view'),
                           padding: const EdgeInsets.only(bottom: 80, top: 8),
                           controller: _scrollController,
                           itemCount: provider.questions.length +

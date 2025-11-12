@@ -32,6 +32,7 @@ class MainPageAdmin extends StatelessWidget {
               top: size.height * 0.06,
               left: size.width * 0.01,
               child: ScaleAnimatedButton(
+                key: const ValueKey('admin_settings_menu_button'),
                 child: Container(
                   decoration: BoxDecoration(
                       color: context.theme.blue, shape: BoxShape.circle),

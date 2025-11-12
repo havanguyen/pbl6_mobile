@@ -80,6 +80,7 @@ class SettingAdminPage extends StatelessWidget {
           ),
           const Divider(height: 1, color: Colors.grey),
           ListTile(
+            key: const ValueKey('location_management_menu_item'),
             leading: Icon(
               Icons.location_city_outlined,
               color: context.theme.blue,

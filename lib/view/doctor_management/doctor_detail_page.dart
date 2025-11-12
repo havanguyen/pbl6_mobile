@@ -125,6 +125,7 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                     icon: Icons.person_pin_rounded,
                     onEdit: () => _editAccount(doctor),
                     isOffline: isOffline,
+                    editKey: const ValueKey('profile_doctor_edit_button'),
                     children: [
                       _buildInfoRow(Icons.email, "Email",
                           doctor.email, context),
@@ -177,8 +178,8 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                           doctor.trainingProcess, context),
                       _buildExpansionListSection(
                           "Giải thưởng", doctor.awards, context),
-                      _buildExpansionListSection("Thành viên hiệp hội",
-                          doctor.memberships, context),
+                      _buildExpansionListSection(
+                          "Thành viên hiệp hội", doctor.memberships, context),
                       if (doctor.introduction != null &&
                           doctor.introduction!.isNotEmpty)
                         _buildExpansionHtmlSection(
@@ -416,6 +417,7 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
         required List<Widget> children,
         VoidCallback? onEdit,
         bool isOffline = false,
+        ValueKey? editKey,
       }) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8),
@@ -443,6 +445,7 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                 ),
                 if (!isOffline && onEdit != null)
                   IconButton(
+                    key: editKey,
                     icon: Icon(Icons.edit_outlined,
                         color: context.theme.primary, size: 20),
                     onPressed: onEdit,

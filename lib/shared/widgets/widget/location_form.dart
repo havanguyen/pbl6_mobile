@@ -320,6 +320,7 @@ class _LocationFormState extends State<LocationForm> with SingleTickerProviderSt
                   ],
                 ),
                 child: TextFormField(
+                  key: const ValueKey('location_form_name_field'),
                   controller: _nameController,
                   style: TextStyle(
                     color: context.theme.textColor,
@@ -594,6 +595,7 @@ class _LocationFormState extends State<LocationForm> with SingleTickerProviderSt
                   ],
                 ),
                 child: TextFormField(
+                  key: const ValueKey('location_form_address_field'),
                   controller: _detailAddressController,
                   style: TextStyle(
                     color: context.theme.textColor,
@@ -646,6 +648,7 @@ class _LocationFormState extends State<LocationForm> with SingleTickerProviderSt
                   ],
                 ),
                 child: TextFormField(
+                  key: const ValueKey('location_form_phone_field'),
                   controller: _phoneController,
                   style: TextStyle(
                     color: context.theme.textColor,
@@ -772,6 +775,7 @@ class _LocationFormState extends State<LocationForm> with SingleTickerProviderSt
                   ],
                 ),
                 child: CustomButtonBlue(
+                  key: const ValueKey('location_form_save_button'),
                   onTap: () {
                     _submitForm(context);
                   },

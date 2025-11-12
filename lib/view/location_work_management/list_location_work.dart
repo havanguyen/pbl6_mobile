@@ -206,6 +206,7 @@ class _LocationWorkListPageState extends State<LocationWorkListPage>
                 ],
               ),
               child: CustomButtonBlue(
+                key: const ValueKey('add_location_button'),
                 onTap: isOffline
                     ? () {
                   ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -735,6 +736,7 @@ class _LocationWorkListPageState extends State<LocationWorkListPage>
                                   listen: false)
                                   .fetchLocations(forceRefresh: true),
                           child: ListView.builder(
+                            key: const ValueKey('location_list_scroll_view'),
                             itemCount: filteredLocations.length,
                             itemBuilder: (context, index) {
                               return _buildAnimatedLocationCard(

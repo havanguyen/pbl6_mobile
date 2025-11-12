@@ -133,6 +133,7 @@ class _MainPageDoctorState extends State<MainPageDoctor> {
               top: size.height * 0.37,
               right: size.width * 0.15,
               child: ScaleAnimatedButton(
+                key: const ValueKey('doctor_dashboard_qa_button'),
                 child: CustomCircularButton(
                   context,
                   size: 110,
@@ -161,6 +162,7 @@ class _MainPageDoctorState extends State<MainPageDoctor> {
               top: size.height * 0.53,
               right: size.width * 0.15,
               child: ScaleAnimatedButton(
+                key: const ValueKey('doctor_dashboard_profile_button'),
                 child: CustomCircularButton(
                   context,
                   size: 120,

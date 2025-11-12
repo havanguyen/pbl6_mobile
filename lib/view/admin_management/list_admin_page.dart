@@ -278,11 +278,12 @@ class _AdminListPageState extends State<AdminListPage> {
 
   Widget _buildAnimatedAdminCard(Staff admin, int index, bool isOffline) {
     return Slidable(
-      key: ValueKey(admin.id),
+      key: ValueKey('admin_item_${admin.id}'),
       endActionPane: isOffline ? null : ActionPane(
         motion: const BehindMotion(),
         children: [
           SlidableAction(
+            key: ValueKey('admin_edit_button_${admin.id}'),
             onPressed: (context) async {
               final result = await Navigator.pushNamed(context, Routes.updateAdmin, arguments: admin.toJson());
               if (result == true) context.read<StaffVm>().fetchStaffs(forceRefresh: true);
@@ -397,6 +398,7 @@ class _AdminListPageState extends State<AdminListPage> {
                     return RefreshIndicator(
                       onRefresh: () async => context.read<StaffVm>().fetchStaffs(forceRefresh: true),
                       child: ListView.builder(
+                        key: const ValueKey('admin_list_scroll_view'),
                         controller: _scrollController,
                         itemCount: provider.staffs.length + (provider.isLoadingMore ? 1 : 0),
                         itemBuilder: (context, index) {

@@ -79,7 +79,7 @@ class _AnimatedSubmitButtonState extends State<AnimatedSubmitButton> {
           ),
         );
       case ButtonState.idle:
-      return SizedBox(
+        return SizedBox(
           key: const ValueKey('idle'),
           width: double.infinity,
           height: 52,
@@ -324,6 +324,7 @@ class _StaffFormState extends State<StaffForm> with SingleTickerProviderStateMix
             _buildAnimatedFormField(
               index: 0,
               child: TextFormField(
+                key: const ValueKey('staff_form_name_field'),
                 controller: _fullNameController,
                 decoration: InputDecoration(
                   labelText: 'Họ và tên',
@@ -339,6 +340,7 @@ class _StaffFormState extends State<StaffForm> with SingleTickerProviderStateMix
             _buildAnimatedFormField(
               index: 1,
               child: TextFormField(
+                key: const ValueKey('staff_form_email_field'),
                 controller: _emailController,
                 decoration: InputDecoration(
                   labelText: 'Email',
@@ -381,6 +383,7 @@ class _StaffFormState extends State<StaffForm> with SingleTickerProviderStateMix
             _buildAnimatedFormField(
               index: 3,
               child: TextFormField(
+                key: const ValueKey('staff_form_phone_field'),
                 controller: _phoneController,
                 decoration: InputDecoration(
                   labelText: 'Số điện thoại',
@@ -434,6 +437,7 @@ class _StaffFormState extends State<StaffForm> with SingleTickerProviderStateMix
             _buildAnimatedFormField(
               index: 6,
               child: AnimatedSubmitButton(
+                key: const ValueKey('staff_form_save_button'),
                 onSubmit: _submitForm,
                 idleText: '${widget.isUpdate ? 'Cập nhật' : 'Tạo'} ${widget.role.toLowerCase()}',
                 loadingText: 'Đang xử lý...',

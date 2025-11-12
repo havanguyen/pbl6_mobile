@@ -153,6 +153,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
           content: Form(
             key: formKey,
             child: TextFormField(
+              key: const ValueKey('answer_quill_editor'),
               controller: answerController,
               decoration: InputDecoration(
                 hintText: 'Nhập câu trả lời của bạn...',
@@ -172,6 +173,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
               child: Text('Hủy', style: TextStyle(color: context.theme.grey)),
             ),
             ElevatedButton(
+              key: const ValueKey('submit_answer_button'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: context.theme.primary,
                 foregroundColor: context.theme.primaryForeground,
