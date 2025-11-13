@@ -119,30 +119,31 @@ class DoctorVm extends ChangeNotifier {
     _error = null;
     notifyListeners();
 
+    if (forceRefresh) {
+      final offlineDoctors = await _dbHelper.getDoctors(
+        role: _role,
+        search: _searchQuery,
+        isMale: _isMale,
+        page: 1,
+        limit: _limit,
+        sortBy: _sortBy,
+        sortOrder: _sortOrder,
+      );
+      _doctors = offlineDoctors;
+      notifyListeners();
+    }
+
     var connectivityResult = await Connectivity().checkConnectivity();
     bool isConnected = !connectivityResult.contains(ConnectivityResult.none);
     _isOffline = !isConnected;
 
     if (!isConnected) {
       _error = 'Bạn đang offline. Dữ liệu có thể đã cũ.';
-      final offlineDoctors = await _dbHelper.getDoctors(
-        role: _role,
-        search: _searchQuery,
-        isMale: _isMale,
-        page: _currentPage,
-        limit: _limit,
-        sortBy: _sortBy,
-        sortOrder: _sortOrder,
-      );
       if (forceRefresh) {
-        _doctors = offlineDoctors;
-      } else {
-        _doctors.addAll(offlineDoctors);
+        if (_doctors.isEmpty) {
+          _error = 'Không có dữ liệu offline.';
+        }
       }
-      if (_doctors.isEmpty && forceRefresh) {
-        _error = 'Không có dữ liệu offline.';
-      }
-
       _isLoading = false;
       _isLoadingMore = false;
       notifyListeners();
@@ -168,25 +169,10 @@ class DoctorVm extends ChangeNotifier {
         _meta = result.meta;
         _currentPage++;
 
-        if (_doctors.isNotEmpty &&
-            _currentPage == 2 &&
-            _searchQuery.isEmpty &&
-            _isMale == null) {
-          await _dbHelper.clearDoctors(role: _role);
-          await _dbHelper.insertDoctors(_doctors);
-        }
+        await _dbHelper.insertDoctors(result.data);
       } else {
         _error = result.message;
         if (forceRefresh) {
-          _doctors = await _dbHelper.getDoctors(
-            role: _role,
-            search: _searchQuery,
-            isMale: _isMale,
-            page: 1,
-            limit: _limit,
-            sortBy: _sortBy,
-            sortOrder: _sortOrder,
-          );
           if (_doctors.isEmpty) {
             _error = result.message + " Không có dữ liệu offline.";
           } else {
@@ -197,15 +183,6 @@ class DoctorVm extends ChangeNotifier {
     } catch (e) {
       _error = 'Lỗi kết nối: $e';
       if (forceRefresh) {
-        _doctors = await _dbHelper.getDoctors(
-          role: _role,
-          search: _searchQuery,
-          isMale: _isMale,
-          page: 1,
-          limit: _limit,
-          sortBy: _sortBy,
-          sortOrder: _sortOrder,
-        );
         if (_doctors.isEmpty) {
           _error = "Lỗi kết nối: $e. Không có dữ liệu offline.";
         } else {
@@ -227,50 +204,72 @@ class DoctorVm extends ChangeNotifier {
     _reviewError = null;
     notifyListeners();
 
+    DoctorDetail? cachedDoctor;
+    try {
+      if (isSelf) {
+        print("Đang tải profile bác sĩ từ cache...");
+        final cachedProfile = await _profileCache.getProfile();
+        if (cachedProfile != null) {
+          cachedDoctor = DoctorDetail.fromJson(cachedProfile);
+        }
+      } else {
+        print("Đang tải chi tiết bác sĩ từ cache...");
+        cachedDoctor = await _dbHelper.getDoctorDetail(doctorId);
+      }
+
+      if (cachedDoctor != null) {
+        _doctorDetail = cachedDoctor;
+        _error = "Đang hiển thị thông tin đã lưu...";
+        notifyListeners();
+      }
+    } catch (e) {
+      print("Lỗi khi tải cache chi tiết bác sĩ: $e");
+    }
+
     var connectivityResult = await Connectivity().checkConnectivity();
     bool isConnected = !connectivityResult.contains(ConnectivityResult.none);
     _isOffline = !isConnected;
 
-    try {
-      if (isConnected) {
-        if (isSelf) {
-          _doctorDetail = await DoctorService.getSelfProfileComplete();
-          if (_doctorDetail != null) {
-            await _profileCache.saveProfile(_doctorDetail!.toJson());
-          }
-        } else {
-          _doctorDetail = await DoctorService.getDoctorWithProfile(doctorId);
-        }
-        if (_doctorDetail != null) {
-          await fetchReviewPreview(_doctorDetail!.id);
-        } else {
-          _error = "Không tìm thấy thông tin bác sĩ hoặc có lỗi xảy ra.";
-        }
+    if (!isConnected) {
+      if (cachedDoctor != null) {
+        _error = "Bạn đang offline. Đang hiển thị thông tin đã lưu.";
       } else {
+        _error = "Bạn đang offline và không có dữ liệu cache.";
+      }
+      _isLoadingDetail = false;
+      notifyListeners();
+      return;
+    }
+
+    try {
+      DoctorDetail? apiDoctor;
+      if (isSelf) {
+        apiDoctor = await DoctorService.getSelfProfileComplete();
+      } else {
+        apiDoctor = await DoctorService.getDoctorWithProfile(doctorId);
+      }
+
+      if (apiDoctor != null) {
+        _doctorDetail = apiDoctor;
+        _error = null;
         if (isSelf) {
-          print("Đang offline, thử tải profile bác sĩ từ cache...");
-          final cachedProfile = await _profileCache.getProfile();
-          if (cachedProfile != null) {
-            _doctorDetail = DoctorDetail.fromJson(cachedProfile);
-            _error = "Bạn đang offline. Đang hiển thị thông tin đã lưu.";
-          } else {
-            _error = "Bạn đang offline và không có dữ liệu cache.";
-          }
+          await _profileCache.saveProfile(_doctorDetail!.toJson());
         } else {
-          _error = "Bạn đang offline, không thể tải chi tiết.";
+          await _dbHelper.insertDoctorDetail(_doctorDetail!);
+        }
+        await fetchReviewPreview(_doctorDetail!.id);
+      } else {
+        if (cachedDoctor == null) {
+          _error = "Không tìm thấy thông tin bác sĩ hoặc có lỗi xảy ra.";
+        } else {
+          _error = "Lỗi kết nối. Đang hiển thị thông tin đã lưu.";
         }
       }
     } catch (e) {
-      _error = "Lỗi khi tải chi tiết bác sĩ: $e";
-      if (isSelf && _doctorDetail == null) {
-        print("API lỗi, thử tải profile từ cache...");
-        final cachedProfile = await _profileCache.getProfile();
-        if (cachedProfile != null) {
-          _doctorDetail = DoctorDetail.fromJson(cachedProfile);
-          _error = "Lỗi kết nối. Đang hiển thị thông tin đã lưu.";
-        } else {
-          _error = "Lỗi kết nối và không có dữ liệu cache. $e";
-        }
+      if (cachedDoctor == null) {
+        _error = "Lỗi khi tải chi tiết bác sĩ: $e";
+      } else {
+        _error = "Lỗi kết nối. Đang hiển thị thông tin đã lưu.";
       }
     } finally {
       _isLoadingDetail = false;

@@ -90,13 +90,10 @@ class SpecialtyVm extends ChangeNotifier {
     }
   }
 
-
   void updateSearchQuery(String query) {
     _searchQuery = query;
     fetchSpecialties(forceRefresh: true);
   }
-
-
 
   void updateSortFilter({String? sortBy, String? sortOrder}) {
     _sortBy = sortBy ?? _sortBy;
@@ -112,8 +109,6 @@ class SpecialtyVm extends ChangeNotifier {
   }
 
   Future<void> fetchSpecialties({bool forceRefresh = false}) async {
-
-    if (_specialties.isNotEmpty && !forceRefresh) return;
     if (forceRefresh) {
       _currentPage = 1;
       _meta = {};
@@ -125,24 +120,24 @@ class SpecialtyVm extends ChangeNotifier {
     _error = null;
     notifyListeners();
 
+    if (forceRefresh) {
+      final offlineData = await _dbHelper.getSpecialties(
+        search: _searchQuery,
+        page: 1,
+        limit: _limit,
+        sortBy: _sortBy,
+        sortOrder: _sortOrder,
+      );
+      _specialties = offlineData;
+      notifyListeners();
+    }
+
     var connectivityResult = await Connectivity().checkConnectivity();
     bool isConnected = !connectivityResult.contains(ConnectivityResult.none);
     _isOffline = !isConnected;
 
     if (!isConnected) {
       _error = 'Bạn đang offline. Dữ liệu có thể đã cũ.';
-      final offlineData = await _dbHelper.getSpecialties(
-        search: _searchQuery,
-        page: _currentPage,
-        limit: _limit,
-        sortBy: _sortBy,
-        sortOrder: _sortOrder,
-      );
-      if (forceRefresh) {
-        _specialties = offlineData;
-      } else {
-        _specialties.addAll(offlineData);
-      }
       _isLoading = false;
       _isLoadingMore = false;
       notifyListeners();
@@ -167,10 +162,7 @@ class SpecialtyVm extends ChangeNotifier {
         _meta = result.meta;
         _currentPage++;
 
-        if (_specialties.isNotEmpty && _currentPage == 2 && _searchQuery.isEmpty) {
-          await _dbHelper.clearSpecialties();
-          await _dbHelper.insertSpecialties(_specialties);
-        }
+        await _dbHelper.insertSpecialties(result.data);
       } else {
         _error = result.message;
       }
@@ -190,13 +182,19 @@ class SpecialtyVm extends ChangeNotifier {
     _isInfoSectionLoading = true;
     notifyListeners();
 
+    try {
+      final offlineSections = await _dbHelper.getInfoSections(specialtyId);
+      _infoSections[specialtyId] = offlineSections;
+      notifyListeners();
+    } catch (e) {
+      print("Lỗi tải cache info sections: $e");
+    }
+
     var connectivityResult = await Connectivity().checkConnectivity();
     bool isConnected = !connectivityResult.contains(ConnectivityResult.none);
     _isOffline = !isConnected;
 
     if (!isConnected) {
-      final offlineSections = await _dbHelper.getInfoSections(specialtyId);
-      _infoSections[specialtyId] = offlineSections;
       _isInfoSectionLoading = false;
       notifyListeners();
       return;
@@ -220,7 +218,6 @@ class SpecialtyVm extends ChangeNotifier {
     } catch (e) {
       _error = 'Lỗi kết nối khi tải chi tiết: $e';
     }
-
 
     _isInfoSectionLoading = false;
     notifyListeners();
@@ -286,7 +283,8 @@ class SpecialtyVm extends ChangeNotifier {
 
   Future<bool> deleteInfoSection(
       String id, String specialtyId, String password) async {
-    final success = await SpecialtyService.deleteInfoSection(id, password: password);
+    final success =
+    await SpecialtyService.deleteInfoSection(id, password: password);
     if (success) {
       await fetchInfoSections(specialtyId, forceRefresh: true);
     }
