@@ -12,33 +12,28 @@ class PatientService {
     String sortOrder = 'desc',
     bool includedDeleted = false,
   }) async {
-    try {
-      final response = await _dio.get(
-        '/patients',
-        queryParameters: {
-          'page': page,
-          'limit': limit,
-          'sortBy': sortBy,
-          'sortOrder': sortOrder,
-          'includedDeleted': includedDeleted,
-        },
-      );
+    final response = await _dio.get(
+      '/patients',
+      queryParameters: {
+        'page': page,
+        'limit': limit,
+        'sortBy': sortBy,
+        'sortOrder': sortOrder,
+        'includedDeleted': includedDeleted,
+      },
+    );
 
-      if (response.statusCode == 200) {
-        final data = response.data['data'] as List;
-        final meta = response.data['meta'];
-        final patients =
-        data.map((json) => Patient.fromJson(json)).toList();
-        return {
-          'patients': patients,
-          'meta': meta,
-        };
-      }
-      return {'patients': [], 'meta': null};
-    } catch (e) {
-      print("Get patients error: $e");
-      return {'patients': [], 'meta': null};
+    if (response.statusCode == 200) {
+      final data = response.data['data'] as List;
+      final meta = response.data['meta'];
+      final patients =
+      data.map((json) => Patient.fromJson(json)).toList();
+      return {
+        'patients': patients,
+        'meta': meta,
+      };
     }
+    return {'patients': <Patient>[], 'meta': null};
   }
 
   Future<Patient?> getPatientById(String id) async {

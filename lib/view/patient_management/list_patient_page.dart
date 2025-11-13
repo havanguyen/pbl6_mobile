@@ -19,23 +19,33 @@ class PatientListPage extends StatefulWidget {
 
 class _PatientListPageState extends State<PatientListPage> {
   final ScrollController _scrollController = ScrollController();
+  final TextEditingController _searchController = TextEditingController();
+  String _searchText = "";
 
   @override
   void initState() {
     super.initState();
     final patientVm = Provider.of<PatientVm>(context, listen: false);
-    patientVm.loadPatients(isRefresh: true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<PatientVm>(context, listen: false).loadPatients(isRefresh: true);
+    });
     _scrollController.addListener(() {
       if (_scrollController.position.pixels ==
           _scrollController.position.maxScrollExtent) {
         patientVm.loadPatients();
       }
     });
+    _searchController.addListener(() {
+      setState(() {
+        _searchText = _searchController.text;
+      });
+    });
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -60,31 +70,92 @@ class _PatientListPageState extends State<PatientListPage> {
           ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: () => patientVm.loadPatients(isRefresh: true),
-        child: patientVm.isLoading && patientVm.patients.isEmpty
-            ? _buildShimmerLoading()
-            : _buildPatientList(patientVm),
+      body: Column(
+        children: [
+          _buildSearchBar(),
+          if (patientVm.isOffline) _buildOfflineBanner(context),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: () => patientVm.loadPatients(isRefresh: true),
+              child: patientVm.isLoading && patientVm.patients.isEmpty
+                  ? _buildShimmerLoading()
+                  : _buildPatientList(patientVm),
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.pushNamed(context, Routes.createPatient);
+          if (patientVm.isOffline) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                  content: Text('Không thể tạo bệnh nhân khi đang offline')),
+            );
+          } else {
+            Navigator.pushNamed(context, Routes.createPatient);
+          }
         },
-        backgroundColor: context.theme.blue,
+        backgroundColor:
+        patientVm.isOffline ? context.theme.grey : context.theme.blue,
         child: const Icon(Icons.add),
       ),
     );
   }
 
+  Widget _buildSearchBar() {
+    return Padding(
+      padding: const EdgeInsets.all(10.0),
+      child: TextField(
+        controller: _searchController,
+        decoration: InputDecoration(
+          labelText: 'Tìm kiếm bệnh nhân',
+          hintText: 'Nhập tên, email, SĐT...',
+          prefixIcon: const Icon(Icons.search),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: context.theme.grey.withOpacity(0.5)),
+          ),
+          filled: true,
+          fillColor: context.theme.white,
+          contentPadding: const EdgeInsets.symmetric(vertical: 10),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOfflineBanner(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      color: context.theme.grey.withOpacity(0.3),
+      padding: const EdgeInsets.all(8),
+      child: Text(
+        'Bạn đang offline. Dữ liệu có thể đã cũ.',
+        textAlign: TextAlign.center,
+        style: TextStyle(color: context.theme.bg, fontWeight: FontWeight.w500),
+      ),
+    );
+  }
+
   Widget _buildPatientList(PatientVm patientVm) {
+    final displayedPatients = patientVm.patients.where((patient) {
+      final query = _searchText.toLowerCase();
+      return patient.fullName.toLowerCase().contains(query) ||
+          patient.email.toLowerCase().contains(query) ||
+          (patient.phone?.contains(query) ?? false);
+    }).toList();
+
+    if (displayedPatients.isEmpty && !patientVm.isLoading) {
+      return const Center(child: Text("Không tìm thấy bệnh nhân nào."));
+    }
     return ListView.builder(
       controller: _scrollController,
-      itemCount: patientVm.patients.length + (patientVm.isLoadingMore ? 1 : 0),
+      itemCount:
+      displayedPatients.length + (patientVm.isLoadingMore ? 1 : 0),
       itemBuilder: (context, index) {
-        if (index == patientVm.patients.length) {
+        if (index == displayedPatients.length) {
           return const Center(child: CircularProgressIndicator());
         }
-        final patient = patientVm.patients[index];
+        final patient = displayedPatients[index];
         bool isDeleted = patient.deletedAt != null;
         return AnimationConfiguration.staggeredList(
           position: index,
@@ -99,6 +170,13 @@ class _PatientListPageState extends State<PatientListPage> {
                   children: [
                     SlidableAction(
                       onPressed: (context) {
+                        if (patientVm.isOffline) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text('Không thể sửa khi đang offline')),
+                          );
+                          return;
+                        }
                         Navigator.pushNamed(
                           context,
                           Routes.updatePatient,
@@ -112,6 +190,14 @@ class _PatientListPageState extends State<PatientListPage> {
                     ),
                     SlidableAction(
                       onPressed: (context) {
+                        if (patientVm.isOffline) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text(
+                                    'Không thể xóa/khôi phục khi đang offline')),
+                          );
+                          return;
+                        }
                         if (isDeleted) {
                           patientVm.restorePatient(patient.id);
                         } else {
@@ -131,7 +217,7 @@ class _PatientListPageState extends State<PatientListPage> {
                     ),
                   ],
                 ),
-                child: _buildPatientTile(patient, isDeleted),
+                child: _buildPatientTile(patient, isDeleted , patientVm),
               ),
             ),
           ),
@@ -140,69 +226,109 @@ class _PatientListPageState extends State<PatientListPage> {
     );
   }
 
-  Widget _buildPatientTile(Patient patient, bool isDeleted) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: isDeleted
-            ? context.theme.grey.withOpacity(0.3)
-            : context.theme.white,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
-            spreadRadius: 1,
-            blurRadius: 3,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            backgroundColor: context.theme.blue.withOpacity(0.1),
+  Widget _buildPatientTile(Patient patient, bool isDeleted , PatientVm patientVm) {
+    final titleStyle = TextStyle(
+      fontWeight: FontWeight.bold,
+      fontSize: 16,
+      color: isDeleted ? context.theme.grey : null,
+      decoration: isDeleted ? TextDecoration.lineThrough : TextDecoration.none,
+    );
+
+    IconData genderIcon = Icons.person;
+    Color genderColor = context.theme.grey;
+    if (patient.isMale != null) {
+      if (patient.isMale!) {
+        genderIcon = Icons.male;
+        genderColor = context.theme.blue;
+      } else {
+        genderIcon = Icons.female;
+        genderColor = Colors.pink;
+      }
+    }
+
+    return GestureDetector(
+      onTap: (){
+        if (patientVm.isOffline) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text('Không thể sửa khi đang offline')),
+          );
+          return;
+        }
+        Navigator.pushNamed(context, Routes.updatePatient, arguments: patient);
+      },
+      child: Card(
+        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        elevation: 2,
+        shadowColor: Colors.grey.withOpacity(0.2),
+        color:
+        isDeleted ? context.theme.grey.withOpacity(0.1) : context.theme.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        child: ListTile(
+          contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+          leading: CircleAvatar(
+            backgroundColor: genderColor.withOpacity(0.1),
             child: Icon(
-              Icons.person,
-              color: context.theme.blue,
+              genderIcon,
+              color: genderColor,
             ),
           ),
-          const SizedBox(width: 15),
+          title: Text(
+            patient.fullName,
+            style: titleStyle,
+          ),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 4),
+              _buildInfoRow(
+                  context, Icons.email_outlined, patient.email, isDeleted),
+              if (patient.phone != null)
+                _buildInfoRow(
+                    context, Icons.phone_outlined, patient.phone!, isDeleted),
+              if (patient.dateOfBirth != null)
+                _buildInfoRow(
+                    context,
+                    Icons.cake_outlined,
+                    DateFormat('dd/MM/yyyy').format(patient.dateOfBirth!),
+                    isDeleted),
+              if (isDeleted)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4.0),
+                  child: Chip(
+                    label: const Text('Đã xóa'),
+                    backgroundColor: context.theme.grey.withOpacity(0.2),
+                    labelStyle:
+                    TextStyle(fontSize: 10, color: context.theme.grey),
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+                    visualDensity: VisualDensity.compact,
+                  ),
+                )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(
+      BuildContext context, IconData icon, String text, bool isDeleted) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 2.0),
+      child: Row(
+        children: [
+          Icon(icon, size: 14, color: context.theme.grey),
+          const SizedBox(width: 6),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  patient.fullName,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: isDeleted ? context.theme.grey : context.theme.bg,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  patient.email,
-                  style: TextStyle(
-                    color: context.theme.grey,
-                  ),
-                ),
-                if (patient.phone != null)
-                  Text(
-                    patient.phone!,
-                    style: TextStyle(
-                      color: context.theme.grey,
-                    ),
-                  ),
-                if (patient.dateOfBirth != null)
-                  Text(
-                    'Ngày sinh: ${DateFormat('dd/MM/yyyy').format(patient.dateOfBirth!)}',
-                    style: TextStyle(
-                      color: context.theme.grey,
-                      fontSize: 12,
-                    ),
-                  ),
-              ],
+            child: Text(
+              text,
+              style: TextStyle(
+                color: context.theme.grey,
+                fontSize: 12,
+                decoration:
+                isDeleted ? TextDecoration.lineThrough : TextDecoration.none,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -217,38 +343,44 @@ class _PatientListPageState extends State<PatientListPage> {
       child: ListView.builder(
         itemCount: 8,
         itemBuilder: (context, index) {
-          return Container(
+          return Card(
             margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              children: [
-                const CircleAvatar(
-                  backgroundColor: Colors.white,
-                ),
-                const SizedBox(width: 15),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        width: double.infinity,
-                        height: 16,
-                        color: Colors.white,
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        width: 150,
-                        height: 14,
-                        color: Colors.white,
-                      ),
-                    ],
+            shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            child: ListTile(
+              contentPadding:
+              const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+              leading: const CircleAvatar(
+                backgroundColor: Colors.white,
+              ),
+              title: Container(
+                width: 150,
+                height: 16,
+                color: Colors.white,
+              ),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 8),
+                  Container(
+                    width: double.infinity,
+                    height: 12,
+                    color: Colors.white,
                   ),
-                ),
-              ],
+                  const SizedBox(height: 4),
+                  Container(
+                    width: 200,
+                    height: 12,
+                    color: Colors.white,
+                  ),
+                  const SizedBox(height: 4),
+                  Container(
+                    width: 100,
+                    height: 12,
+                    color: Colors.white,
+                  ),
+                ],
+              ),
             ),
           );
         },
