@@ -22,7 +22,7 @@ class _ListAppointmentPageState extends State<ListAppointmentPage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this, initialIndex: 1);
+    _tabController = TabController(length: 5, vsync: this, initialIndex: 1);
     _tabController!.addListener(_onTabChanged);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -62,8 +62,10 @@ class _ListAppointmentPageState extends State<ListAppointmentPage>
       case 1:
         return CalendarView.week;
       case 2:
-        return CalendarView.month;
+        return CalendarView.timelineDay;
       case 3:
+        return CalendarView.month;
+      case 4:
         return CalendarView.schedule;
       default:
         return CalendarView.week;
@@ -98,7 +100,7 @@ class _ListAppointmentPageState extends State<ListAppointmentPage>
     final DateTime now = DateTime.now();
     if (view == CalendarView.month) {
       return [DateTime(now.year, now.month, 1)];
-    } else if (view == CalendarView.day) {
+    } else if (view == CalendarView.day || view == CalendarView.timelineDay) {
       return [now];
     } else if (view == CalendarView.schedule) {
       return [now, now.add(const Duration(days: 30))];
@@ -117,7 +119,34 @@ class _ListAppointmentPageState extends State<ListAppointmentPage>
     }
   }
 
-  // SỬA MÀU CHỮ TẠI ĐÂY
+  Widget _buildScheduleRow(BuildContext context, IconData icon, String text,
+      {Color? mainTextColor, bool isBold = false}) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          icon,
+          size: 14,
+          color: mainTextColor ?? Theme.of(context).textTheme.bodyMedium?.color,
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 13,
+              color:
+              mainTextColor ?? Theme.of(context).textTheme.bodyMedium?.color,
+              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 2,
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _appointmentBuilder(
       BuildContext context, CalendarAppointmentDetails details) {
     final appointment = details.appointments.first as AppointmentData;
@@ -130,54 +159,201 @@ class _ListAppointmentPageState extends State<ListAppointmentPage>
     ) ??
         Colors.blue;
 
-    // TỰ ĐỘNG CHỌN MÀU CHỮ (SÁNG/TỐI) DỰA TRÊN MÀU NỀN
     final bool isDarkBackground = color.computeLuminance() < 0.5;
     final Color mainTextColor = isDarkBackground ? Colors.white : Colors.black87;
     final Color secondaryTextColor =
     isDarkBackground ? Colors.white70 : Colors.black54;
 
-    // CHẾ ĐỘ XEM NGÀY (DAY VIEW)
-    if (_currentView == CalendarView.day) {
+    final DateFormat timeFormatter = DateFormat('HH:mm');
+    final String startTime =
+    timeFormatter.format(appointment.appointmentStartTime);
+    final String patientName = appointment.patient.fullName;
+    final String doctorName = appointment.doctor.name ?? 'N/A';
+
+    if (_currentView == CalendarView.day ||
+        _currentView == CalendarView.timelineDay) {
       return Container(
         width: details.bounds.width,
         height: details.bounds.height,
         decoration: BoxDecoration(
-          color: color.withOpacity(0.9), // Giảm độ trong suốt
+          color: color.withOpacity(0.9),
           borderRadius: BorderRadius.circular(4),
-          border: Border(left: BorderSide(color: Colors.black, width: 4)),
+          border: Border(left: BorderSide(color: color, width: 4)),
         ),
         padding: const EdgeInsets.fromLTRB(8, 4, 6, 4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'BN: ${appointment.patient.fullName}',
-              style: TextStyle(
-                color: mainTextColor, // Dùng màu chữ động
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-              ),
-              overflow: TextOverflow.ellipsis,
+            Row(
+              children: [
+                Icon(Icons.access_time, color: mainTextColor, size: 12),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    '$startTime - $patientName',
+                    style: TextStyle(
+                      color: mainTextColor,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 2),
-            Text(
-              'BS: ${appointment.doctor.name ?? 'N/A'}',
-              style: TextStyle(color: mainTextColor, fontSize: 11), // Dùng màu chữ động
-              overflow: TextOverflow.ellipsis,
+            Row(
+              children: [
+                Icon(Icons.medical_services_outlined,
+                    color: mainTextColor, size: 12),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    doctorName,
+                    style: TextStyle(color: mainTextColor, fontSize: 11),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
             ),
             const Spacer(),
-            Text(
-              appointment.reason ?? '',
-              style: TextStyle(color: secondaryTextColor, fontSize: 10), // Dùng màu chữ động
-              overflow: TextOverflow.ellipsis,
-              maxLines: 2,
+            if (appointment.reason != null && appointment.reason!.isNotEmpty)
+              Row(
+                children: [
+                  Icon(Icons.subject_outlined,
+                      color: secondaryTextColor, size: 10),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      appointment.reason!,
+                      style: TextStyle(color: secondaryTextColor, fontSize: 10),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
+                    ),
+                  ),
+                ],
+              ),
+          ],
+        ),
+      );
+    }
+
+    if (_currentView == CalendarView.week) {
+      return Container(
+        width: details.bounds.width,
+        height: details.bounds.height,
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(4),
+        ),
+        padding: const EdgeInsets.all(4.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.access_time, color: mainTextColor, size: 10),
+                const SizedBox(width: 2),
+                Expanded(
+                  child: Text(
+                    '$startTime $patientName',
+                    style: TextStyle(color: mainTextColor, fontSize: 11),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                Icon(Icons.medical_services_outlined,
+                    color: secondaryTextColor, size: 10),
+                const SizedBox(width: 2),
+                Expanded(
+                  child: Text(
+                    doctorName,
+                    style: TextStyle(color: secondaryTextColor, fontSize: 10),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
       );
     }
 
-    // CHẾ ĐỘ XEM TUẦN (WEEK VIEW)
+    if (_currentView == CalendarView.month) {
+      return Container(
+        width: details.bounds.width,
+        height: details.bounds.height,
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(4),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+        child: Text(
+          '$startTime - $patientName',
+          style: TextStyle(color: mainTextColor, fontSize: 12),
+          overflow: TextOverflow.ellipsis,
+          maxLines: 1,
+        ),
+      );
+    }
+
+    if (_currentView == CalendarView.schedule) {
+      return Container(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 5,
+              height: 70,
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _buildScheduleRow(
+                    context,
+                    Icons.person_outline,
+                    patientName,
+                    mainTextColor:
+                    Theme.of(context).textTheme.titleMedium?.color,
+                    isBold: true,
+                  ),
+                  const SizedBox(height: 4),
+                  _buildScheduleRow(
+                    context,
+                    Icons.medical_services_outlined,
+                    doctorName,
+                    mainTextColor:
+                    Theme.of(context).textTheme.bodyMedium?.color,
+                  ),
+                  const SizedBox(height: 4),
+                  _buildScheduleRow(
+                    context,
+                    Icons.subject_outlined,
+                    appointment.reason ?? 'Không có',
+                    mainTextColor: Colors.grey[600],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Container(
       width: details.bounds.width,
       height: details.bounds.height,
@@ -187,8 +363,8 @@ class _ListAppointmentPageState extends State<ListAppointmentPage>
       ),
       padding: const EdgeInsets.all(4.0),
       child: Text(
-        details.appointments.toString(),
-        style: TextStyle(color: mainTextColor, fontSize: 10), // Dùng màu chữ động
+        '$startTime $patientName',
+        style: TextStyle(color: mainTextColor, fontSize: 10),
         overflow: TextOverflow.clip,
       ),
     );
@@ -226,6 +402,7 @@ class _ListAppointmentPageState extends State<ListAppointmentPage>
           tabs: const [
             Tab(text: 'Ngày'),
             Tab(text: 'Tuần'),
+            Tab(text: 'Timeline'),
             Tab(text: 'Tháng'),
             Tab(text: 'Lịch trình'),
           ],
@@ -243,13 +420,14 @@ class _ListAppointmentPageState extends State<ListAppointmentPage>
           startHour: 7,
           endHour: 18,
           nonWorkingDays: <int>[DateTime.saturday, DateTime.sunday],
+          timeIntervalHeight: 60,
         ),
         monthViewSettings: const MonthViewSettings(
           appointmentDisplayMode: MonthAppointmentDisplayMode.indicator,
           showAgenda: true,
         ),
         scheduleViewSettings: ScheduleViewSettings(
-          appointmentItemHeight: 70,
+          appointmentItemHeight: 90,
           monthHeaderSettings: MonthHeaderSettings(
             height: 100,
             textAlign: TextAlign.left,

@@ -17,25 +17,20 @@ class AppointmentVm extends ChangeNotifier {
   AppointmentDataSource? _dataSource;
   AppointmentDataSource? get dataSource => _dataSource;
 
-  // SỬA LỖI Ở HÀM NÀY
   Future<void> fetchAppointments(DateTime fromDate, DateTime toDate) async {
-    // Thêm dòng này: Trì hoãn thực thi để tránh lỗi "setState during build"
-    // Nó sẽ đẩy toàn bộ logic xuống chạy ngay sau khi frame build hiện tại hoàn tất.
     await Future.delayed(Duration.zero);
 
-    // Kiểm tra nếu đang tải thì không gọi lại
     if (_isLoading) return;
 
     _isLoading = true;
     _error = null;
-    // Lệnh notifyListeners() này bây giờ đã an toàn vì nó nằm trong Future.delayed
     notifyListeners();
 
     try {
       final response = await _appointmentService.getAppointments(
         fromDate: fromDate,
         toDate: toDate,
-        status: 'BOOKED', // Bạn có thể xem xét việc tải tất cả các status
+        status: 'BOOKED',
       );
       if (response != null && response.success) {
         _appointments = response.data;
@@ -52,7 +47,6 @@ class AppointmentVm extends ChangeNotifier {
   }
 }
 
-// Phần AppointmentDataSource giữ nguyên
 class AppointmentDataSource extends CalendarDataSource {
   AppointmentDataSource(List<AppointmentData> source) {
     appointments = source;
