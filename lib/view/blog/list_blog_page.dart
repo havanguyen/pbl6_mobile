@@ -103,9 +103,9 @@ class _ListBlogPageState extends State<ListBlogPage> {
       ),
       builder: (context) => DraggableScrollableSheet(
         expand: false,
-        initialChildSize: 0.6,
-        minChildSize: 0.3,
-        maxChildSize: 0.8,
+        initialChildSize: 0.7,
+        minChildSize: 0.4,
+        maxChildSize: 0.85,
         builder: (_, scrollController) => SingleChildScrollView(
           controller: scrollController,
           child: _buildFilterSection(),
@@ -117,108 +117,111 @@ class _ListBlogPageState extends State<ListBlogPage> {
   Widget _buildSearchSection(bool isOffline) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      child: Column(
+      child: Row(
         children: [
-          TextField(
-            controller: _searchController,
-            style: TextStyle(color: context.theme.textColor),
-            decoration: InputDecoration(
-              hintText: 'Tìm kiếm theo tiêu đề',
-              hintStyle: TextStyle(
-                  color: context.theme.mutedForeground.withOpacity(0.7)),
-              prefixIcon:
-              Icon(Icons.search, color: context.theme.primary, size: 20),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: context.theme.border),
+          Expanded(
+            child: TextField(
+              controller: _searchController,
+              style: TextStyle(color: context.theme.textColor),
+              decoration: InputDecoration(
+                hintText: 'Tìm kiếm theo tiêu đề',
+                hintStyle: TextStyle(
+                    color: context.theme.mutedForeground.withOpacity(0.7)),
+                prefixIcon:
+                Icon(Icons.search, color: context.theme.primary, size: 20),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: context.theme.border),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: context.theme.border),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide:
+                  BorderSide(color: context.theme.primary, width: 1.5),
+                ),
+                filled: true,
+                fillColor: context.theme.input,
+                contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                suffixIcon: _searchController.text.isNotEmpty
+                    ? IconButton(
+                  icon: Icon(Icons.clear,
+                      color: context.theme.mutedForeground, size: 20),
+                  onPressed: () {
+                    _searchController.clear();
+                  },
+                )
+                    : null,
               ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: context.theme.border),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: context.theme.primary, width: 1.5),
-              ),
-              filled: true,
-              fillColor: context.theme.input,
-              contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              suffixIcon: _searchController.text.isNotEmpty
-                  ? IconButton(
-                icon: Icon(Icons.clear,
-                    color: context.theme.mutedForeground, size: 20),
-                onPressed: () {
-                  _searchController.clear();
-                },
-              )
-                  : null,
             ),
           ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.add, size: 20),
-                  label:
-                  const Text('Thêm bài viết', style: TextStyle(fontSize: 15)),
-                  onPressed: isOffline
-                      ? null
-                      : () async {
-                    final result =
-                    await Navigator.pushNamed(context, Routes.createBlog);
-                    if (result == true) {}
+          const SizedBox(width: 12),
+          Material(
+            color: context.theme.input,
+            borderRadius: BorderRadius.circular(12),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: _showFilterSheet,
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: context.theme.border)),
+                child: Consumer<BlogVm>(
+                  builder: (context, vm, child) {
+                    final bool isFilterActive = vm.selectedCategoryId != null ||
+                        vm.selectedStatus != null ||
+                        vm.sortBy != 'createdAt' ||
+                        vm.sortOrder != 'DESC';
+                    return Badge(
+                      isLabelVisible: isFilterActive,
+                      backgroundColor: context.theme.primary,
+                      smallSize: 8,
+                      child: Icon(Icons.filter_list_rounded,
+                          color: context.theme.primary, size: 24),
+                    );
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: context.theme.primary,
-                    foregroundColor: context.theme.primaryForeground,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 2,
-                  ).copyWith(
-                    backgroundColor: MaterialStateProperty.resolveWith<Color?>(
-                          (Set<MaterialState> states) {
-                        if (states.contains(MaterialState.disabled)) {
-                          return context.theme.muted;
-                        }
-                        return context.theme.primary;
-                      },
-                    ),
-                    foregroundColor: MaterialStateProperty.resolveWith<Color?>(
-                          (Set<MaterialState> states) {
-                        if (states.contains(MaterialState.disabled)) {
-                          return context.theme.mutedForeground;
-                        }
-                        return context.theme.primaryForeground;
-                      },
-                    ),
-                  ),
                 ),
               ),
-              const SizedBox(width: 12),
-              Material(
-                color: context.theme.input,
-                borderRadius: BorderRadius.circular(12),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(12),
-                  onTap: _showFilterSheet,
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: context.theme.border)),
-                    child: Icon(Icons.filter_list_rounded,
-                        color: context.theme.primary, size: 24),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildChipGroup<T>({
+    required List<T> items,
+    required T? selectedItem,
+    required String Function(T) labelBuilder,
+    required T Function(T) valueBuilder,
+    required Function(T?) onSelected,
+  }) {
+    return Wrap(
+      spacing: 8.0,
+      runSpacing: 4.0,
+      children: items.map((item) {
+        final isSelected = selectedItem == valueBuilder(item);
+        return ChoiceChip(
+          label: Text(labelBuilder(item)),
+          selected: isSelected,
+          onSelected: (selected) {
+            onSelected(selected ? valueBuilder(item) : null);
+          },
+          selectedColor: context.theme.primary,
+          labelStyle: TextStyle(
+              color: isSelected
+                  ? context.theme.primaryForeground
+                  : context.theme.textColor,
+              fontSize: 13),
+          backgroundColor: context.theme.input,
+          side: BorderSide(color: context.theme.border),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        );
+      }).toList(),
     );
   }
 
@@ -308,8 +311,8 @@ class _ListBlogPageState extends State<ListBlogPage> {
                   style:
                   TextStyle(color: context.theme.mutedForeground)),
               isExpanded: true,
-              style:
-              TextStyle(color: context.theme.textColor, fontSize: 15),
+              style: TextStyle(
+                  color: context.theme.textColor, fontSize: 15),
               decoration: InputDecoration(
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -346,7 +349,8 @@ class _ListBlogPageState extends State<ListBlogPage> {
                     value: category.id,
                     child: Text(category.name,
                         style: TextStyle(
-                            color: context.theme.popoverForeground)),
+                            color:
+                            context.theme.popoverForeground)),
                   );
                 }).toList(),
               ],
@@ -367,165 +371,80 @@ class _ListBlogPageState extends State<ListBlogPage> {
                 style: TextStyle(
                     color: context.theme.textColor,
                     fontWeight: FontWeight.w500)),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              value: blogVm.selectedStatus,
-              hint: Text('Tất cả trạng thái',
-                  style: TextStyle(color: context.theme.mutedForeground)),
-              isExpanded: true,
-              style: TextStyle(color: context.theme.textColor, fontSize: 15),
-              decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: context.theme.border)),
-                  enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: context.theme.border)),
-                  focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: context.theme.primary)),
-                  filled: true,
-                  fillColor: context.theme.input,
-                  contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  prefixIcon: Icon(
-                    Icons.toggle_on_outlined,
-                    size: 18,
-                    color: context.theme.mutedForeground,
-                  )),
-              icon: Icon(Icons.keyboard_arrow_down_rounded,
-                  color: context.theme.mutedForeground),
-              dropdownColor: context.theme.popover,
-              items: [
-                DropdownMenuItem<String>(
-                    value: null,
-                    child: Text('Tất cả trạng thái',
-                        style:
-                        TextStyle(color: context.theme.mutedForeground))),
-                DropdownMenuItem<String>(
-                    value: 'DRAFT',
-                    child: Text('Bản nháp',
-                        style: TextStyle(
-                            color: context.theme.popoverForeground))),
-                DropdownMenuItem<String>(
-                    value: 'PUBLISHED',
-                    child: Text('Đã xuất bản',
-                        style: TextStyle(
-                            color: context.theme.popoverForeground))),
-                DropdownMenuItem<String>(
-                    value: 'ARCHIVED',
-                    child: Text('Đã lưu trữ',
-                        style: TextStyle(
-                            color: context.theme.popoverForeground))),
-              ],
-              onChanged: (value) {
+            const SizedBox(height: 10),
+            _buildChipGroup<String?>(
+              items: [null, 'DRAFT', 'PUBLISHED', 'ARCHIVED'],
+              selectedItem: blogVm.selectedStatus,
+              labelBuilder: (item) {
+                switch (item) {
+                  case 'DRAFT':
+                    return 'Bản nháp';
+                  case 'PUBLISHED':
+                    return 'Đã xuất bản';
+                  case 'ARCHIVED':
+                    return 'Đã lưu trữ';
+                  default:
+                    return 'Tất cả';
+                }
+              },
+              valueBuilder: (item) => item,
+              onSelected: (value) {
                 blogVm.updateStatusFilter(value);
               },
             ),
             const SizedBox(height: 20),
-            Text('Sắp xếp',
+            Text('Sắp xếp theo',
                 style: TextStyle(
                     color: context.theme.textColor,
                     fontWeight: FontWeight.w500)),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                      value: blogVm.sortBy,
-                      style:
-                      TextStyle(color: context.theme.textColor, fontSize: 15),
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide:
-                            BorderSide(color: context.theme.border)),
-                        enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide:
-                            BorderSide(color: context.theme.border)),
-                        focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide:
-                            BorderSide(color: context.theme.primary)),
-                        filled: true,
-                        fillColor: context.theme.input,
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 12),
-                      ),
-                      icon: Icon(Icons.keyboard_arrow_down_rounded,
-                          color: context.theme.mutedForeground),
-                      dropdownColor: context.theme.popover,
-                      items: [
-                        DropdownMenuItem(
-                            value: 'createdAt',
-                            child: Text('Ngày tạo',
-                                style: TextStyle(
-                                    color: context.theme.popoverForeground))),
-                        DropdownMenuItem(
-                            value: 'updatedAt',
-                            child: Text('Ngày cập nhật',
-                                style: TextStyle(
-                                    color: context.theme.popoverForeground))),
-                        DropdownMenuItem(
-                            value: 'publishedAt',
-                            child: Text('Ngày xuất bản',
-                                style: TextStyle(
-                                    color: context.theme.popoverForeground))),
-                        DropdownMenuItem(
-                            value: 'title',
-                            child: Text('Tiêu đề',
-                                style: TextStyle(
-                                    color: context.theme.popoverForeground))),
-                      ],
-                      onChanged: (value) =>
-                          blogVm.updateSortFilter(sortBy: value)),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                      value: blogVm.sortOrder,
-                      style:
-                      TextStyle(color: context.theme.textColor, fontSize: 15),
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide:
-                            BorderSide(color: context.theme.border)),
-                        enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide:
-                            BorderSide(color: context.theme.border)),
-                        focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide:
-                            BorderSide(color: context.theme.primary)),
-                        filled: true,
-                        fillColor: context.theme.input,
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 12),
-                      ),
-                      icon: Icon(Icons.keyboard_arrow_down_rounded,
-                          color: context.theme.mutedForeground),
-                      dropdownColor: context.theme.popover,
-                      items: [
-                        DropdownMenuItem(
-                            value: 'ASC',
-                            child: Text('Tăng dần',
-                                style: TextStyle(
-                                    color: context.theme.popoverForeground))),
-                        DropdownMenuItem(
-                            value: 'DESC',
-                            child: Text('Giảm dần',
-                                style: TextStyle(
-                                    color: context.theme.popoverForeground))),
-                      ],
-                      onChanged: (value) =>
-                          blogVm.updateSortFilter(sortOrder: value)),
-                ),
-              ],
+            const SizedBox(height: 10),
+            _buildChipGroup<String>(
+              items: ['createdAt', 'updatedAt', 'publishedAt', 'title'],
+              selectedItem: blogVm.sortBy,
+              labelBuilder: (item) {
+                switch (item) {
+                  case 'createdAt':
+                    return 'Ngày tạo';
+                  case 'updatedAt':
+                    return 'Ngày cập nhật';
+                  case 'publishedAt':
+                    return 'Ngày xuất bản';
+                  case 'title':
+                    return 'Tiêu đề';
+                  default:
+                    return '';
+                }
+              },
+              valueBuilder: (item) => item,
+              onSelected: (value) {
+                blogVm.updateSortFilter(sortBy: value ?? 'createdAt');
+              },
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
+            Text('Thứ tự',
+                style: TextStyle(
+                    color: context.theme.textColor,
+                    fontWeight: FontWeight.w500)),
+            const SizedBox(height: 10),
+            _buildChipGroup<String>(
+              items: ['DESC', 'ASC'],
+              selectedItem: blogVm.sortOrder,
+              labelBuilder: (item) {
+                switch (item) {
+                  case 'DESC':
+                    return 'Giảm dần';
+                  case 'ASC':
+                    return 'Tăng dần';
+                  default:
+                    return '';
+                }
+              },
+              valueBuilder: (item) => item,
+              onSelected: (value) {
+                blogVm.updateSortFilter(sortOrder: value ?? 'DESC');
+              },
+            ),
+            const SizedBox(height: 32),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -563,8 +482,8 @@ class _ListBlogPageState extends State<ListBlogPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Container(
-                  width: 60.0,
-                  height: 60.0,
+                  width: 80.0,
+                  height: 80.0,
                   decoration: BoxDecoration(
                       color: context.theme.muted,
                       borderRadius: BorderRadius.circular(8))),
@@ -701,111 +620,130 @@ class _ListBlogPageState extends State<ListBlogPage> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: (blog.thumbnailUrl != null &&
-                        blog.thumbnailUrl!.isNotEmpty)
-                        ? (blog.thumbnailUrl!.toLowerCase().endsWith('.svg'))
-                        ? SvgPicture.network(
-                      blog.thumbnailUrl!,
-                      width: 70,
-                      height: 70,
-                      fit: BoxFit.cover,
-                      placeholderBuilder: (context) => Container(
-                          width: 70,
-                          height: 70,
-                          color: context.theme.muted),
-                    )
-                        : CachedNetworkImage(
-                      imageUrl: blog.thumbnailUrl!,
-                      width: 70,
-                      height: 70,
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) => Container(
-                          width: 70,
-                          height: 70,
-                          color: context.theme.muted),
-                      errorWidget: (context, url, error) => Container(
-                          width: 70,
-                          height: 70,
+                  Hero(
+                    tag: 'blog_thumbnail_${blog.id}',
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: (blog.thumbnailUrl != null &&
+                          blog.thumbnailUrl!.isNotEmpty)
+                          ? (blog.thumbnailUrl!.toLowerCase().endsWith('.svg'))
+                          ? SvgPicture.network(
+                        blog.thumbnailUrl!,
+                        width: 80,
+                        height: 80,
+                        fit: BoxFit.cover,
+                        placeholderBuilder: (context) => Container(
+                            width: 80,
+                            height: 80,
+                            color: context.theme.muted),
+                      )
+                          : CachedNetworkImage(
+                        imageUrl: blog.thumbnailUrl!,
+                        width: 80,
+                        height: 80,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => Container(
+                            width: 80,
+                            height: 80,
+                            color: context.theme.muted),
+                        errorWidget: (context, url, error) =>
+                            Container(
+                                width: 80,
+                                height: 80,
+                                color: context.theme.muted
+                                    .withOpacity(0.5),
+                                child: Icon(
+                                  Icons.broken_image_outlined,
+                                  color: context.theme.mutedForeground,
+                                  size: 30,
+                                )),
+                      )
+                          : Container(
+                          width: 80,
+                          height: 80,
                           color: context.theme.muted.withOpacity(0.5),
                           child: Icon(
-                            Icons.broken_image_outlined,
+                            Icons.image_not_supported_outlined,
                             color: context.theme.mutedForeground,
                             size: 30,
                           )),
-                    )
-                        : Container(
-                        width: 70,
-                        height: 70,
-                        color: context.theme.muted.withOpacity(0.5),
-                        child: Icon(
-                          Icons.image_not_supported_outlined,
-                          color: context.theme.mutedForeground,
-                          size: 30,
-                        )),
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          blog.title,
-                          style: TextStyle(
-                              color: context.theme.cardForeground,
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 6),
-                        Row(
-                          children: [
-                            Icon(Icons.category_outlined,
-                                size: 14,
-                                color: context.theme.mutedForeground),
-                            const SizedBox(width: 4),
-                            Expanded(
-                              child: Text(
-                                blog.category.name,
-                                style: TextStyle(
-                                    color: context.theme.mutedForeground,
-                                    fontSize: 12),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(statusIcon, size: 14, color: statusColor),
-                                const SizedBox(width: 4),
-                                Text(
-                                  statusText,
-                                  style: TextStyle(
-                                      color: statusColor,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w500),
+                    child: SizedBox(
+                      height: 80,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Hero(
+                                tag: 'blog_title_${blog.id}',
+                                child: Material(
+                                  type: MaterialType.transparency,
+                                  child: Text(
+                                    blog.title,
+                                    style: TextStyle(
+                                        color: context.theme.cardForeground,
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
-                              ],
-                            ),
-                            Text(
-                              formattedDate,
-                              style: TextStyle(
-                                  color: context.theme.mutedForeground
-                                      .withOpacity(0.8),
-                                  fontSize: 11),
-                            ),
-                          ],
-                        )
-                      ],
+                              ),
+                              const SizedBox(height: 6),
+                              Row(
+                                children: [
+                                  Icon(Icons.category_outlined,
+                                      size: 14,
+                                      color: context.theme.mutedForeground),
+                                  const SizedBox(width: 4),
+                                  Expanded(
+                                    child: Text(
+                                      blog.category.name,
+                                      style: TextStyle(
+                                          color: context.theme.mutedForeground,
+                                          fontSize: 12),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(statusIcon,
+                                      size: 14, color: statusColor),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    statusText,
+                                    style: TextStyle(
+                                        color: statusColor,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w500),
+                                  ),
+                                ],
+                              ),
+                              Text(
+                                formattedDate,
+                                style: TextStyle(
+                                    color: context.theme.mutedForeground
+                                        .withOpacity(0.8),
+                                    fontSize: 11),
+                              ),
+                            ],
+                          )
+                        ],
+                      ),
                     ),
                   ),
                 ],
@@ -843,7 +781,7 @@ class _ListBlogPageState extends State<ListBlogPage> {
               padding: const EdgeInsets.symmetric(horizontal: 40.0),
               child: Text(
                 _searchController.text.isEmpty
-                    ? 'Nhấn nút "+" để thêm bài viết mới.'
+                    ? 'Nhấn nút "+" ở góc dưới để thêm bài viết mới.'
                     : 'Hãy thử tìm kiếm với từ khóa khác hoặc xóa bộ lọc.',
                 style:
                 TextStyle(color: context.theme.mutedForeground, fontSize: 13),
@@ -858,6 +796,9 @@ class _ListBlogPageState extends State<ListBlogPage> {
 
   @override
   Widget build(BuildContext context) {
+    final blogVm = context.watch<BlogVm>();
+    final isOffline = blogVm.isOffline;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Quản lý Blog'),
@@ -905,7 +846,8 @@ class _ListBlogPageState extends State<ListBlogPage> {
                           size: 16, color: context.theme.yellow),
                       const SizedBox(width: 8),
                       Text(
-                        provider.error ?? 'Bạn đang offline. Dữ liệu có thể đã cũ.',
+                        provider.error ??
+                            'Bạn đang offline. Dữ liệu có thể đã cũ.',
                         textAlign: TextAlign.center,
                         style:
                         TextStyle(color: context.theme.yellow, fontSize: 13),
@@ -926,7 +868,8 @@ class _ListBlogPageState extends State<ListBlogPage> {
                         !provider.isOffline) {
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         if (mounted) {
-                          ScaffoldMessenger.of(innerContext).showSnackBar(SnackBar(
+                          ScaffoldMessenger.of(innerContext)
+                              .showSnackBar(SnackBar(
                             content: Text("Lỗi: ${provider.error}"),
                             backgroundColor: context.theme.destructive,
                             behavior: SnackBarBehavior.floating,
@@ -996,6 +939,21 @@ class _ListBlogPageState extends State<ListBlogPage> {
             ],
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: isOffline
+            ? null
+            : () async {
+          final result =
+          await Navigator.pushNamed(context, Routes.createBlog);
+          if (result == true) {}
+        },
+        label: const Text('Thêm bài viết'),
+        icon: const Icon(Icons.add),
+        backgroundColor: isOffline ? context.theme.muted : context.theme.primary,
+        foregroundColor: isOffline
+            ? context.theme.mutedForeground
+            : context.theme.primaryForeground,
       ),
     );
   }

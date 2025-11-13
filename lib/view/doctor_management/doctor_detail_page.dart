@@ -34,7 +34,9 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        context.read<DoctorVm>().fetchDoctorDetail(widget.doctorId);
+        context
+            .read<DoctorVm>()
+            .fetchDoctorDetail(widget.doctorId, isSelf: widget.isSelfView);
       }
     });
   }
@@ -49,7 +51,9 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
       },
     );
     if (result == true && mounted) {
-      context.read<DoctorVm>().fetchDoctorDetail(widget.doctorId);
+      context
+          .read<DoctorVm>()
+          .fetchDoctorDetail(widget.doctorId, isSelf: widget.isSelfView);
     }
   }
 
@@ -72,7 +76,9 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
         arguments: profileArgs,
       );
       if (result == true && mounted) {
-        context.read<DoctorVm>().fetchDoctorDetail(widget.doctorId);
+        context
+            .read<DoctorVm>()
+            .fetchDoctorDetail(widget.doctorId, isSelf: widget.isSelfView);
       }
     } else {
       final doctorAsMap = {
@@ -106,7 +112,7 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
 
     return Scaffold(
       backgroundColor: context.theme.bg,
-      body: doctorVm.isLoadingDetail
+      body: doctorVm.isLoadingDetail && doctor == null
           ? const Center(child: CircularProgressIndicator())
           : doctor == null
           ? const Center(child: Text('Không thể tải dữ liệu bác sĩ'))
@@ -114,139 +120,136 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
         slivers: [
           _buildSliverAppBar(doctor, isOffline, context),
           SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildInfoSection(
-                    context,
-                    title: "Thông tin tài khoản",
-                    icon: Icons.person_pin_rounded,
-                    onEdit: () => _editAccount(doctor),
-                    isOffline: isOffline,
-                    editKey: const ValueKey('profile_doctor_edit_button'),
-                    children: [
-                      _buildInfoRow(Icons.email, "Email",
-                          doctor.email, context),
-                      _buildInfoRow(
-                          Icons.phone,
-                          "Điện thoại",
-                          doctor.phone ?? 'Chưa cập nhật',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeaderSection(doctor, isOffline, context),
+                _buildInfoSection(
+                  context,
+                  title: "Thông tin tài khoản",
+                  icon: Icons.person_pin_rounded,
+                  onEdit: () => _editAccount(doctor),
+                  isOffline: isOffline,
+                  editKey:
+                  const ValueKey('profile_doctor_edit_button'),
+                  children: [
+                    _buildInfoRow(Icons.email, "Email",
+                        doctor.email, context),
+                    _buildInfoRow(
+                        Icons.phone,
+                        "Điện thoại",
+                        doctor.phone ?? 'Chưa cập nhật',
+                        context),
+                    _buildInfoRow(
+                        Icons.cake,
+                        "Ngày sinh",
+                        doctor.dateOfBirth != null
+                            ? DateFormat('dd/MM/yyyy')
+                            .format(doctor.dateOfBirth!)
+                            : 'Chưa cập nhật',
+                        context),
+                    _buildInfoRow(
+                        Icons.person,
+                        "Giới tính",
+                        (doctor.isMale ? 'Nam' : 'Nữ'),
+                        context),
+                  ],
+                ),
+                _buildInfoSection(
+                  context,
+                  title: "Hồ sơ chuyên môn",
+                  icon: Icons.medical_information,
+                  onEdit: () => _editProfile(doctor),
+                  isOffline: isOffline,
+                  children: [
+                    if (doctor.specialties.isNotEmpty)
+                      _buildTitledChipList(
+                          "Chuyên khoa",
+                          doctor.specialties.map((e) => e.name).toList(),
                           context),
-                      _buildInfoRow(
-                          Icons.cake,
-                          "Ngày sinh",
-                          doctor.dateOfBirth
-                              ?.toString()
-                              .split(' ')[0] ??
-                              'Chưa cập nhật',
+                    if (doctor.workLocations.isNotEmpty)
+                      _buildTitledChipList(
+                          "Nơi công tác",
+                          doctor.workLocations
+                              .map((e) => e.name)
+                              .toList(),
                           context),
-                      _buildInfoRow(
-                          Icons.person,
-                          "Giới tính",
-                          (doctor.isMale ? 'Nam' : 'Nữ'),
-                          context),
-                    ],
-                  ),
-                  _buildInfoSection(
-                    context,
-                    title: "Hồ sơ chuyên môn",
-                    icon: Icons.medical_information,
-                    onEdit: () => _editProfile(doctor),
-                    isOffline: isOffline,
-                    children: [
-                      if (doctor.specialties.isNotEmpty)
-                        _buildTitledChipList(
-                            "Chuyên khoa",
-                            doctor.specialties.map((e) => e.name).toList(),
-                            context),
-                      if (doctor.workLocations.isNotEmpty)
-                        _buildTitledChipList(
-                            "Nơi công tác",
-                            doctor.workLocations
-                                .map((e) => e.name)
-                                .toList(),
-                            context),
-                      _buildExpansionListSection(
-                          "Chức vụ", doctor.position, context),
-                      _buildExpansionListSection(
-                          "Kinh nghiệm", doctor.experience, context),
-                      _buildExpansionListSection("Quá trình đào tạo",
-                          doctor.trainingProcess, context),
-                      _buildExpansionListSection(
-                          "Giải thưởng", doctor.awards, context),
-                      _buildExpansionListSection(
-                          "Thành viên hiệp hội", doctor.memberships, context),
-                      if (doctor.introduction != null &&
-                          doctor.introduction!.isNotEmpty)
-                        _buildExpansionHtmlSection(
-                            "Giới thiệu", doctor.introduction!, context),
-                      if (doctor.research != null &&
-                          doctor.research!.isNotEmpty)
-                        _buildExpansionHtmlSection(
-                            "Nghiên cứu khoa học",
-                            doctor.research!,
-                            context),
-                    ],
-                  ),
-                  _buildInfoSection(
-                    context,
-                    title: "Đánh giá của bệnh nhân",
-                    icon: Icons.reviews_outlined,
-                    isOffline: isOffline,
-                    children: [
-                      if (isLoadingReviews && reviews.isEmpty)
-                        const Center(
-                            child: Padding(
-                              padding: EdgeInsets.all(16.0),
-                              child: CircularProgressIndicator(),
-                            ))
-                      else if (reviews.isEmpty)
-                        const Center(
-                            child: Padding(
-                              padding: EdgeInsets.all(16.0),
-                              child: Text('Chưa có đánh giá nào'),
-                            ))
-                      else
-                        Column(
-                          children: [
-                            ListView.builder(
-                              shrinkWrap: true,
-                              physics:
-                              const NeverScrollableScrollPhysics(),
-                              itemCount: reviews.length,
-                              itemBuilder: (ctx, index) {
-                                final review = reviews[index];
-                                return _buildReviewCard(
-                                    context, review);
+                    _buildExpansionListSection(
+                        "Chức vụ", doctor.position, context),
+                    _buildExpansionListSection(
+                        "Kinh nghiệm", doctor.experience, context),
+                    _buildExpansionListSection("Quá trình đào tạo",
+                        doctor.trainingProcess, context),
+                    _buildExpansionListSection(
+                        "Giải thưởng", doctor.awards, context),
+                    _buildExpansionListSection("Thành viên hiệp hội",
+                        doctor.memberships, context),
+                    if (doctor.introduction != null &&
+                        doctor.introduction!.isNotEmpty)
+                      _buildExpansionHtmlSection(
+                          "Giới thiệu", doctor.introduction!, context),
+                    if (doctor.research != null &&
+                        doctor.research!.isNotEmpty)
+                      _buildExpansionHtmlSection("Nghiên cứu khoa học",
+                          doctor.research!, context),
+                  ],
+                ),
+                _buildInfoSection(
+                  context,
+                  title: "Đánh giá của bệnh nhân",
+                  icon: Icons.reviews_outlined,
+                  isOffline: isOffline,
+                  children: [
+                    if (isLoadingReviews && reviews.isEmpty)
+                      const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(16.0),
+                            child: CircularProgressIndicator(),
+                          ))
+                    else if (reviews.isEmpty)
+                      const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(16.0),
+                            child: Text('Chưa có đánh giá nào'),
+                          ))
+                    else
+                      Column(
+                        children: [
+                          ListView.builder(
+                            shrinkWrap: true,
+                            physics:
+                            const NeverScrollableScrollPhysics(),
+                            itemCount: reviews.length,
+                            itemBuilder: (ctx, index) {
+                              final review = reviews[index];
+                              return _buildReviewCard(
+                                  context, review);
+                            },
+                          ),
+                          const Divider(height: 1),
+                          Center(
+                            child: TextButton(
+                              child: Text('Xem tất cả đánh giá',
+                                  style: TextStyle(
+                                      color: context.theme.primary)),
+                              onPressed: () {
+                                Navigator.pushNamed(
+                                  context,
+                                  Routes.doctorReviewPage,
+                                  arguments: {
+                                    'doctorId': doctor.id,
+                                    'doctorName': doctor.fullName,
+                                  },
+                                );
                               },
                             ),
-                            const Divider(height: 1),
-                            Center(
-                              child: TextButton(
-                                child: Text('Xem tất cả đánh giá',
-                                    style: TextStyle(
-                                        color: context.theme.primary)),
-                                onPressed: () {
-                                  Navigator.pushNamed(
-                                    context,
-                                    Routes.doctorReviewPage,
-                                    arguments: {
-                                      'doctorId': doctor.id,
-                                      'doctorName': doctor.fullName,
-                                    },
-                                  );
-                                },
-                              ),
-                            )
-                          ],
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 80),
-                ],
-              ),
+                          )
+                        ],
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 80),
+              ],
             ),
           ),
         ],
@@ -255,63 +258,69 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
   }
 
   Widget _buildReviewCard(BuildContext context, Review review) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12.0),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: context.theme.border, width: 1),
-        ),
+    return Card(
+      elevation: 0,
+      color: context.theme.bg,
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: BorderSide(color: context.theme.border),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _StarRating(
-                        rating: review.rating, color: context.theme.yellow),
-                    const SizedBox(height: 8),
-                    Text(
-                      review.title,
-                      style: const TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                  ],
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                CircleAvatar(
+                  radius: 16,
+                  backgroundColor: context.theme.primary.withOpacity(0.1),
+                  child: Text(
+                    review.authorName.isNotEmpty
+                        ? review.authorName[0].toUpperCase()
+                        : 'P',
+                    style: TextStyle(
+                        color: context.theme.primary,
+                        fontWeight: FontWeight.bold),
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            review.body,
-            style: TextStyle(color: context.theme.mutedForeground, fontSize: 14),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  review.authorName,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        review.authorName,
+                        style: const TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.bold),
+                      ),
+                      _StarRating(
+                          rating: review.rating, color: context.theme.yellow),
+                    ],
+                  ),
+                ),
+                Text(
+                  DateFormat('dd/MM/yyyy').format(review.createdAt.toLocal()),
                   style: TextStyle(
-                      color: context.theme.mutedForeground,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500),
+                      color: context.theme.mutedForeground, fontSize: 12),
                 ),
-              ),
-              Text(
-                DateFormat('dd/MM/yyyy').format(review.createdAt.toLocal()),
-                style:
-                TextStyle(color: context.theme.mutedForeground, fontSize: 12),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              review.title,
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              review.body,
+              style:
+              TextStyle(color: context.theme.mutedForeground, fontSize: 14),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -322,11 +331,15 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
         url != null && url.isNotEmpty && Uri.tryParse(url)?.hasAbsolutePath == true;
 
     return SliverAppBar(
-      expandedHeight: 250.0,
+      expandedHeight: 200.0,
       floating: false,
       pinned: true,
       backgroundColor: context.theme.card,
-      elevation: 2,
+      elevation: 1,
+      leading: IconButton(
+        icon: Icon(Icons.arrow_back_ios_new, color: context.theme.textColor),
+        onPressed: () => Navigator.of(context).pop(),
+      ),
       flexibleSpace: FlexibleSpaceBar(
         centerTitle: true,
         titlePadding: const EdgeInsets.only(bottom: 16),
@@ -337,6 +350,7 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
             fontSize: 16.0,
             fontWeight: FontWeight.bold,
           ),
+          textAlign: TextAlign.center,
         ),
         background: Stack(
           fit: StackFit.expand,
@@ -357,53 +371,106 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                 gradient: LinearGradient(
                   colors: [
                     context.theme.card.withOpacity(0.9),
-                    context.theme.card.withOpacity(0.2)
+                    context.theme.card.withOpacity(0.1)
                   ],
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
                 ),
               ),
             ),
-            Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircleAvatar(
-                    radius: 50,
-                    backgroundColor: context.theme.primary.withOpacity(0.1),
-                    backgroundImage: isValidUrl(doctor.avatarUrl)
-                        ? CachedNetworkImageProvider(doctor.avatarUrl!)
-                        : null,
-                    child: !isValidUrl(doctor.avatarUrl)
-                        ? Text(
-                      doctor.fullName.isNotEmpty
-                          ? doctor.fullName[0].toUpperCase()
-                          : 'D',
-                      style: TextStyle(
-                          fontSize: 40, color: context.theme.primary),
-                    )
-                        : null,
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    doctor.degree ?? 'Chưa có thông tin học vị',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: context.theme.mutedForeground,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  if (!widget.isSelfView)
-                    _StatusBadge(
-                      doctor: doctor,
-                      isOffline: isOffline,
-                    ),
-                ],
-              ),
-            ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildHeaderSection(
+      DoctorDetail doctor, bool isOffline, BuildContext context) {
+    bool isValidUrl(String? url) =>
+        url != null && url.isNotEmpty && Uri.tryParse(url)?.hasAbsolutePath == true;
+
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: context.theme.card,
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(20),
+          bottomRight: Radius.circular(20),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: context.theme.popover.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Hero(
+                tag: 'avatar_${doctor.id}',
+                child: CircleAvatar(
+                  radius: 40,
+                  backgroundColor: context.theme.primary.withOpacity(0.1),
+                  backgroundImage: isValidUrl(doctor.avatarUrl)
+                      ? CachedNetworkImageProvider(doctor.avatarUrl!)
+                      : null,
+                  child: !isValidUrl(doctor.avatarUrl)
+                      ? Text(
+                    doctor.fullName.isNotEmpty
+                        ? doctor.fullName[0].toUpperCase()
+                        : 'D',
+                    style: TextStyle(
+                        fontSize: 32,
+                        color: context.theme.primary,
+                        fontWeight: FontWeight.bold),
+                  )
+                      : null,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Hero(
+                      tag: 'name_${doctor.id}',
+                      child: Material(
+                        color: Colors.transparent,
+                        child: Text(
+                          doctor.fullName,
+                          style: TextStyle(
+                            fontSize: 22,
+                            color: context.theme.textColor,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      doctor.degree ?? 'Chưa có thông tin học vị',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: context.theme.primary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    if (!widget.isSelfView)
+                      _StatusBadge(
+                        doctor: doctor,
+                        isOffline: isOffline,
+                      ),
+                  ],
+                ),
+              )
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -417,44 +484,37 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
         bool isOffline = false,
         ValueKey? editKey,
       }) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: context.theme.border, width: 1.5),
-      ),
-      color: context.theme.card.withOpacity(0.8),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(icon, color: context.theme.primary, size: 22),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: context.theme.primary, size: 22),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.bold),
                 ),
-                if (!isOffline && onEdit != null)
-                  IconButton(
-                    key: editKey,
-                    icon: Icon(Icons.edit_outlined,
-                        color: context.theme.primary, size: 20),
-                    onPressed: onEdit,
-                    tooltip: 'Chỉnh sửa',
-                  ),
-              ],
-            ),
-            const Divider(height: 24),
-            ...children,
-          ],
-        ),
+              ),
+              if (!isOffline && onEdit != null)
+                IconButton(
+                  key: editKey,
+                  icon: Icon(Icons.edit_outlined,
+                      color: context.theme.primary, size: 20),
+                  onPressed: onEdit,
+                  tooltip: 'Chỉnh sửa',
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
+            ],
+          ),
+          const Divider(height: 24),
+          ...children,
+        ],
       ),
     );
   }
@@ -474,7 +534,18 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
           Wrap(
             spacing: 8.0,
             runSpacing: 4.0,
-            children: items.map((item) => _buildChip(item, context)).toList(),
+            children: items
+                .map((item) => Chip(
+              label: Text(item),
+              backgroundColor: context.theme.primary.withOpacity(0.1),
+              labelStyle: TextStyle(
+                  color: context.theme.primary,
+                  fontWeight: FontWeight.w500),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 8, vertical: 4),
+              side: BorderSide.none,
+            ))
+                .toList(),
           ),
         ],
       ),
@@ -497,31 +568,30 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
           style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
       iconColor: context.theme.primary,
       collapsedIconColor: context.theme.textColor,
+      childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      tilePadding: const EdgeInsets.symmetric(horizontal: 0),
+      shape: const Border(),
       children: [
-        const Divider(height: 1),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-          child: Html(
-            data: htmlContent,
-            onLinkTap: (url, _, __) async {
-              if (url != null && await canLaunchUrl(Uri.parse(url))) {
-                await launchUrl(Uri.parse(url));
-              }
-            },
-            style: {
-              "body": Style(
-                fontSize: FontSize(15),
-                color: context.theme.mutedForeground,
-                margin: Margins.zero,
-                padding: HtmlPaddings.zero,
-                lineHeight: LineHeight.em(1.5),
-              ),
-              "h1,h2,h3,h4,h5,h6": Style(
-                color: context.theme.textColor,
-              ),
-              "li": Style(padding: HtmlPaddings.only(left: 8)),
-            },
-          ),
+        Html(
+          data: htmlContent,
+          onLinkTap: (url, _, __) async {
+            if (url != null && await canLaunchUrl(Uri.parse(url))) {
+              await launchUrl(Uri.parse(url));
+            }
+          },
+          style: {
+            "body": Style(
+              fontSize: FontSize(15),
+              color: context.theme.mutedForeground,
+              margin: Margins.zero,
+              padding: HtmlPaddings.zero,
+              lineHeight: LineHeight.em(1.5),
+            ),
+            "h1,h2,h3,h4,h5,h6": Style(
+              color: context.theme.textColor,
+            ),
+            "li": Style(padding: HtmlPaddings.only(left: 8)),
+          },
         )
       ],
     );
@@ -537,6 +607,9 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
           style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
       iconColor: context.theme.primary,
       collapsedIconColor: context.theme.textColor,
+      tilePadding: const EdgeInsets.symmetric(horizontal: 0),
+      childrenPadding: const EdgeInsets.only(bottom: 8),
+      shape: const Border(),
       children: items
           .map((item) => ListTile(
         leading: Icon(Icons.check_circle_outline,
@@ -545,6 +618,9 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
           item,
           style: TextStyle(color: context.theme.mutedForeground),
         ),
+        minLeadingWidth: 0,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+        dense: true,
       ))
           .toList(),
     );
@@ -558,12 +634,16 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (icon != null) ...[
-            Icon(icon, color: context.theme.primary, size: 20),
+            Icon(icon, color: context.theme.mutedForeground, size: 20),
             const SizedBox(width: 16),
-          ],
-          Text(
-            '$label: ',
-            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+          ] else
+            const SizedBox(width: 36),
+          SizedBox(
+            width: 90,
+            child: Text(
+              '$label: ',
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+            ),
           ),
           Expanded(
             child: Text(
@@ -574,17 +654,6 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildChip(String label, BuildContext context) {
-    return Chip(
-      avatar: Icon(Icons.check_circle, color: context.theme.primary, size: 16),
-      label: Text(label),
-      backgroundColor: context.theme.primary.withOpacity(0.1),
-      labelStyle:
-      TextStyle(color: context.theme.primary, fontWeight: FontWeight.w500),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
     );
   }
 }
@@ -611,9 +680,9 @@ class _StatusBadge extends StatelessWidget {
         return;
       }
 
-        context
-            .read<DoctorVm>()
-            .toggleDoctorStatus(doctor.profileId, !isActive);
+      context
+          .read<DoctorVm>()
+          .toggleDoctorStatus(doctor.profileId, !isActive);
     }
 
     return Material(

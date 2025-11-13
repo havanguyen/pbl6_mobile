@@ -60,30 +60,41 @@ class SpecialtyVm extends ChangeNotifier {
     _error = null;
     notifyListeners();
 
-    var connectivityResult = await Connectivity().checkConnectivity();
-    bool isConnected = !connectivityResult.contains(ConnectivityResult.none);
-    _isOffline = !isConnected;
+    final List<Specialty> results = [];
+    int currentPage = 1;
+    bool hasMore = true;
+    const int safeLimit = 50;
 
-    if (!isConnected) {
-      _error = 'Cần kết nối mạng để tải danh sách chuyên khoa.';
+    var connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult.contains(ConnectivityResult.none)) {
+      _error = 'Không có kết nối mạng';
       _isFetchingAll = false;
       notifyListeners();
       return;
     }
 
     try {
-      final result = await SpecialtyService.getAllSpecialties(
-        limit: 1000,
-        page: 1,
-      );
+      while (hasMore) {
+        final result = await SpecialtyService.getAllSpecialties(
+          page: currentPage,
+          limit: safeLimit,
+        );
 
-      if (result.success) {
-        _allSpecialties = result.data;
-      } else {
-        _error = result.message;
+        if (result.success) {
+          results.addAll(result.data);
+          hasMore = result.meta['hasNext'] ?? false;
+          if (hasMore) {
+            currentPage++;
+          }
+        } else {
+          _error = result.message;
+          hasMore = false;
+        }
       }
+      _allSpecialties = results;
     } catch (e) {
-      _error = 'Lỗi kết nối khi tải danh sách chuyên khoa: $e';
+      _error = 'Lỗi khi tải tất cả chuyên khoa: $e';
+      _allSpecialties = [];
     } finally {
       _isFetchingAll = false;
       notifyListeners();
