@@ -1,14 +1,8 @@
-// GENERATED CODE - DO NOT MODIFY BY HAND
-
 part of 'specialty.dart';
 
-// **************************************************************************
-// JsonSerializableGenerator
-// **************************************************************************
-
 Specialty _$SpecialtyFromJson(Map<String, dynamic> json) => Specialty(
-  id: json['id'] as String,
-  name: json['name'] as String,
+  id: json['id'] as String? ?? '',
+  name: json['name'] as String? ?? '',
   description: json['description'] as String?,
   infoSectionsCount: (json['infoSectionsCount'] as num?)?.toInt() ?? 0,
   createdAt: Specialty._dateTimeFromJson(json['createdAt']),

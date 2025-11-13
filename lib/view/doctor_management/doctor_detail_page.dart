@@ -63,8 +63,8 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
         phone: doctor.phone,
         isMale: doctor.isMale,
         dateOfBirth: doctor.dateOfBirth,
-        createdAt: doctor.createdAt ?? DateTime.now(),
-        updatedAt: doctor.updatedAt ?? DateTime.now(),
+        createdAt: doctor.createdAt,
+        updatedAt: doctor.updatedAt,
       );
       final result = await Navigator.pushNamed(
         context,
@@ -145,9 +145,7 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                       _buildInfoRow(
                           Icons.person,
                           "Giới tính",
-                          doctor.isMale == null
-                              ? 'Chưa cập nhật'
-                              : (doctor.isMale! ? 'Nam' : 'Nữ'),
+                          (doctor.isMale ? 'Nam' : 'Nữ'),
                           context),
                     ],
                   ),
@@ -613,19 +611,9 @@ class _StatusBadge extends StatelessWidget {
         return;
       }
 
-      if (doctor.profileId != null) {
         context
             .read<DoctorVm>()
-            .toggleDoctorStatus(doctor.profileId!, !isActive);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text(
-                'Bác sĩ này chưa có hồ sơ, không thể thay đổi trạng thái.'),
-            backgroundColor: context.theme.destructive,
-          ),
-        );
-      }
+            .toggleDoctorStatus(doctor.profileId, !isActive);
     }
 
     return Material(

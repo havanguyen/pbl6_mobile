@@ -1,20 +1,18 @@
-// GENERATED CODE - DO NOT MODIFY BY HAND
-
 part of 'work_location.dart';
 
-// **************************************************************************
-// JsonSerializableGenerator
-// **************************************************************************
-
 WorkLocation _$WorkLocationFromJson(Map<String, dynamic> json) => WorkLocation(
-  id: json['id'] as String,
-  name: json['name'] as String,
-  address: json['address'] as String,
-  phone: json['phone'] as String,
-  timezone: json['timezone'] as String,
-  isActive: json['isActive'] as bool,
-  createdAt: DateTime.parse(json['createdAt'] as String),
-  updatedAt: DateTime.parse(json['updatedAt'] as String),
+  id: json['id'] as String? ?? '',
+  name: json['name'] as String? ?? '',
+  address: json['address'] as String? ?? '',
+  phone: json['phone'] as String? ?? '',
+  timezone: json['timezone'] as String? ?? '',
+  isActive: json['isActive'] as bool? ?? false,
+  createdAt: json['createdAt'] == null
+      ? DateTime(1970)
+      : DateTime.parse(json['createdAt'] as String),
+  updatedAt: json['updatedAt'] == null
+      ? DateTime(1970)
+      : DateTime.parse(json['updatedAt'] as String),
 );
 
 Map<String, dynamic> _$WorkLocationToJson(WorkLocation instance) =>

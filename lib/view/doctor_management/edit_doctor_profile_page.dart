@@ -63,11 +63,11 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
     _degreeController = TextEditingController(text: widget.doctorDetail.degree ?? '');
     _introductionController = _initializeQuillController(widget.doctorDetail.introduction);
     _researchController = _initializeQuillController(widget.doctorDetail.research);
-    _positions = List.from(widget.doctorDetail.position ?? []);
-    _memberships = List.from(widget.doctorDetail.memberships ?? []);
-    _awards = List.from(widget.doctorDetail.awards ?? []);
-    _trainings = List.from(widget.doctorDetail.trainingProcess ?? []);
-    _experiences = List.from(widget.doctorDetail.experience ?? []);
+    _positions = List.from(widget.doctorDetail.position);
+    _memberships = List.from(widget.doctorDetail.memberships);
+    _awards = List.from(widget.doctorDetail.awards);
+    _trainings = List.from(widget.doctorDetail.trainingProcess);
+    _experiences = List.from(widget.doctorDetail.experience);
     _selectedSpecialties = List.from(widget.doctorDetail.specialties);
     _selectedWorkLocations = List.from(widget.doctorDetail.workLocations);
   }
@@ -135,7 +135,7 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
 
       final introductionJson = getQuillJsonOrNull(_introductionController);
       final researchJson = getQuillJsonOrNull(_researchController);
-      final bool isCreating = widget.doctorDetail.profileId == null;
+      final bool _ = widget.doctorDetail.profileId == null;
 
       final doctorVm = context.read<DoctorVm>();
 
@@ -163,21 +163,7 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
       if (widget.isSelfEdit) {
         future = doctorVm.updateSelfProfile(data);
       } else {
-        if (isCreating) {
-          data['staffAccountId'] = widget.doctorDetail.id;
-          future = doctorVm.createDoctorProfile(data);
-        } else {
-          if (widget.doctorDetail.profileId == null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                backgroundColor: context.theme.destructive,
-                content: Text('Lỗi: Không tìm thấy ID hồ sơ để cập nhật.'),
-              ),
-            );
-            return;
-          }
-          future = doctorVm.updateDoctorProfile(widget.doctorDetail.profileId!, data);
-        }
+          future = doctorVm.updateDoctorProfile(widget.doctorDetail.profileId, data);
       }
 
       future.then((success) {
@@ -186,7 +172,7 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                   backgroundColor: context.theme.green,
-                  content: Text('${widget.isSelfEdit ? 'Cập nhật' : (isCreating ? 'Tạo' : 'Cập nhật')} hồ sơ thành công')
+                  content: Text('${widget.isSelfEdit ? 'Cập nhật' : ('Cập nhật')} hồ sơ thành công')
               ),
             );
             _pendingAvatarUrlForDelete = null;
@@ -228,7 +214,7 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
         backgroundColor: context.theme.primary,
         iconTheme: IconThemeData(color: context.theme.primaryForeground),
         title: Text(
-          widget.doctorDetail.profileId != null ? 'Chỉnh sửa hồ sơ' : 'Tạo hồ sơ',
+          'Chỉnh sửa hồ sơ',
           style: TextStyle(color: context.theme.primaryForeground),
         ),
         actions: [
