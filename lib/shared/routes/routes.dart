@@ -2,12 +2,16 @@ import 'package:flutter/material.dart';
 
 import 'package:page_transition/page_transition.dart';
 import 'package:pbl6mobile/model/entities/doctor_detail.dart';
+import 'package:pbl6mobile/model/entities/patient.dart';
 import 'package:pbl6mobile/model/entities/profile.dart';
 import 'package:pbl6mobile/view/change_password/change_password.dart';
 import 'package:pbl6mobile/view/doctor_management/doctor_detail_page.dart';
 import 'package:pbl6mobile/view/doctor_management/edit_doctor_profile_page.dart';
 import 'package:pbl6mobile/view/main_page/doctor/main_page_doctor.dart';
 import 'package:pbl6mobile/view/main_page/super_admin/main_page_super_admin.dart';
+import 'package:pbl6mobile/view/patient_management/create_patient_page.dart';
+import 'package:pbl6mobile/view/patient_management/list_patient_page.dart';
+import 'package:pbl6mobile/view/patient_management/update_patient_page.dart';
 import 'package:pbl6mobile/view/setting/doctor/account_doctor_page.dart';
 import 'package:pbl6mobile/view/setting/doctor/edit_account_doctor_page.dart';
 import 'package:pbl6mobile/view/setting/doctor/profile_doctor_page.dart';
@@ -81,6 +85,9 @@ class Routes {
   static const String listQuestion = '/listQuestion';
   static const String questionDetail = '/questionDetail';
   static const String doctorReviewPage = '/doctor-review-page';
+  static const String listPatient = '/listPatient';
+  static const String createPatient = '/createPatient';
+  static const String updatePatient = '/updatePatient';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -332,6 +339,27 @@ class Routes {
           type: PageTransitionType.leftToRight,
           settings: settings,
           child: QuestionDetailPage(questionId: questionId),
+        );
+      case listPatient:
+        return PageTransition(
+          type: PageTransitionType.fade,
+          settings: settings,
+          child: const PatientListPage(),
+        );
+      case createPatient:
+        return PageTransition(
+          type: PageTransitionType.leftToRight,
+          settings: settings,
+          child: const CreatePatientPage(),
+        );
+      case updatePatient:
+        final patient = settings.arguments as Patient;
+        return PageTransition(
+          type: PageTransitionType.leftToRight,
+          settings: settings,
+          child: UpdatePatientPage(
+            patient: patient,
+          ),
         );
       default:
         return MaterialPageRoute(

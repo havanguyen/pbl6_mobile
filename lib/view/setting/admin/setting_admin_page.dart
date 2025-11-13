@@ -100,6 +100,42 @@ class SettingAdminPage extends StatelessWidget {
           const Divider(height: 1, color: Colors.grey),
           ListTile(
             leading: Icon(
+              Icons.people_outline,
+              color: context.theme.blue,
+              size: 28,
+            ),
+            title: Text(
+              'Quản lý bệnh nhân',
+              style: TextStyle(
+                fontSize: 16,
+                color: context.theme.textColor,
+              ),
+            ),
+            onTap: () {
+              Navigator.pushNamed(context, Routes.listPatient);
+            },
+          ),
+          const Divider(height: 1, color: Colors.grey),
+          ListTile(
+            leading: Icon(
+              Icons.shield_outlined,
+              color: context.theme.blue,
+              size: 28,
+            ),
+            title: Text(
+              'Đổi mật khẩu',
+              style: TextStyle(
+                fontSize: 16,
+                color: context.theme.textColor,
+              ),
+            ),
+            onTap: () {
+              Navigator.pushNamed(context, Routes.changePassword);
+            },
+          ),
+          const Divider(height: 1, color: Colors.grey),
+          ListTile(
+            leading: Icon(
               Icons.brightness_6_outlined,
               color: context.theme.blue,
               size: 28,

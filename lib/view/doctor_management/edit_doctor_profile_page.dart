@@ -74,6 +74,7 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
 
   void _fetchInitialDropdownData() {
     if (!_initialDataFetched) {
+      print("--- DEBUG: _fetchInitialDropdownData ---");
       Provider.of<SpecialtyVm>(context, listen: false).fetchAllSpecialties();
       Provider.of<LocationWorkVm>(context, listen: false).fetchLocations(
         forceRefresh: true,
@@ -118,8 +119,10 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
 
 
   void _saveProfile() {
+    print("--- DEBUG: _saveProfile CALLED ---");
 
     if (_formKey.currentState!.validate()) {
+      print("--- DEBUG: Form is VALID ---");
 
       String? getQuillJsonOrNull(quill.QuillController controller) {
         if (controller.document.isEmpty() || controller.document.toPlainText().trim().isEmpty) {
@@ -157,17 +160,24 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
       if(data['avatarUrl'] == '_pending_upload_' && doctorVm.selectedAvatarPath == null) data.remove('avatarUrl');
       if(data['portrait'] == '_pending_upload_' && doctorVm.selectedPortraitPath == null) data.remove('portrait');
 
+      print("--- DEBUG: Data being SENT ---");
+      print(jsonEncode(data));
+      print("--- END DEBUG: Data being SENT ---");
+
 
       late Future<bool> future;
 
       if (widget.isSelfEdit) {
+        print("--- DEBUG: Calling updateSelfProfile ---");
         future = doctorVm.updateSelfProfile(data);
       } else {
-          future = doctorVm.updateDoctorProfile(widget.doctorDetail.profileId, data);
+        print("--- DEBUG: Calling updateDoctorProfile ---");
+        future = doctorVm.updateDoctorProfile(widget.doctorDetail.profileId, data);
       }
 
       future.then((success) {
         if (mounted) {
+          print("--- DEBUG: Save Future COMPLETED. Success: $success ---");
           if (success) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -179,6 +189,7 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
             _pendingPortraitUrlForDelete = null;
             Navigator.pop(context, true);
           } else {
+            print("--- DEBUG: Save FAILED. VM Error: ${doctorVm.error} | Upload Error: ${doctorVm.uploadError} ---");
             if (doctorVm.error != null && doctorVm.uploadError == null) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -191,6 +202,8 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
         }
       }).catchError((error) {
         if (mounted) {
+          print("--- DEBUG: Save Future ERRORED ---");
+          print(error.toString());
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
                 backgroundColor: context.theme.destructive,
@@ -199,7 +212,7 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
         }
       });
     } else {
-
+      print("--- DEBUG: Form is INVALID ---");
     }
   }
 
@@ -380,6 +393,7 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
                         child: Icon(Icons.edit, color: context.theme.primaryForeground, size: 18),
                       ),
                       onPressed: isOffline ? null : () {
+                        print("--- DEBUG: pickAvatarImage CALLED ---");
                         context.read<DoctorVm>().pickAvatarImage();
                         setState(() { _pendingAvatarUrlForDelete = null; });
                       },
@@ -397,11 +411,14 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
                         child: Icon(Icons.delete_outline, color: context.theme.destructiveForeground, size: 18),
                       ),
                       onPressed: isOffline ? null : () {
+                        print("--- DEBUG: Deleting Avatar ---");
                         setState(() {
                           if (widget.doctorDetail.avatarUrl != null && widget.doctorDetail.avatarUrl!.isNotEmpty) {
                             _pendingAvatarUrlForDelete = widget.doctorDetail.avatarUrl;
+                            print("--- DEBUG: Set _pendingAvatarUrlForDelete to: $_pendingAvatarUrlForDelete");
                           }
                           context.read<DoctorVm>().selectedAvatarPath = null;
+                          print("--- DEBUG: Set selectedAvatarPath to null ---");
                         });
                       },
                       tooltip: isOffline ? 'Không thể sửa khi offline' : 'Xóa ảnh đại diện',
@@ -482,11 +499,14 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
                                 style: IconButton.styleFrom(backgroundColor: context.theme.destructive.withOpacity(0.8)),
                                 icon: Icon(Icons.delete_outline, color: context.theme.destructiveForeground, size: 20),
                                 onPressed: isOffline ? null : () {
+                                  print("--- DEBUG: Deleting Portrait ---");
                                   setState(() {
                                     if (widget.doctorDetail.portrait != null && widget.doctorDetail.portrait!.isNotEmpty) {
                                       _pendingPortraitUrlForDelete = widget.doctorDetail.portrait;
+                                      print("--- DEBUG: Set _pendingPortraitUrlForDelete to: $_pendingPortraitUrlForDelete");
                                     }
                                     context.read<DoctorVm>().selectedPortraitPath = null;
+                                    print("--- DEBUG: Set selectedPortraitPath to null ---");
                                   });
                                 },
                                 tooltip: isOffline ? 'Không thể sửa khi offline' : 'Xóa ảnh bìa',
@@ -496,6 +516,7 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
                               style: IconButton.styleFrom(backgroundColor: context.theme.primary.withOpacity(0.8)),
                               icon: Icon(Icons.edit, color: context.theme.primaryForeground, size: 20),
                               onPressed: isOffline ? null : () {
+                                print("--- DEBUG: pickPortraitImage CALLED ---");
                                 context.read<DoctorVm>().pickPortraitImage();
                                 setState(() { _pendingPortraitUrlForDelete = null; });
                               },
@@ -584,6 +605,10 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
           );
         }
 
+        print("--- DEBUG: _buildMultiSelectSpecialties ---");
+        print("--- All Specialties from VM: ${specialtyVm.allSpecialties.length} ---");
+        print("--- Initial Selected Specialties: ${_selectedSpecialties.length} ---");
+
         return MultiSelectChipField<Specialty>(
           label: 'Chuyên khoa',
           allItems: specialtyVm.allSpecialties,
@@ -617,6 +642,10 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage> {
             ),
           );
         }
+
+        print("--- DEBUG: _buildMultiSelectLocations ---");
+        print("--- All Locations from VM: ${locationVm.locations.length} ---");
+        print("--- Initial Selected Locations: ${_selectedWorkLocations.length} ---");
 
         return MultiSelectChipField<WorkLocation>(
           label: 'Nơi công tác',

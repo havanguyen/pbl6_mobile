@@ -288,18 +288,19 @@ class BlogVm extends ChangeNotifier {
   Future<void> pickThumbnailImage() async {
     _selectedThumbnailFile = null;
     _thumbnailUploadError = null;
+    _uploadedThumbnailUrl = null;
     notifyListeners();
     try {
       final picker = ImagePicker();
       final pickedFile = await picker.pickImage(
           source: ImageSource.gallery,
-          imageQuality: 80, // Giảm chất lượng ảnh
-          maxWidth: 1024,   // Giới hạn chiều rộng tối đa
-          maxHeight: 1024   // Giới hạn chiều cao tối đa (quan trọng cho ảnh dọc)
-      );
+          imageQuality: 80,
+          maxWidth: 1024,
+          maxHeight: 1024);
       if (pickedFile != null) {
         _selectedThumbnailFile = File(pickedFile.path);
         notifyListeners();
+        await uploadThumbnailImage();
       }
     } catch (e) {
       _thumbnailUploadError = "Lỗi khi chọn ảnh: $e";
@@ -336,7 +337,6 @@ class BlogVm extends ChangeNotifier {
 
       if (imageUrl != null) {
         _uploadedThumbnailUrl = imageUrl;
-        _selectedThumbnailFile = null;
       } else {
         _thumbnailUploadError = "Upload ảnh lên Cloudinary thất bại.";
       }
@@ -353,7 +353,7 @@ class BlogVm extends ChangeNotifier {
 
   void resetThumbnailState({bool notify = true}) {
     _selectedThumbnailFile = null;
-
+    _uploadedThumbnailUrl = null;
     _thumbnailUploadError = null;
     _isUploadingThumbnail = false;
     if (notify) {
@@ -380,9 +380,16 @@ class BlogVm extends ChangeNotifier {
 
     String? finalThumbnailUrl = thumbnailUrl;
     if (_selectedThumbnailFile != null) {
-      finalThumbnailUrl = await uploadThumbnailImage();
-      if (finalThumbnailUrl == null) {
-        _error = thumbnailUploadError ?? "Lỗi upload ảnh thumbnail.";
+      if (_isUploadingThumbnail) {
+        _error = "Đang upload ảnh thumbnail, vui lòng chờ...";
+        _isUpdatingEntity = false;
+        notifyListeners();
+        return false;
+      }
+      if (_uploadedThumbnailUrl != null) {
+        finalThumbnailUrl = _uploadedThumbnailUrl;
+      } else {
+        _error = _thumbnailUploadError ?? "Lỗi upload ảnh thumbnail.";
         _isUpdatingEntity = false;
         notifyListeners();
         return false;
@@ -435,9 +442,16 @@ class BlogVm extends ChangeNotifier {
 
     String? finalThumbnailUrl = thumbnailUrl;
     if (_selectedThumbnailFile != null) {
-      finalThumbnailUrl = await uploadThumbnailImage();
-      if (finalThumbnailUrl == null) {
-        _error = thumbnailUploadError ?? "Lỗi upload ảnh thumbnail.";
+      if (_isUploadingThumbnail) {
+        _error = "Đang upload ảnh thumbnail, vui lòng chờ...";
+        _isUpdatingEntity = false;
+        notifyListeners();
+        return false;
+      }
+      if (_uploadedThumbnailUrl != null) {
+        finalThumbnailUrl = _uploadedThumbnailUrl;
+      } else {
+        _error = _thumbnailUploadError ?? "Lỗi upload ảnh thumbnail.";
         _isUpdatingEntity = false;
         notifyListeners();
         return false;
@@ -445,14 +459,12 @@ class BlogVm extends ChangeNotifier {
     }
 
     try {
-      final updatedBlog = await BlogService.updateBlog(
-          id,
+      final updatedBlog = await BlogService.updateBlog(id,
           title: title,
           content: content,
           categoryId: categoryId,
           status: status,
-          thumbnailUrl: finalThumbnailUrl
-      );
+          thumbnailUrl: finalThumbnailUrl);
 
       success = updatedBlog != null;
       if (success) {

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:pbl6mobile/model/services/remote/work_location_service.dart';
 
 import '../../model/entities/work_location.dart';
-import '../../model/services/local/database_helper.dart';
+import '../../model/services/local/work_location_database_helper.dart';
 
 class LocationWorkVm extends ChangeNotifier {
   List<WorkLocation> _locations = [];

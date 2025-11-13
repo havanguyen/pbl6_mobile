@@ -32,6 +32,8 @@ class DoctorVm extends ChangeNotifier {
 
   String? selectedAvatarPath;
   String? selectedPortraitPath;
+  String? _uploadedAvatarUrl;
+  String? _uploadedPortraitUrl;
   bool _isUploadingAvatar = false;
   bool _isUploadingPortrait = false;
   String? _uploadError;
@@ -286,6 +288,7 @@ class DoctorVm extends ChangeNotifier {
 
   Future<void> pickAvatarImage() async {
     _uploadError = null;
+    _uploadedAvatarUrl = null;
     notifyListeners();
     try {
       final picker = ImagePicker();
@@ -294,6 +297,10 @@ class DoctorVm extends ChangeNotifier {
       if (image != null) {
         selectedAvatarPath = image.path;
         notifyListeners();
+        final newUrl = await _uploadImage(image.path, true);
+        if (newUrl != null) {
+          _uploadedAvatarUrl = newUrl;
+        }
       }
     } catch (e) {
       _uploadError = "Lỗi khi chọn ảnh đại diện: $e";
@@ -304,6 +311,7 @@ class DoctorVm extends ChangeNotifier {
 
   Future<void> pickPortraitImage() async {
     _uploadError = null;
+    _uploadedPortraitUrl = null;
     notifyListeners();
     try {
       final picker = ImagePicker();
@@ -312,6 +320,10 @@ class DoctorVm extends ChangeNotifier {
       if (image != null) {
         selectedPortraitPath = image.path;
         notifyListeners();
+        final newUrl = await _uploadImage(image.path, false);
+        if (newUrl != null) {
+          _uploadedPortraitUrl = newUrl;
+        }
       }
     } catch (e) {
       _uploadError = "Lỗi khi chọn ảnh bìa: $e";
@@ -375,23 +387,37 @@ class DoctorVm extends ChangeNotifier {
       final Map<String, dynamic> dataToSend = Map.from(data);
 
       if (selectedAvatarPath != null) {
-        final newAvatarUrl = await _uploadImage(selectedAvatarPath, true);
-        if (newAvatarUrl == null) {
+        if (_isUploadingAvatar) {
+          _error = "Đang upload ảnh đại diện, vui lòng chờ...";
           _isLoading = false;
           notifyListeners();
           return false;
         }
-        dataToSend['avatarUrl'] = newAvatarUrl;
+        if (_uploadedAvatarUrl != null) {
+          dataToSend['avatarUrl'] = _uploadedAvatarUrl;
+        } else {
+          _error = "Lỗi upload ảnh đại diện. Vui lòng thử chọn lại ảnh.";
+          _isLoading = false;
+          notifyListeners();
+          return false;
+        }
       }
 
       if (selectedPortraitPath != null) {
-        final newPortraitUrl = await _uploadImage(selectedPortraitPath, false);
-        if (newPortraitUrl == null) {
+        if (_isUploadingPortrait) {
+          _error = "Đang upload ảnh bìa, vui lòng chờ...";
           _isLoading = false;
           notifyListeners();
           return false;
         }
-        dataToSend['portrait'] = newPortraitUrl;
+        if (_uploadedPortraitUrl != null) {
+          dataToSend['portrait'] = _uploadedPortraitUrl;
+        } else {
+          _error = "Lỗi upload ảnh bìa. Vui lòng thử chọn lại ảnh.";
+          _isLoading = false;
+          notifyListeners();
+          return false;
+        }
       }
 
       print("⏳ [DoctorVm] Calling DoctorService.createDoctorProfile...");
@@ -402,6 +428,8 @@ class DoctorVm extends ChangeNotifier {
         print("✅ [DoctorVm] createDoctorProfile successful.");
         selectedAvatarPath = null;
         selectedPortraitPath = null;
+        _uploadedAvatarUrl = null;
+        _uploadedPortraitUrl = null;
       } else {
         _error = "Tạo hồ sơ thất bại.";
         print("❌ [DoctorVm] createDoctorProfile failed.");
@@ -412,8 +440,6 @@ class DoctorVm extends ChangeNotifier {
       success = false;
     } finally {
       _isLoading = false;
-      _isUploadingAvatar = false;
-      _isUploadingPortrait = false;
       notifyListeners();
     }
     return success;
@@ -431,26 +457,40 @@ class DoctorVm extends ChangeNotifier {
       final Map<String, dynamic> dataToSend = Map.from(data);
 
       if (selectedAvatarPath != null) {
-        final newAvatarUrl = await _uploadImage(selectedAvatarPath, true);
-        if (newAvatarUrl == null) {
+        if (_isUploadingAvatar) {
+          _error = "Đang upload ảnh đại diện, vui lòng chờ...";
           _isLoading = false;
           notifyListeners();
           return false;
         }
-        dataToSend['avatarUrl'] = newAvatarUrl;
+        if (_uploadedAvatarUrl != null) {
+          dataToSend['avatarUrl'] = _uploadedAvatarUrl;
+        } else {
+          _error = "Lỗi upload ảnh đại diện. Vui lòng thử chọn lại ảnh.";
+          _isLoading = false;
+          notifyListeners();
+          return false;
+        }
       } else if (dataToSend.containsKey('avatarUrl') &&
           dataToSend['avatarUrl'] == null) {
         dataToSend['avatarUrl'] = null;
       }
 
       if (selectedPortraitPath != null) {
-        final newPortraitUrl = await _uploadImage(selectedPortraitPath, false);
-        if (newPortraitUrl == null) {
+        if (_isUploadingPortrait) {
+          _error = "Đang upload ảnh bìa, vui lòng chờ...";
           _isLoading = false;
           notifyListeners();
           return false;
         }
-        dataToSend['portrait'] = newPortraitUrl;
+        if (_uploadedPortraitUrl != null) {
+          dataToSend['portrait'] = _uploadedPortraitUrl;
+        } else {
+          _error = "Lỗi upload ảnh bìa. Vui lòng thử chọn lại ảnh.";
+          _isLoading = false;
+          notifyListeners();
+          return false;
+        }
       } else if (dataToSend.containsKey('portrait') &&
           dataToSend['portrait'] == null) {
         dataToSend['portrait'] = null;
@@ -465,6 +505,8 @@ class DoctorVm extends ChangeNotifier {
         print("✅ [DoctorVm] updateDoctorProfile successful.");
         selectedAvatarPath = null;
         selectedPortraitPath = null;
+        _uploadedAvatarUrl = null;
+        _uploadedPortraitUrl = null;
         if (_doctorDetail != null && _doctorDetail!.profileId == profileId) {
           await fetchDoctorDetail(_doctorDetail!.id);
         }
@@ -478,8 +520,6 @@ class DoctorVm extends ChangeNotifier {
       success = false;
     } finally {
       _isLoading = false;
-      _isUploadingAvatar = false;
-      _isUploadingPortrait = false;
       notifyListeners();
     }
     return success;
@@ -496,26 +536,40 @@ class DoctorVm extends ChangeNotifier {
       final Map<String, dynamic> dataToSend = Map.from(data);
 
       if (selectedAvatarPath != null) {
-        final newAvatarUrl = await _uploadImage(selectedAvatarPath, true);
-        if (newAvatarUrl == null) {
+        if (_isUploadingAvatar) {
+          _error = "Đang upload ảnh đại diện, vui lòng chờ...";
           _isLoading = false;
           notifyListeners();
           return false;
         }
-        dataToSend['avatarUrl'] = newAvatarUrl;
+        if (_uploadedAvatarUrl != null) {
+          dataToSend['avatarUrl'] = _uploadedAvatarUrl;
+        } else {
+          _error = "Lỗi upload ảnh đại diện. Vui lòng thử chọn lại ảnh.";
+          _isLoading = false;
+          notifyListeners();
+          return false;
+        }
       } else if (dataToSend.containsKey('avatarUrl') &&
           dataToSend['avatarUrl'] == null) {
         dataToSend['avatarUrl'] = null;
       }
 
       if (selectedPortraitPath != null) {
-        final newPortraitUrl = await _uploadImage(selectedPortraitPath, false);
-        if (newPortraitUrl == null) {
+        if (_isUploadingPortrait) {
+          _error = "Đang upload ảnh bìa, vui lòng chờ...";
           _isLoading = false;
           notifyListeners();
           return false;
         }
-        dataToSend['portrait'] = newPortraitUrl;
+        if (_uploadedPortraitUrl != null) {
+          dataToSend['portrait'] = _uploadedPortraitUrl;
+        } else {
+          _error = "Lỗi upload ảnh bìa. Vui lòng thử chọn lại ảnh.";
+          _isLoading = false;
+          notifyListeners();
+          return false;
+        }
       } else if (dataToSend.containsKey('portrait') &&
           dataToSend['portrait'] == null) {
         dataToSend['portrait'] = null;
@@ -529,6 +583,8 @@ class DoctorVm extends ChangeNotifier {
         print("✅ [DoctorVm] updateSelfProfile successful.");
         selectedAvatarPath = null;
         selectedPortraitPath = null;
+        _uploadedAvatarUrl = null;
+        _uploadedPortraitUrl = null;
         if (_doctorDetail != null) {
           await fetchDoctorDetail(_doctorDetail!.id, isSelf: true);
         }
@@ -542,8 +598,6 @@ class DoctorVm extends ChangeNotifier {
       success = false;
     } finally {
       _isLoading = false;
-      _isUploadingAvatar = false;
-      _isUploadingPortrait = false;
       notifyListeners();
     }
     return success;
