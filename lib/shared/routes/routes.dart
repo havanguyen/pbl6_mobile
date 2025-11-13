@@ -4,6 +4,7 @@ import 'package:page_transition/page_transition.dart';
 import 'package:pbl6mobile/model/entities/doctor_detail.dart';
 import 'package:pbl6mobile/model/entities/patient.dart';
 import 'package:pbl6mobile/model/entities/profile.dart';
+import 'package:pbl6mobile/view/appointment/list_appointment_page.dart';
 import 'package:pbl6mobile/view/change_password/change_password.dart';
 import 'package:pbl6mobile/view/doctor_management/doctor_detail_page.dart';
 import 'package:pbl6mobile/view/doctor_management/edit_doctor_profile_page.dart';
@@ -88,6 +89,7 @@ class Routes {
   static const String listPatient = '/listPatient';
   static const String createPatient = '/createPatient';
   static const String updatePatient = '/updatePatient';
+  static const String listAppointment = '/listAppointment';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -360,6 +362,12 @@ class Routes {
           child: UpdatePatientPage(
             patient: patient,
           ),
+        );
+      case listAppointment:
+        return PageTransition(
+          type: PageTransitionType.fade,
+          settings: settings,
+          child: const ListAppointmentPage(),
         );
       default:
         return MaterialPageRoute(

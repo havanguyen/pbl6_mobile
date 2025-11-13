@@ -70,7 +70,9 @@ class MainPageAdmin extends StatelessWidget {
                   size: 110,
                   icon: Icons.calendar_today_outlined,
                   label: 'QUẢN LÝ LỊCH KHÁM',
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.pushNamed(context, Routes.listAppointment);
+                  },
                 ),
               ),
             ),
