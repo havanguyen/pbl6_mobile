@@ -3,13 +3,13 @@ import 'package:path/path.dart';
 
 import '../../entities/work_location.dart';
 
-class DatabaseHelper {
+class WorkLocationDatabaseHelper {
   static const _databaseName = "work_locations.db";
   static const _databaseVersion = 1;
   static const _table = "work_locations";
 
-  DatabaseHelper._privateConstructor();
-  static final DatabaseHelper instance = DatabaseHelper._privateConstructor();
+  WorkLocationDatabaseHelper._privateConstructor();
+  static final WorkLocationDatabaseHelper instance = WorkLocationDatabaseHelper._privateConstructor();
 
   static Database? _database;
 

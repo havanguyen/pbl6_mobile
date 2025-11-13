@@ -24,7 +24,7 @@ class LocationWorkVm extends ChangeNotifier {
   bool get hasNext => _meta['hasNext'] ?? false;
   bool get hasPrev => _meta['hasPrev'] ?? false;
 
-  final DatabaseHelper _dbHelper = DatabaseHelper.instance;
+  final WorkLocationDatabaseHelper _dbHelper = WorkLocationDatabaseHelper.instance;
 
   LocationWorkVm() {
     Connectivity()
