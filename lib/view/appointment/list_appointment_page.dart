@@ -140,7 +140,7 @@ class _ListAppointmentPageState extends State<ListAppointmentPage>
               fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
             ),
             overflow: TextOverflow.ellipsis,
-            maxLines: 2,
+            maxLines: 1,
           ),
         ),
       ],
@@ -188,7 +188,7 @@ class _ListAppointmentPageState extends State<ListAppointmentPage>
               children: [
                 Icon(Icons.access_time, color: mainTextColor, size: 12),
                 const SizedBox(width: 4),
-                Expanded(
+                Flexible(
                   child: Text(
                     '$startTime - $patientName',
                     style: TextStyle(
@@ -197,6 +197,7 @@ class _ListAppointmentPageState extends State<ListAppointmentPage>
                       fontWeight: FontWeight.bold,
                     ),
                     overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                 ),
               ],
@@ -207,28 +208,28 @@ class _ListAppointmentPageState extends State<ListAppointmentPage>
                 Icon(Icons.medical_services_outlined,
                     color: mainTextColor, size: 12),
                 const SizedBox(width: 4),
-                Expanded(
+                Flexible(
                   child: Text(
                     doctorName,
                     style: TextStyle(color: mainTextColor, fontSize: 11),
                     overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                 ),
               ],
             ),
-            const Spacer(),
             if (appointment.reason != null && appointment.reason!.isNotEmpty)
               Row(
                 children: [
                   Icon(Icons.subject_outlined,
                       color: secondaryTextColor, size: 10),
                   const SizedBox(width: 4),
-                  Expanded(
+                  Flexible(
                     child: Text(
                       appointment.reason!,
                       style: TextStyle(color: secondaryTextColor, fontSize: 10),
                       overflow: TextOverflow.ellipsis,
-                      maxLines: 2,
+                      maxLines: 1,
                     ),
                   ),
                 ],
@@ -321,7 +322,7 @@ class _ListAppointmentPageState extends State<ListAppointmentPage>
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   _buildScheduleRow(
                     context,
@@ -331,7 +332,6 @@ class _ListAppointmentPageState extends State<ListAppointmentPage>
                     Theme.of(context).textTheme.titleMedium?.color,
                     isBold: true,
                   ),
-                  const SizedBox(height: 4),
                   _buildScheduleRow(
                     context,
                     Icons.medical_services_outlined,
@@ -339,7 +339,6 @@ class _ListAppointmentPageState extends State<ListAppointmentPage>
                     mainTextColor:
                     Theme.of(context).textTheme.bodyMedium?.color,
                   ),
-                  const SizedBox(height: 4),
                   _buildScheduleRow(
                     context,
                     Icons.subject_outlined,
