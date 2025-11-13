@@ -41,6 +41,7 @@ dependencies:
   cached_network_image: ^3.4.1
   image_picker: ^1.2.0
   flutter_svg: ^2.2.1
+  flutter_launcher_icons: ^0.14.4
 
 dev_dependencies:
   flutter_test:
@@ -53,6 +54,19 @@ dev_dependencies:
   test: ^1.24.0
   mockito: ^5.4.0
   flutter_localization: ^0.3.3
+
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/logo_app.png"
+  min_sdk_android: 21
+  web:
+    generate: true
+  windows:
+    generate: true
+  macos:
+    generate: true
 
 flutter:
 
