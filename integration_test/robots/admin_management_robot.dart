@@ -7,25 +7,31 @@ class AdminManagementRobot {
   AdminManagementRobot(this.tester);
 
   Future<void> navigateToAdminList() async {
-    // 1. Tìm nút trên Dashboard bằng Key (Thay vì tìm Text trong Drawer)
     final adminBtn = find.byKey(const ValueKey('admin_management_button'));
 
-    // Chờ nút xuất hiện
     await tester.pumpAndSettle();
     expect(adminBtn, findsOneWidget, reason: "Không tìm thấy nút 'Quản lý tài khoản Admin' trên Dashboard");
 
-    // 2. Click
     await tester.tap(adminBtn);
     await tester.pumpAndSettle();
 
-    // 3. Verify đã vào list
     expect(find.text('Quản lý Admin'), findsOneWidget);
   }
 
   Future<void> clickEditAdmin({int index = 0}) async {
     final editBtn = find.byKey(Key('btn_edit_admin_$index'));
 
-    await tester.scrollUntilVisible(editBtn, 500);
+    final scrollableList = find.descendant(
+      of: find.byKey(const ValueKey('admin_list_scroll_view')),
+      matching: find.byType(Scrollable),
+    );
+
+    await tester.scrollUntilVisible(
+      editBtn,
+      500,
+      scrollable: scrollableList,
+    );
+
     await tester.tap(editBtn);
     await tester.pumpAndSettle();
 
@@ -35,6 +41,7 @@ class AdminManagementRobot {
   Future<void> updateInfo({String? name, String? email}) async {
     if (name != null) {
       final nameField = find.byKey(const Key('field_staff_name'));
+      await tester.ensureVisible(nameField);
       await tester.enterText(nameField, '');
       await tester.enterText(nameField, name);
       await tester.pump();
@@ -42,6 +49,7 @@ class AdminManagementRobot {
 
     if (email != null) {
       final emailField = find.byKey(const Key('field_staff_email'));
+      await tester.ensureVisible(emailField);
       await tester.enterText(emailField, '');
       await tester.enterText(emailField, email);
       await tester.pump();
@@ -54,21 +62,23 @@ class AdminManagementRobot {
     await tester.ensureVisible(submitBtn);
     await tester.tap(submitBtn);
 
-    // Chờ xử lý API
     await tester.pump(const Duration(seconds: 2));
     await tester.pumpAndSettle();
   }
 
   Future<void> expectUpdateSuccess(String newName) async {
+    await tester.pumpAndSettle();
     expect(find.text('Quản lý Admin'), findsOneWidget);
     expect(find.text(newName), findsOneWidget);
   }
 
   Future<void> expectValidationError(String message) async {
+    await tester.pumpAndSettle();
     expect(find.text(message), findsOneWidget);
   }
 
   Future<void> expectBackendError(String message) async {
+    await tester.pumpAndSettle();
     expect(find.textContaining(message), findsOneWidget);
     final closeBtn = find.text('OK');
     if (closeBtn.evaluate().isNotEmpty) {
