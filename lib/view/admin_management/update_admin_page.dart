@@ -64,6 +64,8 @@ class UpdateAdminPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // THÊM KEY TẠI ĐÂY
+      key: const Key('update_admin_page_view'),
       appBar: AppBar(
         backgroundColor: context.theme.blue,
         title: Text(
