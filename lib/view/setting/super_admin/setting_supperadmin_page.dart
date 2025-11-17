@@ -18,6 +18,7 @@ class SettingSupperAdminPage extends StatelessWidget {
         backgroundColor: context.theme.blue,
         elevation: 0.5,
         leading: IconButton(
+          key: const ValueKey('settings_page_back_button'),
           icon: Icon(
             Icons.arrow_back,
             color: context.theme.white,
@@ -39,6 +40,7 @@ class SettingSupperAdminPage extends StatelessWidget {
       body: ListView(
         children: [
           ListTile(
+            key: const ValueKey('settings_page_profile_button'),
             leading: Icon(
               Icons.person_outline,
               color: context.theme.blue,
@@ -62,6 +64,7 @@ class SettingSupperAdminPage extends StatelessWidget {
           ),
           const Divider(height: 1, color: Colors.grey),
           ListTile(
+            key: const ValueKey('settings_page_specialty_button'),
             leading: Icon(
               Icons.type_specimen_outlined,
               color: context.theme.blue,
@@ -80,6 +83,7 @@ class SettingSupperAdminPage extends StatelessWidget {
           ),
           const Divider(height: 1, color: Colors.grey),
           ListTile(
+            key: const ValueKey('settings_page_location_button'),
             leading: Icon(
               Icons.location_city_outlined,
               color: context.theme.blue,
@@ -98,6 +102,7 @@ class SettingSupperAdminPage extends StatelessWidget {
           ),
           const Divider(height: 1, color: Colors.grey),
           ListTile(
+            key: const ValueKey('settings_page_patient_button'),
             leading: Icon(
               Icons.people_outline,
               color: context.theme.blue,
@@ -116,6 +121,7 @@ class SettingSupperAdminPage extends StatelessWidget {
           ),
           const Divider(height: 1, color: Colors.grey),
           ListTile(
+            key: const ValueKey('settings_page_password_button'),
             leading: Icon(
               Icons.shield_outlined,
               color: context.theme.blue,
@@ -147,6 +153,7 @@ class SettingSupperAdminPage extends StatelessWidget {
               ),
             ),
             trailing: DropdownButton<ThemeMode>(
+              key: const ValueKey('settings_page_theme_dropdown'),
               value: context.read<ThemeCubit>().state.themeMode,
               dropdownColor: context.theme.bg,
               focusColor: context.theme.grey,
@@ -173,6 +180,7 @@ class SettingSupperAdminPage extends StatelessWidget {
           ),
           const Divider(height: 1, color: Colors.grey),
           ListTile(
+            key: const ValueKey('settings_page_logout_button'),
             leading: Icon(
               Icons.logout,
               color: context.theme.destructive,

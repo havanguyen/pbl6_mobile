@@ -64,13 +64,10 @@ class _LocationFormState extends State<LocationForm> with SingleTickerProviderSt
     tzData.initializeTimeZones();
     _timezones = tz.timeZoneDatabase.locations.keys.toList();
 
-    // Initialize animations
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
     );
-
-
 
     _loadData().then((_) {
       if (mounted) {
@@ -305,7 +302,6 @@ class _LocationFormState extends State<LocationForm> with SingleTickerProviderSt
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // Location Name Field
             _buildAnimatedFormField(
               index: 0,
               child: Container(
@@ -361,7 +357,6 @@ class _LocationFormState extends State<LocationForm> with SingleTickerProviderSt
             ),
             const SizedBox(height: 20),
 
-            // Province Dropdown
             _buildAnimatedFormField(
               index: 1,
               child: Container(
@@ -376,6 +371,7 @@ class _LocationFormState extends State<LocationForm> with SingleTickerProviderSt
                   ],
                 ),
                 child: DropdownButtonFormField2<String>(
+                  key: const ValueKey('location_form_province_dropdown'),
                   value: _selectedProvinceId,
                   isExpanded: true,
                   style: TextStyle(
@@ -437,7 +433,6 @@ class _LocationFormState extends State<LocationForm> with SingleTickerProviderSt
             ),
             const SizedBox(height: 20),
 
-            // District Dropdown
             _buildAnimatedFormField(
               index: 2,
               child: Container(
@@ -452,6 +447,7 @@ class _LocationFormState extends State<LocationForm> with SingleTickerProviderSt
                   ],
                 ),
                 child: DropdownButtonFormField2<String>(
+                  key: const ValueKey('location_form_district_dropdown'),
                   value: _selectedDistrictId,
                   isExpanded: true,
                   style: TextStyle(
@@ -511,7 +507,6 @@ class _LocationFormState extends State<LocationForm> with SingleTickerProviderSt
             ),
             const SizedBox(height: 20),
 
-            // Ward Dropdown
             _buildAnimatedFormField(
               index: 3,
               child: Container(
@@ -526,6 +521,7 @@ class _LocationFormState extends State<LocationForm> with SingleTickerProviderSt
                   ],
                 ),
                 child: DropdownButtonFormField2<String>(
+                  key: const ValueKey('location_form_ward_dropdown'),
                   value: _selectedWardId,
                   isExpanded: true,
                   style: TextStyle(
@@ -580,7 +576,6 @@ class _LocationFormState extends State<LocationForm> with SingleTickerProviderSt
             ),
             const SizedBox(height: 20),
 
-            // Detail Address Field
             _buildAnimatedFormField(
               index: 4,
               child: Container(
@@ -633,7 +628,6 @@ class _LocationFormState extends State<LocationForm> with SingleTickerProviderSt
             ),
             const SizedBox(height: 20),
 
-            // Phone Field
             _buildAnimatedFormField(
               index: 5,
               child: Container(
@@ -690,7 +684,6 @@ class _LocationFormState extends State<LocationForm> with SingleTickerProviderSt
             ),
             const SizedBox(height: 20),
 
-            // Timezone Dropdown
             _buildAnimatedFormField(
               index: 6,
               child: Container(
@@ -705,6 +698,7 @@ class _LocationFormState extends State<LocationForm> with SingleTickerProviderSt
                   ],
                 ),
                 child: DropdownButtonFormField2<String>(
+                  key: const ValueKey('location_form_timezone_dropdown'),
                   value: _selectedTimezone,
                   isExpanded: true,
                   style: TextStyle(
@@ -759,7 +753,6 @@ class _LocationFormState extends State<LocationForm> with SingleTickerProviderSt
             ),
             const SizedBox(height: 32),
 
-            // Submit Button
             _buildAnimatedFormField(
               index: 7,
               child: AnimatedContainer(

@@ -36,6 +36,7 @@ class MainPageSuperAdmin extends StatelessWidget {
                   decoration: BoxDecoration(
                       color: context.theme.blue, shape: BoxShape.circle),
                   child: IconButton(
+                    key: const ValueKey('main_page_settings_button'),
                     icon: Icon(Icons.menu, color: context.theme.white, size: 35),
                     onPressed: () {
                       Navigator.pushNamed(context, Routes.settingSuperAdmin);
@@ -64,6 +65,7 @@ class MainPageSuperAdmin extends StatelessWidget {
               top: size.height * 0.3,
               left: size.width * 0.25,
               child: ScaleAnimatedButton(
+                key: const ValueKey('main_page_appointment_button'),
                 child: CustomCircularButton(
                   context,
                   size: 110,
@@ -79,6 +81,7 @@ class MainPageSuperAdmin extends StatelessWidget {
               top: size.height * 0.37,
               right: size.width * 0.15,
               child: ScaleAnimatedButton(
+                key: const ValueKey('main_page_doctor_button'),
                 child: CustomCircularButton(
                   context,
                   size: 110,
@@ -94,6 +97,7 @@ class MainPageSuperAdmin extends StatelessWidget {
               top: size.height * 0.45,
               left: size.width * 0.15,
               child: ScaleAnimatedButton(
+                key: const ValueKey('main_page_question_button'),
                 child: CustomCircularButton(
                   context,
                   size: 140,
@@ -109,6 +113,7 @@ class MainPageSuperAdmin extends StatelessWidget {
               top: size.height * 0.53,
               right: size.width * 0.15,
               child: ScaleAnimatedButton(
+                key: const ValueKey('main_page_blog_button'),
                 child: CustomCircularButton(
                   context,
                   size: 120,
