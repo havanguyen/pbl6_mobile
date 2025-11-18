@@ -16,9 +16,7 @@ void main() {
 
     await app.main();
     await tester.pumpAndSettle();
-    await tester.pump(const Duration(seconds: 2));
-    await tester.pumpAndSettle();
-    await tester.pump(const Duration(milliseconds: 1500));
+    await tester.pump(const Duration(seconds: 3));
     await tester.pumpAndSettle();
 
     if (find.byType(LoginPage).evaluate().isEmpty) {
@@ -30,7 +28,7 @@ void main() {
     await authRobot.enterPassword('SuperAdmin123!');
     await authRobot.tapLoginButton();
 
-    await tester.pump(const Duration(seconds: 2));
+    await tester.pump(const Duration(seconds: 5));
     await tester.pumpAndSettle();
     await authRobot.expectLoginSuccess();
   }
@@ -45,7 +43,6 @@ void main() {
 
       final uniqueName = 'BV Đa Khoa E2E ${DateTime.now().millisecondsSinceEpoch}';
 
-      // Happy Case: Tự động chọn timezone (tham số null)
       await locationRobot.enterInfo(
         name: uniqueName,
         address: 'Address A, Xã Khánh An, Huyện An Phú, Tỉnh An Giang',
@@ -63,7 +60,6 @@ void main() {
       await locationRobot.navigateToLocationList();
       await locationRobot.tapCreateButton();
 
-      // Không nhập gì, bấm Lưu
       await locationRobot.submitForm();
 
       await locationRobot.expectValidationError('Vui lòng nhập tên địa điểm');
@@ -97,7 +93,6 @@ void main() {
 
       final duplicateName = 'Duplicate Loc ${DateTime.now().millisecondsSinceEpoch}';
 
-      // Lần 1: Tạo thành công
       await locationRobot.tapCreateButton();
       await locationRobot.enterInfo(
         name: duplicateName,
@@ -107,7 +102,6 @@ void main() {
       await locationRobot.submitForm();
       await locationRobot.expectCreateSuccess(duplicateName);
 
-      // Lần 2: Tạo trùng tên
       await locationRobot.tapCreateButton();
       await locationRobot.enterInfo(
         name: duplicateName,
@@ -117,6 +111,16 @@ void main() {
       await locationRobot.submitForm();
 
       await locationRobot.expectBackendError();
+    });
+
+    testWidgets('TC014: Delete any Location successfully (With Password Confirm)', (tester) async {
+      await setupAppAndLogin(tester);
+      final locationRobot = LocationWorkRobot(tester);
+      await locationRobot.navigateToLocationList();
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pumpAndSettle();
+      await locationRobot.clickFirstDeleteIcon();
+      await locationRobot.confirmDeleteDialog('SuperAdmin123!');
     });
   });
 }

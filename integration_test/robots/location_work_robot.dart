@@ -16,7 +16,6 @@ class LocationWorkRobot {
   final _phoneField = find.byKey(const ValueKey('location_form_phone_field'));
   final _timezoneDropdown = find.byKey(const ValueKey('location_form_timezone_dropdown'));
   final _saveButton = find.byKey(const ValueKey('location_form_save_button'));
-  final _locationListScrollView = find.byKey(const ValueKey('location_list_scroll_view'));
 
   // --- Actions ---
 
@@ -39,13 +38,11 @@ class LocationWorkRobot {
     expect(find.text('Tạo địa điểm làm việc'), findsOneWidget);
   }
 
-  // Helper: Select specific item OR first item if itemText is null
   Future<void> _selectDropdownItem(Finder dropdownFinder, String? itemText) async {
     await tester.ensureVisible(dropdownFinder);
     await tester.tap(dropdownFinder);
-    await tester.pumpAndSettle(); // Wait for dropdown to open
+    await tester.pumpAndSettle();
 
-    // Tìm Scrollable cuối cùng trong cây Widget (thường là Overlay của Dropdown đang mở)
     final dropdownScrollable = find.byType(Scrollable).last;
 
     if (itemText != null) {
@@ -55,14 +52,12 @@ class LocationWorkRobot {
         500,
         scrollable: dropdownScrollable,
       );
-      await tester.tap(itemFinder.last); // .last để đảm bảo tap vào item trong overlay
+      await tester.tap(itemFinder.last);
     } else {
-      // Chọn mục đầu tiên bằng cách tìm Text trong Overlay
       final anyItemText = find.descendant(
         of: dropdownScrollable,
         matching: find.byType(Text),
       ).first;
-
       await tester.tap(anyItemText);
     }
     await tester.pumpAndSettle();
@@ -79,22 +74,17 @@ class LocationWorkRobot {
       await tester.enterText(_nameField, name);
       await tester.pump();
     }
-
     if (address != null) {
       await tester.ensureVisible(_addressField);
       await tester.enterText(_addressField, address);
       await tester.pump();
     }
-
     if (phone != null) {
       await tester.ensureVisible(_phoneField);
       await tester.enterText(_phoneField, phone);
       await tester.pump();
     }
-
-    // Luôn gọi hàm chọn dropdown. Nếu timezone = null => Tự động chọn cái đầu tiên
     await _selectDropdownItem(_timezoneDropdown, timezone);
-
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pumpAndSettle();
   }
@@ -102,21 +92,14 @@ class LocationWorkRobot {
   Future<void> submitForm() async {
     await tester.ensureVisible(_saveButton);
     await tester.tap(_saveButton);
-    // Đợi 2 giây để đảm bảo API phản hồi và Navigation transition hoàn tất
     await tester.pumpAndSettle(const Duration(seconds: 2));
   }
 
   Future<void> expectCreateSuccess(String name) async {
-    // FIX: Chỉ kiểm tra logic chuyển trang (Navigation)
-    // 1. Xác nhận màn hình "Tạo địa điểm" đã biến mất (đã pop)
     expect(find.text('Tạo địa điểm làm việc'), findsNothing,
         reason: 'Form tạo mới phải đóng lại sau khi tạo thành công');
-
-    // 2. Xác nhận màn hình "Quản lý" đang hiển thị
     expect(find.text('Quản lý địa điểm làm việc'), findsOneWidget,
         reason: 'Phải quay về màn hình danh sách');
-
-    // Lưu ý: Không cần scroll tìm tên item vì danh sách load bất đồng bộ dễ gây flaky test.
   }
 
   Future<void> expectValidationError(String message) async {
@@ -127,9 +110,7 @@ class LocationWorkRobot {
   Future<void> expectBackendError() async {
     await tester.pump(const Duration(seconds: 1));
     await tester.pumpAndSettle();
-
     expect(find.text('Lỗi'), findsOneWidget);
-
     final closeBtn = find.text('OK');
     if (closeBtn.evaluate().isNotEmpty) {
       await tester.tap(closeBtn);
@@ -137,39 +118,35 @@ class LocationWorkRobot {
     }
   }
 
-  Future<void> clickEditLocation(String name) async {
-    final locationCard = find.text(name);
+  // --- NEW: Logic Xóa Location Bất Kỳ ---
 
-    // Kiểm tra nếu ListView đã hiển thị thì mới scroll
-    if (_locationListScrollView.evaluate().isNotEmpty) {
-      final scrollableFinder = find.descendant(
-        of: _locationListScrollView,
-        matching: find.byType(Scrollable),
-      );
+  Future<void> clickFirstDeleteIcon() async {
+    // Chờ UI ổn định
+    await tester.pumpAndSettle();
 
-      await tester.scrollUntilVisible(
-        locationCard,
-        500,
-        scrollable: scrollableFinder,
-      );
-    }
+    // Tìm tất cả icon xóa đang hiển thị trên màn hình
+    final deleteIcons = find.byIcon(Icons.delete_outline);
 
-    await tester.tap(locationCard);
+    // Kiểm tra xem có item nào để xóa không
+    expect(deleteIcons, findsAtLeastNWidgets(1),
+        reason: 'Danh sách cần có ít nhất 1 địa điểm để thực hiện test xóa');
+
+    // Tap vào icon xóa đầu tiên tìm thấy
+    await tester.tap(deleteIcons.first);
     await tester.pumpAndSettle();
   }
 
-  Future<void> deleteLocation() async {
-    final deleteIcon = find.byIcon(Icons.delete_outline).first;
-    await tester.tap(deleteIcon);
-    await tester.pumpAndSettle();
+  Future<void> confirmDeleteDialog(String password) async {
+    expect(find.text('Xác nhận xóa'), findsOneWidget);
+    final passwordField = find.widgetWithText(TextField, 'Nhập mật khẩu Admin/Super Admin');
+    await tester.enterText(passwordField, password);
+    await tester.pump();
 
-    final confirmButton = find.text('Xóa');
-    await tester.tap(confirmButton);
-    await tester.pumpAndSettle();
-  }
+    final deleteBtn = find.widgetWithText(TextButton, 'Xóa');
+    await tester.tap(deleteBtn);
 
-  Future<void> verifyLocationDeleted(String name) async {
-    await tester.pumpAndSettle();
-    expect(find.text(name), findsNothing);
+    await tester.pumpAndSettle(const Duration(seconds: 2));
+
+    expect(find.text('Xác nhận xóa'), findsNothing, reason: 'Dialog xóa phải đóng sau khi thành công');
   }
 }
