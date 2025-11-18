@@ -55,10 +55,10 @@ void main() {
       // Nhập liệu đầy đủ các trường
       await locationRobot.enterInfo(
         name: uniqueName,
-        province: 'Thành phố Đà Nẵng', // Đảm bảo tên này có trong DB
-        district: 'Quận Hải Châu',      // Đảm bảo tên này có trong DB
-        ward: 'Phường Hải Châu I',      // Đảm bảo tên này có trong DB
-        detailAddress: '123 Đường Test',
+        province: 'Tỉnh An Giang',
+        district: 'Huyện An Phú',
+        ward: 'Xã Khánh An',
+        detailAddress: 'Address A',
         phone: '0905123456',
         timezone: 'Asia/Ho_Chi_Minh',
       );
@@ -93,10 +93,12 @@ void main() {
 
       await locationRobot.enterInfo(
         name: 'Test Phone Format',
-        province: 'Thành phố Đà Nẵng',
-        detailAddress: 'Test Address',
-        phone: 'abc_sai_format', // Số điện thoại sai
-        timezone: 'Asia/Ho_Chi_Minh',
+        province: 'Tỉnh An Giang',
+        district: 'Huyện An Phú',
+        ward: 'Xã Khánh An',
+        detailAddress: 'Address A',
+        phone: '090511',
+        timezone: 'Asia/Bangkok',
       );
 
       await locationRobot.submitForm();
@@ -116,12 +118,12 @@ void main() {
       await locationRobot.tapCreateButton();
       await locationRobot.enterInfo(
         name: duplicateName,
-        province: 'Thành phố Đà Nẵng',
-        district: 'Quận Hải Châu',
-        ward: 'Phường Hải Châu I',
+        province: 'Tỉnh An Giang',
+        district: 'Huyện An Phú',
+        ward: 'Xã Khánh An',
         detailAddress: 'Address A',
         phone: '0905111222',
-        timezone: 'Asia/Ho_Chi_Minh',
+        timezone: 'Asia/Bangkok',
       );
       await locationRobot.submitForm();
       await locationRobot.expectCreateSuccess(duplicateName);
@@ -130,10 +132,12 @@ void main() {
       await locationRobot.tapCreateButton();
       await locationRobot.enterInfo(
         name: duplicateName,
-        province: 'Thành phố Hồ Chí Minh', // Khác địa chỉ nhưng trùng tên
+        province: 'Tỉnh An Giang',
+        district: 'Huyện An Phú',
+        ward: 'Xã Khánh An',
         detailAddress: 'Address B',
         phone: '0905333444',
-        timezone: 'Asia/Ho_Chi_Minh',
+        timezone: 'Asia/Bangkok',
       );
       await locationRobot.submitForm();
 
