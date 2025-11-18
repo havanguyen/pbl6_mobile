@@ -48,7 +48,6 @@ class _AnimatedSubmitButtonState extends State<AnimatedSubmitButton> {
     switch (_state) {
       case ButtonState.loading:
         return SizedBox(
-          // Giữ nguyên logic cũ
           height: 52,
           child: Center(
               child: SizedBox(
@@ -78,7 +77,6 @@ class _AnimatedSubmitButtonState extends State<AnimatedSubmitButton> {
         );
       case ButtonState.idle:
         return SizedBox(
-          // THÊM KEY TẠI ĐÂY ĐỂ ROBOT CLICK
           key: const Key('btn_submit_staff_form'),
           width: double.infinity,
           height: 52,
@@ -321,7 +319,6 @@ class _StaffFormState extends State<StaffForm> with SingleTickerProviderStateMix
             _buildAnimatedFormField(
               index: 0,
               child: TextFormField(
-                // THÊM KEY TẠI ĐÂY
                 key: const Key('field_staff_name'),
                 controller: _fullNameController,
                 decoration: InputDecoration(
@@ -338,7 +335,6 @@ class _StaffFormState extends State<StaffForm> with SingleTickerProviderStateMix
             _buildAnimatedFormField(
               index: 1,
               child: TextFormField(
-                // THÊM KEY TẠI ĐÂY
                 key: const Key('field_staff_email'),
                 controller: _emailController,
                 decoration: InputDecoration(
@@ -359,6 +355,7 @@ class _StaffFormState extends State<StaffForm> with SingleTickerProviderStateMix
             _buildAnimatedFormField(
               index: 2,
               child: TextFormField(
+                key: const Key('field_staff_password'),
                 controller: _passwordController,
                 decoration: InputDecoration(
                   labelText: widget.isUpdate
@@ -382,7 +379,7 @@ class _StaffFormState extends State<StaffForm> with SingleTickerProviderStateMix
             _buildAnimatedFormField(
               index: 3,
               child: TextFormField(
-                key: const ValueKey('staff_form_phone_field'),
+                key: const Key('field_staff_phone'),
                 controller: _phoneController,
                 decoration: InputDecoration(
                   labelText: 'Số điện thoại',
@@ -401,6 +398,7 @@ class _StaffFormState extends State<StaffForm> with SingleTickerProviderStateMix
             _buildAnimatedFormField(
               index: 4,
               child: TextFormField(
+                key: const Key('field_staff_dob'),
                 controller: _dateOfBirthController,
                 decoration: InputDecoration(
                   labelText: 'Ngày sinh (dd/mm/yyyy)',
@@ -436,7 +434,6 @@ class _StaffFormState extends State<StaffForm> with SingleTickerProviderStateMix
             _buildAnimatedFormField(
               index: 6,
               child: AnimatedSubmitButton(
-                // KEY ĐÃ ĐƯỢC THÊM Ở TRÊN, CHỖ NÀY LÀ TRUYỀN VÀO
                 onSubmit: _submitForm,
                 idleText: '${widget.isUpdate ? 'Cập nhật' : 'Tạo'} ${widget.role.toLowerCase()}',
                 loadingText: 'Đang xử lý...',

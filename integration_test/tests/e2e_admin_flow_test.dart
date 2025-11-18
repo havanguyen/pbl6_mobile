@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:pbl6mobile/main.dart' as app;
 import 'package:pbl6mobile/shared/services/store.dart';
-import 'package:pbl6mobile/view/auth/login_page.dart'; // Import Login Page để check type
+import 'package:pbl6mobile/view/auth/login_page.dart';
 import '../robots/auth_robot.dart';
 import '../robots/admin_management_robot.dart';
 
@@ -11,50 +11,36 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   Future<void> setupAppAndLogin(WidgetTester tester) async {
-    // 1. Reset dữ liệu
     await Store.clearStorage();
     await Store.clear();
 
-    // 2. Khởi động App
     await app.main();
-    await tester.pumpAndSettle(); // Frame đầu tiên (Splash Screen hiện ra)
-
-    // 3. Xử lý Splash Screen (SplashPage delay 1 giây)
-    // Ta chờ 2 giây để chắc chắn vượt qua delay
-    await tester.pump(const Duration(seconds: 2));
-
-    // 4. Xử lý Navigation Animation (Chuyển từ Splash -> Login)
     await tester.pumpAndSettle();
 
-    // 5. Xử lý Entry Animation của LoginPage (LoginPage có animation duration 1000ms)
-    // Ta chờ thêm 1.5 giây để Animation hoàn tất, các field hiển thị rõ
+    await tester.pump(const Duration(seconds: 2));
+
+    await tester.pumpAndSettle();
+
     await tester.pump(const Duration(milliseconds: 1500));
     await tester.pumpAndSettle();
 
-    // Debug: Kiểm tra xem đã thực sự vào Login Page chưa
     if (find.byType(LoginPage).evaluate().isEmpty) {
-      print("⚠️ CẢNH BÁO: Chưa thấy LoginPage, thử pump thêm...");
       await tester.pump(const Duration(seconds: 2));
     }
 
-    // 6. Thực hiện Login
     final authRobot = AuthRobot(tester);
-    // Robot đã được nâng cấp hàm verifyOnLoginPage() để tự check
     await authRobot.enterEmail('superadmin@medicalink.com');
     await authRobot.enterPassword('SuperAdmin123!');
     await authRobot.tapLoginButton();
 
-    // 7. Chờ chuyển trang sau khi login thành công
-    // (Code Login có await Future.delayed(Duration(seconds: 1)) trước khi push)
     await tester.pump(const Duration(seconds: 2));
     await tester.pumpAndSettle();
 
     await authRobot.expectLoginSuccess();
   }
 
-  group('Module Update Admin Profile Tests (TC006 - TC009)', () {
-
-    testWidgets('TC006: Update thông tin hợp lệ (Happy Case)', (tester) async {
+  group('Module Update & Delete Admin Profile Tests', () {
+    testWidgets('TC006: Update thông tin hợp lệ', (tester) async {
       await setupAppAndLogin(tester);
       final adminRobot = AdminManagementRobot(tester);
 
@@ -91,17 +77,50 @@ void main() {
       await adminRobot.expectValidationError('Email không đúng định dạng');
     });
 
-    testWidgets('TC009: Validate lỗi Email đã tồn tại (Backend)', (tester) async {
+    testWidgets('TC009: Validate lỗi Email đã tồn tại', (tester) async {
       await setupAppAndLogin(tester);
       final adminRobot = AdminManagementRobot(tester);
 
       await adminRobot.navigateToAdminList();
       await adminRobot.clickEditAdmin(index: 0);
 
-      // Sử dụng email chính chủ để test trùng lặp
       await adminRobot.updateInfo(email: 'superadmin@medicalink.com');
 
       await adminRobot.expectBackendError('Email');
+    });
+
+    testWidgets('TC010: Tạo Admin mới thành công', (tester) async {
+      await setupAppAndLogin(tester);
+      final adminRobot = AdminManagementRobot(tester);
+
+      await adminRobot.navigateToAdminList();
+      await adminRobot.clickCreateAdmin();
+
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final newName = 'New Admin $timestamp';
+      final newEmail = 'newadmin$timestamp@test.com';
+
+      await adminRobot.fillCreateForm(
+        name: newName,
+        email: newEmail,
+        password: 'Password123!',
+      );
+
+      await adminRobot.expectCreateSuccess(newName);
+    });
+
+    testWidgets('TC011: Xóa Admin thành công', (tester) async {
+      await setupAppAndLogin(tester);
+      final adminRobot = AdminManagementRobot(tester);
+
+      await adminRobot.navigateToAdminList();
+
+      await adminRobot.deleteAdmin(
+        index: 0,
+        password: 'SuperAdmin123!',
+      );
+
+      await adminRobot.expectDeleteSuccess();
     });
   });
 }

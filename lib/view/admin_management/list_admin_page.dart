@@ -125,6 +125,7 @@ class _AdminListPageState extends State<AdminListPage> {
             children: [
               Expanded(
                 child: ElevatedButton(
+                  key: const Key('btn_add_admin'),
                   onPressed: isOffline ? null : () async {
                     final result = await Navigator.pushNamed(context, Routes.createAdmin);
                     if (result == true) {
@@ -305,7 +306,6 @@ class _AdminListPageState extends State<AdminListPage> {
       child: Card(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         child: InkWell(
-          // THÊM KEY Ở ĐÂY ĐỂ ROBOT CLICK VÀO CARD
             key: Key('btn_edit_admin_$index'),
             onTap: isOffline ? null : () async {
               final result = await Navigator.pushNamed(context, Routes.updateAdmin, arguments: admin.toJson());

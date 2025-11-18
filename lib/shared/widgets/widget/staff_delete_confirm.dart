@@ -127,6 +127,7 @@ class _DeleteStaffConfirmationDialogState extends State<DeleteStaffConfirmationD
           ),
           const SizedBox(height: 16),
           TextField(
+            key: const Key('field_confirm_delete_password'),
             controller: _passwordController,
             obscureText: true,
             style: TextStyle(color: context.theme.textColor),
