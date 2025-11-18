@@ -1,3 +1,4 @@
+import 'dart:async'; // [Thêm] Import thư viện này để dùng StreamSubscription
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:pbl6mobile/model/services/local/profile_cache_service.dart';
@@ -7,6 +8,7 @@ import 'package:pbl6mobile/model/entities/staff.dart';
 import 'package:pbl6mobile/model/services/local/staff_database_helper.dart';
 
 class StaffVm extends ChangeNotifier {
+  // ... (các biến cũ giữ nguyên)
   List<Staff> _staffs = [];
   bool _isLoading = false;
   bool _isLoadingMore = false;
@@ -26,6 +28,11 @@ class StaffVm extends ChangeNotifier {
   bool _isLoadingSelfProfile = false;
   String? _selfProfileError;
 
+  // [Thêm] Biến để theo dõi trạng thái dispose và subscription
+  bool _isDisposed = false;
+  StreamSubscription? _connectivitySubscription;
+
+  // ... (các getter giữ nguyên)
   List<Staff> get staffs => _staffs;
   bool get isLoading => _isLoading;
   bool get isLoadingMore => _isLoadingMore;
@@ -45,7 +52,8 @@ class StaffVm extends ChangeNotifier {
   final ProfileCacheService _profileCache = ProfileCacheService.instance;
 
   StaffVm() {
-    Connectivity()
+    // [Sửa] Gán subscription vào biến để có thể cancel sau này
+    _connectivitySubscription = Connectivity()
         .onConnectivityChanged
         .listen((List<ConnectivityResult> results) {
       bool isConnected = results.any((result) =>
@@ -59,6 +67,14 @@ class StaffVm extends ChangeNotifier {
         }
       }
     });
+  }
+
+  // [Thêm] Override hàm dispose
+  @override
+  void dispose() {
+    _isDisposed = true;
+    _connectivitySubscription?.cancel();
+    super.dispose();
   }
 
   void updateSearchQuery(String query) {
@@ -95,7 +111,8 @@ class StaffVm extends ChangeNotifier {
       _isLoadingMore = true;
     }
     _error = null;
-    notifyListeners();
+    // [Sửa] Kiểm tra dispose trước khi notify
+    if (!_isDisposed) notifyListeners();
 
     var connectivityResult = await Connectivity().checkConnectivity();
     bool isConnected = !connectivityResult.contains(ConnectivityResult.none);
@@ -123,7 +140,9 @@ class StaffVm extends ChangeNotifier {
 
       _isLoading = false;
       _isLoadingMore = false;
-      notifyListeners();
+
+      // [Sửa] Kiểm tra dispose
+      if (!_isDisposed) notifyListeners();
       return;
     }
 
@@ -193,7 +212,9 @@ class StaffVm extends ChangeNotifier {
     } finally {
       _isLoading = false;
       _isLoadingMore = false;
-      notifyListeners();
+
+      // [Sửa] Quan trọng: Kiểm tra dispose ở finally block
+      if (!_isDisposed) notifyListeners();
     }
   }
 
@@ -201,7 +222,7 @@ class StaffVm extends ChangeNotifier {
     _isLoadingSelfProfile = true;
     _selfProfile = null;
     _selfProfileError = null;
-    notifyListeners();
+    if (!_isDisposed) notifyListeners(); // [Sửa] Check dispose
 
     var connectivityResult = await Connectivity().checkConnectivity();
     bool isConnected = !connectivityResult.contains(ConnectivityResult.none);
@@ -236,11 +257,13 @@ class StaffVm extends ChangeNotifier {
         }
       }
     } catch (e) {
+      // ... (giữ nguyên logic catch)
       _selfProfileError = "Lỗi khi tải thông tin cá nhân: $e";
       if (_selfProfile == null) {
         print("API lỗi, thử tải profile Admin/Superadmin từ cache...");
         final cachedProfileMap = await _profileCache.getProfile();
         if (cachedProfileMap != null) {
+          // ... (giữ nguyên)
           final role = cachedProfileMap['role'] as String?;
           if (role == 'ADMIN' || role == 'SUPERADMIN') {
             _selfProfile = Staff.fromJson(cachedProfileMap);
@@ -254,7 +277,8 @@ class StaffVm extends ChangeNotifier {
       }
     } finally {
       _isLoadingSelfProfile = false;
-      notifyListeners();
+      // [Sửa] Kiểm tra dispose
+      if (!_isDisposed) notifyListeners();
     }
   }
 
@@ -279,7 +303,8 @@ class StaffVm extends ChangeNotifier {
       _error = "Lỗi khi xóa: $e";
       success = false;
     }
-    notifyListeners();
+    // [Sửa] Kiểm tra dispose
+    if (!_isDisposed) notifyListeners();
     return success;
   }
 }
