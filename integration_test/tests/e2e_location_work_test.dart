@@ -10,28 +10,21 @@ import '../robots/location_work_robot.dart';
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  // Hàm setup môi trường và login (Tái sử dụng logic ổn định từ admin flow)
   Future<void> setupAppAndLogin(WidgetTester tester) async {
-    // 1. Reset dữ liệu
     await Store.clearStorage();
     await Store.clear();
 
-    // 2. Khởi động App
     await app.main();
     await tester.pumpAndSettle();
-
-    // 3. Chờ Splash Screen
     await tester.pump(const Duration(seconds: 2));
     await tester.pumpAndSettle();
     await tester.pump(const Duration(milliseconds: 1500));
     await tester.pumpAndSettle();
 
-    // 4. Đảm bảo đang ở Login Page
     if (find.byType(LoginPage).evaluate().isEmpty) {
       await tester.pump(const Duration(seconds: 2));
     }
 
-    // 5. Login Admin
     final authRobot = AuthRobot(tester);
     await authRobot.enterEmail('superadmin@medicalink.com');
     await authRobot.enterPassword('SuperAdmin123!');
@@ -52,15 +45,11 @@ void main() {
 
       final uniqueName = 'BV Đa Khoa E2E ${DateTime.now().millisecondsSinceEpoch}';
 
-      // Nhập liệu đầy đủ các trường
+      // Happy Case: Tự động chọn timezone (tham số null)
       await locationRobot.enterInfo(
         name: uniqueName,
-        province: 'Tỉnh An Giang',
-        district: 'Huyện An Phú',
-        ward: 'Xã Khánh An',
-        detailAddress: 'Address A',
+        address: 'Address A, Xã Khánh An, Huyện An Phú, Tỉnh An Giang',
         phone: '0905123456',
-        timezone: 'Asia/Ho_Chi_Minh',
       );
 
       await locationRobot.submitForm();
@@ -74,13 +63,11 @@ void main() {
       await locationRobot.navigateToLocationList();
       await locationRobot.tapCreateButton();
 
-      // Không nhập gì, bấm Lưu ngay
+      // Không nhập gì, bấm Lưu
       await locationRobot.submitForm();
 
-      // Kiểm tra hiển thị lỗi validator
       await locationRobot.expectValidationError('Vui lòng nhập tên địa điểm');
-      await locationRobot.expectValidationError('Vui lòng chọn tỉnh/thành phố');
-      await locationRobot.expectValidationError('Vui lòng nhập địa chỉ chi tiết');
+      await locationRobot.expectValidationError('Vui lòng nhập địa chỉ');
       await locationRobot.expectValidationError('Vui lòng nhập số điện thoại');
     });
 
@@ -93,12 +80,8 @@ void main() {
 
       await locationRobot.enterInfo(
         name: 'Test Phone Format',
-        province: 'Tỉnh An Giang',
-        district: 'Huyện An Phú',
-        ward: 'Xã Khánh An',
-        detailAddress: 'Address A',
+        address: 'Address A, Xã Khánh An, Huyện An Phú, Tỉnh An Giang',
         phone: '090511',
-        timezone: 'Asia/Bangkok',
       );
 
       await locationRobot.submitForm();
@@ -112,36 +95,27 @@ void main() {
 
       await locationRobot.navigateToLocationList();
 
-      // Tạo địa điểm lần 1
       final duplicateName = 'Duplicate Loc ${DateTime.now().millisecondsSinceEpoch}';
 
+      // Lần 1: Tạo thành công
       await locationRobot.tapCreateButton();
       await locationRobot.enterInfo(
         name: duplicateName,
-        province: 'Tỉnh An Giang',
-        district: 'Huyện An Phú',
-        ward: 'Xã Khánh An',
-        detailAddress: 'Address A',
+        address: 'Address A, Xã Khánh An, Huyện An Phú, Tỉnh An Giang',
         phone: '0905111222',
-        timezone: 'Asia/Bangkok',
       );
       await locationRobot.submitForm();
       await locationRobot.expectCreateSuccess(duplicateName);
 
-      // Tạo địa điểm lần 2 với CÙNG TÊN (giả sử backend chặn trùng tên)
+      // Lần 2: Tạo trùng tên
       await locationRobot.tapCreateButton();
       await locationRobot.enterInfo(
         name: duplicateName,
-        province: 'Tỉnh An Giang',
-        district: 'Huyện An Phú',
-        ward: 'Xã Khánh An',
-        detailAddress: 'Address B',
+        address: 'Address B, Xã Khánh An, Huyện An Phú, Tỉnh An Giang',
         phone: '0905333444',
-        timezone: 'Asia/Bangkok',
       );
       await locationRobot.submitForm();
 
-      // Mong đợi lỗi từ Backend trả về Dialog
       await locationRobot.expectBackendError();
     });
   });
