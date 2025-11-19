@@ -79,4 +79,5 @@ flutter:
     - assets/images/
     - assets/data/
     - .env
+    - assets/data/login_test_data.json
 

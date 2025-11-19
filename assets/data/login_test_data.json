@@ -1,0 +1,193 @@
+{
+  "login_tests": [
+    {
+      "caseId": "TC001",
+      "description": "Login successfully with valid credentials",
+      "data": {
+        "email": "superadmin@medicalink.com",
+        "password": "SuperAdmin123!"
+      },
+      "expected": {
+        "type": "success"
+      }
+    },
+    {
+      "caseId": "TC002",
+      "description": "Login failed with non-existent email",
+      "data": {
+        "email": "khongconguyen@gmail.com",
+        "password": "nguyen902993"
+      },
+      "expected": {
+        "type": "error_dialog"
+      }
+    },
+    {
+      "caseId": "TC003",
+      "description": "Login failed with wrong password",
+      "data": {
+        "email": "superadmin@medicalink.com",
+        "password": "Matkhausai@9"
+      },
+      "expected": {
+        "type": "error_dialog"
+      }
+    },
+    {
+      "caseId": "TC004",
+      "description": "Login failed with empty fields",
+      "data": {
+        "email": "",
+        "password": ""
+      },
+      "expected": {
+        "type": "validation",
+        "messages": ["Vui lòng nhập email", "Vui lòng nhập mật khẩu"]
+      }
+    },
+    {
+      "caseId": "TC005",
+      "description": "Login failed with invalid email format",
+      "data": {
+        "email": "emailkhongdunghople",
+        "password": "SuperAdmin123!"
+      },
+      "expected": {
+        "type": "validation",
+        "messages": ["Email không đúng định dạng"]
+      }
+    }
+  ],
+  "admin_flow_tests": [
+    {
+      "caseId": "TC006",
+      "description": "Update thông tin hợp lệ",
+      "data": {
+        "namePrefix": "Admin E2E"
+      },
+      "expected": {
+        "type": "update_success"
+      }
+    },
+    {
+      "caseId": "TC007",
+      "description": "Validate lỗi khi để trống Tên",
+      "data": {
+        "name": ""
+      },
+      "expected": {
+        "type": "validation",
+        "message": "Vui lòng nhập họ và tên"
+      }
+    },
+    {
+      "caseId": "TC008",
+      "description": "Validate lỗi Email sai định dạng",
+      "data": {
+        "email": "email_sai_format"
+      },
+      "expected": {
+        "type": "validation",
+        "message": "Email không đúng định dạng"
+      }
+    },
+    {
+      "caseId": "TC009",
+      "description": "Validate lỗi Email đã tồn tại",
+      "data": {
+        "email": "superadmin@medicalink.com"
+      },
+      "expected": {
+        "type": "backend_error",
+        "keyword": "Email"
+      }
+    },
+    {
+      "caseId": "TC010",
+      "description": "Tạo Admin mới thành công",
+      "data": {
+        "namePrefix": "New Admin",
+        "emailPrefix": "newadmin",
+        "emailDomain": "@test.com",
+        "password": "Password123!"
+      },
+      "expected": {
+        "type": "create_success"
+      }
+    },
+    {
+      "caseId": "TC011",
+      "description": "Xóa Admin thành công",
+      "data": {
+        "confirmPassword": "SuperAdmin123!"
+      },
+      "expected": {
+        "type": "delete_success"
+      }
+    }
+  ],
+  "location_tests": [
+    {
+      "caseId": "TC010",
+      "description": "Create Location successfully (Happy Case)",
+      "data": {
+        "namePrefix": "BV Đa Khoa E2E",
+        "address": "Address A, Xã Khánh An, Huyện An Phú, Tỉnh An Giang",
+        "phone": "0905123456"
+      },
+      "expected": {
+        "type": "create_success"
+      }
+    },
+    {
+      "caseId": "TC011",
+      "description": "Validate error when required fields are empty",
+      "data": {
+        "name": "",
+        "address": "",
+        "phone": ""
+      },
+      "expected": {
+        "type": "validation",
+        "messages": ["Vui lòng nhập tên địa điểm", "Vui lòng nhập địa chỉ", "Vui lòng nhập số điện thoại"]
+      }
+    },
+    {
+      "caseId": "TC012",
+      "description": "Validate invalid Phone Number format",
+      "data": {
+        "name": "Test Phone Format",
+        "address": "Address A, Xã Khánh An, Huyện An Phú, Tỉnh An Giang",
+        "phone": "090511"
+      },
+      "expected": {
+        "type": "validation",
+        "messages": ["Số điện thoại không hợp lệ"]
+      }
+    },
+    {
+      "caseId": "TC013",
+      "description": "Validate Duplicate Location Name/Info",
+      "data": {
+        "namePrefix": "Duplicate Loc",
+        "addressA": "Address A, Xã Khánh An, Huyện An Phú, Tỉnh An Giang",
+        "phoneA": "0905111222",
+        "addressB": "Address B, Xã Khánh An, Huyện An Phú, Tỉnh An Giang",
+        "phoneB": "0905333444"
+      },
+      "expected": {
+        "type": "backend_error"
+      }
+    },
+    {
+      "caseId": "TC014",
+      "description": "Delete any Location successfully",
+      "data": {
+        "confirmPassword": "SuperAdmin123!"
+      },
+      "expected": {
+        "type": "delete_success"
+      }
+    }
+  ]
+}
