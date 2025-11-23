@@ -6,6 +6,7 @@ import 'package:pbl6mobile/shared/services/store.dart';
 import 'package:pbl6mobile/view/auth/login_page.dart';
 import '../robots/auth_robot.dart';
 import '../robots/admin_management_robot.dart';
+import '../utils/test_helper.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -39,15 +40,20 @@ void main() {
     await authRobot.expectLoginSuccess();
   }
 
+  setUpAll(() async {
+    await TestHelper().loadData();
+  });
+
   group('Module Update & Delete Admin Profile Tests', () {
     testWidgets('TC006: Update thông tin hợp lệ', (tester) async {
       await setupAppAndLogin(tester);
       final adminRobot = AdminManagementRobot(tester);
+      final testData = TestHelper().getTestCase('admin_flow_tests', 'TC006');
 
       await adminRobot.navigateToAdminList();
       await adminRobot.clickEditAdmin(index: 0);
 
-      final newName = 'Admin E2E ${DateTime.now().millisecondsSinceEpoch}';
+      final newName = '${testData['data']['namePrefix']} ${DateTime.now().millisecondsSinceEpoch}';
       await adminRobot.updateInfo(name: newName);
 
       await adminRobot.expectUpdateSuccess(newName);
@@ -56,54 +62,58 @@ void main() {
     testWidgets('TC007: Validate lỗi khi để trống Tên', (tester) async {
       await setupAppAndLogin(tester);
       final adminRobot = AdminManagementRobot(tester);
+      final testData = TestHelper().getTestCase('admin_flow_tests', 'TC007');
 
       await adminRobot.navigateToAdminList();
       await adminRobot.clickEditAdmin(index: 0);
 
-      await adminRobot.updateInfo(name: '');
+      await adminRobot.updateInfo(name: testData['data']['name']);
 
-      await adminRobot.expectValidationError('Vui lòng nhập họ và tên');
+      await adminRobot.expectValidationError(testData['expected']['message']);
     });
 
     testWidgets('TC008: Validate lỗi Email sai định dạng', (tester) async {
       await setupAppAndLogin(tester);
       final adminRobot = AdminManagementRobot(tester);
+      final testData = TestHelper().getTestCase('admin_flow_tests', 'TC008');
 
       await adminRobot.navigateToAdminList();
       await adminRobot.clickEditAdmin(index: 0);
 
-      await adminRobot.updateInfo(email: 'email_sai_format');
+      await adminRobot.updateInfo(email: testData['data']['email']);
 
-      await adminRobot.expectValidationError('Email không đúng định dạng');
+      await adminRobot.expectValidationError(testData['expected']['message']);
     });
 
     testWidgets('TC009: Validate lỗi Email đã tồn tại', (tester) async {
       await setupAppAndLogin(tester);
       final adminRobot = AdminManagementRobot(tester);
+      final testData = TestHelper().getTestCase('admin_flow_tests', 'TC009');
 
       await adminRobot.navigateToAdminList();
       await adminRobot.clickEditAdmin(index: 0);
 
-      await adminRobot.updateInfo(email: 'superadmin@medicalink.com');
+      await adminRobot.updateInfo(email: testData['data']['email']);
 
-      await adminRobot.expectBackendError('Email');
+      await adminRobot.expectBackendError(testData['expected']['keyword']);
     });
 
     testWidgets('TC010: Tạo Admin mới thành công', (tester) async {
       await setupAppAndLogin(tester);
       final adminRobot = AdminManagementRobot(tester);
+      final testData = TestHelper().getTestCase('admin_flow_tests', 'TC010');
 
       await adminRobot.navigateToAdminList();
       await adminRobot.clickCreateAdmin();
 
       final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final newName = 'New Admin $timestamp';
-      final newEmail = 'newadmin$timestamp@test.com';
+      final newName = '${testData['data']['namePrefix']} $timestamp';
+      final newEmail = '${testData['data']['emailPrefix']}$timestamp${testData['data']['emailDomain']}';
 
       await adminRobot.fillCreateForm(
         name: newName,
         email: newEmail,
-        password: 'Password123!',
+        password: testData['data']['password'],
       );
 
       await adminRobot.expectCreateSuccess(newName);
@@ -112,12 +122,13 @@ void main() {
     testWidgets('TC011: Xóa Admin thành công', (tester) async {
       await setupAppAndLogin(tester);
       final adminRobot = AdminManagementRobot(tester);
+      final testData = TestHelper().getTestCase('admin_flow_tests', 'TC011');
 
       await adminRobot.navigateToAdminList();
 
       await adminRobot.deleteAdmin(
         index: 0,
-        password: 'SuperAdmin123!',
+        password: testData['data']['confirmPassword'],
       );
 
       await adminRobot.expectDeleteSuccess();

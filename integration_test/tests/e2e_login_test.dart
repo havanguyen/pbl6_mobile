@@ -3,6 +3,8 @@ import 'package:integration_test/integration_test.dart';
 import 'package:pbl6mobile/main.dart' as app;
 import 'package:pbl6mobile/shared/services/store.dart';
 import '../robots/auth_robot.dart';
+import '../utils/test_helper.dart';
+import '../utils/test_reporter.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -23,72 +25,168 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  setUpAll(() async {
+    await TestHelper().loadData();
+    TestReporter().clear();
+  });
+
+  tearDownAll(() async {
+    await TestReporter().exportToExcel();
+  });
+
   group('Login Feature E2E Tests', () {
     testWidgets('TC001: Login successfully with valid credentials', (tester) async {
-      await restartApp(tester);
-      final authRobot = AuthRobot(tester);
+      final testData = TestHelper().getTestCase('login_tests', 'TC001');
+      try {
+        await restartApp(tester);
+        final authRobot = AuthRobot(tester);
 
-      // Sử dụng tài khoản Super Admin mẫu
-      await authRobot.enterEmail('superadmin@medicalink.com');
-      await authRobot.enterPassword('SuperAdmin123!');
-      await authRobot.tapLoginButton();
+        // Sử dụng tài khoản Super Admin mẫu
+        await authRobot.enterEmail(testData['data']['email']);
+        await authRobot.enterPassword(testData['data']['password']);
+        await authRobot.tapLoginButton();
 
-      await tester.pump(const Duration(seconds: 5));
+        await tester.pump(const Duration(seconds: 5));
 
-      await authRobot.expectLoginSuccess();
+        await authRobot.expectLoginSuccess();
+        TestReporter().addResult(
+          caseId: 'TC001',
+          description: testData['description'],
+          status: 'PASSED',
+        );
+      } catch (e) {
+        TestReporter().addResult(
+          caseId: 'TC001',
+          description: testData['description'],
+          status: 'FAILED',
+          errorMessage: e.toString(),
+        );
+        rethrow;
+      }
     });
 
     testWidgets('TC002: Login failed with non-existent email', (tester) async {
-      await restartApp(tester);
-      final authRobot = AuthRobot(tester);
+      final testData = TestHelper().getTestCase('login_tests', 'TC002');
+      try {
+        await restartApp(tester);
+        final authRobot = AuthRobot(tester);
 
-      await authRobot.enterEmail('khongconguyen@gmail.com');
-      await authRobot.enterPassword('nguyen902993');
-      await authRobot.tapLoginButton();
+        await authRobot.enterEmail(testData['data']['email']);
+        await authRobot.enterPassword(testData['data']['password']);
+        await authRobot.tapLoginButton();
 
-      await authRobot.expectErrorDialogVisible();
-      await authRobot.dismissErrorDialog();
+        await authRobot.expectErrorDialogVisible();
+        await authRobot.dismissErrorDialog();
+        
+        TestReporter().addResult(
+          caseId: 'TC002',
+          description: testData['description'],
+          status: 'PASSED',
+        );
+      } catch (e) {
+        TestReporter().addResult(
+          caseId: 'TC002',
+          description: testData['description'],
+          status: 'FAILED',
+          errorMessage: e.toString(),
+        );
+        rethrow;
+      }
     });
 
     testWidgets('TC003: Login failed with wrong password', (tester) async {
-      await restartApp(tester);
-      final authRobot = AuthRobot(tester);
+      final testData = TestHelper().getTestCase('login_tests', 'TC003');
+      try {
+        await restartApp(tester);
+        final authRobot = AuthRobot(tester);
 
-      await authRobot.enterEmail('superadmin@medicalink.com');
-      await authRobot.enterPassword('Matkhausai@9');
-      await authRobot.tapLoginButton();
+        await authRobot.enterEmail(testData['data']['email']);
+        await authRobot.enterPassword(testData['data']['password']);
+        await authRobot.tapLoginButton();
 
-      await authRobot.expectErrorDialogVisible();
-      await authRobot.dismissErrorDialog();
+        await authRobot.expectErrorDialogVisible();
+        await authRobot.dismissErrorDialog();
+
+        TestReporter().addResult(
+          caseId: 'TC003',
+          description: testData['description'],
+          status: 'PASSED',
+        );
+      } catch (e) {
+        TestReporter().addResult(
+          caseId: 'TC003',
+          description: testData['description'],
+          status: 'FAILED',
+          errorMessage: e.toString(),
+        );
+        rethrow;
+      }
     });
 
     testWidgets('TC004: Login failed with empty fields', (tester) async {
-      await restartApp(tester);
-      final authRobot = AuthRobot(tester);
+      final testData = TestHelper().getTestCase('login_tests', 'TC004');
+      try {
+        await restartApp(tester);
+        final authRobot = AuthRobot(tester);
 
-      // Để trống và bấm Login
-      await authRobot.enterEmail('');
-      await authRobot.enterPassword('');
-      await authRobot.tapLoginButton();
+        // Để trống và bấm Login
+        await authRobot.enterEmail(testData['data']['email']);
+        await authRobot.enterPassword(testData['data']['password']);
+        await authRobot.tapLoginButton();
 
-      // Chờ validator hiển thị
-      await tester.pumpAndSettle();
+        // Chờ validator hiển thị
+        await tester.pumpAndSettle();
 
-      await authRobot.expectValidationError('Vui lòng nhập email');
-      await authRobot.expectValidationError('Vui lòng nhập mật khẩu');
+        final messages = List<String>.from(testData['expected']['messages']);
+        for (var msg in messages) {
+          await authRobot.expectValidationError(msg);
+        }
+
+        TestReporter().addResult(
+          caseId: 'TC004',
+          description: testData['description'],
+          status: 'PASSED',
+        );
+      } catch (e) {
+        TestReporter().addResult(
+          caseId: 'TC004',
+          description: testData['description'],
+          status: 'FAILED',
+          errorMessage: e.toString(),
+        );
+        rethrow;
+      }
     });
 
     testWidgets('TC005: Login failed with invalid email format', (tester) async {
-      await restartApp(tester);
-      final authRobot = AuthRobot(tester);
+      final testData = TestHelper().getTestCase('login_tests', 'TC005');
+      try {
+        await restartApp(tester);
+        final authRobot = AuthRobot(tester);
 
-      await authRobot.enterEmail('emailkhongdunghople');
-      await authRobot.enterPassword('SuperAdmin123!');
-      await authRobot.tapLoginButton();
+        await authRobot.enterEmail(testData['data']['email']);
+        await authRobot.enterPassword(testData['data']['password']);
+        await authRobot.tapLoginButton();
 
-      await tester.pumpAndSettle();
+        await tester.pumpAndSettle();
 
-      await authRobot.expectValidationError('Email không đúng định dạng');
+        final messages = List<String>.from(testData['expected']['messages']);
+        await authRobot.expectValidationError(messages.first);
+
+        TestReporter().addResult(
+          caseId: 'TC005',
+          description: testData['description'],
+          status: 'PASSED',
+        );
+      } catch (e) {
+        TestReporter().addResult(
+          caseId: 'TC005',
+          description: testData['description'],
+          status: 'FAILED',
+          errorMessage: e.toString(),
+        );
+        rethrow;
+      }
     });
   });
 }
