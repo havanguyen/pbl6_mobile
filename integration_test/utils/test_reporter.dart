@@ -8,6 +8,8 @@ class TestResult {
   final String description;
   final String status; // 'PASSED', 'FAILED'
   final String errorMessage;
+  final String inputData;
+  final String expectedResult;
   final DateTime timestamp;
 
   TestResult({
@@ -15,8 +17,9 @@ class TestResult {
     required this.description,
     required this.status,
     this.errorMessage = '',
-    DateTime? timestamp,
-  }) : timestamp = timestamp ?? DateTime.now();
+    this.inputData = '',
+    this.expectedResult = '',
+  }) : timestamp = DateTime.now();
 }
 
 class TestReporter {
@@ -34,12 +37,16 @@ class TestReporter {
     required String description,
     required String status,
     String errorMessage = '',
+    String inputData = '',
+    String expectedResult = '',
   }) {
     _results.add(TestResult(
       caseId: caseId,
       description: description,
       status: status,
       errorMessage: errorMessage,
+      inputData: inputData,
+      expectedResult: expectedResult,
     ));
     print('Test Result Added: $caseId - $status');
   }
@@ -54,7 +61,7 @@ class TestReporter {
     }
 
     // Add Header
-    List<String> headers = ['Case ID', 'Description', 'Status', 'Error Message', 'Timestamp'];
+    List<String> headers = ['Case ID', 'Description', 'Input Data', 'Expected Result', 'Status', 'Error Message', 'Timestamp'];
     sheetObject.appendRow(headers.map((e) => TextCellValue(e)).toList());
 
     // Add Data
@@ -62,6 +69,8 @@ class TestReporter {
       sheetObject.appendRow([
         TextCellValue(result.caseId),
         TextCellValue(result.description),
+        TextCellValue(result.inputData),
+        TextCellValue(result.expectedResult),
         TextCellValue(result.status),
         TextCellValue(result.errorMessage),
         TextCellValue(DateFormat('yyyy-MM-dd HH:mm:ss').format(result.timestamp)),
@@ -72,7 +81,8 @@ class TestReporter {
     try {
       Directory? directory;
       if (Platform.isAndroid) {
-        directory = await getExternalStorageDirectory(); // For easier access on Android
+        // Save to public Download directory to avoid scoped storage issues and run-as failures
+        directory = Directory('/storage/emulated/0/Download');
       } else if (Platform.isIOS) {
         directory = await getApplicationDocumentsDirectory();
       } else {
@@ -80,7 +90,7 @@ class TestReporter {
         directory = await getApplicationDocumentsDirectory();
       }
       
-      // Attempt to mimic the requested path structure inside the doc dir
+      // Create test_result subdirectory
       final String resultDir = '${directory!.path}/test_result';
       final Directory dir = Directory(resultDir);
       if (!await dir.exists()) {

@@ -53,6 +53,8 @@ void main() {
           caseId: 'TC001',
           description: testData['description'],
           status: 'PASSED',
+          inputData: testData['data'].toString(),
+          expectedResult: testData['expected'].toString(),
         );
       } catch (e) {
         TestReporter().addResult(
@@ -60,6 +62,8 @@ void main() {
           description: testData['description'],
           status: 'FAILED',
           errorMessage: e.toString(),
+          inputData: testData['data'].toString(),
+          expectedResult: testData['expected'].toString(),
         );
         rethrow;
       }
@@ -82,6 +86,8 @@ void main() {
           caseId: 'TC002',
           description: testData['description'],
           status: 'PASSED',
+          inputData: testData['data'].toString(),
+          expectedResult: testData['expected'].toString(),
         );
       } catch (e) {
         TestReporter().addResult(
@@ -89,6 +95,8 @@ void main() {
           description: testData['description'],
           status: 'FAILED',
           errorMessage: e.toString(),
+          inputData: testData['data'].toString(),
+          expectedResult: testData['expected'].toString(),
         );
         rethrow;
       }
@@ -111,6 +119,8 @@ void main() {
           caseId: 'TC003',
           description: testData['description'],
           status: 'PASSED',
+          inputData: testData['data'].toString(),
+          expectedResult: testData['expected'].toString(),
         );
       } catch (e) {
         TestReporter().addResult(
@@ -118,6 +128,8 @@ void main() {
           description: testData['description'],
           status: 'FAILED',
           errorMessage: e.toString(),
+          inputData: testData['data'].toString(),
+          expectedResult: testData['expected'].toString(),
         );
         rethrow;
       }
@@ -146,6 +158,8 @@ void main() {
           caseId: 'TC004',
           description: testData['description'],
           status: 'PASSED',
+          inputData: testData['data'].toString(),
+          expectedResult: testData['expected'].toString(),
         );
       } catch (e) {
         TestReporter().addResult(
@@ -153,6 +167,8 @@ void main() {
           description: testData['description'],
           status: 'FAILED',
           errorMessage: e.toString(),
+          inputData: testData['data'].toString(),
+          expectedResult: testData['expected'].toString(),
         );
         rethrow;
       }
@@ -177,6 +193,8 @@ void main() {
           caseId: 'TC005',
           description: testData['description'],
           status: 'PASSED',
+          inputData: testData['data'].toString(),
+          expectedResult: testData['expected'].toString(),
         );
       } catch (e) {
         TestReporter().addResult(
@@ -184,6 +202,8 @@ void main() {
           description: testData['description'],
           status: 'FAILED',
           errorMessage: e.toString(),
+          inputData: testData['data'].toString(),
+          expectedResult: testData['expected'].toString(),
         );
         rethrow;
       }
