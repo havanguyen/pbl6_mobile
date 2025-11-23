@@ -13,7 +13,7 @@ class TestHelper {
 
   Future<void> loadData() async {
     if (_data != null) return;
-    final String response = await rootBundle.loadString('assets/data/e2e_test_data.json');
+    final String response = await rootBundle.loadString('assets/data/test_data.json');
     _data = json.decode(response);
   }
 

@@ -6,16 +6,9 @@ import 'package:pbl6mobile/shared/services/store.dart';
 import 'package:pbl6mobile/view/auth/login_page.dart';
 import '../robots/auth_robot.dart';
 import '../robots/location_work_robot.dart';
-import '../utils/test_helper.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
-
-  final testHelper = TestHelper();
-
-  setUpAll(() async {
-    await testHelper.loadData();
-  });
 
   Future<void> setupAppAndLogin(WidgetTester tester) async {
     await Store.clearStorage();
@@ -42,19 +35,18 @@ void main() {
 
   group('Location Work Management E2E Tests', () {
     testWidgets('TC010: Create Location successfully (Happy Case)', (tester) async {
-      final data = testHelper.getTestCase('location_tests', 'TC010');
       await setupAppAndLogin(tester);
       final locationRobot = LocationWorkRobot(tester);
 
       await locationRobot.navigateToLocationList();
       await locationRobot.tapCreateButton();
 
-      final uniqueName = '${data['data']['namePrefix']} ${DateTime.now().millisecondsSinceEpoch}';
+      final uniqueName = 'BV Đa Khoa E2E ${DateTime.now().millisecondsSinceEpoch}';
 
       await locationRobot.enterInfo(
         name: uniqueName,
-        address: data['data']['address'],
-        phone: data['data']['phone'],
+        address: 'Address A, Xã Khánh An, Huyện An Phú, Tỉnh An Giang',
+        phone: '0905123456',
       );
 
       await locationRobot.submitForm();
@@ -62,7 +54,6 @@ void main() {
     });
 
     testWidgets('TC011: Validate error when required fields are empty', (tester) async {
-      final data = testHelper.getTestCase('location_tests', 'TC011');
       await setupAppAndLogin(tester);
       final locationRobot = LocationWorkRobot(tester);
 
@@ -71,14 +62,12 @@ void main() {
 
       await locationRobot.submitForm();
 
-      final messages = List<String>.from(data['expected']['messages']);
-      for (var msg in messages) {
-        await locationRobot.expectValidationError(msg);
-      }
+      await locationRobot.expectValidationError('Vui lòng nhập tên địa điểm');
+      await locationRobot.expectValidationError('Vui lòng nhập địa chỉ');
+      await locationRobot.expectValidationError('Vui lòng nhập số điện thoại');
     });
 
     testWidgets('TC012: Validate invalid Phone Number format', (tester) async {
-      final data = testHelper.getTestCase('location_tests', 'TC012');
       await setupAppAndLogin(tester);
       final locationRobot = LocationWorkRobot(tester);
 
@@ -86,33 +75,29 @@ void main() {
       await locationRobot.tapCreateButton();
 
       await locationRobot.enterInfo(
-        name: data['data']['name'],
-        address: data['data']['address'],
-        phone: data['data']['phone'],
+        name: 'Test Phone Format',
+        address: 'Address A, Xã Khánh An, Huyện An Phú, Tỉnh An Giang',
+        phone: '090511',
       );
 
       await locationRobot.submitForm();
 
-      final messages = List<String>.from(data['expected']['messages']);
-      for (var msg in messages) {
-        await locationRobot.expectValidationError(msg);
-      }
+      await locationRobot.expectValidationError('Số điện thoại không hợp lệ');
     });
 
     testWidgets('TC013: Validate Duplicate Location Name/Info (Backend Check)', (tester) async {
-      final data = testHelper.getTestCase('location_tests', 'TC013');
       await setupAppAndLogin(tester);
       final locationRobot = LocationWorkRobot(tester);
 
       await locationRobot.navigateToLocationList();
 
-      final duplicateName = '${data['data']['namePrefix']} ${DateTime.now().millisecondsSinceEpoch}';
+      final duplicateName = 'Duplicate Loc ${DateTime.now().millisecondsSinceEpoch}';
 
       await locationRobot.tapCreateButton();
       await locationRobot.enterInfo(
         name: duplicateName,
-        address: data['data']['addressA'],
-        phone: data['data']['phoneA'],
+        address: 'Address A, Xã Khánh An, Huyện An Phú, Tỉnh An Giang',
+        phone: '0905111222',
       );
       await locationRobot.submitForm();
       await locationRobot.expectCreateSuccess(duplicateName);
@@ -120,23 +105,22 @@ void main() {
       await locationRobot.tapCreateButton();
       await locationRobot.enterInfo(
         name: duplicateName,
-        address: data['data']['addressB'],
-        phone: data['data']['phoneB'],
+        address: 'Address B, Xã Khánh An, Huyện An Phú, Tỉnh An Giang',
+        phone: '0905333444',
       );
       await locationRobot.submitForm();
 
       await locationRobot.expectBackendError();
     });
 
-    testWidgets('TC014: Delete any Location successfully', (tester) async {
-      final data = testHelper.getTestCase('location_tests', 'TC014');
+    testWidgets('TC014: Delete any Location successfully (With Password Confirm)', (tester) async {
       await setupAppAndLogin(tester);
       final locationRobot = LocationWorkRobot(tester);
       await locationRobot.navigateToLocationList();
       await tester.pump(const Duration(seconds: 3));
       await tester.pumpAndSettle();
       await locationRobot.clickFirstDeleteIcon();
-      await locationRobot.confirmDeleteDialog(data['data']['confirmPassword']);
+      await locationRobot.confirmDeleteDialog('SuperAdmin123!');
     });
   });
 }
