@@ -1,0 +1,372 @@
+{{base_url}}/permissions/groups 
+
+{
+    "success": true,
+    "message": "Data retrieved successfully",
+    "data": [
+        {
+            "id": "cmh68d3re001t1ug5skwscd87",
+            "name": "admin",
+            "description": "Administrator with management access",
+            "tenantId": "global",
+            "isActive": true,
+            "createdAt": "2025-10-25T12:02:35.211Z",
+            "updatedAt": "2025-11-03T19:04:17.622Z"
+        },
+        {
+            "id": "cmh68d3ri001u1ug5uhtxhule",
+            "name": "doctor",
+            "description": "Doctor with patient care access",
+            "tenantId": "global",
+            "isActive": true,
+            "createdAt": "2025-10-25T12:02:35.215Z",
+            "updatedAt": "2025-11-03T19:04:17.625Z"
+        },
+        {
+            "id": "cmh68d3qh001s1ug5hz6907c2",
+            "name": "super_admin",
+            "description": "Super Administrator with full system access",
+            "tenantId": "global",
+            "isActive": true,
+            "createdAt": "2025-10-25T12:02:35.177Z",
+            "updatedAt": "2025-11-03T19:04:17.617Z"
+        }
+    ],
+    "timestamp": "2025-11-24T11:31:23.784Z",
+    "path": "/api/permissions/groups",
+    "method": "GET",
+    "statusCode": 200
+}
+
+{{base_url}}/permissions/groups
+
+{
+    "name": "sub_admin",
+    "description": "Sub-admin with limited management permission"
+}
+
+{
+    "success": true,
+    "message": "Resource created successfully",
+    "data": {
+        "id": "cmid2h6tg000ppc01zg5rfoji",
+        "name": "sub_admin",
+        "description": "Sub-admin with limited management permission"
+    },
+    "timestamp": "2025-11-24T11:31:53.814Z",
+    "path": "/api/permissions/groups",
+    "method": "POST",
+    "statusCode": 201
+}
+
+{{base_url}}/permissions/groups/:groupId
+
+{
+    "name": "sub_admiz",
+    "description": "Sub-admin with limited permission",
+    "isActive": false
+}
+
+{
+    "success": true,
+    "message": "Resource updated successfully",
+    "data": null,
+    "timestamp": "2025-11-24T11:33:03.544Z",
+    "path": "/api/permissions/groups/cmid2h6tg000ppc01zg5rfoji",
+    "method": "PUT",
+    "statusCode": 200
+}
+
+{{base_url}}/permissions/groups/:groupId
+
+{
+    "success": true,
+    "message": "Group deleted successfully",
+    "timestamp": "2025-11-24T11:33:35.501Z",
+    "path": "/api/permissions/groups/cmid2h6tg000ppc01zg5rfoji",
+    "method": "DELETE",
+    "statusCode": 200
+}
+
+{{base_url}}/permissions/groups/:groupId/permissions
+
+{
+    "success": true,
+    "message": "Data retrieved successfully",
+    "data": [
+        {
+            "id": "cmhjie3c7003h1u0ylfovaenl",
+            "permissionId": "cmhjie2st000m1u0yn3q9xkqe",
+            "resource": "office-hours",
+            "action": "manage",
+            "description": "Full office hours management access",
+            "effect": "ALLOW",
+            "createdAt": "2025-11-03T19:04:17.768Z"
+        },
+        {
+            "id": "cmh68d3zf003m1ug50k27kbpr",
+            "permissionId": "cmh68d33j00051ug5ob683d15",
+            "resource": "staff",
+            "action": "update",
+            "description": "Update admin/superadmin staff accounts",
+            "effect": "ALLOW",
+            "conditions": [
+                {
+                    "field": "isSelf",
+                    "value": true,
+                    "operator": "eq"
+                }
+            ],
+            "createdAt": "2025-10-25T12:02:35.500Z"
+        },
+        {
+            "id": "cmh68d3z8003k1ug5rjyetrnx",
+            "permissionId": "cmh68d3n5001n1ug58dc49m4l",
+            "resource": "notifications",
+            "action": "read",
+            "description": "View notifications",
+            "effect": "ALLOW",
+            "createdAt": "2025-10-25T12:02:35.492Z"
+        },
+        {
+            "id": "cmh68d3z0003i1ug5qnl01q7h",
+            "permissionId": "cmh68d3n1001m1ug54sdc1lk2",
+            "resource": "notifications",
+            "action": "send",
+            "description": "Send notifications",
+            "effect": "ALLOW",
+            "createdAt": "2025-10-25T12:02:35.484Z"
+        },
+        {
+            "id": "cmh68d3ys003g1ug5fclfo70d",
+            "permissionId": "cmh68d3my001l1ug5ev5cpvcj",
+            "resource": "reviews",
+            "action": "manage",
+            "description": "Full reviews management access",
+            "effect": "ALLOW",
+            "createdAt": "2025-10-25T12:02:35.476Z"
+        },
+        {
+            "id": "cmh68d3yk003e1ug5w7bcz1hn",
+            "permissionId": "cmh68d3mi001h1ug5x1gp8pyb",
+            "resource": "answers",
+            "action": "manage",
+            "description": "Full Q&A answers management access",
+            "effect": "ALLOW",
+            "createdAt": "2025-10-25T12:02:35.468Z"
+        },
+        {
+            "id": "cmh68d3yb003c1ug5i54zbn39",
+            "permissionId": "cmh68d3j8001c1ug554drcrsh",
+            "resource": "questions",
+            "action": "manage",
+            "description": "Full Q&A questions management access",
+            "effect": "ALLOW",
+            "createdAt": "2025-10-25T12:02:35.459Z"
+        },
+        {
+            "id": "cmh68d3y3003a1ug5r82fkmcc",
+            "permissionId": "cmh68d3iq00171ug5uz8gh99p",
+            "resource": "blogs",
+            "action": "manage",
+            "description": "Full blog management access",
+            "effect": "ALLOW",
+            "createdAt": "2025-10-25T12:02:35.452Z"
+        },
+        {
+            "id": "cmh68d3xw00381ug5rdpwt0k6",
+            "permissionId": "cmh68d3fc00111ug5ggxodpuf",
+            "resource": "schedules",
+            "action": "manage",
+            "description": "Full doctor schedules management access",
+            "effect": "ALLOW",
+            "createdAt": "2025-10-25T12:02:35.444Z"
+        },
+        {
+            "id": "cmh68d3xp00361ug5x02xcwv4",
+            "permissionId": "cmh68d3eu000w1ug5tt6qcnvz",
+            "resource": "work-locations",
+            "action": "manage",
+            "description": "Full work locations management access",
+            "effect": "ALLOW",
+            "createdAt": "2025-10-25T12:02:35.437Z"
+        },
+        {
+            "id": "cmh68d3xi00341ug5mhx7uau4",
+            "permissionId": "cmh68d3bd000p1ug5ofy122nb",
+            "resource": "specialties",
+            "action": "update",
+            "description": "Update specialties",
+            "effect": "ALLOW",
+            "createdAt": "2025-10-25T12:02:35.430Z"
+        },
+        {
+            "id": "cmh68d3xb00321ug5wgfiosan",
+            "permissionId": "cmh68d3ba000o1ug5bemjv8m7",
+            "resource": "specialties",
+            "action": "read",
+            "description": "View specialties",
+            "effect": "ALLOW",
+            "createdAt": "2025-10-25T12:02:35.423Z"
+        },
+        {
+            "id": "cmh68d3wx002y1ug55c0lyho1",
+            "permissionId": "cmh68d3b3000m1ug5i92bonk9",
+            "resource": "appointments",
+            "action": "manage",
+            "description": "Full appointment management",
+            "effect": "ALLOW",
+            "createdAt": "2025-10-25T12:02:35.409Z"
+        },
+        {
+            "id": "cmh68d3wo002w1ug5u1sbdlis",
+            "permissionId": "cmh68d37r000h1ug5rbgfs3pa",
+            "resource": "patients",
+            "action": "manage",
+            "description": "Full patient management access",
+            "effect": "ALLOW",
+            "createdAt": "2025-10-25T12:02:35.401Z"
+        },
+        {
+            "id": "cmh68d3wg002u1ug5lbpbqy86",
+            "permissionId": "cmh68d377000c1ug5ecl9ceam",
+            "resource": "doctors",
+            "action": "manage",
+            "description": "Full doctor management access",
+            "effect": "ALLOW",
+            "createdAt": "2025-10-25T12:02:35.392Z"
+        },
+        {
+            "id": "cmh68d3w7002s1ug5wwz7ceqw",
+            "permissionId": "cmh68d33f00041ug5gx9orx45",
+            "resource": "staff",
+            "action": "read",
+            "description": "View admin/superadmin staff accounts",
+            "effect": "ALLOW",
+            "createdAt": "2025-10-25T12:02:35.383Z"
+        }
+    ],
+    "timestamp": "2025-11-24T11:34:15.345Z",
+    "path": "/api/permissions/groups/cmh68d3re001t1ug5skwscd87/permissions",
+    "method": "GET",
+    "statusCode": 200
+}
+
+{{base_url}}/permissions/users/cmgeytrfg00001uka420nzexs
+
+{
+    "success": true,
+    "message": "Data retrieved successfully",
+    "data": [
+        {
+            "resource": "answers",
+            "action": "create",
+            "effect": "ALLOW"
+        },
+        {
+            "resource": "office-hours",
+            "action": "manage",
+            "effect": "ALLOW"
+        },
+        {
+            "resource": "staff",
+            "action": "manage",
+            "effect": "ALLOW"
+        },
+        {
+            "resource": "doctors",
+            "action": "manage",
+            "effect": "ALLOW"
+        },
+        {
+            "resource": "patients",
+            "action": "manage",
+            "effect": "ALLOW"
+        },
+        {
+            "resource": "appointments",
+            "action": "manage",
+            "effect": "ALLOW"
+        },
+        {
+            "resource": "specialties",
+            "action": "manage",
+            "effect": "ALLOW"
+        },
+        {
+            "resource": "work-locations",
+            "action": "manage",
+            "effect": "ALLOW"
+        },
+        {
+            "resource": "system",
+            "action": "admin",
+            "effect": "ALLOW"
+        },
+        {
+            "resource": "permissions",
+            "action": "manage",
+            "effect": "ALLOW"
+        },
+        {
+            "resource": "groups",
+            "action": "manage",
+            "effect": "ALLOW"
+        },
+        {
+            "resource": "schedules",
+            "action": "manage",
+            "effect": "ALLOW"
+        },
+        {
+            "resource": "blogs",
+            "action": "manage",
+            "effect": "ALLOW"
+        },
+        {
+            "resource": "questions",
+            "action": "manage",
+            "effect": "ALLOW"
+        },
+        {
+            "resource": "answers",
+            "action": "manage",
+            "effect": "ALLOW"
+        },
+        {
+            "resource": "reviews",
+            "action": "manage",
+            "effect": "ALLOW"
+        },
+        {
+            "resource": "notifications",
+            "action": "manage",
+            "effect": "ALLOW"
+        }
+    ],
+    "timestamp": "2025-11-24T11:36:10.187Z",
+    "path": "/api/permissions/users/cmgeytrfg00001uka420nzexs",
+    "method": "GET",
+    "statusCode": 200
+}
+
+{{base_url}}/permissions/users/:userId/groups
+
+{
+    "success": true,
+    "message": "Data retrieved successfully",
+    "data": [
+        {
+            "id": "cmh68d4i8007c1ug5r98x1yux",
+            "groupId": "cmh68d3qh001s1ug5hz6907c2",
+            "groupName": "super_admin",
+            "groupDescription": "Super Administrator with full system access",
+            "tenantId": "global",
+            "createdAt": "2025-10-25T12:02:36.176Z"
+        }
+    ],
+    "timestamp": "2025-11-24T11:40:23.815Z",
+    "path": "/api/permissions/users/cmgeytrfg00001uka420nzexs/groups",
+    "method": "GET",
+    "statusCode": 200
+}

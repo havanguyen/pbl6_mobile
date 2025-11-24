@@ -64,6 +64,25 @@ class SettingSupperAdminPage extends StatelessWidget {
           ),
           const Divider(height: 1, color: Colors.grey),
           ListTile(
+            key: const ValueKey('settings_page_permission_button'),
+            leading: Icon(
+              Icons.admin_panel_settings_outlined,
+              color: context.theme.blue,
+              size: 28,
+            ),
+            title: Text(
+              'Quản lý phân quyền',
+              style: TextStyle(
+                fontSize: 16,
+                color: context.theme.textColor,
+              ),
+            ),
+            onTap: () {
+              Navigator.pushNamed(context, Routes.permissionGroups);
+            },
+          ),
+          const Divider(height: 1, color: Colors.grey),
+          ListTile(
             key: const ValueKey('settings_page_specialty_button'),
             leading: Icon(
               Icons.type_specimen_outlined,

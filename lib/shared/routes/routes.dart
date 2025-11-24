@@ -49,6 +49,10 @@ import '../../view/specialty/update_specialty.dart';
 import '../../view_model/review/review_vm.dart';
 import '../widgets/widget/edit_profile_page.dart';
 
+import 'package:pbl6mobile/view/setting/super_admin/permission/permission_groups_page.dart';
+import 'package:pbl6mobile/view/setting/super_admin/permission/permission_group_detail_page.dart';
+import 'package:pbl6mobile/model/entities/permission_group.dart';
+
 class Routes {
   static const login = '/login';
   static const mainPageDoctor = '/mainPageDoctor';
@@ -90,6 +94,8 @@ class Routes {
   static const String createPatient = '/createPatient';
   static const String updatePatient = '/updatePatient';
   static const String listAppointment = '/listAppointment';
+  static const String permissionGroups = '/permissionGroups';
+  static const String permissionGroupDetail = '/permissionGroupDetail';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -368,6 +374,19 @@ class Routes {
           type: PageTransitionType.fade,
           settings: settings,
           child: const ListAppointmentPage(),
+        );
+      case permissionGroups:
+        return PageTransition(
+          type: PageTransitionType.leftToRight,
+          settings: settings,
+          child: const PermissionGroupsPage(),
+        );
+      case permissionGroupDetail:
+        final group = settings.arguments as PermissionGroup;
+        return PageTransition(
+          type: PageTransitionType.leftToRight,
+          settings: settings,
+          child: PermissionGroupDetailPage(group: group),
         );
       default:
         return MaterialPageRoute(
