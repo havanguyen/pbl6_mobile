@@ -45,6 +45,15 @@ class _PermissionGroupDetailPageState extends State<PermissionGroupDetailPage> {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cập nhật thành công')));
       }
+    } else {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(vm.error ?? 'Không thể cập nhật nhóm quyền'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -332,7 +341,8 @@ class _ManagePermissionDialogState extends State<ManagePermissionDialog> {
   @override
   void initState() {
     super.initState();
-    _selectedIds = widget.initialPermissions.map((e) => e.id).toSet();
+    // Use permissionId for matching with all permissions list
+    _selectedIds = widget.initialPermissions.map((e) => e.permissionId.isNotEmpty ? e.permissionId : e.id).toSet();
   }
 
   @override

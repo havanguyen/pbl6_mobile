@@ -328,7 +328,8 @@ class _ManageUserPermissionsDialogState extends State<ManageUserPermissionsDialo
   @override
   void initState() {
     super.initState();
-    _selectedIds = widget.currentPermissions.map((p) => p.id).toSet();
+    // Use permissionId for matching with all permissions list
+    _selectedIds = widget.currentPermissions.map((p) => p.permissionId.isNotEmpty ? p.permissionId : p.id).toSet();
   }
 
   @override
