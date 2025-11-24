@@ -203,4 +203,166 @@ class PermissionService {
       return false;
     }
   }
+
+  // User Permissions
+  static Future<List<Permission>> getUserPermissions(String userId) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.get(
+        Uri.parse('$_baseUrl/permissions/users/$userId'),
+        headers: headers,
+      );
+
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
+        if (body['success'] == true) {
+          final List<dynamic> data = body['data'];
+          return data.map((json) => Permission.fromJson(json)).toList();
+        }
+      }
+      return [];
+    } catch (e) {
+      print('Error fetching user permissions: $e');
+      return [];
+    }
+  }
+
+  static Future<bool> assignPermissionsToUser(String userId, List<String> permissions) async {
+    try {
+      final headers = await _getHeaders();
+      bool allSuccess = true;
+
+      for (final permissionId in permissions) {
+        final response = await http.post(
+          Uri.parse('$_baseUrl/permissions/users/$userId/permissions'),
+          headers: headers,
+          body: jsonEncode({
+            'permissionId': permissionId,
+          }),
+        );
+        final body = jsonDecode(response.body);
+        if (response.statusCode != 201 || body['success'] != true) {
+          allSuccess = false;
+        }
+      }
+      return allSuccess;
+    } catch (e) {
+      print('Error assigning permissions to user: $e');
+      return false;
+    }
+  }
+
+  static Future<bool> revokePermissionsFromUser(String userId, List<String> permissions) async {
+    try {
+      final headers = await _getHeaders();
+      bool allSuccess = true;
+
+      for (final permissionId in permissions) {
+        final response = await http.delete(
+          Uri.parse('$_baseUrl/permissions/users/$userId/permissions'),
+          headers: headers,
+          body: jsonEncode({
+            'permissionId': permissionId,
+          }),
+        );
+        final body = jsonDecode(response.body);
+        if (response.statusCode != 200 || body['success'] != true) {
+          allSuccess = false;
+        }
+      }
+      return allSuccess;
+    } catch (e) {
+      print('Error revoking permissions from user: $e');
+      return false;
+    }
+  }
+
+  // User Groups
+  static Future<List<PermissionGroup>> getUserGroups(String userId) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.get(
+        Uri.parse('$_baseUrl/permissions/users/$userId/groups'),
+        headers: headers,
+      );
+
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
+        if (body['success'] == true) {
+          final List<dynamic> data = body['data'];
+          // The API returns groups with 'groupId' and 'groupName' etc.
+          // We need to map it to PermissionGroup.
+          // Based on api_pbl6.txt:
+          // { "id": "...", "groupId": "...", "groupName": "...", "groupDescription": "..." }
+          // PermissionGroup expects id, name, description.
+          // We should map 'groupId' to 'id', 'groupName' to 'name'.
+          // Wait, 'id' in response is the UserGroup link ID. 'groupId' is the Group ID.
+          // PermissionGroup entity uses 'id' as the Group ID.
+          return data.map((json) => PermissionGroup(
+            id: json['groupId'] ?? '',
+            name: json['groupName'] ?? '',
+            description: json['groupDescription'] ?? '',
+            tenantId: json['tenantId'] ?? '',
+            isActive: true, // Default
+            createdAt: json['createdAt'] ?? '',
+            updatedAt: '', // Not provided
+          )).toList();
+        }
+      }
+      return [];
+    } catch (e) {
+      print('Error fetching user groups: $e');
+      return [];
+    }
+  }
+
+  static Future<bool> assignGroupsToUser(String userId, List<String> groupIds) async {
+    try {
+      final headers = await _getHeaders();
+      bool allSuccess = true;
+
+      for (final groupId in groupIds) {
+        final response = await http.post(
+          Uri.parse('$_baseUrl/permissions/users/$userId/groups'),
+          headers: headers,
+          body: jsonEncode({
+            'groupId': groupId,
+          }),
+        );
+        final body = jsonDecode(response.body);
+        if (response.statusCode != 201 || body['success'] != true) {
+          allSuccess = false;
+        }
+      }
+      return allSuccess;
+    } catch (e) {
+      print('Error assigning groups to user: $e');
+      return false;
+    }
+  }
+
+  static Future<bool> revokeGroupsFromUser(String userId, List<String> groupIds) async {
+    try {
+      final headers = await _getHeaders();
+      bool allSuccess = true;
+
+      for (final groupId in groupIds) {
+        final response = await http.delete(
+          Uri.parse('$_baseUrl/permissions/users/$userId/groups'),
+          headers: headers,
+          body: jsonEncode({
+            'groupId': groupId,
+          }),
+        );
+        final body = jsonDecode(response.body);
+        if (response.statusCode != 200 || body['success'] != true) {
+          allSuccess = false;
+        }
+      }
+      return allSuccess;
+    } catch (e) {
+      print('Error revoking groups from user: $e');
+      return false;
+    }
+  }
 }

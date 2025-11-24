@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import 'package:page_transition/page_transition.dart';
 import 'package:pbl6mobile/model/entities/doctor_detail.dart';
 import 'package:pbl6mobile/model/entities/patient.dart';
@@ -43,15 +42,16 @@ import '../../view/setting/doctor/setting_doctor_page.dart';
 import '../../view/specialty/create_info_section.dart';
 import '../../view/specialty/create_specialty.dart';
 import '../../view/specialty/list_specialty.dart';
-import '../../view/specialty/specialty_detail.dart';
-import '../../view/specialty/update_info_section.dart';
-import '../../view/specialty/update_specialty.dart';
-import '../../view_model/review/review_vm.dart';
-import '../widgets/widget/edit_profile_page.dart';
-
 import 'package:pbl6mobile/view/setting/super_admin/permission/permission_groups_page.dart';
 import 'package:pbl6mobile/view/setting/super_admin/permission/permission_group_detail_page.dart';
+import 'package:pbl6mobile/view/setting/super_admin/permission/user_permission_detail_page.dart';
 import 'package:pbl6mobile/model/entities/permission_group.dart';
+import 'package:pbl6mobile/model/entities/staff.dart';
+import 'package:pbl6mobile/view_model/review/review_vm.dart';
+import 'package:pbl6mobile/shared/widgets/widget/edit_profile_page.dart';
+import 'package:pbl6mobile/view/specialty/update_info_section.dart';
+import 'package:pbl6mobile/view/specialty/update_specialty.dart';
+import 'package:pbl6mobile/view/specialty/specialty_detail.dart';
 
 class Routes {
   static const login = '/login';
@@ -89,13 +89,14 @@ class Routes {
   static const String manageBlogCategories = '/manage-blog-categories';
   static const String listQuestion = '/listQuestion';
   static const String questionDetail = '/questionDetail';
-  static const String doctorReviewPage = '/doctor-review-page';
   static const String listPatient = '/listPatient';
   static const String createPatient = '/createPatient';
   static const String updatePatient = '/updatePatient';
   static const String listAppointment = '/listAppointment';
+  static const String doctorReviewPage = '/doctorReviewPage';
   static const String permissionGroups = '/permissionGroups';
   static const String permissionGroupDetail = '/permissionGroupDetail';
+  static const String userPermissionDetail = '/userPermissionDetail';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -387,6 +388,13 @@ class Routes {
           type: PageTransitionType.leftToRight,
           settings: settings,
           child: PermissionGroupDetailPage(group: group),
+        );
+      case userPermissionDetail:
+        final user = settings.arguments as Staff;
+        return PageTransition(
+          type: PageTransitionType.leftToRight,
+          settings: settings,
+          child: UserPermissionDetailPage(user: user),
         );
       default:
         return MaterialPageRoute(
