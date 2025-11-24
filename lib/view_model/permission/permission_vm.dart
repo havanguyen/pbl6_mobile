@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:pbl6mobile/model/entities/doctor.dart';
+import 'package:pbl6mobile/model/entities/doctor_response.dart'; // Đã thêm import này
 import 'package:pbl6mobile/model/entities/permission.dart';
 import 'package:pbl6mobile/model/entities/permission_group.dart';
 import 'package:pbl6mobile/model/entities/staff.dart';
+import 'package:pbl6mobile/model/services/remote/doctor_service.dart';
 import 'package:pbl6mobile/model/services/remote/permission_service.dart';
 import 'package:pbl6mobile/model/services/remote/staff_service.dart';
 
@@ -9,18 +12,18 @@ class PermissionVm extends ChangeNotifier {
   List<PermissionGroup> _groups = [];
   List<PermissionGroup> get groups => _groups;
 
-  List<Permission> _groupPermissions = [];
-  List<Permission> get groupPermissions => _groupPermissions;
+  final Map<String, List<Permission>> _groupPermissionsMap = {};
 
   List<Permission> _allPermissions = [];
   List<Permission> get allPermissions => _allPermissions;
-  
+
   List<Permission> _currentUserPermissions = [];
   List<Permission> get currentUserPermissions => _currentUserPermissions;
 
   List<PermissionGroup> _currentUserGroups = [];
   List<PermissionGroup> get currentUserGroups => _currentUserGroups;
-  
+
+  // Danh sách user bao gồm cả Admin, Doctor, SuperAdmin (được quy về Staff)
   List<Staff> _users = [];
   List<Staff> get users => _users;
 
@@ -30,26 +33,81 @@ class PermissionVm extends ChangeNotifier {
   String? _error;
   String? get error => _error;
 
+  // --- USER MANAGEMENT (Admin + Doctor + SuperAdmin) ---
   Future<void> fetchUsers() async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      final result = await StaffService.getAdmins();
-      if (result.success) {
-        _users = result.data;
-      } else {
-        _error = result.message ?? 'Không thể tải danh sách người dùng';
+      // Gọi song song API lấy Admin và Doctor
+      final results = await Future.wait([
+        StaffService.getAdmins(),
+        DoctorService.getDoctors(limit: 1000),
+      ]);
+
+      final List<Staff> mergedList = [];
+
+      // 1. Xử lý kết quả Admin (StaffService)
+      // Giả sử StaffService trả về một object có field success và data là List<Staff>
+      final adminResult = results[0] as dynamic;
+      if (adminResult.success == true) {
+        final admins = adminResult.data as List<Staff>;
+        mergedList.addAll(admins);
       }
+
+      // 2. Xử lý kết quả Doctor (DoctorService)
+      final doctorResult = results[1] as GetDoctorsResponse; // Đã fix lỗi type cast
+      if (doctorResult.success) {
+        final doctors = doctorResult.data;
+
+        // Map Doctor -> Staff để chung định dạng
+        final doctorStaffs = doctors.map((doc) {
+          // Chuyển đổi ngày tháng an toàn
+          DateTime? parseDate(dynamic date) {
+            if (date is DateTime) return date;
+            if (date is String) return DateTime.tryParse(date);
+            return null;
+          }
+
+          return Staff(
+            id: doc.id,
+            email: doc.email,
+            fullName: doc.fullName,
+            role: 'Doctor', // Gán role để phân biệt trên UI
+            phone: doc.phone, // Staff cho phép null
+            isMale: doc.isMale,
+            dateOfBirth: parseDate(doc.dateOfBirth),
+            createdAt: parseDate(doc.createdAt),
+            updatedAt: parseDate(doc.updatedAt),
+            // Đã xóa avatar, address, isActive vì Staff không có các trường này
+          );
+        }).toList();
+
+        mergedList.addAll(doctorStaffs);
+      }
+
+      // 3. Lọc trùng lặp dựa trên ID
+      final ids = <String>{};
+      final uniqueList = <Staff>[];
+      for (var user in mergedList) {
+        if (ids.add(user.id)) {
+          uniqueList.add(user);
+        }
+      }
+
+      _users = uniqueList;
+
     } catch (e) {
-      _error = 'Lỗi kết nối: $e';
+      _error = 'Lỗi tải danh sách người dùng: $e';
+      print("Error fetching users: $e");
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
+  // --- PERMISSION GROUP MANAGEMENT ---
   Future<void> getAllGroups() async {
     _isLoading = true;
     _error = null;
@@ -112,6 +170,7 @@ class PermissionVm extends ChangeNotifier {
     return success;
   }
 
+  // --- PERMISSION DATA ---
   Future<void> fetchGroupPermissions(String groupId) async {
     _isLoading = true;
     _error = null;
@@ -120,7 +179,7 @@ class PermissionVm extends ChangeNotifier {
     try {
       final result = await PermissionService.getGroupPermissions(groupId);
       if (result['success'] == true) {
-        _groupPermissions = result['data'];
+        _groupPermissionsMap[groupId] = result['data'];
       } else {
         _error = result['message'];
       }
@@ -133,6 +192,8 @@ class PermissionVm extends ChangeNotifier {
   }
 
   Future<void> fetchAllPermissions() async {
+    if (_allPermissions.isNotEmpty) return;
+
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -152,44 +213,47 @@ class PermissionVm extends ChangeNotifier {
     }
   }
 
-  Future<bool> assignPermissions(String groupId, List<String> permissions) async {
-    _isLoading = true;
-    notifyListeners();
-    final success = await PermissionService.assignPermissionsToGroup(groupId, permissions);
-    if (success) {
-      await fetchGroupPermissions(groupId);
-    } else {
-      _error = 'Không thể gán quyền';
-    }
-    _isLoading = false;
-    notifyListeners();
-    return success;
-  }
-
-  Future<bool> revokePermissions(String groupId, List<String> permissions) async {
-    _isLoading = true;
-    notifyListeners();
-    final success = await PermissionService.revokePermissionsFromGroup(groupId, permissions);
-    if (success) {
-      await fetchGroupPermissions(groupId);
-    } else {
-      _error = 'Không thể thu hồi quyền';
-    }
-    _isLoading = false;
-    notifyListeners();
-    return success;
-  }
-
   List<Permission> getPermissionsForGroup(String groupId) {
-    // This logic might need to be adjusted if we want to cache permissions per group
-    // For now, if _groupPermissions contains permissions for the requested group (which it should if fetchGroupPermissions was called), return it.
-    // However, since we don't store a map of groupId -> permissions, we might rely on the fact that the UI calls fetchGroupPermissions before accessing this.
-    // Ideally, we should check if the current _groupPermissions belong to the groupId, but we don't store that metadata.
-    // Assuming the UI flow is correct:
-    return _groupPermissions;
+    return _groupPermissionsMap[groupId] ?? [];
   }
 
-  // User Permission Management
+  // --- BATCH UPDATE PERMISSIONS (Group) ---
+  Future<bool> updateGroupPermissionsList(String groupId, List<String> newPermissionIds) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final currentPermissions = _groupPermissionsMap[groupId] ?? [];
+      final currentIds = currentPermissions.map((p) => p.id).toSet();
+      final newIdsSet = newPermissionIds.toSet();
+
+      final toAdd = newIdsSet.difference(currentIds).toList();
+      final toRemove = currentIds.difference(newIdsSet).toList();
+
+      bool successAdd = true;
+      if (toAdd.isNotEmpty) {
+        successAdd = await PermissionService.assignPermissionsToGroup(groupId, toAdd);
+      }
+
+      bool successRemove = true;
+      if (toRemove.isNotEmpty) {
+        successRemove = await PermissionService.revokePermissionsFromGroup(groupId, toRemove);
+      }
+
+      await fetchGroupPermissions(groupId);
+
+      _isLoading = false;
+      notifyListeners();
+      return successAdd && successRemove;
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // --- USER PERMISSION / GROUP ASSIGNMENT ---
   Future<void> fetchUserPermissions(String userId) async {
     _isLoading = true;
     _error = null;
@@ -218,62 +282,72 @@ class PermissionVm extends ChangeNotifier {
     }
   }
 
-  Future<bool> assignUserPermissions(String userId, List<String> permissions) async {
+  Future<bool> updateUserPermissionsList(String userId, List<String> newPermissionIds) async {
     _isLoading = true;
     notifyListeners();
-    final success = await PermissionService.assignPermissionsToUser(userId, permissions);
-    if (success) {
+
+    try {
+      final currentIds = _currentUserPermissions.map((p) => p.id).toSet();
+      final newIdsSet = newPermissionIds.toSet();
+
+      final toAdd = newIdsSet.difference(currentIds).toList();
+      final toRemove = currentIds.difference(newIdsSet).toList();
+
+      bool successAdd = true;
+      if (toAdd.isNotEmpty) {
+        successAdd = await PermissionService.assignPermissionsToUser(userId, toAdd);
+      }
+
+      bool successRemove = true;
+      if (toRemove.isNotEmpty) {
+        successRemove = await PermissionService.revokePermissionsFromUser(userId, toRemove);
+      }
+
       await fetchUserPermissions(userId);
-    } else {
-      _error = 'Không thể gán quyền cho người dùng';
+      _isLoading = false;
+      notifyListeners();
+      return successAdd && successRemove;
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
     }
-    _isLoading = false;
-    notifyListeners();
-    return success;
   }
 
-  Future<bool> revokeUserPermissions(String userId, List<String> permissions) async {
+  Future<bool> updateUserGroupsList(String userId, List<String> newGroupIds) async {
     _isLoading = true;
     notifyListeners();
-    final success = await PermissionService.revokePermissionsFromUser(userId, permissions);
-    if (success) {
-      await fetchUserPermissions(userId);
-    } else {
-      _error = 'Không thể thu hồi quyền của người dùng';
-    }
-    _isLoading = false;
-    notifyListeners();
-    return success;
-  }
 
-  Future<bool> assignUserGroups(String userId, List<String> groupIds) async {
-    _isLoading = true;
-    notifyListeners();
-    final success = await PermissionService.assignGroupsToUser(userId, groupIds);
-    if (success) {
+    try {
+      final currentIds = _currentUserGroups.map((g) => g.id).toSet();
+      final newIdsSet = newGroupIds.toSet();
+
+      final toAdd = newIdsSet.difference(currentIds).toList();
+      final toRemove = currentIds.difference(newIdsSet).toList();
+
+      bool successAdd = true;
+      if (toAdd.isNotEmpty) {
+        successAdd = await PermissionService.assignGroupsToUser(userId, toAdd);
+      }
+
+      bool successRemove = true;
+      if (toRemove.isNotEmpty) {
+        successRemove = await PermissionService.revokeGroupsFromUser(userId, toRemove);
+      }
+
       await fetchUserGroups(userId);
-    } else {
-      _error = 'Không thể gán nhóm cho người dùng';
+      _isLoading = false;
+      notifyListeners();
+      return successAdd && successRemove;
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
     }
-    _isLoading = false;
-    notifyListeners();
-    return success;
   }
 
-  Future<bool> revokeUserGroups(String userId, List<String> groupIds) async {
-    _isLoading = true;
-    notifyListeners();
-    final success = await PermissionService.revokeGroupsFromUser(userId, groupIds);
-    if (success) {
-      await fetchUserGroups(userId);
-    } else {
-      _error = 'Không thể thu hồi nhóm của người dùng';
-    }
-    _isLoading = false;
-    notifyListeners();
-    return success;
-  }
-  
   void clearError() {
     _error = null;
     notifyListeners();

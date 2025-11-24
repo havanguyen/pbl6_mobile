@@ -36,19 +36,13 @@ class _PermissionGroupsPageState extends State<PermissionGroupsPage> with Single
             backgroundColor: context.theme.bg,
             appBar: AppBar(
               backgroundColor: context.theme.blue,
-              elevation: 0.5,
+              elevation: 0,
               leading: IconButton(
-                icon: Icon(
-                  Icons.arrow_back,
-                  color: context.theme.white,
-                  size: 28,
-                ),
-                onPressed: () {
-                  Navigator.pop(context);
-                },
+                icon: Icon(Icons.arrow_back, color: context.theme.white),
+                onPressed: () => Navigator.pop(context),
               ),
               title: Text(
-                'Phân quyền & Nhóm quyền',
+                'Phân quyền & Bảo mật',
                 style: TextStyle(
                   color: context.theme.white,
                   fontWeight: FontWeight.bold,
@@ -60,6 +54,7 @@ class _PermissionGroupsPageState extends State<PermissionGroupsPage> with Single
                 indicatorColor: context.theme.white,
                 labelColor: context.theme.white,
                 unselectedLabelColor: context.theme.white.withOpacity(0.6),
+                indicatorWeight: 3,
                 tabs: const [
                   Tab(text: 'Nhóm quyền'),
                   Tab(text: 'Người dùng'),
@@ -87,142 +82,166 @@ class _PermissionGroupsPageState extends State<PermissionGroupsPage> with Single
         backgroundColor: context.theme.blue,
         child: const Icon(Icons.add, color: Colors.white),
       ),
-      body: vm.isLoading
+      body: vm.isLoading && vm.groups.isEmpty
           ? const Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: vm.groups.length,
-              itemBuilder: (context, index) {
-                final group = vm.groups[index];
-                return Card(
-                  color: context.theme.bg,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    side: BorderSide(color: context.theme.grey.withOpacity(0.5)),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  margin: const EdgeInsets.only(bottom: 12),
-                  child: InkWell(
-                    onTap: () {
-                      Navigator.pushNamed(
-                        context,
-                        Routes.permissionGroupDetail,
-                        arguments: group,
-                      ).then((_) => vm.getAllGroups());
-                    },
-                    borderRadius: BorderRadius.circular(8),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
+          : ListView.separated(
+        padding: const EdgeInsets.all(16),
+        itemCount: vm.groups.length,
+        separatorBuilder: (_, __) => const SizedBox(height: 12),
+        itemBuilder: (context, index) {
+          final group = vm.groups[index];
+          return Card(
+            elevation: 0,
+            color: context.theme.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(color: context.theme.grey.withOpacity(0.2)),
+            ),
+            child: InkWell(
+              onTap: () {
+                Navigator.pushNamed(
+                  context,
+                  Routes.permissionGroupDetail,
+                  arguments: group,
+                ).then((_) => vm.getAllGroups());
+              },
+              borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: context.theme.blue.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(Icons.security, color: context.theme.blue),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                group.name,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: context.theme.textColor,
-                                ),
-                              ),
-                              Icon(
-                                Icons.arrow_forward_ios,
-                                size: 16,
-                                color: context.theme.grey,
-                              ),
-                            ],
+                          Text(
+                            group.name,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: context.theme.textColor,
+                            ),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 4),
                           Text(
                             group.description,
                             style: TextStyle(
                               color: context.theme.grey,
                               fontSize: 14,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
                     ),
-                  ),
-                );
-              },
+                    Icon(Icons.arrow_forward_ios, size: 16, color: context.theme.grey.withOpacity(0.5)),
+                  ],
+                ),
+              ),
             ),
+          );
+        },
+      ),
     );
   }
 
   Widget _buildUsersTab(BuildContext context, PermissionVm vm) {
-    return vm.isLoading
+    return vm.isLoading && vm.users.isEmpty
         ? const Center(child: CircularProgressIndicator())
-        : ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: vm.users.length,
-            itemBuilder: (context, index) {
-              final user = vm.users[index];
-              return Card(
-                color: context.theme.bg,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  side: BorderSide(color: context.theme.grey.withOpacity(0.5)),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                margin: const EdgeInsets.only(bottom: 12),
-                child: InkWell(
-                  onTap: () {
-                    Navigator.pushNamed(
-                      context,
-                      Routes.userPermissionDetail,
-                      arguments: user,
-                    );
-                  },
-                  borderRadius: BorderRadius.circular(8),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
+        : ListView.separated(
+      padding: const EdgeInsets.all(16),
+      itemCount: vm.users.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      itemBuilder: (context, index) {
+        final user = vm.users[index];
+        return Card(
+          elevation: 0,
+          color: context.theme.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: context.theme.grey.withOpacity(0.2)),
+          ),
+          child: InkWell(
+            onTap: () {
+              Navigator.pushNamed(
+                context,
+                Routes.userPermissionDetail,
+                arguments: user,
+              );
+            },
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    backgroundColor: context.theme.blue.withOpacity(0.1),
+                    child: Text(
+                      user.fullName.isNotEmpty ? user.fullName[0].toUpperCase() : '?',
+                      style: TextStyle(color: context.theme.blue, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        CircleAvatar(
-                          backgroundColor: context.theme.blue.withOpacity(0.1),
-                          child: Text(
-                            user.fullName.isNotEmpty ? user.fullName[0].toUpperCase() : '?',
-                            style: TextStyle(color: context.theme.blue),
+                        Text(
+                          user.fullName,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: context.theme.textColor,
                           ),
                         ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                user.fullName,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: context.theme.textColor,
-                                ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: context.theme.grey.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(4),
                               ),
-                              Text(
+                              child: Text(
+                                user.role,
+                                style: TextStyle(fontSize: 10, color: context.theme.textColor),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
                                 user.email,
                                 style: TextStyle(
                                   color: context.theme.grey,
-                                  fontSize: 14,
+                                  fontSize: 12,
                                 ),
+                                overflow: TextOverflow.ellipsis,
                               ),
-                            ],
-                          ),
-                        ),
-                        Icon(
-                          Icons.arrow_forward_ios,
-                          size: 16,
-                          color: context.theme.grey,
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ),
-                ),
-              );
-            },
-          );
+                  Icon(Icons.arrow_forward_ios, size: 16, color: context.theme.grey.withOpacity(0.5)),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   void _showCreateGroupDialog(BuildContext context, PermissionVm vm) {
@@ -233,35 +252,18 @@ class _PermissionGroupsPageState extends State<PermissionGroupsPage> with Single
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: context.theme.bg,
-        title: Text(
-          'Tạo nhóm quyền mới',
-          style: TextStyle(color: context.theme.textColor),
-        ),
+        title: const Text('Tạo nhóm quyền mới'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: nameController,
-              decoration: InputDecoration(
-                labelText: 'Tên nhóm',
-                labelStyle: TextStyle(color: context.theme.grey),
-                enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: context.theme.grey),
-                ),
-              ),
-              style: TextStyle(color: context.theme.textColor),
+              decoration: const InputDecoration(labelText: 'Tên nhóm'),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: descController,
-              decoration: InputDecoration(
-                labelText: 'Mô tả',
-                labelStyle: TextStyle(color: context.theme.grey),
-                enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: context.theme.grey),
-                ),
-              ),
-              style: TextStyle(color: context.theme.textColor),
+              decoration: const InputDecoration(labelText: 'Mô tả'),
             ),
           ],
         ),
@@ -270,24 +272,16 @@ class _PermissionGroupsPageState extends State<PermissionGroupsPage> with Single
             onPressed: () => Navigator.pop(context),
             child: Text('Hủy', style: TextStyle(color: context.theme.grey)),
           ),
-          TextButton(
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: context.theme.blue, foregroundColor: Colors.white),
             onPressed: () async {
               Navigator.pop(context);
-              final success = await vm.createGroup(
-                nameController.text,
-                descController.text,
-              );
+              final success = await vm.createGroup(nameController.text, descController.text);
               if (success && context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Tạo nhóm thành công')),
-                );
-              } else if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(vm.error ?? 'Tạo nhóm thất bại')),
-                );
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tạo nhóm thành công')));
               }
             },
-            child: Text('Tạo', style: TextStyle(color: context.theme.blue)),
+            child: const Text('Tạo'),
           ),
         ],
       ),
