@@ -24,6 +24,35 @@ class CreateAppointmentPage extends StatelessWidget {
       ),
     );
   }
+}
+
+class _Body extends StatefulWidget {
+  const _Body();
+
+  @override
+  State<_Body> createState() => _BodyState();
+}
+
+class _BodyState extends State<_Body> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<SpecialtyVm>().fetchSpecialties();
+      context.read<LocationWorkVm>().fetchLocations();
+      context.read<DoctorVm>().fetchDoctors();
+      context.read<PatientVm>().loadPatients();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final vm = context.watch<CreateAppointmentVm>();
+
+    return Stepper(
+      type: StepperType.vertical,
+      currentStep: vm.currentStep,
+      onStepContinue: () async {
         await _handleStepContinue(context, vm);
       },
       onStepCancel: () {
