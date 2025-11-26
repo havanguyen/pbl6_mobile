@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:intl/intl.dart';
+import 'package:pbl6mobile/model/dto/appointment_dto.dart';
 import 'package:pbl6mobile/model/entities/appointment_response.dart';
 import 'package:pbl6mobile/model/services/remote/auth_service.dart';
 
@@ -32,15 +33,122 @@ class AppointmentService {
         return AppointmentResponse.fromJson(response.data);
       }
       return null;
-    } on DioException catch (e) {
-      print("Get appointments error: $e");
-      if (e.response != null) {
-        print("DioException Response: ${e.response?.data}");
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<List<DoctorSlot>?> getDoctorSlots({
+    required String doctorId,
+    required String date,
+    String? locationId,
+  }) async {
+    try {
+      final params = {
+        'doctorId': doctorId,
+        'serviceDate': date,
+        if (locationId != null) 'workLocationId': locationId,
+      };
+
+      final response = await _dio.get(
+        '/doctors/profile/$doctorId/slots',
+        queryParameters: params,
+      );
+
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        final List data = response.data['data'];
+        return data.map((e) => DoctorSlot.fromJson(e)).toList();
       }
       return null;
     } catch (e) {
-      print("Unexpected error: $e");
       return null;
+    }
+  }
+
+  Future<String?> holdSlot(HoldAppointmentRequest request) async {
+    try {
+      final response = await _dio.post(
+        '/appointments/hold',
+        data: request.toJson(),
+      );
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        return response.data['data']['eventId'];
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<bool> createAppointment(CreateAppointmentRequest request) async {
+    try {
+      final response = await _dio.post(
+        '/appointments',
+        data: request.toJson(),
+      );
+
+      return response.statusCode == 201 || response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<bool> cancelAppointment(String id, String reason) async {
+    try {
+      final response = await _dio.delete(
+        '/appointments/$id',
+        data: {'reason': reason},
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<bool> rescheduleAppointment(String id, String timeStart, String timeEnd) async {
+    try {
+      final response = await _dio.patch(
+        '/appointments/$id/reschedule',
+        data: {'timeStart': timeStart, 'timeEnd': timeEnd},
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<bool> completeAppointment(String id) async {
+    try {
+      final response = await _dio.patch('/appointments/$id/complete');
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<bool> confirmAppointment(String id) async {
+    try {
+      final response = await _dio.patch('/appointments/$id/confirm');
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<bool> updateAppointment(String id, String notes, double price, String currency) async {
+    try {
+      final response = await _dio.patch(
+        '/appointments/$id',
+        data: {
+          'notes': notes,
+          'priceAmount': price,
+          'currency': currency,
+        },
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
     }
   }
 }

@@ -17,10 +17,16 @@ class AppointmentVm extends ChangeNotifier {
   AppointmentDataSource? _dataSource;
   AppointmentDataSource? get dataSource => _dataSource;
 
+  DateTime? _lastFromDate;
+  DateTime? _lastToDate;
+
   Future<void> fetchAppointments(DateTime fromDate, DateTime toDate) async {
     await Future.delayed(Duration.zero);
 
     if (_isLoading) return;
+
+    _lastFromDate = fromDate;
+    _lastToDate = toDate;
 
     _isLoading = true;
     _error = null;
@@ -30,7 +36,7 @@ class AppointmentVm extends ChangeNotifier {
       final response = await _appointmentService.getAppointments(
         fromDate: fromDate,
         toDate: toDate,
-        status: 'BOOKED',
+        // status: 'BOOKED', // Show all statuses
       );
       if (response != null && response.success) {
         _appointments = response.data;
@@ -44,6 +50,42 @@ class AppointmentVm extends ChangeNotifier {
 
     _isLoading = false;
     notifyListeners();
+  }
+
+  Future<void> refresh() async {
+    if (_lastFromDate != null && _lastToDate != null) {
+      await fetchAppointments(_lastFromDate!, _lastToDate!);
+    }
+  }
+
+  Future<bool> cancelAppointment(String id, String reason) async {
+    final success = await _appointmentService.cancelAppointment(id, reason);
+    if (success) await refresh();
+    return success;
+  }
+
+  Future<bool> rescheduleAppointment(String id, String timeStart, String timeEnd) async {
+    final success = await _appointmentService.rescheduleAppointment(id, timeStart, timeEnd);
+    if (success) await refresh();
+    return success;
+  }
+
+  Future<bool> completeAppointment(String id) async {
+    final success = await _appointmentService.completeAppointment(id);
+    if (success) await refresh();
+    return success;
+  }
+
+  Future<bool> confirmAppointment(String id) async {
+    final success = await _appointmentService.confirmAppointment(id);
+    if (success) await refresh();
+    return success;
+  }
+
+  Future<bool> updateAppointment(String id, String notes, double price, String currency) async {
+    final success = await _appointmentService.updateAppointment(id, notes, price, currency);
+    if (success) await refresh();
+    return success;
   }
 }
 
@@ -75,8 +117,10 @@ class AppointmentDataSource extends CalendarDataSource {
       return Colors.blue;
     } else if (appointment.status == 'COMPLETED') {
       return Colors.green;
-    } else if (appointment.status == 'CANCELLED') {
+    } else if (appointment.status == 'CANCELLED' || appointment.status == 'CANCELLED_BY_STAFF' || appointment.status == 'CANCELLED_BY_PATIENT') {
       return Colors.red;
+    } else if (appointment.status == 'RESCHEDULED') {
+      return Colors.orange;
     }
     return Colors.grey;
   }
