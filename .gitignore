@@ -10,6 +10,7 @@
 .buildlog/
 .history
 node_modules
+bao_cao_test
 .svn/
 .swiftpm/
 migrate_working_dir/
