@@ -1,9 +1,11 @@
+
+
 $deviceID = "emulator-5554"
 $packageName = "com.example.pbl6mobile"
 $remoteDir = "/storage/emulated/0/Download/test_result"
-$localReportDir = ".\bao_cao_test\all_tests"
-$xmlReportFile = "$localReportDir\all_tests_report.xml"
-$htmlReportFile = "$localReportDir\all_tests_report.html"
+$localReportDir = ".\bao_cao_test\login"
+$xmlReportFile = "$localReportDir\login_report.xml"
+$htmlReportFile = "$localReportDir\login_report.html"
 
 if (-not (Test-Path -Path $localReportDir)) {
     New-Item -ItemType Directory -Path $localReportDir | Out-Null
@@ -19,13 +21,10 @@ Write-Host "Granting permissions..." -ForegroundColor Cyan
 adb -s $deviceID shell pm grant $packageName android.permission.WRITE_EXTERNAL_STORAGE
 adb -s $deviceID shell pm grant $packageName android.permission.READ_EXTERNAL_STORAGE
 
-Write-Host "Cleaning remote test results..." -ForegroundColor Cyan
-adb -s $deviceID shell rm -rf "$remoteDir/*"
+Write-Host "Running Login Test..." -ForegroundColor Yellow
+Write-Host "(Please wait for Flutter to build and run the test...)" -ForegroundColor DarkGray
 
-Write-Host "Running All Integration Tests..." -ForegroundColor Yellow
-Write-Host "(Please wait for Flutter to build and run the test suite...)" -ForegroundColor DarkGray
-
-flutter test integration_test/tests/ -d $deviceID --machine | dart pub global run junitreport:tojunit --output $xmlReportFile
+flutter test integration_test/tests/e2e_login_test.dart -d $deviceID --machine | dart pub global run junitreport:tojunit --output $xmlReportFile
 
 Write-Host "Pulling internal Excel report..." -ForegroundColor Cyan
 adb -s $deviceID pull "$remoteDir/." "$localReportDir"
@@ -39,7 +38,7 @@ if (Test-Path $xmlReportFile) {
 <xsl:template match="/">
 <html>
 <head>
-    <title>Full Regression Test Report</title>
+    <title>Automation Test Report</title>
     <meta charset="UTF-8"/>
     <style>
         body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; color: #333; }
@@ -124,7 +123,7 @@ if (Test-Path $xmlReportFile) {
 <body>
     <div class="container">
         <header>
-            <h1>Full Regression Test Report</h1>
+            <h1> Login Integration Test Report</h1>
             <div class="timestamp">Generated: <xsl:value-of select="//testsuite/@timestamp"/></div>
         </header>
 
@@ -157,7 +156,7 @@ if (Test-Path $xmlReportFile) {
             <button class="btn-all" onclick="filterTable('all')">Show All</button>
             <button class="btn-pass" onclick="filterTable('status-passed')">Only Passed</button>
             <button class="btn-fail" onclick="filterTable('status-failed')">Only Failed</button>
-            <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="Search test case name..."/>
+            <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="🔍 Search test case name..."/>
         </div>
 
         <table>
@@ -229,13 +228,13 @@ if (Test-Path $xmlReportFile) {
         $xslt.Transform($xmlDoc, $null, $writer)
         $writer.Close()
 
-        Write-Host "Full Report Created: $htmlReportFile" -ForegroundColor Green
+        Write-Host "Detailed HTML Report created: $htmlReportFile" -ForegroundColor Green
         Invoke-Item $htmlReportFile
     } catch {
         Write-Host "Failed to generate HTML: $_" -ForegroundColor Red
     }
 } else {
-    Write-Host "XML Report not found. Test suite might have crashed." -ForegroundColor Red
+    Write-Host "XML Report not found. Test might have failed completely." -ForegroundColor Red
 }
 
 Write-Host "Done."

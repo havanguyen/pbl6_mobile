@@ -19,7 +19,6 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.pump(const Duration(seconds: 2));
-
     await tester.pumpAndSettle();
 
     await tester.pump(const Duration(milliseconds: 1500));
@@ -49,8 +48,8 @@ void main() {
     await TestReporter().exportToExcel();
   });
 
-  group('Module Update & Delete Admin Profile Tests', () {
-    testWidgets('TC006: Update thông tin hợp lệ', (tester) async {
+  group('Admin Management Module - Update & Delete Profile Tests', () {
+    testWidgets('TC006: Update admin profile with valid information', (tester) async {
       final testData = TestHelper().getTestCase('admin_flow_tests', 'TC006');
       try {
         await setupAppAndLogin(tester);
@@ -63,7 +62,7 @@ void main() {
         await adminRobot.updateInfo(name: newName);
 
         await adminRobot.expectUpdateSuccess(newName);
-        
+
         TestReporter().addResult(
           caseId: 'TC006',
           description: testData['description'],
@@ -84,7 +83,7 @@ void main() {
       }
     });
 
-    testWidgets('TC007: Validate lỗi khi để trống Tên', (tester) async {
+    testWidgets('TC007: Validate error when Name field is empty', (tester) async {
       final testData = TestHelper().getTestCase('admin_flow_tests', 'TC007');
       try {
         await setupAppAndLogin(tester);
@@ -117,7 +116,7 @@ void main() {
       }
     });
 
-    testWidgets('TC008: Validate lỗi Email sai định dạng', (tester) async {
+    testWidgets('TC008: Validate error for invalid Email format', (tester) async {
       final testData = TestHelper().getTestCase('admin_flow_tests', 'TC008');
       try {
         await setupAppAndLogin(tester);
@@ -150,7 +149,7 @@ void main() {
       }
     });
 
-    testWidgets('TC009: Validate lỗi Email đã tồn tại', (tester) async {
+    testWidgets('TC009: Validate error for duplicate Email', (tester) async {
       final testData = TestHelper().getTestCase('admin_flow_tests', 'TC009');
       try {
         await setupAppAndLogin(tester);
@@ -183,7 +182,7 @@ void main() {
       }
     });
 
-    testWidgets('TC010: Tạo Admin mới thành công', (tester) async {
+    testWidgets('TC010: Create new Admin successfully', (tester) async {
       final testData = TestHelper().getTestCase('admin_flow_tests', 'TC010');
       try {
         await setupAppAndLogin(tester);
@@ -224,7 +223,7 @@ void main() {
       }
     });
 
-    testWidgets('TC011: Xóa Admin thành công', (tester) async {
+    testWidgets('TC011: Delete Admin successfully', (tester) async {
       final testData = TestHelper().getTestCase('admin_flow_tests', 'TC011');
       try {
         await setupAppAndLogin(tester);
