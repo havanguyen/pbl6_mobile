@@ -365,6 +365,16 @@ class _ListAppointmentPageState extends State<ListAppointmentPage>
       child: Text(
         '$startTime $patientName',
         style: TextStyle(color: mainTextColor, fontSize: 10),
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final vm = context.watch<AppointmentVm>();
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -626,7 +636,7 @@ class _ListAppointmentPageState extends State<ListAppointmentPage>
                 Navigator.pop(context); // Close bottom sheet
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đã dời lịch hẹn')));
               } else if (context.mounted) {
-                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Lỗi khi dời lịch')));
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Lỗi khi dời lịch')));
               }
             },
             child: const Text('Lưu thay đổi'),

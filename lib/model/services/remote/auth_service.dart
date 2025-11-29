@@ -248,7 +248,7 @@ class AuthService {
         '/auth/verify-password',
         data: {'password': password},
       );
-      if (response.statusCode == 200 && response.data != null) {
+      if (response.statusCode == 201 && response.data != null) {
         return response.data['success'] ?? false;
       }
       print('Verify password failed with status: ${response.statusCode}');
