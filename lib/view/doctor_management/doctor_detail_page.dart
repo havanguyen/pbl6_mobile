@@ -297,7 +297,7 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                             fontSize: 14, fontWeight: FontWeight.bold),
                       ),
                       _StarRating(
-                          rating: review.rating, color: context.theme.yellow),
+                          rating: review.rating, color: context.theme.yellow, size: 18,),
                     ],
                   ),
                 ),
@@ -732,8 +732,7 @@ class _StarRating extends StatelessWidget {
 
   const _StarRating({
     required this.rating,
-    this.color = Colors.amber,
-    this.size = 16,
+    this.color = Colors.amber, required this.size,
   });
 
   @override

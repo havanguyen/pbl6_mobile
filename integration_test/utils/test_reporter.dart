@@ -91,7 +91,7 @@ class TestReporter {
       }
       
       // Create test_result subdirectory
-      final String resultDir = '${directory!.path}/test_result';
+      final String resultDir = '${directory.path}/test_result';
       final Directory dir = Directory(resultDir);
       if (!await dir.exists()) {
         await dir.create(recursive: true);

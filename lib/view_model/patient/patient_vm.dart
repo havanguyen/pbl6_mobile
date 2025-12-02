@@ -21,7 +21,6 @@ class PatientVm extends ChangeNotifier {
 
   int _page = 1;
   final int _limit = 10;
-  int _total = 0;
   bool _hasNext = true;
 
   bool _includeDeleted = false;
@@ -63,7 +62,6 @@ class PatientVm extends ChangeNotifier {
       final meta = result['meta'];
 
       if (meta != null) {
-        _total = meta['total'];
         _hasNext = meta['hasNext'] ?? false;
       }
 

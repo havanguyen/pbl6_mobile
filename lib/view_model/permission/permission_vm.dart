@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:pbl6mobile/model/entities/doctor.dart';
 import 'package:pbl6mobile/model/entities/doctor_response.dart'; // Đã thêm import này
 import 'package:pbl6mobile/model/entities/permission.dart';
 import 'package:pbl6mobile/model/entities/permission_group.dart';
