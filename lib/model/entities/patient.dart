@@ -1,32 +1,21 @@
-import 'package:json_annotation/json_annotation.dart';
-
-part 'patient.g.dart';
-
-@JsonSerializable()
 class Patient {
   final String id;
-  final String email;
+  final String? email;
   final String fullName;
-  @JsonKey(includeIfNull: false)
   final String? phone;
-  @JsonKey(defaultValue: null, fromJson: _boolFromJson)
   final bool? isMale;
-  @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   final DateTime? dateOfBirth;
   final String? addressLine;
   final String? district;
   final String? province;
 
-  @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   final DateTime? createdAt;
-  @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   final DateTime? updatedAt;
-  @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   final DateTime? deletedAt;
 
   Patient({
     required this.id,
-    required this.email,
+    this.email,
     required this.fullName,
     this.phone,
     this.isMale,
@@ -39,9 +28,39 @@ class Patient {
     this.deletedAt,
   });
 
-  factory Patient.fromJson(Map<String, dynamic> json) =>
-      _$PatientFromJson(json);
-  Map<String, dynamic> toJson() => _$PatientToJson(this);
+  factory Patient.fromJson(Map<String, dynamic> json) {
+    return Patient(
+      id: json['id'] as String? ?? '',
+      email: json['email'] as String?,
+      fullName: json['fullName'] as String? ?? 'Unknown',
+      phone: json['phone'] as String?,
+      isMale: _boolFromJson(json['isMale']),
+      dateOfBirth: _dateTimeFromJson(json['dateOfBirth']),
+      addressLine: json['addressLine'] as String?,
+      district: json['district'] as String?,
+      province: json['province'] as String?,
+      createdAt: _dateTimeFromJson(json['createdAt']),
+      updatedAt: _dateTimeFromJson(json['updatedAt']),
+      deletedAt: _dateTimeFromJson(json['deletedAt']),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'email': email,
+      'fullName': fullName,
+      'phone': phone,
+      'isMale': isMale,
+      'dateOfBirth': dateOfBirth?.toIso8601String(),
+      'addressLine': addressLine,
+      'district': district,
+      'province': province,
+      'createdAt': createdAt?.toIso8601String(),
+      'updatedAt': updatedAt?.toIso8601String(),
+      'deletedAt': deletedAt?.toIso8601String(),
+    };
+  }
 
   static bool? _boolFromJson(dynamic value) {
     if (value == null) return null;
@@ -56,5 +75,11 @@ class Patient {
     return DateTime.tryParse(value);
   }
 
-  static String? _dateTimeToJson(DateTime? date) => date?.toIso8601String();
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Patient && runtimeType == other.runtimeType && id == other.id;
+
+  @override
+  int get hashCode => id.hashCode;
 }

@@ -4,24 +4,23 @@ import 'package:pbl6mobile/model/entities/doctor.dart';
 import 'package:pbl6mobile/model/entities/patient.dart';
 import 'package:pbl6mobile/model/entities/specialty.dart';
 import 'package:pbl6mobile/model/entities/work_location.dart';
+import 'package:pbl6mobile/view/appointment/widgets/appointment_scheduler.dart';
 import 'package:pbl6mobile/view_model/appointment/create_appointment_vm.dart';
-import 'package:pbl6mobile/view_model/admin_management/doctor_management_vm.dart';
-import 'package:pbl6mobile/view_model/location_work_management/location_work_vm.dart';
-import 'package:pbl6mobile/view_model/patient/patient_vm.dart';
-import 'package:pbl6mobile/view_model/specialty/specialty_vm.dart';
 import 'package:provider/provider.dart';
 
-class CreateAppointmentPage extends StatelessWidget {
+class CreateAppointmentPage extends StatefulWidget {
   const CreateAppointmentPage({super.key});
 
   @override
+  State<CreateAppointmentPage> createState() => _CreateAppointmentPageState();
+}
+
+class _CreateAppointmentPageState extends State<CreateAppointmentPage> {
+  @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => CreateAppointmentVm(),
-      child: Scaffold(
-        appBar: AppBar(title: const Text('Đặt lịch khám')),
-        body: const _Body(),
-      ),
+      create: (_) => CreateAppointmentVm()..init(),
+      child: const _Body(),
     );
   }
 }
@@ -34,293 +33,718 @@ class _Body extends StatefulWidget {
 }
 
 class _BodyState extends State<_Body> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<SpecialtyVm>().fetchSpecialties();
-      context.read<LocationWorkVm>().fetchLocations();
-      context.read<DoctorVm>().fetchDoctors();
-      context.read<PatientVm>().loadPatients();
-    });
-  }
+  int _currentStep = 0;
+  final _formKey = GlobalKey<FormState>();
+
+  final List<String> _steps = [
+    'Bệnh nhân',
+    'Dịch vụ',
+    'Lịch hẹn',
+    'Chi tiết',
+    'Xác nhận',
+  ];
 
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<CreateAppointmentVm>();
+    final theme = Theme.of(context);
 
-    return Stepper(
-      type: StepperType.vertical,
-      currentStep: vm.currentStep,
-      onStepContinue: () async {
-        await _handleStepContinue(context, vm);
-      },
-      onStepCancel: () {
-        if (vm.currentStep > 0) {
-          vm.setStep(vm.currentStep - 1);
-        } else {
-          Navigator.pop(context);
-        }
-      },
-      controlsBuilder: (context, details) {
-        return Padding(
-          padding: const EdgeInsets.only(top: 16.0),
-          child: Row(
-            children: [
-              if (vm.isLoading)
-                const CircularProgressIndicator()
-              else
-                FilledButton(
-                  onPressed: details.onStepContinue,
-                  child: Text(vm.currentStep == 3 ? 'HOÀN TẤT' : 'TIẾP TỤC'),
-                ),
-              const SizedBox(width: 12),
-              if (!vm.isLoading)
-                TextButton(
-                  onPressed: details.onStepCancel,
-                  child: const Text('QUAY LẠI'),
-                ),
-            ],
-          ),
-        );
-      },
-      steps: [
-        Step(
-          title: const Text('Chọn thông tin khám'),
-          content: _buildStep1(context),
-          isActive: vm.currentStep >= 0,
-          state: vm.currentStep > 0 ? StepState.complete : StepState.editing,
-        ),
-        Step(
-          title: const Text('Chọn giờ khám'),
-          content: _buildStep2(context),
-          isActive: vm.currentStep >= 1,
-          state: vm.currentStep > 1 ? StepState.complete : StepState.editing,
-        ),
-        Step(
-          title: const Text('Thông tin bệnh nhân'),
-          content: _buildStep3(context),
-          isActive: vm.currentStep >= 2,
-          state: vm.currentStep > 2 ? StepState.complete : StepState.editing,
-        ),
-        Step(
-          title: const Text('Xác nhận & Chi tiết'),
-          content: _buildStep4(context),
-          isActive: vm.currentStep >= 3,
-        ),
-      ],
-    );
-  }
-
-  Future<void> _handleStepContinue(BuildContext context, CreateAppointmentVm vm) async {
-    if (vm.currentStep == 0) {
-      if (vm.selectedDoctor == null || vm.selectedLocation == null || vm.selectedSpecialty == null) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Vui lòng chọn đầy đủ chuyên khoa, bác sĩ và địa điểm')));
-        return;
-      }
-      await vm.fetchSlots();
-      vm.setStep(1);
-    } else if (vm.currentStep == 1) {
-      if (vm.selectedSlot == null) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Vui lòng chọn một khung giờ')));
-        return;
-      }
-      final success = await vm.holdSlot();
-      if (success) {
-        vm.setStep(2);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Không thể giữ chỗ lúc này, vui lòng thử lại')));
-      }
-    } else if (vm.currentStep == 2) {
-      if (vm.selectedPatient == null) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Vui lòng chọn bệnh nhân')));
-        return;
-      }
-      vm.setStep(3);
-    } else if (vm.currentStep == 3) {
-      final success = await vm.confirmBooking();
-      if (success && context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đặt lịch thành công!')));
-        Navigator.pop(context);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Có lỗi xảy ra khi đặt lịch')));
-      }
-    }
-  }
-
-  Widget _buildStep1(BuildContext context) {
-    final vm = context.watch<CreateAppointmentVm>();
-    final specialtyVm = context.watch<SpecialtyVm>();
-    final locationVm = context.watch<LocationWorkVm>();
-    final doctorVm = context.watch<DoctorVm>();
-
-    return Column(
-      children: [
-        DropdownButtonFormField<Specialty>(
-          decoration: const InputDecoration(labelText: 'Chuyên khoa', border: OutlineInputBorder()),
-          items: specialtyVm.specialties.map((e) => DropdownMenuItem(value: e, child: Text(e.name))).toList(),
-          onChanged: (val) => vm.setInitData(specialty: val),
-          value: vm.selectedSpecialty,
-        ),
-        const SizedBox(height: 16),
-        DropdownButtonFormField<WorkLocation>(
-          decoration: const InputDecoration(labelText: 'Địa điểm', border: OutlineInputBorder()),
-          items: locationVm.locations.map((e) => DropdownMenuItem(value: e, child: Text(e.name))).toList(),
-          onChanged: (val) => vm.setInitData(location: val),
-          value: vm.selectedLocation,
-        ),
-        const SizedBox(height: 16),
-        DropdownButtonFormField<Doctor>(
-          decoration: const InputDecoration(labelText: 'Bác sĩ', border: OutlineInputBorder()),
-          items: doctorVm.doctors.map((e) => DropdownMenuItem(value: e, child: Text(e.fullName))).toList(),
-          onChanged: (val) => vm.setInitData(doctor: val),
-          value: vm.selectedDoctor,
-        ),
-        const SizedBox(height: 16),
-        InputDatePickerFormField(
-          firstDate: DateTime.now(),
-          lastDate: DateTime.now().add(const Duration(days: 60)),
-          initialDate: vm.selectedDate,
-          onDateSubmitted: (date) => vm.setDate(date),
-          fieldLabelText: 'Ngày khám',
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStep2(BuildContext context) {
-    final vm = context.watch<CreateAppointmentVm>();
-
-    if (vm.isLoading) return const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator()));
-    if (vm.slots.isEmpty) return const Text('Không có lịch trống cho ngày này', style: TextStyle(color: Colors.red));
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text("Lịch khám ngày ${DateFormat('dd/MM/yyyy').format(vm.selectedDate)}:", style: const TextStyle(fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: vm.slots.map((slot) {
-            final isSelected = vm.selectedSlot == slot;
-            return ChoiceChip(
-              label: Text('${slot.timeStart} - ${slot.timeEnd}'),
-              selected: isSelected,
-              onSelected: (selected) {
-                if (selected) vm.selectSlot(slot);
-              },
-              selectedColor: Theme.of(context).primaryColor.withOpacity(0.2),
-            );
-          }).toList(),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStep3(BuildContext context) {
-    final vm = context.watch<CreateAppointmentVm>();
-    final patientVm = context.watch<PatientVm>();
-
-    return Column(
-      children: [
-        DropdownButtonFormField<Patient>(
-          decoration: const InputDecoration(labelText: 'Chọn bệnh nhân có sẵn', border: OutlineInputBorder()),
-          isExpanded: true,
-          items: patientVm.patients.map((e) => DropdownMenuItem(value: e, child: Text('${e.fullName} (${e.phone ?? "N/A"})'))).toList(),
-          onChanged: (val) {
-            if (val != null) vm.setPatient(val);
-          },
-          value: vm.selectedPatient,
-        ),
-        const SizedBox(height: 10),
-      ],
-    );
-  }
-
-  Widget _buildStep4(BuildContext context) {
-    final vm = context.watch<CreateAppointmentVm>();
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey[300]!),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Tạo lịch hẹn mới'),
+        elevation: 0,
+        centerTitle: true,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      body: Column(
         children: [
-          _buildDetailRow('Bác sĩ:', vm.selectedDoctor?.fullName ?? ""),
-          _buildDetailRow('Chuyên khoa:', vm.selectedSpecialty?.name ?? ""),
-          _buildDetailRow('Địa điểm:', vm.selectedLocation?.name ?? ""),
-          const Divider(),
-          _buildDetailRow('Bệnh nhân:', vm.selectedPatient?.fullName ?? ""),
-          _buildDetailRow('SĐT:', vm.selectedPatient?.phone ?? ""),
-          const Divider(),
-          _buildDetailRow('Ngày:', DateFormat('dd/MM/yyyy').format(vm.selectedDate)),
-          _buildDetailRow('Giờ:', '${vm.selectedSlot?.timeStart} - ${vm.selectedSlot?.timeEnd}', isBold: true, color: Colors.blue),
-          const SizedBox(height: 16),
-          TextFormField(
-            decoration: const InputDecoration(labelText: 'Lý do khám', border: OutlineInputBorder()),
-            maxLines: 2,
-            onChanged: (val) => vm.setReason(val),
-          ),
-          const SizedBox(height: 12),
-          TextFormField(
-            decoration: const InputDecoration(labelText: 'Ghi chú thêm (Notes)', border: OutlineInputBorder()),
-            maxLines: 2,
-            onChanged: (val) => vm.setNotes(val),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                flex: 2,
-                child: TextFormField(
-                  decoration: const InputDecoration(labelText: 'Giá tiền', border: OutlineInputBorder()),
-                  keyboardType: TextInputType.number,
-                  onChanged: (val) => vm.setPrice(val),
-                ),
+          // Custom Step Indicator
+          _buildStepIndicator(theme),
+
+          Expanded(
+            child: Form(
+              key: _formKey,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: _buildCurrentStep(vm, theme),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                flex: 1,
-                child: DropdownButtonFormField<String>(
-                  decoration: const InputDecoration(labelText: 'Đơn vị', border: OutlineInputBorder()),
-                  value: vm.currency,
-                  items: ['VND', 'USD'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
-                  onChanged: (val) {
-                    if (val != null) vm.setCurrency(val);
-                  },
-                ),
-              ),
-            ],
+            ),
           ),
+
+          // Bottom Controls
+          _buildBottomControls(vm, theme),
         ],
       ),
     );
   }
 
-  Widget _buildDetailRow(String label, String value, {bool isBold = false, Color? color}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+  Widget _buildStepIndicator(ThemeData theme) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+      color: Colors.white,
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        children: List.generate(_steps.length, (index) {
+          final isCompleted = index < _currentStep;
+          final isCurrent = index == _currentStep;
+
+          return Expanded(
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        height: 2,
+                        color: index == 0
+                            ? Colors.transparent
+                            : (index <= _currentStep
+                                  ? theme.primaryColor
+                                  : Colors.grey.shade300),
+                      ),
+                    ),
+                    Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isCompleted || isCurrent
+                            ? theme.primaryColor
+                            : Colors.white,
+                        border: Border.all(
+                          color: isCompleted || isCurrent
+                              ? theme.primaryColor
+                              : Colors.grey.shade300,
+                          width: 2,
+                        ),
+                      ),
+                      child: Center(
+                        child: isCompleted
+                            ? const Icon(
+                                Icons.check,
+                                size: 14,
+                                color: Colors.white,
+                              )
+                            : Text(
+                                '${index + 1}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: isCurrent
+                                      ? Colors.white
+                                      : Colors.grey.shade500,
+                                ),
+                              ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Container(
+                        height: 2,
+                        color: index == _steps.length - 1
+                            ? Colors.transparent
+                            : (index < _currentStep
+                                  ? theme.primaryColor
+                                  : Colors.grey.shade300),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  _steps[index],
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
+                    color: isCurrent
+                        ? theme.primaryColor
+                        : Colors.grey.shade600,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+  Widget _buildCurrentStep(CreateAppointmentVm vm, ThemeData theme) {
+    switch (_currentStep) {
+      case 0:
+        return _buildPatientStep(vm, theme);
+      case 1:
+        return _buildServiceStep(vm, theme);
+      case 2:
+        return _buildScheduleStep(vm, theme);
+      case 3:
+        return _buildDetailsStep(vm, theme);
+      case 4:
+        return _buildReviewStep(vm, theme);
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+
+  Widget _buildBottomControls(CreateAppointmentVm vm, ThemeData theme) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: Row(
         children: [
-          SizedBox(width: 100, child: Text(label, style: const TextStyle(color: Colors.grey))),
-          Expanded(
-            child: Text(
-              value,
-              style: TextStyle(
-                fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-                color: color,
-                fontSize: 15,
+          if (_currentStep > 0)
+            Expanded(
+              child: OutlinedButton(
+                onPressed: () => setState(() => _currentStep--),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text('Quay lại'),
               ),
+            ),
+          if (_currentStep > 0) const SizedBox(width: 16),
+          Expanded(
+            flex: 2,
+            child: ElevatedButton(
+              onPressed: vm.isLoading ? null : _onNext,
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 0,
+              ),
+              child: vm.isLoading && _currentStep == 4
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : Text(_currentStep == 4 ? 'Xác nhận đặt lịch' : 'Tiếp tục'),
             ),
           ),
         ],
       ),
     );
+  }
+
+  void _onNext() {
+    final vm = context.read<CreateAppointmentVm>();
+    if (_currentStep < 4) {
+      // Validation logic
+      bool isValid = true;
+      if (_currentStep == 0 && vm.selectedPatient == null) {
+        isValid = false;
+        _showError('Vui lòng chọn bệnh nhân');
+      } else if (_currentStep == 1) {
+        if (vm.selectedLocation == null ||
+            vm.selectedSpecialty == null ||
+            vm.selectedDoctor == null) {
+          isValid = false;
+          _showError('Vui lòng chọn đầy đủ thông tin dịch vụ');
+        }
+      } else if (_currentStep == 2 && vm.selectedSlot == null) {
+        isValid = false;
+        _showError('Vui lòng chọn ngày và giờ hẹn');
+      }
+
+      if (isValid) {
+        setState(() => _currentStep++);
+      }
+    } else {
+      _submit(vm);
+    }
+  }
+
+  Widget _buildPatientStep(CreateAppointmentVm vm, ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Tìm kiếm và chọn bệnh nhân',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 16),
+        Autocomplete<Patient>(
+          displayStringForOption: (Patient option) => option.fullName,
+          optionsBuilder: (TextEditingValue textEditingValue) async {
+            if (textEditingValue.text.isEmpty) {
+              await vm.searchPatients('');
+              return vm.patients;
+            }
+            await vm.searchPatients(textEditingValue.text);
+            return vm.patients;
+          },
+          onSelected: (Patient selection) {
+            vm.selectPatient(selection);
+          },
+          fieldViewBuilder:
+              (context, controller, focusNode, onEditingComplete) {
+                return TextFormField(
+                  controller: controller,
+                  focusNode: focusNode,
+                  onEditingComplete: onEditingComplete,
+                  decoration: InputDecoration(
+                    labelText: 'Nhập tên, email hoặc SĐT',
+                    prefixIcon: const Icon(Icons.search),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    suffixIcon: vm.isLoadingPatients
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: Padding(
+                              padding: EdgeInsets.all(12.0),
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          )
+                        : null,
+                  ),
+                );
+              },
+        ),
+        if (vm.selectedPatient != null) ...[
+          const SizedBox(height: 24),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: theme.primaryColor.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: theme.primaryColor.withOpacity(0.2)),
+            ),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 28,
+                  backgroundColor: theme.primaryColor.withOpacity(0.2),
+                  child: Text(
+                    vm.selectedPatient!.fullName[0].toUpperCase(),
+                    style: TextStyle(
+                      color: theme.primaryColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 24,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        vm.selectedPatient!.fullName,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        vm.selectedPatient!.email ?? 'Không có email',
+                        style: TextStyle(color: Colors.grey[600]),
+                      ),
+                      Text(
+                        vm.selectedPatient!.phone ?? 'Không có SĐT',
+                        style: TextStyle(color: Colors.grey[600]),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close, color: Colors.red),
+                  onPressed: () {
+                    // Clear selection logic if needed
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildServiceStep(CreateAppointmentVm vm, ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Thông tin dịch vụ',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 16),
+        _buildDropdown<WorkLocation>(
+          label: 'Địa điểm',
+          value: vm.selectedLocation,
+          items: vm.locations,
+          itemLabel: (item) => item.name,
+          onChanged: vm.selectLocation,
+          icon: Icons.location_on_outlined,
+        ),
+        const SizedBox(height: 16),
+        _buildDropdown<Specialty>(
+          label: 'Chuyên khoa',
+          value: vm.selectedSpecialty,
+          items: vm.allSpecialties,
+          itemLabel: (item) => item.name,
+          onChanged: vm.selectSpecialty,
+          icon: Icons.category_outlined,
+        ),
+        const SizedBox(height: 16),
+        _buildDropdown<Doctor>(
+          label: 'Bác sĩ',
+          value: vm.selectedDoctor,
+          items: vm.doctors,
+          itemLabel: (item) => item.fullName,
+          onChanged:
+              (vm.selectedLocation != null && vm.selectedSpecialty != null)
+              ? vm.selectDoctor
+              : null,
+          icon: Icons.medical_services_outlined,
+          hint: vm.isLoadingDoctors ? 'Đang tải danh sách...' : 'Chọn bác sĩ',
+        ),
+        if (vm.selectedDoctor != null) ...[
+          const SizedBox(height: 24),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+              border: Border.all(color: Colors.grey.shade100),
+            ),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 32,
+                  backgroundImage: NetworkImage(
+                    vm.selectedDoctor!.avatarUrl ??
+                        'https://via.placeholder.com/150',
+                  ),
+                  onBackgroundImageError: (_, __) {},
+                  child: vm.selectedDoctor!.avatarUrl == null
+                      ? const Icon(Icons.person)
+                      : null,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        vm.selectedDoctor!.fullName,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        vm.selectedSpecialty?.name ?? 'Chuyên khoa',
+                        style: TextStyle(
+                          color: theme.primaryColor,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildScheduleStep(CreateAppointmentVm vm, ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Chọn thời gian',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 16),
+        AppointmentScheduler(
+          availableDates: vm.availableDates,
+          slots: vm.slots,
+          isLoadingDates: vm.isLoadingDates,
+          isLoadingSlots: vm.isLoadingSlots,
+          selectedDate: vm.selectedDate,
+          selectedSlot: vm.selectedSlot,
+          onDateSelect: vm.selectDate,
+          onSlotSelect: vm.selectSlot,
+          disabled: vm.selectedDoctor == null,
+        ),
+        if (vm.selectedSlot != null) ...[
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.green.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.green.withOpacity(0.3)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.check_circle, color: Colors.green, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  'Đã chọn: ${vm.selectedSlot!.timeStart} - ${DateFormat('dd/MM/yyyy').format(vm.selectedDate!)}',
+                  style: const TextStyle(
+                    color: Colors.green,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildDetailsStep(CreateAppointmentVm vm, ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Thông tin chi tiết',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 16),
+        TextFormField(
+          decoration: InputDecoration(
+            labelText: 'Lý do khám',
+            prefixIcon: const Icon(Icons.assignment_outlined),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+          onChanged: vm.setReason,
+        ),
+        const SizedBox(height: 16),
+        TextFormField(
+          decoration: InputDecoration(
+            labelText: 'Ghi chú thêm',
+            prefixIcon: const Icon(Icons.note_alt_outlined),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+          maxLines: 3,
+          onChanged: vm.setNotes,
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              flex: 2,
+              child: TextFormField(
+                decoration: InputDecoration(
+                  labelText: 'Giá khám',
+                  prefixIcon: const Icon(Icons.attach_money),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                onChanged: vm.setPrice,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              flex: 1,
+              child: DropdownButtonFormField<String>(
+                decoration: InputDecoration(
+                  labelText: 'Tiền tệ',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                ),
+                value: vm.currency,
+                items: ['VND', 'USD'].map((c) {
+                  return DropdownMenuItem(value: c, child: Text(c));
+                }).toList(),
+                onChanged: (val) {
+                  if (val != null) vm.setCurrency(val);
+                },
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildReviewStep(CreateAppointmentVm vm, ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Xác nhận thông tin',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 16),
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.grey.shade200),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              _buildReviewRow('Bệnh nhân', vm.selectedPatient?.fullName ?? ''),
+              const Divider(height: 24),
+              _buildReviewRow('Bác sĩ', vm.selectedDoctor?.fullName ?? ''),
+              _buildReviewRow('Chuyên khoa', vm.selectedSpecialty?.name ?? ''),
+              _buildReviewRow('Địa điểm', vm.selectedLocation?.name ?? ''),
+              const Divider(height: 24),
+              _buildReviewRow(
+                'Thời gian',
+                vm.selectedSlot != null
+                    ? '${vm.selectedSlot!.timeStart} - ${DateFormat('dd/MM/yyyy').format(vm.selectedDate!)}'
+                    : '',
+                isHighlight: true,
+              ),
+              const Divider(height: 24),
+              _buildReviewRow(
+                'Lý do',
+                vm.reason.isEmpty ? 'Không có' : vm.reason,
+              ),
+              _buildReviewRow(
+                'Ghi chú',
+                vm.notes.isEmpty ? 'Không có' : vm.notes,
+              ),
+              _buildReviewRow(
+                'Giá',
+                vm.priceAmount != null
+                    ? '${vm.priceAmount} ${vm.currency}'
+                    : 'Chưa nhập',
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildReviewRow(
+    String label,
+    String value, {
+    bool isHighlight = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 100,
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: Colors.grey,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: isHighlight ? 16 : 14,
+                color: isHighlight ? Colors.blue : Colors.black87,
+              ),
+              textAlign: TextAlign.right,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDropdown<T>({
+    required String label,
+    required T? value,
+    required List<T> items,
+    required String Function(T) itemLabel,
+    required void Function(T?)? onChanged,
+    required IconData icon,
+    String? hint,
+  }) {
+    return DropdownButtonFormField<T>(
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 16,
+        ),
+      ),
+      hint: hint != null ? Text(hint) : null,
+      value: value,
+      items: items.map((item) {
+        return DropdownMenuItem(
+          value: item,
+          child: Text(itemLabel(item), overflow: TextOverflow.ellipsis),
+        );
+      }).toList(),
+      onChanged: onChanged,
+    );
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
+  }
+
+  Future<void> _submit(CreateAppointmentVm vm) async {
+    final success = await vm.confirmBooking();
+    if (success && mounted) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Đặt lịch thành công!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } else if (vm.error != null && mounted) {
+      _showError(vm.error!);
+    }
   }
 }

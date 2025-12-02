@@ -27,7 +27,10 @@ class _PatientListPageState extends State<PatientListPage> {
     super.initState();
     final patientVm = Provider.of<PatientVm>(context, listen: false);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<PatientVm>(context, listen: false).loadPatients(isRefresh: true);
+      Provider.of<PatientVm>(
+        context,
+        listen: false,
+      ).loadPatients(isRefresh: true);
     });
     _scrollController.addListener(() {
       if (_scrollController.position.pixels ==
@@ -89,14 +92,16 @@ class _PatientListPageState extends State<PatientListPage> {
           if (patientVm.isOffline) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                  content: Text('Không thể tạo bệnh nhân khi đang offline')),
+                content: Text('Không thể tạo bệnh nhân khi đang offline'),
+              ),
             );
           } else {
             Navigator.pushNamed(context, Routes.createPatient);
           }
         },
-        backgroundColor:
-        patientVm.isOffline ? context.theme.grey : context.theme.blue,
+        backgroundColor: patientVm.isOffline
+            ? context.theme.grey
+            : context.theme.blue,
         child: const Icon(Icons.add),
       ),
     );
@@ -140,7 +145,7 @@ class _PatientListPageState extends State<PatientListPage> {
     final displayedPatients = patientVm.patients.where((patient) {
       final query = _searchText.toLowerCase();
       return patient.fullName.toLowerCase().contains(query) ||
-          patient.email.toLowerCase().contains(query) ||
+          (patient.email?.toLowerCase().contains(query) ?? false) ||
           (patient.phone?.contains(query) ?? false);
     }).toList();
 
@@ -149,8 +154,7 @@ class _PatientListPageState extends State<PatientListPage> {
     }
     return ListView.builder(
       controller: _scrollController,
-      itemCount:
-      displayedPatients.length + (patientVm.isLoadingMore ? 1 : 0),
+      itemCount: displayedPatients.length + (patientVm.isLoadingMore ? 1 : 0),
       itemBuilder: (context, index) {
         if (index == displayedPatients.length) {
           return const Center(child: CircularProgressIndicator());
@@ -173,7 +177,8 @@ class _PatientListPageState extends State<PatientListPage> {
                         if (patientVm.isOffline) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                                content: Text('Không thể sửa khi đang offline')),
+                              content: Text('Không thể sửa khi đang offline'),
+                            ),
                           );
                           return;
                         }
@@ -193,8 +198,10 @@ class _PatientListPageState extends State<PatientListPage> {
                         if (patientVm.isOffline) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                                content: Text(
-                                    'Không thể xóa/khôi phục khi đang offline')),
+                              content: Text(
+                                'Không thể xóa/khôi phục khi đang offline',
+                              ),
+                            ),
                           );
                           return;
                         }
@@ -203,21 +210,21 @@ class _PatientListPageState extends State<PatientListPage> {
                         } else {
                           showDialog(
                             context: context,
-                            builder: (_) => PatientDeleteConfirmDialog(
-                              patient: patient,
-                            ),
+                            builder: (_) =>
+                                PatientDeleteConfirmDialog(patient: patient),
                           );
                         }
                       },
-                      backgroundColor:
-                      isDeleted ? context.theme.blue : context.theme.red,
+                      backgroundColor: isDeleted
+                          ? context.theme.blue
+                          : context.theme.red,
                       foregroundColor: Colors.white,
                       icon: isDeleted ? Icons.restore : Icons.delete,
                       label: isDeleted ? 'Khôi phục' : 'Xóa',
                     ),
                   ],
                 ),
-                child: _buildPatientTile(patient, isDeleted , patientVm),
+                child: _buildPatientTile(patient, isDeleted, patientVm),
               ),
             ),
           ),
@@ -226,7 +233,11 @@ class _PatientListPageState extends State<PatientListPage> {
     );
   }
 
-  Widget _buildPatientTile(Patient patient, bool isDeleted , PatientVm patientVm) {
+  Widget _buildPatientTile(
+    Patient patient,
+    bool isDeleted,
+    PatientVm patientVm,
+  ) {
     final titleStyle = TextStyle(
       fontWeight: FontWeight.bold,
       fontSize: 16,
@@ -247,11 +258,10 @@ class _PatientListPageState extends State<PatientListPage> {
     }
 
     return GestureDetector(
-      onTap: (){
+      onTap: () {
         if (patientVm.isOffline) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text('Không thể sửa khi đang offline')),
+            const SnackBar(content: Text('Không thể sửa khi đang offline')),
           );
           return;
         }
@@ -261,49 +271,62 @@ class _PatientListPageState extends State<PatientListPage> {
         margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         elevation: 2,
         shadowColor: Colors.grey.withOpacity(0.2),
-        color:
-        isDeleted ? context.theme.grey.withOpacity(0.1) : context.theme.white,
+        color: isDeleted
+            ? context.theme.grey.withOpacity(0.1)
+            : context.theme.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         child: ListTile(
-          contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 10,
+            horizontal: 16,
+          ),
           leading: CircleAvatar(
             backgroundColor: genderColor.withOpacity(0.1),
-            child: Icon(
-              genderIcon,
-              color: genderColor,
-            ),
+            child: Icon(genderIcon, color: genderColor),
           ),
-          title: Text(
-            patient.fullName,
-            style: titleStyle,
-          ),
+          title: Text(patient.fullName, style: titleStyle),
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 4),
-              _buildInfoRow(
-                  context, Icons.email_outlined, patient.email, isDeleted),
+              if (patient.email != null)
+                _buildInfoRow(
+                  context,
+                  Icons.email_outlined,
+                  patient.email!,
+                  isDeleted,
+                ),
               if (patient.phone != null)
                 _buildInfoRow(
-                    context, Icons.phone_outlined, patient.phone!, isDeleted),
+                  context,
+                  Icons.phone_outlined,
+                  patient.phone!,
+                  isDeleted,
+                ),
               if (patient.dateOfBirth != null)
                 _buildInfoRow(
-                    context,
-                    Icons.cake_outlined,
-                    DateFormat('dd/MM/yyyy').format(patient.dateOfBirth!),
-                    isDeleted),
+                  context,
+                  Icons.cake_outlined,
+                  DateFormat('dd/MM/yyyy').format(patient.dateOfBirth!),
+                  isDeleted,
+                ),
               if (isDeleted)
                 Padding(
                   padding: const EdgeInsets.only(top: 4.0),
                   child: Chip(
                     label: const Text('Đã xóa'),
                     backgroundColor: context.theme.grey.withOpacity(0.2),
-                    labelStyle:
-                    TextStyle(fontSize: 10, color: context.theme.grey),
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+                    labelStyle: TextStyle(
+                      fontSize: 10,
+                      color: context.theme.grey,
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 0,
+                    ),
                     visualDensity: VisualDensity.compact,
                   ),
-                )
+                ),
             ],
           ),
         ),
@@ -312,7 +335,11 @@ class _PatientListPageState extends State<PatientListPage> {
   }
 
   Widget _buildInfoRow(
-      BuildContext context, IconData icon, String text, bool isDeleted) {
+    BuildContext context,
+    IconData icon,
+    String text,
+    bool isDeleted,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(top: 2.0),
       child: Row(
@@ -325,8 +352,9 @@ class _PatientListPageState extends State<PatientListPage> {
               style: TextStyle(
                 color: context.theme.grey,
                 fontSize: 12,
-                decoration:
-                isDeleted ? TextDecoration.lineThrough : TextDecoration.none,
+                decoration: isDeleted
+                    ? TextDecoration.lineThrough
+                    : TextDecoration.none,
               ),
               overflow: TextOverflow.ellipsis,
             ),
@@ -345,19 +373,16 @@ class _PatientListPageState extends State<PatientListPage> {
         itemBuilder: (context, index) {
           return Card(
             margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
             child: ListTile(
-              contentPadding:
-              const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-              leading: const CircleAvatar(
-                backgroundColor: Colors.white,
+              contentPadding: const EdgeInsets.symmetric(
+                vertical: 10,
+                horizontal: 16,
               ),
-              title: Container(
-                width: 150,
-                height: 16,
-                color: Colors.white,
-              ),
+              leading: const CircleAvatar(backgroundColor: Colors.white),
+              title: Container(width: 150, height: 16, color: Colors.white),
               subtitle: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -368,17 +393,9 @@ class _PatientListPageState extends State<PatientListPage> {
                     color: Colors.white,
                   ),
                   const SizedBox(height: 4),
-                  Container(
-                    width: 200,
-                    height: 12,
-                    color: Colors.white,
-                  ),
+                  Container(width: 200, height: 12, color: Colors.white),
                   const SizedBox(height: 4),
-                  Container(
-                    width: 100,
-                    height: 12,
-                    color: Colors.white,
-                  ),
+                  Container(width: 100, height: 12, color: Colors.white),
                 ],
               ),
             ),

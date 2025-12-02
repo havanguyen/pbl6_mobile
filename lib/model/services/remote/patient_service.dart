@@ -11,6 +11,7 @@ class PatientService {
     String sortBy = 'createdAt',
     String sortOrder = 'desc',
     bool includedDeleted = false,
+    String? search,
   }) async {
     final response = await _dio.get(
       '/patients',
@@ -20,18 +21,15 @@ class PatientService {
         'sortBy': sortBy,
         'sortOrder': sortOrder,
         'includedDeleted': includedDeleted,
+        if (search != null && search.isNotEmpty) 'search': search,
       },
     );
 
     if (response.statusCode == 200) {
       final data = response.data['data'] as List;
       final meta = response.data['meta'];
-      final patients =
-      data.map((json) => Patient.fromJson(json)).toList();
-      return {
-        'patients': patients,
-        'meta': meta,
-      };
+      final patients = data.map((json) => Patient.fromJson(json)).toList();
+      return {'patients': patients, 'meta': meta};
     }
     return {'patients': <Patient>[], 'meta': null};
   }
@@ -51,10 +49,7 @@ class PatientService {
 
   Future<bool> createPatient(Map<String, dynamic> patientData) async {
     try {
-      final response = await _dio.post(
-        '/patients',
-        data: patientData,
-      );
+      final response = await _dio.post('/patients', data: patientData);
       return response.statusCode == 201;
     } catch (e) {
       print("Create patient error: $e");
@@ -63,12 +58,11 @@ class PatientService {
   }
 
   Future<bool> updatePatient(
-      String id, Map<String, dynamic> patientData) async {
+    String id,
+    Map<String, dynamic> patientData,
+  ) async {
     try {
-      final response = await _dio.patch(
-        '/patients/$id',
-        data: patientData,
-      );
+      final response = await _dio.patch('/patients/$id', data: patientData);
       return response.statusCode == 200;
     } catch (e) {
       print("Update patient error: $e");

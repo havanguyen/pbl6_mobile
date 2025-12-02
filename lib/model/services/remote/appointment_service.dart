@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:intl/intl.dart';
 import 'package:pbl6mobile/model/dto/appointment_dto.dart';
+import 'package:pbl6mobile/model/entities/appointment_data.dart';
 import 'package:pbl6mobile/model/entities/appointment_response.dart';
 import 'package:pbl6mobile/model/services/remote/auth_service.dart';
 
@@ -11,6 +12,10 @@ class AppointmentService {
     required DateTime fromDate,
     required DateTime toDate,
     String? status,
+    String? doctorId,
+    String? workLocationId,
+    String? specialtyId,
+    String? patientId,
     int page = 1,
     int limit = 100,
   }) async {
@@ -22,15 +27,42 @@ class AppointmentService {
         'page': page,
         'limit': limit,
         if (status != null) 'status': status,
+        if (doctorId != null) 'doctorId': doctorId,
+        if (workLocationId != null) 'workLocationId': workLocationId,
+        if (specialtyId != null) 'specialtyId': specialtyId,
+        if (patientId != null) 'patientId': patientId,
       };
 
-      final response = await _dio.get(
-        '/appointments',
-        queryParameters: params,
-      );
+      final response = await _dio.get('/appointments', queryParameters: params);
+      print('--- [DEBUG] AppointmentService.getAppointments ---');
+      print('Params: $params');
+      print('Response Status: ${response.statusCode}');
+      if (response.statusCode == 200) {
+        print('Response Data count: ${(response.data['data'] as List).length}');
+      } else {
+        print('Response Body: ${response.data}');
+      }
 
       if (response.statusCode == 200) {
-        return AppointmentResponse.fromJson(response.data);
+        print('--- [DEBUG] Parsing AppointmentResponse... ---');
+        final result = AppointmentResponse.fromJson(response.data);
+        print(
+          '--- [DEBUG] Parsed successfully. Success: ${result.success}, Data count: ${result.data.length} ---',
+        );
+        return result;
+      }
+      return null;
+    } catch (e) {
+      print('--- [ERROR] AppointmentService.getAppointments: $e');
+      return null;
+    }
+  }
+
+  Future<AppointmentData?> getAppointmentById(String id) async {
+    try {
+      final response = await _dio.get('/appointments/$id');
+      if (response.statusCode == 200) {
+        return AppointmentData.fromJson(response.data);
       }
       return null;
     } catch (e) {
@@ -83,10 +115,7 @@ class AppointmentService {
 
   Future<bool> createAppointment(CreateAppointmentRequest request) async {
     try {
-      final response = await _dio.post(
-        '/appointments',
-        data: request.toJson(),
-      );
+      final response = await _dio.post('/appointments', data: request.toJson());
 
       return response.statusCode == 201 || response.statusCode == 200;
     } catch (e) {
@@ -106,7 +135,11 @@ class AppointmentService {
     }
   }
 
-  Future<bool> rescheduleAppointment(String id, String timeStart, String timeEnd) async {
+  Future<bool> rescheduleAppointment(
+    String id,
+    String timeStart,
+    String timeEnd,
+  ) async {
     try {
       final response = await _dio.patch(
         '/appointments/$id/reschedule',
@@ -136,7 +169,14 @@ class AppointmentService {
     }
   }
 
-  Future<bool> updateAppointment(String id, String notes, double price, String currency) async {
+  Future<bool> updateAppointment(
+    String id,
+    String notes,
+    double price,
+    String currency,
+    String status,
+    String reason,
+  ) async {
     try {
       final response = await _dio.patch(
         '/appointments/$id',
@@ -144,6 +184,8 @@ class AppointmentService {
           'notes': notes,
           'priceAmount': price,
           'currency': currency,
+          'status': status,
+          'reason': reason,
         },
       );
       return response.statusCode == 200;

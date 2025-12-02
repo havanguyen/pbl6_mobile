@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:pbl6mobile/model/entities/appointment_data.dart';
 import 'package:pbl6mobile/view/appointment/widgets/appointment_details_sheet.dart';
 import 'package:pbl6mobile/view_model/appointment/appointment_vm.dart';
@@ -21,336 +20,338 @@ class AppointmentCalendar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<AppointmentVm>();
-    final theme = Theme.of(context);
+    final nonWorkingDays = <int>[];
+    vm.workingDays.forEach((day, isWorking) {
+      if (!isWorking) nonWorkingDays.add(day);
+    });
 
     return SfCalendar(
       controller: controller,
       view: currentView,
       dataSource: vm.dataSource,
-      onViewChanged: onViewChanged,
-      initialSelectedDate: DateTime.now(),
-      initialDisplayDate: DateTime.now(),
-      appointmentBuilder: (context, details) =>
-          _appointmentBuilder(context, details, vm),
-      timeSlotViewSettings: const TimeSlotViewSettings(
-        startHour: 7,
-        endHour: 18,
-        nonWorkingDays: <int>[DateTime.saturday, DateTime.sunday],
+      firstDayOfWeek: 1,
+      timeSlotViewSettings: TimeSlotViewSettings(
+        startHour: vm.startHour,
+        endHour: vm.endHour,
+        nonWorkingDays: nonWorkingDays,
+        dateFormat: 'd',
+        dayFormat: 'EEE',
+        timeFormat: 'HH:mm',
         timeIntervalHeight: 60,
       ),
-      monthViewSettings: const MonthViewSettings(
-        appointmentDisplayMode: MonthAppointmentDisplayMode.indicator,
-        showAgenda: true,
-      ),
-      scheduleViewSettings: ScheduleViewSettings(
+      scheduleViewSettings: const ScheduleViewSettings(
         appointmentItemHeight: 90,
         monthHeaderSettings: MonthHeaderSettings(
-          height: 100,
-          textAlign: TextAlign.left,
-          backgroundColor: theme.primaryColor.withOpacity(0.1),
           monthFormat: 'MMMM, yyyy',
-          monthTextStyle: TextStyle(
-            color: theme.textTheme.titleLarge?.color ?? theme.primaryColor,
-            fontSize: 18,
-            fontWeight: FontWeight.w500,
-          ),
+          height: 70,
+          textAlign: TextAlign.left,
+          backgroundColor: Color(0xFFf5f5f5),
         ),
       ),
-      onTap: (calendarTapDetails) {
-        if (calendarTapDetails.targetElement == CalendarElement.appointment) {
-          final dynamic appointment = calendarTapDetails.appointments?.first;
-          if (appointment is AppointmentData) {
-            _showAppointmentDetails(context, appointment);
-          }
+      monthViewSettings: const MonthViewSettings(
+        appointmentDisplayMode: MonthAppointmentDisplayMode.appointment,
+        showAgenda: true,
+      ),
+      onViewChanged: (ViewChangedDetails details) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          onViewChanged(details);
+        });
+      },
+      onTap: (CalendarTapDetails details) {
+        if (details.targetElement == CalendarElement.appointment) {
+          final AppointmentData appointment = details.appointments!.first;
+          final color = _getStatusColor(appointment.status);
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            builder: (context) => AppointmentDetailsSheet(
+              appointment: appointment,
+              highlightColor: color,
+            ),
+          );
         }
       },
-    );
-  }
+      appointmentBuilder: (context, calendarAppointmentDetails) {
+        final AppointmentData appointment =
+            calendarAppointmentDetails.appointments.first;
 
-  void _showAppointmentDetails(BuildContext context, AppointmentData app) {
-    final vm = context.read<AppointmentVm>();
-    final color =
-        vm.dataSource?.getColor(vm.dataSource!.appointments!.indexOf(app)) ??
-        Colors.blue;
+        if (currentView == CalendarView.schedule) {
+          return _buildScheduleCard(appointment);
+        }
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) {
-        return AppointmentDetailsSheet(appointment: app, highlightColor: color);
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            if (vm.badgeVariant == 'dot') {
+              return _buildDotBadge(appointment, currentView, constraints);
+            } else if (vm.badgeVariant == 'mixed') {
+              return _buildMixedBadge(appointment, currentView, constraints);
+            }
+            return _buildColoredBadge(appointment, currentView, constraints);
+          },
+        );
       },
     );
   }
 
-  Widget _appointmentBuilder(
-    BuildContext context,
-    CalendarAppointmentDetails details,
-    AppointmentVm vm,
-  ) {
-    final appointment = details.appointments.first as AppointmentData;
-    final color =
-        vm.dataSource?.getColor(
-          vm.dataSource!.appointments!.indexOf(appointment),
-        ) ??
-        Colors.blue;
-
-    final bool isDarkBackground = color.computeLuminance() < 0.5;
-    final Color mainTextColor = isDarkBackground
-        ? Colors.white
-        : Colors.black87;
-    final Color secondaryTextColor = isDarkBackground
-        ? Colors.white70
-        : Colors.black54;
-
-    final DateFormat timeFormatter = DateFormat('HH:mm');
-    final String startTime = timeFormatter.format(
-      appointment.appointmentStartTime,
-    );
-    final String patientName = appointment.patient.fullName;
-    final String doctorName = appointment.doctor.name ?? 'N/A';
-
-    if (currentView == CalendarView.day ||
-        currentView == CalendarView.timelineDay) {
-      return Container(
-        width: details.bounds.width,
-        height: details.bounds.height,
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.9),
-          borderRadius: BorderRadius.circular(4),
-          border: Border(left: BorderSide(color: color, width: 4)),
-        ),
-        padding: const EdgeInsets.fromLTRB(8, 4, 6, 4),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.access_time, color: mainTextColor, size: 12),
-                const SizedBox(width: 4),
-                Flexible(
-                  child: Text(
-                    '$startTime - $patientName',
-                    style: TextStyle(
-                      color: mainTextColor,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 2),
-            Row(
-              children: [
-                Icon(
-                  Icons.medical_services_outlined,
-                  color: mainTextColor,
-                  size: 12,
-                ),
-                const SizedBox(width: 4),
-                Flexible(
-                  child: Text(
-                    doctorName,
-                    style: TextStyle(color: mainTextColor, fontSize: 11),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
-                ),
-              ],
-            ),
-            if (appointment.reason != null && appointment.reason!.isNotEmpty)
-              Row(
-                children: [
-                  Icon(
-                    Icons.subject_outlined,
-                    color: secondaryTextColor,
-                    size: 10,
-                  ),
-                  const SizedBox(width: 4),
-                  Flexible(
-                    child: Text(
-                      appointment.reason!,
-                      style: TextStyle(color: secondaryTextColor, fontSize: 10),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                    ),
-                  ),
-                ],
-              ),
-          ],
-        ),
-      );
-    }
-
-    if (currentView == CalendarView.week) {
-      return Container(
-        width: details.bounds.width,
-        height: details.bounds.height,
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(4),
-        ),
-        padding: const EdgeInsets.all(4.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.access_time, color: mainTextColor, size: 10),
-                const SizedBox(width: 2),
-                Expanded(
-                  child: Text(
-                    '$startTime $patientName',
-                    style: TextStyle(color: mainTextColor, fontSize: 11),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
-                ),
-              ],
-            ),
-            Row(
-              children: [
-                Icon(
-                  Icons.medical_services_outlined,
-                  color: secondaryTextColor,
-                  size: 10,
-                ),
-                const SizedBox(width: 2),
-                Expanded(
-                  child: Text(
-                    doctorName,
-                    style: TextStyle(color: secondaryTextColor, fontSize: 10),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      );
-    }
-
-    if (currentView == CalendarView.month) {
-      return Container(
-        width: details.bounds.width,
-        height: details.bounds.height,
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(4),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-        child: Text(
-          '$startTime - $patientName',
-          style: TextStyle(color: mainTextColor, fontSize: 12),
-          overflow: TextOverflow.ellipsis,
-          maxLines: 1,
-        ),
-      );
-    }
-
-    if (currentView == CalendarView.schedule) {
-      return Container(
-        padding: const EdgeInsets.all(12),
+  Widget _buildScheduleCard(AppointmentData appointment) {
+    final color = _getStatusColor(appointment.status);
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border(left: BorderSide(color: color, width: 4)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: 5,
-              height: 70,
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(4),
-              ),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  '${appointment.appointmentStartTime.hour}:${appointment.appointmentStartTime.minute.toString().padLeft(2, '0')}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: Colors.black87,
+                  ),
+                ),
+                Text(
+                  '${appointment.appointmentEndTime.hour}:${appointment.appointmentEndTime.minute.toString().padLeft(2, '0')}',
+                  style: const TextStyle(color: Colors.black54, fontSize: 13),
+                ),
+              ],
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _buildScheduleRow(
-                    context,
-                    Icons.person_outline,
-                    patientName,
-                    mainTextColor: Theme.of(
-                      context,
-                    ).textTheme.titleMedium?.color,
-                    isBold: true,
+                  Text(
+                    appointment.patient.fullName,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
                   ),
-                  _buildScheduleRow(
-                    context,
-                    Icons.medical_services_outlined,
-                    doctorName,
-                    mainTextColor: Theme.of(
-                      context,
-                    ).textTheme.bodyMedium?.color,
-                  ),
-                  _buildScheduleRow(
-                    context,
-                    Icons.subject_outlined,
-                    appointment.reason ?? 'Không có',
-                    mainTextColor: Colors.grey[600],
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.medical_services,
+                        size: 14,
+                        color: Colors.grey,
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          appointment.doctor.name ?? 'N/A',
+                          style: const TextStyle(
+                            color: Colors.black54,
+                            fontSize: 13,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                appointment.status,
+                style: TextStyle(
+                  color: color,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+              ),
+            ),
           ],
         ),
-      );
-    }
-
-    return Container(
-      width: details.bounds.width,
-      height: details.bounds.height,
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(4),
-      ),
-      padding: const EdgeInsets.all(4.0),
-      child: Text(
-        '$startTime $patientName',
-        style: TextStyle(color: mainTextColor, fontSize: 10),
-        overflow: TextOverflow.ellipsis,
-        maxLines: 1,
       ),
     );
   }
 
-  Widget _buildScheduleRow(
-    BuildContext context,
-    IconData icon,
-    String text, {
-    Color? mainTextColor,
-    bool isBold = false,
-  }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(
-          icon,
-          size: 14,
-          color: mainTextColor ?? Theme.of(context).textTheme.bodyMedium?.color,
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            text,
+  Widget _buildColoredBadge(
+    AppointmentData appointment,
+    CalendarView view,
+    BoxConstraints constraints,
+  ) {
+    final color = _getStatusColor(appointment.status);
+    final isSmall = constraints.maxHeight < 40;
+    final isMedium = constraints.maxHeight < 60;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(4),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 2,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      padding: EdgeInsets.symmetric(horizontal: 4, vertical: isSmall ? 0 : 2),
+      child: isSmall
+          ? Center(
+              child: Text(
+                appointment.patient.fullName,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 9,
+                  fontWeight: FontWeight.bold,
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+            )
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  appointment.patient.fullName,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+                if (!isMedium && view != CalendarView.month) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    'BS: ${appointment.doctor.name ?? 'N/A'}',
+                    style: const TextStyle(color: Colors.white70, fontSize: 9),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                ],
+              ],
+            ),
+    );
+  }
+
+  Widget _buildDotBadge(
+    AppointmentData appointment,
+    CalendarView view,
+    BoxConstraints constraints,
+  ) {
+    final color = _getStatusColor(appointment.status);
+    final isSmall = constraints.maxHeight < 40;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      padding: EdgeInsets.symmetric(horizontal: 4, vertical: isSmall ? 0 : 2),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            margin: const EdgeInsets.only(right: 4),
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          Expanded(
+            child: Text(
+              appointment.patient.fullName,
+              style: TextStyle(
+                color: Colors.black87,
+                fontSize: isSmall ? 9 : 11,
+                fontWeight: FontWeight.w500,
+              ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMixedBadge(
+    AppointmentData appointment,
+    CalendarView view,
+    BoxConstraints constraints,
+  ) {
+    final color = _getStatusColor(appointment.status);
+    final isSmall = constraints.maxHeight < 40;
+    final isMedium = constraints.maxHeight < 60;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(4),
+        border: Border(left: BorderSide(color: color, width: 3)),
+      ),
+      padding: EdgeInsets.symmetric(horizontal: 4, vertical: isSmall ? 0 : 2),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            appointment.patient.fullName,
             style: TextStyle(
-              fontSize: 13,
-              color:
-                  mainTextColor ??
-                  Theme.of(context).textTheme.bodyMedium?.color,
-              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+              color: Colors.black87,
+              fontSize: isSmall ? 9 : 11,
+              fontWeight: FontWeight.bold,
             ),
             overflow: TextOverflow.ellipsis,
             maxLines: 1,
           ),
-        ),
-      ],
+          if (!isMedium && !isSmall && view != CalendarView.month) ...[
+            const SizedBox(height: 1),
+            Flexible(
+              child: Text(
+                'BS: ${appointment.doctor.name ?? 'N/A'}',
+                style: const TextStyle(color: Colors.black54, fontSize: 9),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+            ),
+          ],
+        ],
+      ),
     );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case 'BOOKED':
+        return Colors.blue;
+      case 'COMPLETED':
+        return Colors.green;
+      case 'CANCELLED':
+      case 'CANCELLED_BY_STAFF':
+      case 'CANCELLED_BY_PATIENT':
+        return Colors.red;
+      case 'RESCHEDULED':
+        return Colors.orange;
+      default:
+        return Colors.grey;
+    }
   }
 }

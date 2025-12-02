@@ -24,15 +24,18 @@ class LocationWorkVm extends ChangeNotifier {
   bool get hasNext => _meta['hasNext'] ?? false;
   bool get hasPrev => _meta['hasPrev'] ?? false;
 
-  final WorkLocationDatabaseHelper _dbHelper = WorkLocationDatabaseHelper.instance;
+  final WorkLocationDatabaseHelper _dbHelper =
+      WorkLocationDatabaseHelper.instance;
 
   LocationWorkVm() {
-    Connectivity()
-        .onConnectivityChanged
-        .listen((List<ConnectivityResult> results) {
-      bool isConnected = results.any((result) =>
-      result == ConnectivityResult.wifi ||
-          result == ConnectivityResult.mobile);
+    Connectivity().onConnectivityChanged.listen((
+      List<ConnectivityResult> results,
+    ) {
+      bool isConnected = results.any(
+        (result) =>
+            result == ConnectivityResult.wifi ||
+            result == ConnectivityResult.mobile,
+      );
       if (isConnected && _isOffline) {
         _isOffline = false;
         fetchLocations(forceRefresh: true);
@@ -47,6 +50,9 @@ class LocationWorkVm extends ChangeNotifier {
     String? sortOrder,
     bool forceRefresh = false,
   }) async {
+    print('--- [DEBUG] LocationWorkVm.fetchLocations ---');
+    print('page: $page, limit: $limit, forceRefresh: $forceRefresh');
+
     if (_locations.isNotEmpty && !forceRefresh && page == null) {
       return;
     }
@@ -154,6 +160,23 @@ class LocationWorkVm extends ChangeNotifier {
     _isLoading = false;
     notifyListeners();
     return success;
+  }
+
+  List<WorkLocation> _activeLocations = [];
+  List<WorkLocation> get activeLocations => _activeLocations;
+
+  Future<void> fetchActiveLocations() async {
+    try {
+      final result = await LocationWorkService.getAllActiveLocations();
+      if (result['success'] == true) {
+        _activeLocations = (result['data'] as List<dynamic>)
+            .map((json) => WorkLocation.fromJson(json))
+            .toList();
+        notifyListeners();
+      }
+    } catch (e) {
+      print('Error fetching active locations: $e');
+    }
   }
 
   void clearError() {

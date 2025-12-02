@@ -1,8 +1,3 @@
-import 'package:json_annotation/json_annotation.dart';
-
-part 'appointment_dto.g.dart';
-
-@JsonSerializable()
 class DoctorSlot {
   final String timeStart;
   final String timeEnd;
@@ -14,11 +9,23 @@ class DoctorSlot {
     this.isAvailable,
   });
 
-  factory DoctorSlot.fromJson(Map<String, dynamic> json) => _$DoctorSlotFromJson(json);
-  Map<String, dynamic> toJson() => _$DoctorSlotToJson(this);
+  factory DoctorSlot.fromJson(Map<String, dynamic> json) {
+    return DoctorSlot(
+      timeStart: json['timeStart'] as String,
+      timeEnd: json['timeEnd'] as String,
+      isAvailable: json['isAvailable'] as bool?,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'timeStart': timeStart,
+      'timeEnd': timeEnd,
+      'isAvailable': isAvailable,
+    };
+  }
 }
 
-@JsonSerializable()
 class HoldAppointmentRequest {
   final String doctorId;
   final String locationId;
@@ -34,10 +41,17 @@ class HoldAppointmentRequest {
     required this.timeEnd,
   });
 
-  Map<String, dynamic> toJson() => _$HoldAppointmentRequestToJson(this);
+  Map<String, dynamic> toJson() {
+    return {
+      'doctorId': doctorId,
+      'locationId': locationId,
+      'serviceDate': serviceDate,
+      'timeStart': timeStart,
+      'timeEnd': timeEnd,
+    };
+  }
 }
 
-@JsonSerializable()
 class CreateAppointmentRequest {
   final String? eventId;
   final String? serviceDate;
@@ -67,5 +81,23 @@ class CreateAppointmentRequest {
     this.currency,
   });
 
-  Map<String, dynamic> toJson() => _$CreateAppointmentRequestToJson(this);
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = {
+      'patientId': patientId,
+      'specialtyId': specialtyId,
+    };
+
+    if (eventId != null) data['eventId'] = eventId;
+    if (serviceDate != null) data['serviceDate'] = serviceDate;
+    if (timeStart != null) data['timeStart'] = timeStart;
+    if (timeEnd != null) data['timeEnd'] = timeEnd;
+    if (locationId != null) data['locationId'] = locationId;
+    if (doctorId != null) data['doctorId'] = doctorId;
+    if (reason != null) data['reason'] = reason;
+    if (notes != null) data['notes'] = notes;
+    if (priceAmount != null) data['priceAmount'] = priceAmount;
+    if (currency != null) data['currency'] = currency;
+
+    return data;
+  }
 }

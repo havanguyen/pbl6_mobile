@@ -37,8 +37,8 @@ class _AppointmentFilterDialogState extends State<AppointmentFilterDialog> {
     _selectedSpecialtyId = widget.selectedSpecialtyId;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<DoctorVm>().fetchDoctors();
-      context.read<LocationWorkVm>().fetchLocations();
+      context.read<DoctorVm>().fetchAllDoctors();
+      context.read<LocationWorkVm>().fetchActiveLocations();
       context.read<SpecialtyVm>().fetchSpecialties();
     });
   }
@@ -91,7 +91,7 @@ class _AppointmentFilterDialogState extends State<AppointmentFilterDialog> {
   Widget _buildDoctorDropdown() {
     return Consumer<DoctorVm>(
       builder: (context, vm, child) {
-        if (vm.isLoading && vm.doctors.isEmpty) {
+        if (vm.allDoctors.isEmpty) {
           return const Center(child: CircularProgressIndicator());
         }
         return DropdownButtonFormField<String>(
@@ -106,7 +106,7 @@ class _AppointmentFilterDialogState extends State<AppointmentFilterDialog> {
               value: null,
               child: Text('Tất cả bác sĩ'),
             ),
-            ...vm.doctors.map((Doctor doctor) {
+            ...vm.allDoctors.map((Doctor doctor) {
               return DropdownMenuItem<String>(
                 value: doctor.id,
                 child: Text(doctor.fullName, overflow: TextOverflow.ellipsis),
@@ -127,7 +127,7 @@ class _AppointmentFilterDialogState extends State<AppointmentFilterDialog> {
   Widget _buildLocationDropdown() {
     return Consumer<LocationWorkVm>(
       builder: (context, vm, child) {
-        if (vm.isLoading && vm.locations.isEmpty) {
+        if (vm.activeLocations.isEmpty) {
           return const Center(child: CircularProgressIndicator());
         }
         return DropdownButtonFormField<String>(
@@ -142,7 +142,7 @@ class _AppointmentFilterDialogState extends State<AppointmentFilterDialog> {
               value: null,
               child: Text('Tất cả cơ sở'),
             ),
-            ...vm.locations.map((WorkLocation location) {
+            ...vm.activeLocations.map((WorkLocation location) {
               return DropdownMenuItem<String>(
                 value: location.id,
                 child: Text(location.name, overflow: TextOverflow.ellipsis),

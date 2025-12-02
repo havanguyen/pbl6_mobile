@@ -17,11 +17,23 @@ class PatientDatabaseHelper {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 1, onCreate: _onCreate);
+    return await openDatabase(
+      path,
+      version: 2,
+      onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
+    );
   }
 
   Future _onCreate(Database db, int version) async {
     await db.execute(_createPatientTableScript);
+  }
+
+  Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('DROP TABLE IF EXISTS $_tablePatients');
+      await db.execute(_createPatientTableScript);
+    }
   }
 
   static const _tablePatients = 'patients';
@@ -39,11 +51,12 @@ class PatientDatabaseHelper {
   static const _columnUpdatedAt = 'updatedAt';
   static const _columnDeletedAt = 'deletedAt';
 
-  static const String _createPatientTableScript = '''
+  static const String _createPatientTableScript =
+      '''
   CREATE TABLE $_tablePatients (
     $_columnId TEXT PRIMARY KEY,
     $_columnFullName TEXT NOT NULL,
-    $_columnEmail TEXT NOT NULL,
+    $_columnEmail TEXT,
     $_columnPhone TEXT,
     $_columnIsMale INTEGER,
     $_columnDateOfBirth TEXT,

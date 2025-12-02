@@ -75,7 +75,16 @@ class LocationWorkService {
         'page': page,
         'limit': limit,
       };
-      final response = await _dio.get('/work-locations', queryParameters: params);
+      final response = await _dio.get(
+        '/work-locations',
+        queryParameters: params,
+      );
+
+      print('--- [DEBUG] LocationWorkService.getAllLocations ---');
+      print('Params: $params');
+      print('Response Status: ${response.statusCode}');
+      print('Response Data: ${response.data}');
+
       return response.data;
     } catch (e) {
       return {'success': false, 'data': [], 'message': e.toString()};
@@ -128,14 +137,20 @@ class LocationWorkService {
         if (isActive != null) 'isActive': isActive,
       };
       if (requestBody.isEmpty) return false;
-      final response = await _dio.patch('/work-locations/$id', data: requestBody);
+      final response = await _dio.patch(
+        '/work-locations/$id',
+        data: requestBody,
+      );
       return response.statusCode == 200;
     } catch (e) {
       return false;
     }
   }
 
-  static Future<bool> deleteLocation(String id, {required String password}) async {
+  static Future<bool> deleteLocation(
+    String id, {
+    required String password,
+  }) async {
     try {
       if (!await AuthService.verifyPassword(password: password)) {
         return false;
@@ -144,6 +159,29 @@ class LocationWorkService {
       return response.statusCode == 200 || response.statusCode == 204;
     } catch (e) {
       return false;
+    }
+  }
+
+  static Future<Map<String, dynamic>> getAllActiveLocations() async {
+    try {
+      final params = {
+        'isActive': true,
+        'limit': 100,
+        'sortBy': 'name',
+        'sortOrder': 'ASC',
+      };
+      final response = await _dio.get(
+        '/work-locations',
+        queryParameters: params,
+      );
+
+      print('--- [DEBUG] LocationWorkService.getAllActiveLocations ---');
+      print('Params: $params');
+      print('Response Status: ${response.statusCode}');
+
+      return response.data;
+    } catch (e) {
+      return {'success': false, 'data': [], 'message': e.toString()};
     }
   }
 }

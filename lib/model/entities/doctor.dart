@@ -39,6 +39,7 @@ class Doctor {
 
   factory Doctor.fromJson(Map<String, dynamic> json) => _$DoctorFromJson(json);
   Map<String, dynamic> toJson() => _$DoctorToJson(this);
+
   static bool? _boolFromJson(dynamic value) {
     if (value == null) return null;
     if (value is bool) return value;
@@ -53,4 +54,12 @@ class Doctor {
   }
 
   static String? _dateTimeToJson(DateTime? date) => date?.toIso8601String();
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Doctor && runtimeType == other.runtimeType && id == other.id;
+
+  @override
+  int get hashCode => id.hashCode;
 }

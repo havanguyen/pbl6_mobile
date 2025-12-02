@@ -12,6 +12,7 @@ import 'package:pbl6mobile/model/entities/specialty.dart';
 import 'package:pbl6mobile/model/entities/work_location.dart';
 import 'package:pbl6mobile/model/services/remote/auth_service.dart';
 import 'package:pbl6mobile/shared/services/store.dart';
+import 'package:pbl6mobile/model/dto/appointment_dto.dart';
 
 class DoctorService {
   const DoctorService._();
@@ -58,7 +59,7 @@ class DoctorService {
               if (refreshSuccess) {
                 final newAccessToken = await Store.getAccessToken();
                 e.requestOptions.headers['Authorization'] =
-                'Bearer $newAccessToken';
+                    'Bearer $newAccessToken';
                 final options = Options(
                   method: e.requestOptions.method,
                   headers: e.requestOptions.headers,
@@ -75,11 +76,13 @@ class DoctorService {
               }
             } catch (err) {
               await AuthService.logout();
-              return handler.reject(DioException(
-                requestOptions: e.requestOptions,
-                error: err,
-                response: e.response,
-              ));
+              return handler.reject(
+                DioException(
+                  requestOptions: e.requestOptions,
+                  error: err,
+                  response: e.response,
+                ),
+              );
             }
           }
           return handler.next(e);
@@ -99,6 +102,8 @@ class DoctorService {
     String? createdTo,
     String? sortBy,
     String? sortOrder,
+    String? specialtyId,
+    String? workLocationId,
   }) async {
     try {
       final params = {
@@ -111,9 +116,25 @@ class DoctorService {
         if (createdTo != null && createdTo.isNotEmpty) 'createdTo': createdTo,
         if (sortBy != null && sortBy.isNotEmpty) 'sortBy': sortBy,
         if (sortOrder != null && sortOrder.isNotEmpty) 'sortOrder': sortOrder,
+        if (specialtyId != null && specialtyId.isNotEmpty)
+          'specialtyId': specialtyId,
+        if (workLocationId != null && workLocationId.isNotEmpty)
+          'workLocationId': workLocationId,
       };
 
-      final response = await _secureDio.get('/doctors', queryParameters: params);
+      final response = await _secureDio.get(
+        '/doctors',
+        queryParameters: params,
+      );
+
+      print('--- [DEBUG] DoctorService.getDoctors ---');
+      print('Params: $params');
+      print('Response Status: ${response.statusCode}');
+      if (response.statusCode == 200) {
+        print('Response Data count: ${(response.data['data'] as List).length}');
+      } else {
+        print('Response Body: ${response.data}');
+      }
 
       if (response.statusCode == 200) {
         final doctorList = (response.data['data'] as List)
@@ -126,13 +147,19 @@ class DoctorService {
         );
       }
       return GetDoctorsResponse(
-          success: false, message: response.data['message'] ?? 'API call failed');
+        success: false,
+        message: response.data['message'] ?? 'API call failed',
+      );
     } on DioException catch (e) {
       return GetDoctorsResponse(
-          success: false, message: 'Lỗi kết nối: ${e.message}');
+        success: false,
+        message: 'Lỗi kết nối: ${e.message}',
+      );
     } catch (e) {
       return GetDoctorsResponse(
-          success: false, message: 'Đã xảy ra lỗi không mong muốn.');
+        success: false,
+        message: 'Đã xảy ra lỗi không mong muốn.',
+      );
     }
   }
 
@@ -148,15 +175,17 @@ class DoctorService {
         try {
           if (dataToParse['specialties'] != null) {
             debugPrint("[DEBUG] Đang parse Specialties...");
-            (dataToParse['specialties'] as List<dynamic>)
-                .forEach((e) => Specialty.fromJson(e as Map<String, dynamic>));
+            (dataToParse['specialties'] as List<dynamic>).forEach(
+              (e) => Specialty.fromJson(e as Map<String, dynamic>),
+            );
             debugPrint("[DEBUG] Parse Specialties THÀNH CÔNG");
           }
 
           if (dataToParse['workLocations'] != null) {
             debugPrint("[DEBUG] Đang parse WorkLocations...");
             (dataToParse['workLocations'] as List<dynamic>).forEach(
-                    (e) => WorkLocation.fromJson(e as Map<String, dynamic>));
+              (e) => WorkLocation.fromJson(e as Map<String, dynamic>),
+            );
             debugPrint("[DEBUG] Parse WorkLocations THÀNH CÔNG");
           }
 
@@ -172,7 +201,8 @@ class DoctorService {
 
           if (e is TypeError) {
             debugPrint(
-                "LỖI TYPEERROR: Rất có thể một model con (Specialty, WorkLocation) bị lỗi cast.");
+              "LỖI TYPEERROR: Rất có thể một model con (Specialty, WorkLocation) bị lỗi cast.",
+            );
           }
           debugPrint("--- HẾT LỖI PARSING ---");
           return null;
@@ -189,7 +219,8 @@ class DoctorService {
   }
 
   static Future<DoctorProfile?> createDoctorProfile(
-      Map<String, dynamic> data) async {
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await _secureDio.post('/doctors/profile', data: data);
       if (response.statusCode == 201 && response.data['data'] != null) {
@@ -206,10 +237,14 @@ class DoctorService {
   }
 
   static Future<DoctorProfile?> updateDoctorProfile(
-      String profileId, Map<String, dynamic> data) async {
+    String profileId,
+    Map<String, dynamic> data,
+  ) async {
     try {
-      final response =
-      await _secureDio.patch('/doctors/profile/$profileId', data: data);
+      final response = await _secureDio.patch(
+        '/doctors/profile/$profileId',
+        data: data,
+      );
       if (response.statusCode == 200 && response.data['data'] != null) {
         return DoctorProfile.fromJson(response.data['data']);
       }
@@ -224,10 +259,13 @@ class DoctorService {
   }
 
   static Future<DoctorProfile?> toggleDoctorActive(
-      String profileId, bool isActive) async {
+    String profileId,
+    bool isActive,
+  ) async {
     try {
       print(
-          "➡️ [SERVICE] Sending PATCH request to '/doctors/profile/$profileId/toggle-active'");
+        "➡️ [SERVICE] Sending PATCH request to '/doctors/profile/$profileId/toggle-active'",
+      );
       print("   - Payload: {'isActive': $isActive}");
 
       final response = await _secureDio.patch(
@@ -236,17 +274,20 @@ class DoctorService {
       );
 
       print(
-          "⬅️ [SERVICE] Received response with statusCode: ${response.statusCode}");
+        "⬅️ [SERVICE] Received response with statusCode: ${response.statusCode}",
+      );
 
       if (response.statusCode == 200 && response.data['data'] != null) {
         print("   - Response data: ${response.data['data']}");
         final profile = DoctorProfile.fromJson(response.data['data']);
         print(
-            "   - Successfully parsed DoctorProfile. New isActive: ${profile.isActive}");
+          "   - Successfully parsed DoctorProfile. New isActive: ${profile.isActive}",
+        );
         return profile;
       } else {
         print(
-            "   - Response was successful but data is null or status code is not 200.");
+          "   - Response was successful but data is null or status code is not 200.",
+        );
         return null;
       }
     } catch (e) {
@@ -288,15 +329,55 @@ class DoctorService {
     }
   }
 
+  static Future<GetDoctorsResponse> getAllDoctors() async {
+    try {
+      final params = {'limit': 100, 'sortBy': 'fullName', 'sortOrder': 'asc'};
+
+      final response = await _secureDio.get(
+        '/doctors',
+        queryParameters: params,
+      );
+
+      print('--- [DEBUG] DoctorService.getAllDoctors ---');
+      print('Params: $params');
+      print('Response Status: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final doctorList = (response.data['data'] as List)
+            .map((json) => Doctor.fromJson(json as Map<String, dynamic>))
+            .toList();
+        return GetDoctorsResponse(
+          success: true,
+          data: doctorList,
+          meta: response.data['meta'] ?? {},
+        );
+      }
+      return GetDoctorsResponse(
+        success: false,
+        message: response.data['message'] ?? 'API call failed',
+        data: [],
+        meta: {},
+      );
+    } catch (e) {
+      print('Error: $e');
+      return GetDoctorsResponse(
+        success: false,
+        message: 'Error: $e',
+        data: [],
+        meta: {},
+      );
+    }
+  }
+
   static Future<bool> updateDoctor(
-      String id, {
-        String? fullName,
-        String? email,
-        String? password,
-        String? phone,
-        String? dateOfBirth,
-        bool? isMale,
-      }) async {
+    String id, {
+    String? fullName,
+    String? email,
+    String? password,
+    String? phone,
+    String? dateOfBirth,
+    bool? isMale,
+  }) async {
     try {
       final requestBody = {
         if (fullName != null && fullName.isNotEmpty) 'fullName': fullName,
@@ -310,7 +391,10 @@ class DoctorService {
 
       if (requestBody.isEmpty) return false;
 
-      final response = await _secureDio.patch('/doctors/$id', data: requestBody);
+      final response = await _secureDio.patch(
+        '/doctors/$id',
+        data: requestBody,
+      );
       return response.statusCode == 200;
     } catch (e) {
       print('Update Doctor Error: $e');
@@ -321,10 +405,14 @@ class DoctorService {
     }
   }
 
-  static Future<bool> deleteDoctor(String id, {required String password}) async {
+  static Future<bool> deleteDoctor(
+    String id, {
+    required String password,
+  }) async {
     try {
-      final isPasswordValid =
-      await AuthService.verifyPassword(password: password);
+      final isPasswordValid = await AuthService.verifyPassword(
+        password: password,
+      );
       if (!isPasswordValid) {
         print('Password verification failed');
         return false;
@@ -353,15 +441,17 @@ class DoctorService {
         try {
           if (dataToParse['specialties'] != null) {
             debugPrint("[DEBUG] Đang parse Specialties...");
-            (dataToParse['specialties'] as List<dynamic>)
-                .forEach((e) => Specialty.fromJson(e as Map<String, dynamic>));
+            (dataToParse['specialties'] as List<dynamic>).forEach(
+              (e) => Specialty.fromJson(e as Map<String, dynamic>),
+            );
             debugPrint("[DEBUG] Parse Specialties THÀNH CÔNG");
           }
 
           if (dataToParse['workLocations'] != null) {
             debugPrint("[DEBUG] Đang parse WorkLocations...");
             (dataToParse['workLocations'] as List<dynamic>).forEach(
-                    (e) => WorkLocation.fromJson(e as Map<String, dynamic>));
+              (e) => WorkLocation.fromJson(e as Map<String, dynamic>),
+            );
             debugPrint("[DEBUG] Parse WorkLocations THÀNH CÔNG");
           }
 
@@ -377,7 +467,8 @@ class DoctorService {
 
           if (e is TypeError) {
             debugPrint(
-                "LỖI TYPEERROR: Rất có thể một model con (Specialty, WorkLocation) bị lỗi cast.");
+              "LỖI TYPEERROR: Rất có thể một model con (Specialty, WorkLocation) bị lỗi cast.",
+            );
           }
           debugPrint("--- HẾT LỖI PARSING ---");
           return null;
@@ -394,9 +485,13 @@ class DoctorService {
   }
 
   static Future<DoctorProfile?> updateSelfProfile(
-      Map<String, dynamic> data) async {
+    Map<String, dynamic> data,
+  ) async {
     try {
-      final response = await _secureDio.patch('/doctors/profile/me', data: data);
+      final response = await _secureDio.patch(
+        '/doctors/profile/me',
+        data: data,
+      );
       if (response.statusCode == 200 && response.data['data'] != null) {
         return DoctorProfile.fromJson(response.data['data']);
       }
@@ -408,5 +503,82 @@ class DoctorService {
       }
       return null;
     }
+  }
+
+  static Future<List<DoctorSlot>> getDoctorAvailableSlots(
+    String profileId,
+    String locationId,
+    String serviceDate, {
+    bool allowPast = false,
+  }) async {
+    try {
+      final response = await _secureDio.get(
+        '/doctors/profile/$profileId/slots',
+        queryParameters: {
+          'locationId': locationId,
+          'serviceDate': serviceDate,
+          'allowPast': allowPast,
+        },
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        return (response.data as List)
+            .map((e) => DoctorSlot.fromJson(e as Map<String, dynamic>))
+            .toList();
+      }
+      return [];
+    } catch (e) {
+      print('Get Doctor Available Slots Error: $e');
+      return [];
+    }
+  }
+
+  static Future<List<String>> getDoctorAvailableDates(
+    String profileId,
+    String locationId, {
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    final start = startDate ?? DateTime.now();
+    final end = endDate ?? DateTime.now().add(const Duration(days: 30));
+    final List<String> availableDates = [];
+    final List<String> allDates = [];
+
+    for (
+      var d = start;
+      d.isBefore(end) || d.isAtSameMomentAs(end);
+      d = d.add(const Duration(days: 1))
+    ) {
+      allDates.add(d.toIso8601String().split('T')[0]);
+    }
+
+    // Process in batches of 7
+    const batchSize = 7;
+    for (var i = 0; i < allDates.length; i += batchSize) {
+      final endRange = (i + batchSize < allDates.length)
+          ? i + batchSize
+          : allDates.length;
+      final batch = allDates.sublist(i, endRange);
+
+      await Future.wait(
+        batch.map((dateStr) async {
+          try {
+            final slots = await getDoctorAvailableSlots(
+              profileId,
+              locationId,
+              dateStr,
+              allowPast: true,
+            );
+            if (slots.isNotEmpty) {
+              availableDates.add(dateStr);
+            }
+          } catch (e) {
+            print('Error checking date $dateStr: $e');
+          }
+        }),
+      );
+    }
+    availableDates.sort();
+    return availableDates;
   }
 }

@@ -68,18 +68,22 @@ class DoctorVm extends ChangeNotifier {
   final ProfileCacheService _profileCache = ProfileCacheService.instance;
 
   DoctorVm() {
-    Connectivity()
-        .onConnectivityChanged
-        .listen((List<ConnectivityResult> results) {
-      bool isConnected = results.any((result) =>
-      result == ConnectivityResult.wifi ||
-          result == ConnectivityResult.mobile);
+    Connectivity().onConnectivityChanged.listen((
+      List<ConnectivityResult> results,
+    ) {
+      bool isConnected = results.any(
+        (result) =>
+            result == ConnectivityResult.wifi ||
+            result == ConnectivityResult.mobile,
+      );
       if (isConnected && _isOffline) {
         _isOffline = false;
         fetchDoctors(forceRefresh: true);
         if (_doctorDetail != null) {
-          fetchDoctorDetail(_doctorDetail!.id,
-              isSelf: _doctorDetail!.id == _doctorDetail!.id);
+          fetchDoctorDetail(
+            _doctorDetail!.id,
+            isSelf: _doctorDetail!.id == _doctorDetail!.id,
+          );
         }
       }
     });
@@ -110,6 +114,11 @@ class DoctorVm extends ChangeNotifier {
   }
 
   Future<void> fetchDoctors({bool forceRefresh = false}) async {
+    print('--- [DEBUG] DoctorVm.fetchDoctors ---');
+    print(
+      'forceRefresh: $forceRefresh, currentPage: $_currentPage, isLoading: $_isLoading',
+    );
+
     if (forceRefresh) {
       _currentPage = 1;
       _meta = {};
@@ -293,7 +302,10 @@ class DoctorVm extends ChangeNotifier {
     try {
       final picker = ImagePicker();
       final XFile? image = await picker.pickImage(
-          source: ImageSource.gallery, imageQuality: 80, maxWidth: 800);
+        source: ImageSource.gallery,
+        imageQuality: 80,
+        maxWidth: 800,
+      );
       if (image != null) {
         selectedAvatarPath = image.path;
         notifyListeners();
@@ -316,7 +328,10 @@ class DoctorVm extends ChangeNotifier {
     try {
       final picker = ImagePicker();
       final XFile? image = await picker.pickImage(
-          source: ImageSource.gallery, imageQuality: 80, maxWidth: 1200);
+        source: ImageSource.gallery,
+        imageQuality: 80,
+        maxWidth: 1200,
+      );
       if (image != null) {
         selectedPortraitPath = image.path;
         notifyListeners();
@@ -350,8 +365,10 @@ class DoctorVm extends ChangeNotifier {
       print("⏳ [DoctorVm] Bắt đầu upload $fieldName...");
       final signatureData = await UtilitiesService.getUploadSignature();
       if (signatureData != null) {
-        imageUrl =
-        await UtilitiesService.uploadImageToCloudinary(filePath, signatureData);
+        imageUrl = await UtilitiesService.uploadImageToCloudinary(
+          filePath,
+          signatureData,
+        );
         if (imageUrl == null) {
           _uploadError = 'Lỗi: Không thể upload $fieldName lên Cloudinary.';
           print("❌ [DoctorVm] $_uploadError");
@@ -446,7 +463,9 @@ class DoctorVm extends ChangeNotifier {
   }
 
   Future<bool> updateDoctorProfile(
-      String profileId, Map<String, dynamic> data) async {
+    String profileId,
+    Map<String, dynamic> data,
+  ) async {
     _isLoading = true;
     _error = null;
     _uploadError = null;
@@ -497,8 +516,10 @@ class DoctorVm extends ChangeNotifier {
       }
 
       print("⏳ [DoctorVm] Calling DoctorService.updateDoctorProfile...");
-      final profile =
-      await DoctorService.updateDoctorProfile(profileId, dataToSend);
+      final profile = await DoctorService.updateDoctorProfile(
+        profileId,
+        dataToSend,
+      );
       success = profile != null;
 
       if (success) {
@@ -619,12 +640,15 @@ class DoctorVm extends ChangeNotifier {
     print("--- START: Toggle Doctor Status ---");
     print("🧠 [VM] Requesting isActive = $isActive for profileId: $profileId");
 
-    final updatedProfile =
-    await DoctorService.toggleDoctorActive(profileId, isActive);
+    final updatedProfile = await DoctorService.toggleDoctorActive(
+      profileId,
+      isActive,
+    );
 
     if (updatedProfile != null) {
       print(
-          "✅ [VM] API call successful. isActive from API: ${updatedProfile.isActive}");
+        "✅ [VM] API call successful. isActive from API: ${updatedProfile.isActive}",
+      );
 
       _doctorDetail = _doctorDetail!.copyWith(
         isActive: updatedProfile.isActive,
@@ -667,6 +691,21 @@ class DoctorVm extends ChangeNotifier {
   void clearError() {
     _error = null;
     notifyListeners();
+  }
+
+  List<Doctor> _allDoctors = [];
+  List<Doctor> get allDoctors => _allDoctors;
+
+  Future<void> fetchAllDoctors() async {
+    try {
+      final result = await DoctorService.getAllDoctors();
+      if (result.success) {
+        _allDoctors = result.data;
+        notifyListeners();
+      }
+    } catch (e) {
+      print('Error fetching all doctors: $e');
+    }
   }
 
   Future<void> fetchReviewPreview(String doctorId) async {
