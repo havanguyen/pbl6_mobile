@@ -1,0 +1,1 @@
+export { AppointmentsLayout } from './appointments-layout'
