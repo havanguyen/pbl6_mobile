@@ -11,6 +11,7 @@
 .history
 node_modules
 bao_cao_test
+source
 .svn/
 .swiftpm/
 migrate_working_dir/
