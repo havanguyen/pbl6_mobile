@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/shared/routes/routes.dart';
 import 'package:pbl6mobile/view/setting/super_admin/profile_superadmin_page.dart';
+import 'package:pbl6mobile/view/setting/office_hours/office_hours_page.dart';
 
 import '../../../shared/themes/cubit/theme_cubit.dart';
 import '../../../shared/widgets/widget/logout_confirm_dialog.dart';
@@ -19,11 +20,7 @@ class SettingSupperAdminPage extends StatelessWidget {
         elevation: 0.5,
         leading: IconButton(
           key: const ValueKey('settings_page_back_button'),
-          icon: Icon(
-            Icons.arrow_back,
-            color: context.theme.white,
-            size: 28,
-          ),
+          icon: Icon(Icons.arrow_back, color: context.theme.white, size: 28),
           onPressed: () {
             Navigator.pop(context);
           },
@@ -48,10 +45,7 @@ class SettingSupperAdminPage extends StatelessWidget {
             ),
             title: Text(
               'Thông tin cá nhân',
-              style: TextStyle(
-                fontSize: 16,
-                color: context.theme.textColor,
-              ),
+              style: TextStyle(fontSize: 16, color: context.theme.textColor),
             ),
             onTap: () {
               Navigator.push(
@@ -72,10 +66,7 @@ class SettingSupperAdminPage extends StatelessWidget {
             ),
             title: Text(
               'Quản lý phân quyền',
-              style: TextStyle(
-                fontSize: 16,
-                color: context.theme.textColor,
-              ),
+              style: TextStyle(fontSize: 16, color: context.theme.textColor),
             ),
             onTap: () {
               Navigator.pushNamed(context, Routes.permissionGroups);
@@ -91,10 +82,7 @@ class SettingSupperAdminPage extends StatelessWidget {
             ),
             title: Text(
               'Quản lý chuyên khoa',
-              style: TextStyle(
-                fontSize: 16,
-                color: context.theme.textColor,
-              ),
+              style: TextStyle(fontSize: 16, color: context.theme.textColor),
             ),
             onTap: () {
               Navigator.pushNamed(context, Routes.listSpecialty);
@@ -110,13 +98,31 @@ class SettingSupperAdminPage extends StatelessWidget {
             ),
             title: Text(
               'Quản lý địa điểm khám',
-              style: TextStyle(
-                fontSize: 16,
-                color: context.theme.textColor,
-              ),
+              style: TextStyle(fontSize: 16, color: context.theme.textColor),
             ),
             onTap: () {
               Navigator.pushNamed(context, Routes.listLocationWork);
+            },
+          ),
+          const Divider(height: 1, color: Colors.grey),
+          ListTile(
+            key: const ValueKey('office_hours_management_menu_item'),
+            leading: Icon(
+              Icons.access_time,
+              color: context.theme.blue,
+              size: 28,
+            ),
+            title: Text(
+              'Quản lý giờ làm việc',
+              style: TextStyle(fontSize: 16, color: context.theme.textColor),
+            ),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const OfficeHoursPage(),
+                ),
+              );
             },
           ),
           const Divider(height: 1, color: Colors.grey),
@@ -129,10 +135,7 @@ class SettingSupperAdminPage extends StatelessWidget {
             ),
             title: Text(
               'Quản lý bệnh nhân',
-              style: TextStyle(
-                fontSize: 16,
-                color: context.theme.textColor,
-              ),
+              style: TextStyle(fontSize: 16, color: context.theme.textColor),
             ),
             onTap: () {
               Navigator.pushNamed(context, Routes.listPatient);
@@ -148,10 +151,7 @@ class SettingSupperAdminPage extends StatelessWidget {
             ),
             title: Text(
               'Đổi mật khẩu',
-              style: TextStyle(
-                fontSize: 16,
-                color: context.theme.textColor,
-              ),
+              style: TextStyle(fontSize: 16, color: context.theme.textColor),
             ),
             onTap: () {
               Navigator.pushNamed(context, Routes.changePassword);
@@ -166,10 +166,7 @@ class SettingSupperAdminPage extends StatelessWidget {
             ),
             title: Text(
               'Chủ đề (Theme)',
-              style: TextStyle(
-                fontSize: 16,
-                color: context.theme.textColor,
-              ),
+              style: TextStyle(fontSize: 16, color: context.theme.textColor),
             ),
             trailing: DropdownButton<ThemeMode>(
               key: const ValueKey('settings_page_theme_dropdown'),
@@ -178,17 +175,26 @@ class SettingSupperAdminPage extends StatelessWidget {
               focusColor: context.theme.grey,
               items: [
                 DropdownMenuItem(
-                    value: ThemeMode.light,
-                    child: Text('Light',
-                        style: TextStyle(color: context.theme.textColor))),
+                  value: ThemeMode.light,
+                  child: Text(
+                    'Light',
+                    style: TextStyle(color: context.theme.textColor),
+                  ),
+                ),
                 DropdownMenuItem(
-                    value: ThemeMode.dark,
-                    child: Text('Dark',
-                        style: TextStyle(color: context.theme.textColor))),
+                  value: ThemeMode.dark,
+                  child: Text(
+                    'Dark',
+                    style: TextStyle(color: context.theme.textColor),
+                  ),
+                ),
                 DropdownMenuItem(
-                    value: ThemeMode.system,
-                    child: Text('System',
-                        style: TextStyle(color: context.theme.textColor))),
+                  value: ThemeMode.system,
+                  child: Text(
+                    'System',
+                    style: TextStyle(color: context.theme.textColor),
+                  ),
+                ),
               ],
               onChanged: (value) {
                 if (value != null) {
@@ -207,10 +213,7 @@ class SettingSupperAdminPage extends StatelessWidget {
             ),
             title: Text(
               'Đăng xuất',
-              style: TextStyle(
-                fontSize: 16,
-                color: context.theme.destructive,
-              ),
+              style: TextStyle(fontSize: 16, color: context.theme.destructive),
             ),
             onTap: () {
               showDialog(

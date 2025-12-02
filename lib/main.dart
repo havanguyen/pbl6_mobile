@@ -16,6 +16,7 @@ import 'package:pbl6mobile/view_model/location_work_management/location_work_vm.
 import 'package:pbl6mobile/view_model/location_work_management/snackbar_service.dart';
 import 'package:pbl6mobile/view_model/patient/patient_vm.dart';
 import 'package:pbl6mobile/view_model/question/question_vm.dart';
+import 'package:pbl6mobile/view_model/setting/office_hours_vm.dart';
 import 'package:pbl6mobile/view_model/specialty/specialty_vm.dart';
 import 'package:provider/provider.dart';
 
@@ -32,7 +33,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider<SnackbarService>(create: (_) => SnackbarService()),
+        ChangeNotifierProvider<SnackbarService>(
+          create: (_) => SnackbarService(),
+        ),
         ChangeNotifierProvider<LocationWorkVm>(create: (_) => LocationWorkVm()),
         ChangeNotifierProvider<StaffVm>(create: (_) => StaffVm()),
         ChangeNotifierProvider<DoctorVm>(create: (_) => DoctorVm()),
@@ -41,9 +44,8 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider<QuestionVm>(create: (_) => QuestionVm()),
         ChangeNotifierProvider<PatientVm>(create: (_) => PatientVm()),
         ChangeNotifierProvider<AppointmentVm>(create: (_) => AppointmentVm()),
-        BlocProvider<ThemeCubit>(
-          create: (_) => ThemeCubit()..loadTheme(),
-        ),
+        ChangeNotifierProvider<OfficeHoursVm>(create: (_) => OfficeHoursVm()),
+        BlocProvider<ThemeCubit>(create: (_) => ThemeCubit()..loadTheme()),
       ],
       child: BlocBuilder<ThemeCubit, ThemeState>(
         builder: (context, state) {
@@ -61,10 +63,7 @@ class MyApp extends StatelessWidget {
               GlobalCupertinoLocalizations.delegate,
               FlutterQuillLocalizations.delegate,
             ],
-            supportedLocales: const [
-              Locale('en'),
-              Locale('vi'),
-            ],
+            supportedLocales: const [Locale('en'), Locale('vi')],
             locale: const Locale('vi'),
           );
         },

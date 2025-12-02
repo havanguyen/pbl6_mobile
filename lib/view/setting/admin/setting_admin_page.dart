@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/shared/routes/routes.dart';
 import 'package:pbl6mobile/view/setting/admin/profile_admin_page.dart';
+import 'package:pbl6mobile/view/setting/office_hours/office_hours_page.dart';
 
 import '../../../shared/themes/cubit/theme_cubit.dart';
 import '../../../shared/widgets/widget/logout_confirm_dialog.dart';
@@ -18,11 +19,7 @@ class SettingAdminPage extends StatelessWidget {
         backgroundColor: context.theme.blue,
         elevation: 0.5,
         leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back,
-            color: context.theme.white,
-            size: 28,
-          ),
+          icon: Icon(Icons.arrow_back, color: context.theme.white, size: 28),
           onPressed: () {
             Navigator.pop(context);
           },
@@ -46,10 +43,7 @@ class SettingAdminPage extends StatelessWidget {
             ),
             title: Text(
               'Thông tin cá nhân',
-              style: TextStyle(
-                fontSize: 16,
-                color: context.theme.textColor,
-              ),
+              style: TextStyle(fontSize: 16, color: context.theme.textColor),
             ),
             onTap: () {
               Navigator.push(
@@ -69,10 +63,7 @@ class SettingAdminPage extends StatelessWidget {
             ),
             title: Text(
               'Quản lý chuyên khoa',
-              style: TextStyle(
-                fontSize: 16,
-                color: context.theme.textColor,
-              ),
+              style: TextStyle(fontSize: 16, color: context.theme.textColor),
             ),
             onTap: () {
               Navigator.pushNamed(context, Routes.listSpecialty);
@@ -88,13 +79,31 @@ class SettingAdminPage extends StatelessWidget {
             ),
             title: Text(
               'Quản lý địa điểm khám',
-              style: TextStyle(
-                fontSize: 16,
-                color: context.theme.textColor,
-              ),
+              style: TextStyle(fontSize: 16, color: context.theme.textColor),
             ),
             onTap: () {
               Navigator.pushNamed(context, Routes.listLocationWork);
+            },
+          ),
+          const Divider(height: 1, color: Colors.grey),
+          ListTile(
+            key: const ValueKey('office_hours_management_menu_item'),
+            leading: Icon(
+              Icons.access_time,
+              color: context.theme.blue,
+              size: 28,
+            ),
+            title: Text(
+              'Quản lý giờ làm việc',
+              style: TextStyle(fontSize: 16, color: context.theme.textColor),
+            ),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const OfficeHoursPage(),
+                ),
+              );
             },
           ),
           const Divider(height: 1, color: Colors.grey),
@@ -106,10 +115,7 @@ class SettingAdminPage extends StatelessWidget {
             ),
             title: Text(
               'Quản lý bệnh nhân',
-              style: TextStyle(
-                fontSize: 16,
-                color: context.theme.textColor,
-              ),
+              style: TextStyle(fontSize: 16, color: context.theme.textColor),
             ),
             onTap: () {
               Navigator.pushNamed(context, Routes.listPatient);
@@ -124,10 +130,7 @@ class SettingAdminPage extends StatelessWidget {
             ),
             title: Text(
               'Đổi mật khẩu',
-              style: TextStyle(
-                fontSize: 16,
-                color: context.theme.textColor,
-              ),
+              style: TextStyle(fontSize: 16, color: context.theme.textColor),
             ),
             onTap: () {
               Navigator.pushNamed(context, Routes.changePassword);
@@ -142,10 +145,7 @@ class SettingAdminPage extends StatelessWidget {
             ),
             title: Text(
               'Chủ đề (Theme)',
-              style: TextStyle(
-                fontSize: 16,
-                color: context.theme.textColor,
-              ),
+              style: TextStyle(fontSize: 16, color: context.theme.textColor),
             ),
             trailing: DropdownButton<ThemeMode>(
               value: context.read<ThemeCubit>().state.themeMode,
@@ -153,13 +153,19 @@ class SettingAdminPage extends StatelessWidget {
               focusColor: context.theme.grey,
               items: [
                 DropdownMenuItem(
-                    value: ThemeMode.light,
-                    child: Text('Light',
-                        style: TextStyle(color: context.theme.textColor))),
+                  value: ThemeMode.light,
+                  child: Text(
+                    'Light',
+                    style: TextStyle(color: context.theme.textColor),
+                  ),
+                ),
                 DropdownMenuItem(
-                    value: ThemeMode.dark,
-                    child: Text('Dark',
-                        style: TextStyle(color: context.theme.textColor))),
+                  value: ThemeMode.dark,
+                  child: Text(
+                    'Dark',
+                    style: TextStyle(color: context.theme.textColor),
+                  ),
+                ),
               ],
               onChanged: (value) {
                 if (value != null) {
@@ -177,10 +183,7 @@ class SettingAdminPage extends StatelessWidget {
             ),
             title: Text(
               'Đăng xuất',
-              style: TextStyle(
-                fontSize: 16,
-                color: context.theme.destructive,
-              ),
+              style: TextStyle(fontSize: 16, color: context.theme.destructive),
             ),
             onTap: () {
               showDialog(

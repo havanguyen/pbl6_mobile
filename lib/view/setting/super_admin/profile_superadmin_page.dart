@@ -90,11 +90,7 @@ class _ProfileSuperadminPageState extends State<ProfileSuperadminPage> {
         backgroundColor: context.theme.blue,
         elevation: 0.5,
         leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back,
-            color: context.theme.white,
-            size: 28,
-          ),
+          icon: Icon(Icons.arrow_back, color: context.theme.white, size: 28),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -108,10 +104,7 @@ class _ProfileSuperadminPageState extends State<ProfileSuperadminPage> {
         actions: [
           if (_currentProfile != null && !_isOffline)
             IconButton(
-              icon: Icon(
-                Icons.edit,
-                color: context.theme.white,
-              ),
+              icon: Icon(Icons.edit, color: context.theme.white),
               onPressed: () async {
                 final shouldReload = await Navigator.pushNamed(
                   context,
@@ -127,7 +120,7 @@ class _ProfileSuperadminPageState extends State<ProfileSuperadminPage> {
             icon: const Icon(Icons.refresh),
             color: context.theme.white,
             onPressed: _isLoading ? null : _reloadProfile,
-          )
+          ),
         ],
       ),
       body: _buildBody(),
@@ -218,10 +211,7 @@ class _ProfileSuperadminPageState extends State<ProfileSuperadminPage> {
         const SizedBox(height: 8),
         Text(
           _currentProfile!.email,
-          style: TextStyle(
-            fontSize: 16,
-            color: context.theme.mutedForeground,
-          ),
+          style: TextStyle(fontSize: 16, color: context.theme.mutedForeground),
         ),
       ],
     );
@@ -254,7 +244,10 @@ class _ProfileSuperadminPageState extends State<ProfileSuperadminPage> {
               context,
               icon: Icons.cake_outlined,
               label: 'Ngày sinh',
-              value: _currentProfile!.dateOfBirth?.toLocal().toString().split(' ')[0] ??
+              value: _currentProfile!.dateOfBirth
+                  ?.toLocal()
+                  .toString()
+                  .split(' ')[0] ??
                   'Chưa cập nhật',
             ),
             _buildInfoItem(
@@ -270,11 +263,13 @@ class _ProfileSuperadminPageState extends State<ProfileSuperadminPage> {
     );
   }
 
-  Widget _buildInfoItem(BuildContext context,
-      {required IconData icon,
+  Widget _buildInfoItem(
+      BuildContext context, {
+        required IconData icon,
         required String label,
         required String value,
-        bool isLast = false}) {
+        bool isLast = false,
+      }) {
     return Column(
       children: [
         Row(
