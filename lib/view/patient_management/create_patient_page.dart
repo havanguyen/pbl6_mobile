@@ -3,6 +3,7 @@ import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/shared/widgets/widget/patient_form.dart';
 import 'package:pbl6mobile/view_model/patient/patient_vm.dart';
 import 'package:provider/provider.dart';
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 
 class CreatePatientPage extends StatefulWidget {
   const CreatePatientPage({super.key});
@@ -28,12 +29,20 @@ class _CreatePatientPageState extends State<CreatePatientPage> {
       });
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Tạo bệnh nhân thành công')),
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context).translate('create_patient_success'),
+            ),
+          ),
         );
         Navigator.pop(context);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Tạo bệnh nhân thất bại')),
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context).translate('create_patient_failed'),
+            ),
+          ),
         );
       }
     }
@@ -43,13 +52,12 @@ class _CreatePatientPageState extends State<CreatePatientPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tạo Bệnh nhân mới'),
+        title: Text(
+          AppLocalizations.of(context).translate('create_patient_title'),
+        ),
         backgroundColor: context.theme.blue,
       ),
-      body: PatientForm(
-        onSubmit: _handleSubmit,
-        isLoading: _isLoading,
-      ),
+      body: PatientForm(onSubmit: _handleSubmit, isLoading: _isLoading),
     );
   }
 }

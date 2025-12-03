@@ -3,16 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'doctor_form.dart';
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 
 class InfoSectionForm extends StatefulWidget {
   final bool isUpdate;
   final Map<String, dynamic>? initialData;
   final String specialtyId;
   final Future<bool> Function({
-  required String name,
-  required String content,
-  String? id,
-  }) onSubmit;
+    required String name,
+    required String content,
+    String? id,
+  })
+  onSubmit;
   final VoidCallback? onSuccess;
 
   const InfoSectionForm({
@@ -28,7 +30,8 @@ class InfoSectionForm extends StatefulWidget {
   State<InfoSectionForm> createState() => _InfoSectionFormState();
 }
 
-class _InfoSectionFormState extends State<InfoSectionForm> with SingleTickerProviderStateMixin {
+class _InfoSectionFormState extends State<InfoSectionForm>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late quill.QuillController _contentController;
@@ -39,8 +42,9 @@ class _InfoSectionFormState extends State<InfoSectionForm> with SingleTickerProv
   @override
   void initState() {
     super.initState();
-    _nameController =
-        TextEditingController(text: widget.initialData?['name'] ?? '');
+    _nameController = TextEditingController(
+      text: widget.initialData?['name'] ?? '',
+    );
     _contentController = quill.QuillController.basic();
     final initialContent = widget.initialData?['content'];
     if (initialContent != null && initialContent.isNotEmpty) {
@@ -81,12 +85,19 @@ class _InfoSectionFormState extends State<InfoSectionForm> with SingleTickerProv
       final plainTextContent = _contentController.document.toPlainText().trim();
       if (plainTextContent.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Nội dung không được để trống')),
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(
+                context,
+              ).translate('info_section_content_required'),
+            ),
+          ),
         );
         return false;
       }
-      final jsonContent =
-      jsonEncode(_contentController.document.toDelta().toJson());
+      final jsonContent = jsonEncode(
+        _contentController.document.toDelta().toJson(),
+      );
       final success = await widget.onSubmit(
         id: widget.initialData?['id'],
         name: _nameController.text,
@@ -111,18 +122,17 @@ class _InfoSectionFormState extends State<InfoSectionForm> with SingleTickerProv
         curve: Interval(0.2 * index, 1.0, curve: Curves.easeOut),
       ),
       child: SlideTransition(
-        position: Tween<Offset>(
-          begin: const Offset(0, 0.2),
-          end: Offset.zero,
-        ).animate(CurvedAnimation(
-          parent: _animationController,
-          curve: Interval(0.2 * index, 1.0, curve: Curves.easeOut),
-        )),
+        position: Tween<Offset>(begin: const Offset(0, 0.2), end: Offset.zero)
+            .animate(
+              CurvedAnimation(
+                parent: _animationController,
+                curve: Interval(0.2 * index, 1.0, curve: Curves.easeOut),
+              ),
+            ),
         child: child,
       ),
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -141,8 +151,12 @@ class _InfoSectionFormState extends State<InfoSectionForm> with SingleTickerProv
               child: TextFormField(
                 controller: _nameController,
                 decoration: InputDecoration(
-                  labelText: 'Tên phần thông tin',
-                  hintText: 'Nhập tiêu đề mô tả rõ ràng...',
+                  labelText: AppLocalizations.of(
+                    context,
+                  ).translate('info_section_name_label'),
+                  hintText: AppLocalizations.of(
+                    context,
+                  ).translate('info_section_name_hint'),
                   prefixIcon: Icon(Icons.title_rounded, color: theme.primary),
                   filled: true,
                   fillColor: theme.input,
@@ -157,10 +171,14 @@ class _InfoSectionFormState extends State<InfoSectionForm> with SingleTickerProv
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Vui lòng nhập tên';
+                    return AppLocalizations.of(
+                      context,
+                    ).translate('info_section_name_required');
                   }
                   if (value.length < 10 || value.length > 200) {
-                    return 'Tên phải từ 10 đến 200 ký tự';
+                    return AppLocalizations.of(
+                      context,
+                    ).translate('info_section_name_length_error');
                   }
                   return null;
                 },
@@ -185,31 +203,31 @@ class _InfoSectionFormState extends State<InfoSectionForm> with SingleTickerProv
                   borderRadius: BorderRadius.circular(12),
                   child: Column(
                     children: [
-                     Container(
-                          decoration: BoxDecoration(
-                            color: theme.input,
-                            borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(12),
-                            ),
-                          ),
-                          padding: const EdgeInsets.all(8.0),
-                          child: quill.QuillSimpleToolbar(
-                            controller: _contentController,
-                            config: const quill.QuillSimpleToolbarConfig(
-                              toolbarSize: 20,
-                              toolbarSectionSpacing: 2,
-                              showAlignmentButtons: true,
-                              showFontSize: false,
-                              showDividers: false,
-                              multiRowsDisplay: false,
-                            ),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: theme.input,
+                          borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(12),
                           ),
                         ),
+                        padding: const EdgeInsets.all(8.0),
+                        child: quill.QuillSimpleToolbar(
+                          controller: _contentController,
+                          config: const quill.QuillSimpleToolbarConfig(
+                            toolbarSize: 20,
+                            toolbarSectionSpacing: 2,
+                            showAlignmentButtons: true,
+                            showFontSize: false,
+                            showDividers: false,
+                            multiRowsDisplay: false,
+                          ),
+                        ),
+                      ),
                       const Divider(height: 1),
                       Container(
                         height: 300,
                         color: theme.input,
-                        padding: EdgeInsets.all(5),
+                        padding: const EdgeInsets.all(5),
                         child: quill.QuillEditor(
                           controller: _contentController,
                           focusNode: _focusNode,
@@ -228,9 +246,11 @@ class _InfoSectionFormState extends State<InfoSectionForm> with SingleTickerProv
                 child: AnimatedSubmitButton(
                   onSubmit: _submitForm,
                   idleText: widget.isUpdate
-                      ? '💾 Cập nhật'
-                      : '➕ Tạo mới',
-                  loadingText: 'Đang xử lý...',
+                      ? '💾 ${AppLocalizations.of(context).translate('update_btn')}'
+                      : '➕ ${AppLocalizations.of(context).translate('create_btn')}',
+                  loadingText: AppLocalizations.of(
+                    context,
+                  ).translate('processing'),
                 ),
               ),
             ),

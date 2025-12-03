@@ -4,6 +4,7 @@ import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/view_model/blog/blog_vm.dart';
 import 'package:pbl6mobile/view_model/location_work_management/snackbar_service.dart';
 import 'package:provider/provider.dart';
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 
 class BlogCategoryDeleteDialog extends StatefulWidget {
   final BlogCategory category;
@@ -37,7 +38,9 @@ class _BlogCategoryDeleteDialogState extends State<BlogCategoryDeleteDialog> {
     final password = _passwordController.text.trim();
     if (password.isEmpty) {
       setState(() {
-        _apiErrorMessage = 'Vui lòng nhập mật khẩu.';
+        _apiErrorMessage = AppLocalizations.of(
+          context,
+        ).translate('password_required');
       });
       return;
     }
@@ -56,11 +59,14 @@ class _BlogCategoryDeleteDialogState extends State<BlogCategoryDeleteDialog> {
     if (mounted) {
       if (success) {
         Navigator.of(context).pop();
-        widget.snackbarService.showSuccess('Xóa danh mục thành công!');
+        widget.snackbarService.showSuccess(
+          AppLocalizations.of(context).translate('delete_category_success'),
+        );
       } else {
         setState(() {
-          _apiErrorMessage = provider.categoryError ??
-              'Xóa thất bại. Kiểm tra mật khẩu hoặc thử lại.';
+          _apiErrorMessage =
+              provider.categoryError ??
+              AppLocalizations.of(context).translate('delete_failed');
           provider.clearCategoryError();
         });
       }
@@ -80,9 +86,11 @@ class _BlogCategoryDeleteDialogState extends State<BlogCategoryDeleteDialog> {
           Icon(Icons.warning_amber_rounded, color: theme.destructive),
           const SizedBox(width: 8),
           Text(
-            'Xác nhận xóa',
+            AppLocalizations.of(context).translate('confirm_delete_title'),
             style: TextStyle(
-                color: theme.popoverForeground, fontWeight: FontWeight.bold),
+              color: theme.popoverForeground,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ],
       ),
@@ -92,18 +100,22 @@ class _BlogCategoryDeleteDialogState extends State<BlogCategoryDeleteDialog> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Bạn có chắc chắn muốn xóa danh mục:',
+              AppLocalizations.of(
+                context,
+              ).translate('confirm_delete_category_message'),
               style: TextStyle(
-                  color: theme.popoverForeground.withOpacity(0.8),
-                  fontSize: 14),
+                color: theme.popoverForeground.withOpacity(0.8),
+                fontSize: 14,
+              ),
             ),
             const SizedBox(height: 4),
             Text(
               '"${widget.category.name}"?',
               style: TextStyle(
-                  color: theme.popoverForeground,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500),
+                color: theme.popoverForeground,
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+              ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
@@ -114,7 +126,9 @@ class _BlogCategoryDeleteDialogState extends State<BlogCategoryDeleteDialog> {
               style: TextStyle(color: theme.textColor),
               autofocus: true,
               decoration: InputDecoration(
-                labelText: 'Nhập mật khẩu của bạn',
+                labelText: AppLocalizations.of(
+                  context,
+                ).translate('enter_password_confirm'),
                 labelStyle: TextStyle(color: theme.mutedForeground),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -126,8 +140,10 @@ class _BlogCategoryDeleteDialogState extends State<BlogCategoryDeleteDialog> {
                 ),
                 filled: true,
                 fillColor: theme.input,
-                contentPadding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 14,
+                ),
                 isDense: true,
               ),
               onChanged: (_) {
@@ -140,11 +156,11 @@ class _BlogCategoryDeleteDialogState extends State<BlogCategoryDeleteDialog> {
             const SizedBox(height: 8),
             CheckboxListTile(
               title: Text(
-                'Buộc xóa (Force Delete)',
+                AppLocalizations.of(context).translate('force_delete_label'),
                 style: TextStyle(color: theme.popoverForeground, fontSize: 14),
               ),
               subtitle: Text(
-                'Xóa danh mục này ngay cả khi nó đang được liên kết với các bài viết.',
+                AppLocalizations.of(context).translate('force_delete_desc'),
                 style: TextStyle(color: theme.mutedForeground, fontSize: 12),
               ),
               value: _forceDelete,
@@ -166,7 +182,7 @@ class _BlogCategoryDeleteDialogState extends State<BlogCategoryDeleteDialog> {
                   style: TextStyle(color: theme.destructive, fontSize: 13),
                 ),
               ),
-            ]
+            ],
           ],
         ),
       ),
@@ -174,31 +190,42 @@ class _BlogCategoryDeleteDialogState extends State<BlogCategoryDeleteDialog> {
       actions: [
         TextButton(
           onPressed: isLoading ? null : () => Navigator.pop(context),
-          child: const Text('Hủy'),
+          child: Text(AppLocalizations.of(context).translate('cancel')),
         ),
         ElevatedButton.icon(
           icon: isLoading
               ? SizedBox(
-              width: 16,
-              height: 16,
-              child: CircularProgressIndicator(
-                  strokeWidth: 2, color: theme.destructiveForeground))
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: theme.destructiveForeground,
+                  ),
+                )
               : const Icon(Icons.delete_forever_rounded, size: 18),
-          label: Text(isLoading ? 'Đang xóa...' : 'Xóa'),
-          onPressed: () => _confirmDelete(isLoading),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: theme.destructive,
-            foregroundColor: theme.destructiveForeground,
-            shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          ).copyWith(
-            backgroundColor: MaterialStateProperty.resolveWith<Color?>((states) {
-              if (states.contains(MaterialState.disabled)) {
-                return theme.destructive.withOpacity(0.5);
-              }
-              return theme.destructive;
-            }),
+          label: Text(
+            isLoading
+                ? '${AppLocalizations.of(context).translate('processing')}...'
+                : AppLocalizations.of(context).translate('delete'),
           ),
+          onPressed: () => _confirmDelete(isLoading),
+          style:
+              ElevatedButton.styleFrom(
+                backgroundColor: theme.destructive,
+                foregroundColor: theme.destructiveForeground,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ).copyWith(
+                backgroundColor: MaterialStateProperty.resolveWith<Color?>((
+                  states,
+                ) {
+                  if (states.contains(MaterialState.disabled)) {
+                    return theme.destructive.withOpacity(0.5);
+                  }
+                  return theme.destructive;
+                }),
+              ),
         ),
       ],
     );

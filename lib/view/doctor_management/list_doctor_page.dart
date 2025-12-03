@@ -8,6 +8,7 @@ import 'package:pbl6mobile/shared/routes/routes.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 
 import '../../shared/widgets/widget/doctor_delete_confirm.dart';
 import '../../view_model/admin_management/doctor_management_vm.dart';
@@ -65,20 +66,22 @@ class _DoctorListPageState extends State<DoctorListPage> {
   }
 
   void _showDeleteDialog(Doctor doctor) {
-    final snackbarService =
-    Provider.of<SnackbarService>(context, listen: false);
+    final snackbarService = Provider.of<SnackbarService>(
+      context,
+      listen: false,
+    );
     final doctorVm = Provider.of<DoctorVm>(context, listen: false);
 
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => DeleteDoctorConfirmationDialog(
-        doctor: doctor.toJson(), // Đảm bảo Doctor có hàm toJson() đúng
+        doctor: doctor.toJson(),
         onDeleteSuccess: () {
           doctorVm.fetchDoctors(forceRefresh: true);
         },
         snackbarService: snackbarService,
-        role: 'Bác sĩ',
+        role: AppLocalizations.of(context).translate('doctor_role'),
       ),
     );
   }
@@ -103,25 +106,31 @@ class _DoctorListPageState extends State<DoctorListPage> {
             controller: _searchController,
             style: TextStyle(color: context.theme.textColor),
             decoration: InputDecoration(
-              labelText: 'Tìm kiếm theo tên hoặc email',
+              labelText: AppLocalizations.of(
+                context,
+              ).translate('search_doctor_hint'),
               labelStyle: TextStyle(color: context.theme.mutedForeground),
               prefixIcon: Icon(Icons.search, color: context.theme.primary),
-              border:
-              OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: context.theme.primary, width: 1.5),
+                borderSide: BorderSide(
+                  color: context.theme.primary,
+                  width: 1.5,
+                ),
               ),
               filled: true,
               fillColor: context.theme.input,
               suffixIcon: _searchController.text.isNotEmpty
                   ? IconButton(
-                icon: Icon(Icons.clear, color: context.theme.primary),
-                onPressed: () {
-                  _searchController.clear();
-                  context.read<DoctorVm>().resetFilters();
-                },
-              )
+                      icon: Icon(Icons.clear, color: context.theme.primary),
+                      onPressed: () {
+                        _searchController.clear();
+                        context.read<DoctorVm>().resetFilters();
+                      },
+                    )
                   : null,
             ),
           ),
@@ -133,29 +142,40 @@ class _DoctorListPageState extends State<DoctorListPage> {
                   onPressed: isOffline
                       ? null
                       : () async {
-                    final doctorVm =
-                    Provider.of<DoctorVm>(context, listen: false);
-                    await Navigator.pushNamed(
-                        context, Routes.createDoctor);
-                    doctorVm.fetchDoctors(forceRefresh: true);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: context.theme.primary,
-                    foregroundColor: context.theme.primaryForeground,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                  ).copyWith(
-                    backgroundColor: MaterialStateProperty.resolveWith<Color?>(
-                          (Set<MaterialState> states) {
-                        if (states.contains(MaterialState.disabled)) {
-                          return context.theme.grey;
-                        }
-                        return context.theme.primary;
-                      },
-                    ),
+                          final doctorVm = Provider.of<DoctorVm>(
+                            context,
+                            listen: false,
+                          );
+                          await Navigator.pushNamed(
+                            context,
+                            Routes.createDoctor,
+                          );
+                          doctorVm.fetchDoctors(forceRefresh: true);
+                        },
+                  style:
+                      ElevatedButton.styleFrom(
+                        backgroundColor: context.theme.primary,
+                        foregroundColor: context.theme.primaryForeground,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ).copyWith(
+                        backgroundColor:
+                            MaterialStateProperty.resolveWith<Color?>((
+                              Set<MaterialState> states,
+                            ) {
+                              if (states.contains(MaterialState.disabled)) {
+                                return context.theme.grey;
+                              }
+                              return context.theme.primary;
+                            }),
+                      ),
+                  child: Text(
+                    AppLocalizations.of(
+                      context,
+                    ).translate('create_doctor_account'),
                   ),
-                  child: const Text('Tạo tài khoản bác sĩ'),
                 ),
               ),
               const SizedBox(width: 12),
@@ -165,8 +185,10 @@ class _DoctorListPageState extends State<DoctorListPage> {
                   color: context.theme.input,
                 ),
                 child: IconButton(
-                  icon: Icon(Icons.filter_alt_outlined,
-                      color: context.theme.primary),
+                  icon: Icon(
+                    Icons.filter_alt_outlined,
+                    color: context.theme.primary,
+                  ),
                   onPressed: _showFilterSheet,
                 ),
               ),
@@ -178,99 +200,143 @@ class _DoctorListPageState extends State<DoctorListPage> {
   }
 
   Widget _buildFilterSection() {
-    return Consumer<DoctorVm>(builder: (context, doctorVm, child) {
-      return Container(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Bộ lọc & Sắp xếp',
+    return Consumer<DoctorVm>(
+      builder: (context, doctorVm, child) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                AppLocalizations.of(context).translate('filter_sort'),
                 style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: context.theme.textColor)),
-            const SizedBox(height: 24),
-            Text('Giới tính',
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: context.theme.textColor,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                AppLocalizations.of(context).translate('gender_label'),
                 style: TextStyle(
-                    color: context.theme.textColor,
-                    fontWeight: FontWeight.w500)),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                ChoiceChip(
-                  label: const Text('Tất cả'),
-                  selected: doctorVm.isMale == null,
-                  onSelected: (selected) {
-                    doctorVm.updateGenderFilter(null);
-                  },
-                  selectedColor: context.theme.primary,
-                  labelStyle: TextStyle(
+                  color: context.theme.textColor,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  ChoiceChip(
+                    label: Text(AppLocalizations.of(context).translate('all')),
+                    selected: doctorVm.isMale == null,
+                    onSelected: (selected) {
+                      doctorVm.updateGenderFilter(null);
+                    },
+                    selectedColor: context.theme.primary,
+                    labelStyle: TextStyle(
                       color: doctorVm.isMale == null
                           ? context.theme.primaryForeground
-                          : context.theme.textColor),
-                ),
-                const SizedBox(width: 8),
-                ChoiceChip(
-                  label: const Text('Nam'),
-                  selected: doctorVm.isMale == true,
-                  onSelected: (selected) {
-                    doctorVm.updateGenderFilter(true);
-                  },
-                  selectedColor: context.theme.primary,
-                  labelStyle: TextStyle(
+                          : context.theme.textColor,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  ChoiceChip(
+                    label: Text(AppLocalizations.of(context).translate('male')),
+                    selected: doctorVm.isMale == true,
+                    onSelected: (selected) {
+                      doctorVm.updateGenderFilter(true);
+                    },
+                    selectedColor: context.theme.primary,
+                    labelStyle: TextStyle(
                       color: doctorVm.isMale == true
                           ? context.theme.primaryForeground
-                          : context.theme.textColor),
-                ),
-                const SizedBox(width: 8),
-                ChoiceChip(
-                  label: const Text('Nữ'),
-                  selected: doctorVm.isMale == false,
-                  onSelected: (selected) {
-                    doctorVm.updateGenderFilter(false);
-                  },
-                  selectedColor: context.theme.primary,
-                  labelStyle: TextStyle(
+                          : context.theme.textColor,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  ChoiceChip(
+                    label: Text(
+                      AppLocalizations.of(context).translate('female'),
+                    ),
+                    selected: doctorVm.isMale == false,
+                    onSelected: (selected) {
+                      doctorVm.updateGenderFilter(false);
+                    },
+                    selectedColor: context.theme.primary,
+                    labelStyle: TextStyle(
                       color: doctorVm.isMale == false
                           ? context.theme.primaryForeground
-                          : context.theme.textColor),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            Text('Sắp xếp',
+                          : context.theme.textColor,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              Text(
+                AppLocalizations.of(context).translate('sort_by'),
                 style: TextStyle(
-                    color: context.theme.textColor,
-                    fontWeight: FontWeight.w500)),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                DropdownButton<String>(
-                  value: doctorVm.sortBy,
-                  items: const [
-                    DropdownMenuItem(value: 'createdAt', child: Text('Ngày tạo')),
-                    DropdownMenuItem(value: 'fullName', child: Text('Tên')),
-                    DropdownMenuItem(value: 'email', child: Text('Email')),
-                  ],
-                  onChanged: (value) => doctorVm.updateSortFilter(sortBy: value),
+                  color: context.theme.textColor,
+                  fontWeight: FontWeight.w500,
                 ),
-                const SizedBox(width: 16),
-                DropdownButton<String>(
-                  value: doctorVm.sortOrder,
-                  items: const [
-                    DropdownMenuItem(value: 'asc', child: Text('Tăng dần')),
-                    DropdownMenuItem(value: 'desc', child: Text('Giảm dần')),
-                  ],
-                  onChanged: (value) =>
-                      doctorVm.updateSortFilter(sortOrder: value),
-                ),
-              ],
-            ),
-          ],
-        ),
-      );
-    });
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  DropdownButton<String>(
+                    value: doctorVm.sortBy,
+                    items: [
+                      DropdownMenuItem(
+                        value: 'createdAt',
+                        child: Text(
+                          AppLocalizations.of(
+                            context,
+                          ).translate('sort_created_at'),
+                        ),
+                      ),
+                      DropdownMenuItem(
+                        value: 'fullName',
+                        child: Text(
+                          AppLocalizations.of(context).translate('sort_name'),
+                        ),
+                      ),
+                      DropdownMenuItem(
+                        value: 'email',
+                        child: Text(
+                          AppLocalizations.of(context).translate('sort_email'),
+                        ),
+                      ),
+                    ],
+                    onChanged: (value) =>
+                        doctorVm.updateSortFilter(sortBy: value),
+                  ),
+                  const SizedBox(width: 16),
+                  DropdownButton<String>(
+                    value: doctorVm.sortOrder,
+                    items: [
+                      DropdownMenuItem(
+                        value: 'asc',
+                        child: Text(
+                          AppLocalizations.of(context).translate('ascending'),
+                        ),
+                      ),
+                      DropdownMenuItem(
+                        value: 'desc',
+                        child: Text(
+                          AppLocalizations.of(context).translate('descending'),
+                        ),
+                      ),
+                    ],
+                    onChanged: (value) =>
+                        doctorVm.updateSortFilter(sortOrder: value),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   Widget _buildShimmerList() {
@@ -285,29 +351,38 @@ class _DoctorListPageState extends State<DoctorListPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Container(
-                  width: 48.0,
-                  height: 48.0,
-                  decoration: BoxDecoration(
-                      color: context.theme.white, shape: BoxShape.circle)),
+                width: 48.0,
+                height: 48.0,
+                decoration: BoxDecoration(
+                  color: context.theme.white,
+                  shape: BoxShape.circle,
+                ),
+              ),
               const Padding(padding: EdgeInsets.symmetric(horizontal: 8.0)),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Container(
-                        width: double.infinity,
-                        height: 12.0,
-                        color: context.theme.white),
+                      width: double.infinity,
+                      height: 12.0,
+                      color: context.theme.white,
+                    ),
                     const Padding(padding: EdgeInsets.symmetric(vertical: 4.0)),
                     Container(
-                        width: double.infinity,
-                        height: 10.0,
-                        color: context.theme.white),
+                      width: double.infinity,
+                      height: 10.0,
+                      color: context.theme.white,
+                    ),
                     const Padding(padding: EdgeInsets.symmetric(vertical: 2.0)),
-                    Container(width: 100.0, height: 8.0, color: context.theme.white),
+                    Container(
+                      width: 100.0,
+                      height: 8.0,
+                      color: context.theme.white,
+                    ),
                   ],
                 ),
-              )
+              ),
             ],
           ),
         ),
@@ -323,101 +398,107 @@ class _DoctorListPageState extends State<DoctorListPage> {
       endActionPane: isOffline
           ? null
           : ActionPane(
-        motion: const BehindMotion(),
-        children: [
-          SlidableAction(
-            onPressed: (context) async {
-              final doctorVm =
-              Provider.of<DoctorVm>(context, listen: false);
-              await Navigator.pushNamed(
-                context,
-                Routes.updateDoctor,
-                arguments: doctor.toJson(),
-              );
-              doctorVm.fetchDoctors(forceRefresh: true);
-            },
-            backgroundColor: context.theme.blue,
-            foregroundColor: context.theme.white,
-            icon: Icons.edit,
-            label: 'Sửa',
-          ),
-          SlidableAction(
-            onPressed: (context) => _showDeleteDialog(doctor),
-            backgroundColor: context.theme.destructive,
-            foregroundColor: context.theme.white,
-            icon: Icons.delete,
-            label: 'Xóa',
-          ),
-        ],
-      ),
+              motion: const BehindMotion(),
+              children: [
+                SlidableAction(
+                  onPressed: (context) async {
+                    final doctorVm = Provider.of<DoctorVm>(
+                      context,
+                      listen: false,
+                    );
+                    await Navigator.pushNamed(
+                      context,
+                      Routes.updateDoctor,
+                      arguments: doctor.toJson(),
+                    );
+                    doctorVm.fetchDoctors(forceRefresh: true);
+                  },
+                  backgroundColor: context.theme.blue,
+                  foregroundColor: context.theme.white,
+                  icon: Icons.edit,
+                  label: AppLocalizations.of(context).translate('edit'),
+                ),
+                SlidableAction(
+                  onPressed: (context) => _showDeleteDialog(doctor),
+                  backgroundColor: context.theme.destructive,
+                  foregroundColor: context.theme.white,
+                  icon: Icons.delete,
+                  label: AppLocalizations.of(context).translate('delete'),
+                ),
+              ],
+            ),
       child: Card(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         child: InkWell(
-            onTap: isOffline
-                ? null
-                : () {
-              Navigator.pushNamed(
-                context,
-                Routes.doctorDetail,
-                arguments: doctor.id,
-              );
-            },
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Hero(
-                    tag: 'avatar_${doctor.id}',
-                    child: CircleAvatar(
-                      radius: 24,
-                      backgroundColor: context.theme.primary.withOpacity(0.1),
-                      backgroundImage: (avatarUrl != null && avatarUrl.isNotEmpty)
-                          ? CachedNetworkImageProvider(avatarUrl)
-                          : null,
-                      child: (avatarUrl == null || avatarUrl.isEmpty)
-                          ? Text(
-                        doctor.fullName.isNotEmpty
-                            ? doctor.fullName[0].toUpperCase()
-                            : 'D',
-                        style: TextStyle(
-                            fontSize: 20,
-                            color: context.theme.primary,
-                            fontWeight: FontWeight.bold),
-                      )
-                          : null,
-                    ),
+          onTap: isOffline
+              ? null
+              : () {
+                  Navigator.pushNamed(
+                    context,
+                    Routes.doctorDetail,
+                    arguments: doctor.id,
+                  );
+                },
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Hero(
+                  tag: 'avatar_${doctor.id}',
+                  child: CircleAvatar(
+                    radius: 24,
+                    backgroundColor: context.theme.primary.withOpacity(0.1),
+                    backgroundImage: (avatarUrl != null && avatarUrl.isNotEmpty)
+                        ? CachedNetworkImageProvider(avatarUrl)
+                        : null,
+                    child: (avatarUrl == null || avatarUrl.isEmpty)
+                        ? Text(
+                            doctor.fullName.isNotEmpty
+                                ? doctor.fullName[0].toUpperCase()
+                                : 'D',
+                            style: TextStyle(
+                              fontSize: 20,
+                              color: context.theme.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          )
+                        : null,
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Hero(
-                          tag: 'name_${doctor.id}',
-                          child: Material(
-                            color: Colors.transparent,
-                            child: Text(
-                              doctor.fullName,
-                              style: TextStyle(
-                                  color: context.theme.cardForeground,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Hero(
+                        tag: 'name_${doctor.id}',
+                        child: Material(
+                          color: Colors.transparent,
+                          child: Text(
+                            doctor.fullName,
+                            style: TextStyle(
+                              color: context.theme.cardForeground,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          doctor.email,
-                          style: TextStyle(
-                              color: context.theme.mutedForeground,
-                              fontSize: 14),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        doctor.email,
+                        style: TextStyle(
+                          color: context.theme.mutedForeground,
+                          fontSize: 14,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            )),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -426,13 +507,15 @@ class _DoctorListPageState extends State<DoctorListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Quản lý Bác sĩ'),
+        title: Text(
+          AppLocalizations.of(context).translate('doctor_management_title'),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () =>
                 context.read<DoctorVm>().fetchDoctors(forceRefresh: true),
-          )
+          ),
         ],
       ),
       body: Consumer<DoctorVm>(
@@ -461,7 +544,13 @@ class _DoctorListPageState extends State<DoctorListPage> {
                     }
 
                     if (provider.doctors.isEmpty) {
-                      return const Center(child: Text('Không có bác sĩ nào'));
+                      return Center(
+                        child: Text(
+                          AppLocalizations.of(
+                            context,
+                          ).translate('no_doctors_found'),
+                        ),
+                      );
                     }
 
                     return RefreshIndicator(
@@ -470,7 +559,8 @@ class _DoctorListPageState extends State<DoctorListPage> {
                           .fetchDoctors(forceRefresh: true),
                       child: ListView.builder(
                         controller: _scrollController,
-                        itemCount: provider.doctors.length +
+                        itemCount:
+                            provider.doctors.length +
                             (provider.isLoadingMore ? 1 : 0),
                         itemBuilder: (context, index) {
                           if (index == provider.doctors.length) {
@@ -488,9 +578,10 @@ class _DoctorListPageState extends State<DoctorListPage> {
                               verticalOffset: 50.0,
                               child: FadeInAnimation(
                                 child: _buildAnimatedDoctorCard(
-                                    provider.doctors[index],
-                                    index,
-                                    provider.isOffline),
+                                  provider.doctors[index],
+                                  index,
+                                  provider.isOffline,
+                                ),
                               ),
                             ),
                           );

@@ -5,6 +5,7 @@ class Store {
   const Store._();
 
   static const String _themeMode = 'theme_mode';
+  static const String _languageCode = 'language_code';
 
   static const _storage = FlutterSecureStorage();
 
@@ -21,6 +22,16 @@ class Store {
   static Future<String> getThemeMode() async {
     final preferences = await SharedPreferences.getInstance();
     return preferences.getString(_themeMode) ?? 'system';
+  }
+
+  static Future<void> setLanguage(String value) async {
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setString(_languageCode, value);
+  }
+
+  static Future<String> getLanguage() async {
+    final preferences = await SharedPreferences.getInstance();
+    return preferences.getString(_languageCode) ?? 'vi';
   }
 
   static Future<void> clearStorage() async {

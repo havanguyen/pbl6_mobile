@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/shared/widgets/widget/blog_form.dart';
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 
 class CreateBlogPage extends StatelessWidget {
   const CreateBlogPage({super.key});
@@ -12,7 +13,7 @@ class CreateBlogPage extends StatelessWidget {
         backgroundColor: context.theme.card, // Consistent Appbar
         elevation: 0.5,
         title: Text(
-          'Tạo bài viết mới',
+          AppLocalizations.of(context).translate('create_blog_title'),
           style: TextStyle(
             color: context.theme.textColor,
             fontWeight: FontWeight.w600, // Bold title
@@ -25,10 +26,7 @@ class CreateBlogPage extends StatelessWidget {
         ),
       ),
       backgroundColor: context.theme.bg,
-      body: const BlogForm(
-        isUpdate: false,
-        blogId: null,
-      ),
+      body: const BlogForm(isUpdate: false, blogId: null),
     );
   }
 }

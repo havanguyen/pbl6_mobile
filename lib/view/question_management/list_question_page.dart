@@ -12,6 +12,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
 import 'package:pbl6mobile/view_model/location_work_management/snackbar_service.dart';
 import 'package:pbl6mobile/shared/widgets/widget/question_delete_confirm.dart';
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 
 class ListQuestionPage extends StatefulWidget {
   const ListQuestionPage({super.key});
@@ -77,8 +78,10 @@ class _ListQuestionPageState extends State<ListQuestionPage> {
   }
 
   void _showDeleteDialog(Question question) {
-    final snackbarService =
-    Provider.of<SnackbarService>(context, listen: false);
+    final snackbarService = Provider.of<SnackbarService>(
+      context,
+      listen: false,
+    );
     final questionVm = Provider.of<QuestionVm>(context, listen: false);
 
     showDialog(
@@ -132,36 +135,51 @@ class _ListQuestionPageState extends State<ListQuestionPage> {
               controller: _searchController,
               style: TextStyle(color: context.theme.textColor),
               decoration: InputDecoration(
-                hintText: 'Tìm theo tiêu đề, nội dung...',
+                hintText: AppLocalizations.of(
+                  context,
+                ).translate('search_question_hint'),
                 hintStyle: TextStyle(
-                    color: context.theme.mutedForeground.withOpacity(0.7)),
-                prefixIcon:
-                Icon(Icons.search, color: context.theme.primary, size: 20),
+                  color: context.theme.mutedForeground.withOpacity(0.7),
+                ),
+                prefixIcon: Icon(
+                  Icons.search,
+                  color: context.theme.primary,
+                  size: 20,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: context.theme.border.withOpacity(0.5)),
+                  borderSide: BorderSide(
+                    color: context.theme.border.withOpacity(0.5),
+                  ),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide:
-                  BorderSide(color: context.theme.primary, width: 1.5),
+                  borderSide: BorderSide(
+                    color: context.theme.primary,
+                    width: 1.5,
+                  ),
                 ),
                 filled: true,
                 fillColor: context.theme.input,
-                contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
-                  icon: Icon(Icons.clear,
-                      color: context.theme.mutedForeground, size: 20),
-                  onPressed: () {
-                    _searchController.clear();
-                  },
-                )
+                        icon: Icon(
+                          Icons.clear,
+                          color: context.theme.mutedForeground,
+                          size: 20,
+                        ),
+                        onPressed: () {
+                          _searchController.clear();
+                        },
+                      )
                     : null,
               ),
             ),
@@ -176,10 +194,16 @@ class _ListQuestionPageState extends State<ListQuestionPage> {
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: context.theme.border.withOpacity(0.5))),
-                child: Icon(Icons.filter_list_rounded,
-                    color: context.theme.primary, size: 24),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: context.theme.border.withOpacity(0.5),
+                  ),
+                ),
+                child: Icon(
+                  Icons.filter_list_rounded,
+                  color: context.theme.primary,
+                  size: 24,
+                ),
               ),
             ),
           ),
@@ -189,230 +213,343 @@ class _ListQuestionPageState extends State<ListQuestionPage> {
   }
 
   Widget _buildFilterSection() {
-    return Consumer<QuestionVm>(builder: (context, questionVm, child) {
-      return Container(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Bộ lọc & Sắp xếp',
+    return Consumer<QuestionVm>(
+      builder: (context, questionVm, child) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    AppLocalizations.of(context).translate('filter_sort_title'),
                     style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: context.theme.textColor)),
-                TextButton.icon(
-                  icon: Icon(Icons.refresh,
-                      size: 18, color: context.theme.mutedForeground),
-                  label: Text('Đặt lại',
-                      style: TextStyle(color: context.theme.mutedForeground)),
-                  onPressed: () {
-                    questionVm.resetFilters();
-                    Navigator.pop(context);
-                  },
-                  style: TextButton.styleFrom(padding: EdgeInsets.zero),
-                )
-              ],
-            ),
-            const Divider(height: 30, thickness: 0.5),
-
-            Text('Chuyên khoa',
-                style: TextStyle(
-                    color: context.theme.textColor,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500)),
-            const SizedBox(height: 10),
-            questionVm.isLoadingSpecialties
-                ? const Center(
-                child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: 10),
-                    child: SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2))))
-                : questionVm.specialtyError != null
-                ? Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                  color: context.theme.destructive.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8)
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: context.theme.textColor,
+                    ),
+                  ),
+                  TextButton.icon(
+                    icon: Icon(
+                      Icons.refresh,
+                      size: 18,
+                      color: context.theme.mutedForeground,
+                    ),
+                    label: Text(
+                      AppLocalizations.of(context).translate('reset'),
+                      style: TextStyle(color: context.theme.mutedForeground),
+                    ),
+                    onPressed: () {
+                      questionVm.resetFilters();
+                      Navigator.pop(context);
+                    },
+                    style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                  ),
+                ],
               ),
-              child: Text(questionVm.specialtyError!, style: TextStyle(color: context.theme.destructive)),
-            )
-                : DropdownButtonFormField<String>(
-              value: questionVm.specialties
-                  .any((c) => c.id == questionVm.selectedSpecialtyId)
-                  ? questionVm.selectedSpecialtyId
-                  : null,
-              hint: Text('Tất cả chuyên khoa',
-                  style: TextStyle(color: context.theme.mutedForeground)),
-              isExpanded: true,
-              style:
-              TextStyle(color: context.theme.textColor, fontSize: 15),
-              decoration: InputDecoration(
+              const Divider(height: 30, thickness: 0.5),
+
+              Text(
+                AppLocalizations.of(context).translate('specialty_label'),
+                style: TextStyle(
+                  color: context.theme.textColor,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 10),
+              questionVm.isLoadingSpecialties
+                  ? const Center(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(vertical: 10),
+                        child: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                    )
+                  : questionVm.specialtyError != null
+                  ? Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: context.theme.destructive.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        questionVm.specialtyError!,
+                        style: TextStyle(color: context.theme.destructive),
+                      ),
+                    )
+                  : DropdownButtonFormField<String>(
+                      value:
+                          questionVm.specialties.any(
+                            (c) => c.id == questionVm.selectedSpecialtyId,
+                          )
+                          ? questionVm.selectedSpecialtyId
+                          : null,
+                      hint: Text(
+                        AppLocalizations.of(
+                          context,
+                        ).translate('all_specialties'),
+                        style: TextStyle(color: context.theme.mutedForeground),
+                      ),
+                      isExpanded: true,
+                      style: TextStyle(
+                        color: context.theme.textColor,
+                        fontSize: 15,
+                      ),
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: context.theme.primary),
+                        ),
+                        filled: true,
+                        fillColor: context.theme.input,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
+                        prefixIcon: Icon(
+                          Icons.medical_services_outlined,
+                          size: 18,
+                          color: context.theme.mutedForeground,
+                        ),
+                      ),
+                      icon: Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        color: context.theme.mutedForeground,
+                      ),
+                      dropdownColor: context.theme.popover,
+                      items: [
+                        DropdownMenuItem<String>(
+                          value: null,
+                          child: Text(
+                            AppLocalizations.of(
+                              context,
+                            ).translate('all_specialties'),
+                            style: TextStyle(
+                              color: context.theme.mutedForeground,
+                            ),
+                          ),
+                        ),
+                        ...questionVm.specialties.map((specialty) {
+                          return DropdownMenuItem<String>(
+                            value: specialty.id,
+                            child: Text(
+                              specialty.name,
+                              style: TextStyle(
+                                color: context.theme.popoverForeground,
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ],
+                      onChanged: (value) {
+                        questionVm.updateSpecialtyFilter(value);
+                      },
+                    ),
+              const SizedBox(height: 24),
+
+              Text(
+                AppLocalizations.of(context).translate('status'),
+                style: TextStyle(
+                  color: context.theme.textColor,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 10),
+              DropdownButtonFormField<String>(
+                value: questionVm.selectedStatus,
+                hint: Text(
+                  AppLocalizations.of(context).translate('all_statuses'),
+                  style: TextStyle(color: context.theme.mutedForeground),
+                ),
+                isExpanded: true,
+                style: TextStyle(color: context.theme.textColor, fontSize: 15),
+                decoration: InputDecoration(
                   border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none),
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide.none,
+                  ),
                   enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none),
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide.none,
+                  ),
                   focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide:
-                      BorderSide(color: context.theme.primary)),
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: context.theme.primary),
+                  ),
                   filled: true,
                   fillColor: context.theme.input,
                   contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 14),
-                  prefixIcon: Icon(
-                    Icons.medical_services_outlined,
-                    size: 18,
-                    color: context.theme.mutedForeground,
-                  )),
-              icon: Icon(Icons.keyboard_arrow_down_rounded,
-                  color: context.theme.mutedForeground),
-              dropdownColor: context.theme.popover,
-              items: [
-                DropdownMenuItem<String>(
-                    value: null,
-                    child: Text('Tất cả chuyên khoa',
-                        style: TextStyle(
-                            color: context.theme.mutedForeground))),
-                ...questionVm.specialties.map((specialty) {
-                  return DropdownMenuItem<String>(
-                    value: specialty.id,
-                    child: Text(specialty.name,
-                        style: TextStyle(
-                            color: context.theme.popoverForeground)),
-                  );
-                }).toList(),
-              ],
-              onChanged: (value) {
-                questionVm.updateSpecialtyFilter(value);
-              },
-            ),
-            const SizedBox(height: 24),
-
-            Text('Trạng thái',
-                style: TextStyle(
-                    color: context.theme.textColor,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500)),
-            const SizedBox(height: 10),
-            DropdownButtonFormField<String>(
-              value: questionVm.selectedStatus,
-              hint: Text('Tất cả trạng thái',
-                  style: TextStyle(color: context.theme.mutedForeground)),
-              isExpanded: true,
-              style: TextStyle(color: context.theme.textColor, fontSize: 15),
-              decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none),
-                  enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none),
-                  focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: context.theme.primary)),
-                  filled: true,
-                  fillColor: context.theme.input,
-                  contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
                   prefixIcon: Icon(
                     Icons.toggle_on_outlined,
                     size: 18,
                     color: context.theme.mutedForeground,
-                  )),
-              icon: Icon(Icons.keyboard_arrow_down_rounded,
-                  color: context.theme.mutedForeground),
-              dropdownColor: context.theme.popover,
-              items: [
-                DropdownMenuItem<String>(
+                  ),
+                ),
+                icon: Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  color: context.theme.mutedForeground,
+                ),
+                dropdownColor: context.theme.popover,
+                items: [
+                  DropdownMenuItem<String>(
                     value: null,
-                    child: Text('Tất cả trạng thái',
-                        style:
-                        TextStyle(color: context.theme.mutedForeground))),
-                DropdownMenuItem<String>(
+                    child: Text(
+                      AppLocalizations.of(context).translate('all_statuses'),
+                      style: TextStyle(color: context.theme.mutedForeground),
+                    ),
+                  ),
+                  DropdownMenuItem<String>(
                     value: 'PENDING',
-                    child: Text('⏳ Đang chờ',
-                        style: TextStyle(
-                            color: context.theme.popoverForeground))),
-                DropdownMenuItem<String>(
+                    child: Text(
+                      '⏳ ${AppLocalizations.of(context).translate('status_pending')}',
+                      style: TextStyle(color: context.theme.popoverForeground),
+                    ),
+                  ),
+                  DropdownMenuItem<String>(
                     value: 'ANSWERED',
-                    child: Text('✅ Đã trả lời',
-                        style: TextStyle(
-                            color: context.theme.popoverForeground))),
-                DropdownMenuItem<String>(
+                    child: Text(
+                      '✅ ${AppLocalizations.of(context).translate('status_answered')}',
+                      style: TextStyle(color: context.theme.popoverForeground),
+                    ),
+                  ),
+                  DropdownMenuItem<String>(
                     value: 'CLOSED',
-                    child: Text('🔒 Đã đóng',
-                        style: TextStyle(
-                            color: context.theme.popoverForeground))),
-              ],
-              onChanged: (value) {
-                questionVm.updateStatusFilter(value);
-              },
-            ),
-            const SizedBox(height: 24),
+                    child: Text(
+                      '🔒 ${AppLocalizations.of(context).translate('status_closed')}',
+                      style: TextStyle(color: context.theme.popoverForeground),
+                    ),
+                  ),
+                ],
+                onChanged: (value) {
+                  questionVm.updateStatusFilter(value);
+                },
+              ),
+              const SizedBox(height: 24),
 
-            Text('Sắp xếp',
+              Text(
+                AppLocalizations.of(context).translate('sort'),
                 style: TextStyle(
-                    color: context.theme.textColor,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500)),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<String>(
+                  color: context.theme.textColor,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
                       value: questionVm.sortBy,
                       style: TextStyle(
-                          color: context.theme.textColor, fontSize: 15),
+                        color: context.theme.textColor,
+                        fontSize: 15,
+                      ),
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide.none),
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide.none,
+                        ),
                         enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide.none),
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide.none,
+                        ),
                         focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide:
-                            BorderSide(color: context.theme.primary)),
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: context.theme.primary),
+                        ),
                         filled: true,
                         fillColor: context.theme.input,
                         contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 14),
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
                       ),
-                      icon: Icon(Icons.keyboard_arrow_down_rounded,
-                          color: context.theme.mutedForeground),
+                      icon: Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        color: context.theme.mutedForeground,
+                      ),
                       dropdownColor: context.theme.popover,
-                      items: const [
+                      items: [
                         DropdownMenuItem(
-                            value: 'createdAt',
-                            child: Text('Ngày tạo')),
+                          value: 'createdAt',
+                          child: Text(
+                            AppLocalizations.of(
+                              context,
+                            ).translate('sort_created_at'),
+                          ),
+                        ),
                         DropdownMenuItem(
-                            value: 'updatedAt',
-                            child: Text('Ngày cập nhật')),
+                          value: 'updatedAt',
+                          child: Text(
+                            AppLocalizations.of(
+                              context,
+                            ).translate('sort_updated_at'),
+                          ),
+                        ),
                         DropdownMenuItem(
-                            value: 'title',
-                            child: Text('Tiêu đề')),
+                          value: 'title',
+                          child: Text(
+                            AppLocalizations.of(
+                              context,
+                            ).translate('sort_title'),
+                          ),
+                        ),
                       ],
                       selectedItemBuilder: (BuildContext context) {
-                        return const [
-                          Text('Ngày tạo'),
-                          Text('Ngày cập nhật'),
-                          Text('Tiêu đề'),
+                        return [
+                          Text(
+                            AppLocalizations.of(
+                              context,
+                            ).translate('sort_created_at'),
+                          ),
+                          Text(
+                            AppLocalizations.of(
+                              context,
+                            ).translate('sort_updated_at'),
+                          ),
+                          Text(
+                            AppLocalizations.of(
+                              context,
+                            ).translate('sort_title'),
+                          ),
                         ].map<Widget>((Widget item) {
                           String value;
-                          switch ((item as Text).data) {
-                            case 'Ngày tạo': value = 'createdAt'; break;
-                            case 'Ngày cập nhật': value = 'updatedAt'; break;
-                            case 'Tiêu đề': value = 'title'; break;
-                            default: value = 'createdAt';
+                          if ((item as Text).data ==
+                              AppLocalizations.of(
+                                context,
+                              ).translate('sort_created_at')) {
+                            value = 'createdAt';
+                          } else if (item.data ==
+                              AppLocalizations.of(
+                                context,
+                              ).translate('sort_updated_at')) {
+                            value = 'updatedAt';
+                          } else if (item.data ==
+                              AppLocalizations.of(
+                                context,
+                              ).translate('sort_title')) {
+                            value = 'title';
+                          } else {
+                            value = 'createdAt';
                           }
                           return DropdownMenuItem<String>(
                             value: value,
@@ -424,48 +561,73 @@ class _ListQuestionPageState extends State<ListQuestionPage> {
                         }).toList();
                       },
                       onChanged: (value) =>
-                          questionVm.updateSortFilter(sortBy: value)),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: DropdownButtonFormField<String>(
+                          questionVm.updateSortFilter(sortBy: value),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
                       value: questionVm.sortOrder,
                       style: TextStyle(
-                          color: context.theme.textColor, fontSize: 15),
+                        color: context.theme.textColor,
+                        fontSize: 15,
+                      ),
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide.none),
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide.none,
+                        ),
                         enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide.none),
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide.none,
+                        ),
                         focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide:
-                            BorderSide(color: context.theme.primary)),
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: context.theme.primary),
+                        ),
                         filled: true,
                         fillColor: context.theme.input,
                         contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 14),
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
                       ),
-                      icon: Icon(Icons.keyboard_arrow_down_rounded,
-                          color: context.theme.mutedForeground),
+                      icon: Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        color: context.theme.mutedForeground,
+                      ),
                       dropdownColor: context.theme.popover,
-                      items: const [
+                      items: [
                         DropdownMenuItem(
-                            value: 'ASC',
-                            child: Text('Tăng dần')),
+                          value: 'ASC',
+                          child: Text(
+                            AppLocalizations.of(context).translate('sort_asc'),
+                          ),
+                        ),
                         DropdownMenuItem(
-                            value: 'DESC',
-                            child: Text('Giảm dần')),
+                          value: 'DESC',
+                          child: Text(
+                            AppLocalizations.of(context).translate('sort_desc'),
+                          ),
+                        ),
                       ],
                       selectedItemBuilder: (BuildContext context) {
-                        return const [
-                          Text('Tăng dần'),
-                          Text('Giảm dần'),
+                        return [
+                          Text(
+                            AppLocalizations.of(context).translate('sort_asc'),
+                          ),
+                          Text(
+                            AppLocalizations.of(context).translate('sort_desc'),
+                          ),
                         ].map<Widget>((Widget item) {
                           return DropdownMenuItem<String>(
-                            value: (item as Text).data == 'Tăng dần' ? 'ASC' : 'DESC',
+                            value:
+                                (item as Text).data ==
+                                    AppLocalizations.of(
+                                      context,
+                                    ).translate('sort_asc')
+                                ? 'ASC'
+                                : 'DESC',
                             child: Text(
                               item.data!,
                               style: TextStyle(color: context.theme.textColor),
@@ -474,28 +636,32 @@ class _ListQuestionPageState extends State<ListQuestionPage> {
                         }).toList();
                       },
                       onChanged: (value) =>
-                          questionVm.updateSortFilter(sortOrder: value)),
-                ),
-              ],
-            ),
-            const SizedBox(height: 30),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
+                          questionVm.updateSortFilter(sortOrder: value),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 30),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
                   onPressed: () => Navigator.pop(context),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: context.theme.primary,
                     foregroundColor: context.theme.primaryForeground,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
-                  child: const Text('Áp dụng')),
-            )
-          ],
-        ),
-      );
-    });
+                  child: Text(AppLocalizations.of(context).translate('apply')),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   Widget _buildShimmerList() {
@@ -507,7 +673,9 @@ class _ListQuestionPageState extends State<ListQuestionPage> {
         itemCount: 8,
         itemBuilder: (_, __) => Card(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           child: Padding(
             padding: const EdgeInsets.all(12.0),
             child: Row(
@@ -520,39 +688,47 @@ class _ListQuestionPageState extends State<ListQuestionPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       Container(
-                          width: double.infinity,
-                          height: 16.0,
-                          decoration: BoxDecoration(
-                              color: context.theme.muted,
-                              borderRadius: BorderRadius.circular(4))),
+                        width: double.infinity,
+                        height: 16.0,
+                        decoration: BoxDecoration(
+                          color: context.theme.muted,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
                       const SizedBox(height: 8),
                       Container(
-                          width: MediaQuery.of(context).size.width * 0.4,
-                          height: 12.0,
-                          decoration: BoxDecoration(
-                              color: context.theme.muted,
-                              borderRadius: BorderRadius.circular(4))),
+                        width: MediaQuery.of(context).size.width * 0.4,
+                        height: 12.0,
+                        decoration: BoxDecoration(
+                          color: context.theme.muted,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
                       const SizedBox(height: 10),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Container(
-                              width: 60,
-                              height: 10.0,
-                              decoration: BoxDecoration(
-                                  color: context.theme.muted,
-                                  borderRadius: BorderRadius.circular(4))),
+                            width: 60,
+                            height: 10.0,
+                            decoration: BoxDecoration(
+                              color: context.theme.muted,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
                           Container(
-                              width: 100,
-                              height: 10.0,
-                              decoration: BoxDecoration(
-                                  color: context.theme.muted,
-                                  borderRadius: BorderRadius.circular(4))),
+                            width: 100,
+                            height: 10.0,
+                            decoration: BoxDecoration(
+                              color: context.theme.muted,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
                         ],
-                      )
+                      ),
                     ],
                   ),
-                )
+                ),
               ],
             ),
           ),
@@ -562,9 +738,13 @@ class _ListQuestionPageState extends State<ListQuestionPage> {
   }
 
   Widget _buildAnimatedQuestionCard(
-      Question question, int index, bool isOffline) {
-    String formattedDate =
-    DateFormat('dd/MM/yyyy HH:mm').format(question.createdAt.toLocal());
+    Question question,
+    int index,
+    bool isOffline,
+  ) {
+    String formattedDate = DateFormat(
+      'dd/MM/yyyy HH:mm',
+    ).format(question.createdAt.toLocal());
 
     Color statusColor;
     String statusText;
@@ -572,18 +752,18 @@ class _ListQuestionPageState extends State<ListQuestionPage> {
     switch (question.status) {
       case 'ANSWERED':
         statusColor = context.theme.green;
-        statusText = 'Đã trả lời';
+        statusText = AppLocalizations.of(context).translate('status_answered');
         statusIcon = Icons.check_circle_outline_rounded;
         break;
       case 'CLOSED':
         statusColor = context.theme.mutedForeground;
-        statusText = 'Đã đóng';
+        statusText = AppLocalizations.of(context).translate('status_closed');
         statusIcon = Icons.lock_outline_rounded;
         break;
       case 'PENDING':
       default:
         statusColor = context.theme.yellow;
-        statusText = 'Đang chờ';
+        statusText = AppLocalizations.of(context).translate('status_pending');
         statusIcon = Icons.hourglass_empty_rounded;
         break;
     }
@@ -593,127 +773,140 @@ class _ListQuestionPageState extends State<ListQuestionPage> {
       endActionPane: (isOffline || !_canDelete)
           ? null
           : ActionPane(
-        motion: const BehindMotion(),
-        extentRatio: 0.25,
-        children: [
-          SlidableAction(
-            onPressed: (context) => _showDeleteDialog(question),
-            backgroundColor: context.theme.destructive,
-            foregroundColor: context.theme.white,
-            icon: Icons.delete_outline_rounded,
-            label: 'Xóa',
-            borderRadius: const BorderRadius.only(
-              topRight: Radius.circular(12),
-              bottomRight: Radius.circular(12),
+              motion: const BehindMotion(),
+              extentRatio: 0.25,
+              children: [
+                SlidableAction(
+                  onPressed: (context) => _showDeleteDialog(question),
+                  backgroundColor: context.theme.destructive,
+                  foregroundColor: context.theme.white,
+                  icon: Icons.delete_outline_rounded,
+                  label: AppLocalizations.of(context).translate('delete'),
+                  borderRadius: const BorderRadius.only(
+                    topRight: Radius.circular(12),
+                    bottomRight: Radius.circular(12),
+                  ),
+                  padding: EdgeInsets.zero,
+                ),
+              ],
             ),
-            padding: EdgeInsets.zero,
-          ),
-        ],
-      ),
       child: Card(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         elevation: 1,
         shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(color: context.theme.border.withOpacity(0.5))),
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: context.theme.border.withOpacity(0.5)),
+        ),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
-            onTap: isOffline
-                ? null
-                : () async {
-              Navigator.pushNamed(context, Routes.questionDetail,
-                  arguments: question.id);
-            },
-            borderRadius: BorderRadius.circular(12),
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CircleAvatar(
-                    radius: 24,
-                    backgroundColor: statusColor.withOpacity(0.1),
-                    child: Icon(
-                      statusIcon,
-                      color: statusColor,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          question.title,
-                          style: TextStyle(
-                              color: context.theme.cardForeground,
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+          onTap: isOffline
+              ? null
+              : () async {
+                  Navigator.pushNamed(
+                    context,
+                    Routes.questionDetail,
+                    arguments: question.id,
+                  );
+                },
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CircleAvatar(
+                  radius: 24,
+                  backgroundColor: statusColor.withOpacity(0.1),
+                  child: Icon(statusIcon, color: statusColor, size: 24),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        question.title,
+                        style: TextStyle(
+                          color: context.theme.cardForeground,
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
                         ),
-                        const SizedBox(height: 6),
-                        Row(
-                          children: [
-                            Icon(Icons.person_outline,
-                                size: 14,
-                                color: context.theme.mutedForeground),
-                            const SizedBox(width: 4),
-                            Expanded(
-                              child: Text(
-                                question.authorName,
-                                style: TextStyle(
-                                    color: context.theme.mutedForeground,
-                                    fontSize: 12),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: statusColor.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Text(
-                                statusText.toUpperCase(),
-                                key: ValueKey('question_status_${question.status}'),
-                                style: TextStyle(
-                                    color: statusColor,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                            Text(
-                              formattedDate,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.person_outline,
+                            size: 14,
+                            color: context.theme.mutedForeground,
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              question.authorName,
                               style: TextStyle(
-                                  color: context.theme.mutedForeground
-                                      .withOpacity(0.8),
-                                  fontSize: 11),
+                                color: context.theme.mutedForeground,
+                                fontSize: 12,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                          ],
-                        )
-                      ],
-                    ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: statusColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              statusText.toUpperCase(),
+                              key: ValueKey(
+                                'question_status_${question.status}',
+                              ),
+                              style: TextStyle(
+                                color: statusColor,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            formattedDate,
+                            style: TextStyle(
+                              color: context.theme.mutedForeground.withOpacity(
+                                0.8,
+                              ),
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            )),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
 
   Widget _buildEmptyState() {
     final provider = context.read<QuestionVm>();
-    final bool isSearchingOrFiltering = _searchController.text.isNotEmpty ||
+    final bool isSearchingOrFiltering =
+        _searchController.text.isNotEmpty ||
         provider.selectedStatus != null ||
         provider.selectedSpecialtyId != null;
 
@@ -724,15 +917,17 @@ class _ListQuestionPageState extends State<ListQuestionPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              isSearchingOrFiltering ? Icons.search_off_rounded : Icons.question_answer_outlined,
+              isSearchingOrFiltering
+                  ? Icons.search_off_rounded
+                  : Icons.question_answer_outlined,
               size: 60,
               color: context.theme.mutedForeground,
             ),
             const SizedBox(height: 16),
             Text(
               isSearchingOrFiltering
-                  ? 'Không tìm thấy câu hỏi'
-                  : 'Chưa có câu hỏi nào',
+                  ? AppLocalizations.of(context).translate('no_questions_found')
+                  : AppLocalizations.of(context).translate('no_questions_yet'),
               style: TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.w500,
@@ -744,10 +939,16 @@ class _ListQuestionPageState extends State<ListQuestionPage> {
               padding: const EdgeInsets.symmetric(horizontal: 40.0),
               child: Text(
                 isSearchingOrFiltering
-                    ? 'Hãy thử tìm kiếm với từ khóa khác hoặc xóa bộ lọc.'
-                    : 'Hiện tại không có câu hỏi nào trong hệ thống.',
-                style:
-                TextStyle(color: context.theme.mutedForeground, fontSize: 13),
+                    ? AppLocalizations.of(
+                        context,
+                      ).translate('no_questions_hint')
+                    : AppLocalizations.of(
+                        context,
+                      ).translate('no_questions_system_hint'),
+                style: TextStyle(
+                  color: context.theme.mutedForeground,
+                  fontSize: 13,
+                ),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -756,7 +957,9 @@ class _ListQuestionPageState extends State<ListQuestionPage> {
                 padding: const EdgeInsets.only(top: 20.0),
                 child: TextButton.icon(
                   icon: const Icon(Icons.refresh, size: 18),
-                  label: const Text('Tải lại danh sách'),
+                  label: Text(
+                    AppLocalizations.of(context).translate('reload_list'),
+                  ),
                   onPressed: () {
                     _searchController.clear();
                     provider.resetFilters();
@@ -771,7 +974,9 @@ class _ListQuestionPageState extends State<ListQuestionPage> {
 
   Widget _buildErrorState(String errorMessage) {
     final provider = context.read<QuestionVm>();
-    final bool isNetworkError = errorMessage.contains('Lỗi kết nối') || errorMessage.contains('offline');
+    final bool isNetworkError =
+        errorMessage.contains('Lỗi kết nối') ||
+        errorMessage.contains('offline');
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(20.0),
@@ -779,13 +984,19 @@ class _ListQuestionPageState extends State<ListQuestionPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              isNetworkError ? Icons.wifi_off_rounded : Icons.error_outline_rounded,
+              isNetworkError
+                  ? Icons.wifi_off_rounded
+                  : Icons.error_outline_rounded,
               size: 60,
               color: context.theme.mutedForeground,
             ),
             const SizedBox(height: 16),
             Text(
-              isNetworkError ? 'Lỗi kết nối mạng' : 'Đã xảy ra lỗi',
+              isNetworkError
+                  ? 'Lỗi kết nối mạng'
+                  : AppLocalizations.of(
+                      context,
+                    ).translate('error_occurred_short'),
               style: TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.w500,
@@ -799,168 +1010,95 @@ class _ListQuestionPageState extends State<ListQuestionPage> {
               style: TextStyle(color: context.theme.destructive, fontSize: 13),
             ),
             const SizedBox(height: 20),
-            if (isNetworkError || !errorMessage.contains('cache'))
-              ElevatedButton.icon(
-                icon: const Icon(Icons.refresh),
-                label: const Text('Thử lại'),
-                onPressed: () => provider.fetchQuestions(forceRefresh: true),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: context.theme.primary,
-                  foregroundColor: context.theme.primaryForeground,
-                ),
-              )
+            ElevatedButton.icon(
+              onPressed: () {
+                provider.fetchQuestions(forceRefresh: true);
+              },
+              icon: const Icon(Icons.refresh),
+              label: Text(AppLocalizations.of(context).translate('retry')),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: context.theme.primary,
+                foregroundColor: context.theme.primaryForeground,
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Quản lý Mục Hỏi Đáp'),
-        elevation: 0.5,
-        backgroundColor: context.theme.card,
-        titleTextStyle: TextStyle(
-          color: context.theme.textColor,
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
-        ),
-        iconTheme: IconThemeData(color: context.theme.textColor),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.refresh, color: context.theme.mutedForeground),
-            tooltip: "Làm mới",
-            onPressed: context.watch<QuestionVm>().isLoading
-                ? null
-                : () => context.read<QuestionVm>().fetchQuestions(forceRefresh: true),
-          )
-        ],
-      ),
       backgroundColor: context.theme.bg,
-      body: Consumer<QuestionVm>(
-        builder: (context, provider, child) {
-          return Column(
-            children: [
-              _buildSearchSection(),
+      body: Column(
+        children: [
+          _buildSearchSection(),
+          Expanded(
+            child: Consumer<QuestionVm>(
+              builder: (context, questionVm, child) {
+                if (questionVm.isLoading) {
+                  return _buildShimmerList();
+                }
 
-              if (provider.error != null && !provider.isLoading && provider.questions.isNotEmpty)
-                _buildOfflineErrorBanner(provider.error!, provider.isOffline),
-              if ((provider.isLoadingMore || (provider.isLoading && provider.questions.isNotEmpty)) && provider.error == null)
-                LinearProgressIndicator(
-                    minHeight: 2,
-                    backgroundColor: Colors.transparent,
-                    color: context.theme.primary.withOpacity(0.5)),
+                if (questionVm.error != null) {
+                  return _buildErrorState(questionVm.error!);
+                }
 
-              Expanded(
-                child: Builder(
-                  builder: (innerContext) {
-                    if (provider.isLoading && provider.questions.isEmpty && provider.error == null) {
-                      return _buildShimmerList();
-                    }
-                    else if (provider.error != null && provider.questions.isEmpty && !provider.isLoading) {
-                      return _buildErrorState(provider.error!);
-                    }
-                    else if (provider.questions.isEmpty && !provider.isLoading && provider.error == null) {
-                      return _buildEmptyState();
-                    }
-                    else {
-                      return RefreshIndicator(
-                        color: context.theme.primary,
-                        backgroundColor: context.theme.card,
-                        onRefresh: () async => context
-                            .read<QuestionVm>()
-                            .fetchQuestions(forceRefresh: true),
-                        child: ListView.builder(
-                          key: const ValueKey('question_list_scroll_view'),
-                          padding: const EdgeInsets.only(bottom: 80, top: 8),
-                          controller: _scrollController,
-                          itemCount: provider.questions.length +
-                              (provider.isLoadingMore && provider.hasNextPage ? 1 : 0),
-                          itemBuilder: (context, index) {
-                            if (index == provider.questions.length) {
-                              return const Center(
-                                child: Padding(
-                                  padding: EdgeInsets.symmetric(vertical: 24.0),
-                                  child: SizedBox(
-                                      width: 24,
-                                      height: 24,
-                                      child: CircularProgressIndicator(
-                                          strokeWidth: 2)),
-                                ),
-                              );
-                            }
-                            final question = provider.questions[index];
-                            return AnimationConfiguration.staggeredList(
-                              position: index,
-                              duration: const Duration(milliseconds: 375),
-                              child: SlideAnimation(
-                                verticalOffset: 30.0,
-                                child: FadeInAnimation(
-                                  delay: const Duration(milliseconds: 50),
-                                  child: _buildAnimatedQuestionCard(
-                                      question, index, provider.isOffline),
+                if (questionVm.questions.isEmpty) {
+                  return _buildEmptyState();
+                }
+
+                return RefreshIndicator(
+                  onRefresh: () async {
+                    await questionVm.fetchQuestions(forceRefresh: true);
+                  },
+                  child: AnimationLimiter(
+                    child: ListView.builder(
+                      controller: _scrollController,
+                      padding: const EdgeInsets.only(top: 8, bottom: 20),
+                      itemCount:
+                          questionVm.questions.length +
+                          (questionVm.isLoadingMore ? 1 : 0),
+                      itemBuilder: (context, index) {
+                        if (index == questionVm.questions.length) {
+                          return Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Center(
+                              child: SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: context.theme.primary,
                                 ),
                               ),
-                            );
-                          },
-                        ),
-                      );
-                    }
-                  },
-                ),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildOfflineErrorBanner(String message, bool isActuallyOffline) {
-    final bool isOfflineError = isActuallyOffline || message.contains('Lỗi kết nối') || message.contains('offline');
-    final Color bannerColor = isOfflineError ? context.theme.yellow.withOpacity(0.15) : context.theme.destructive.withOpacity(0.15);
-    final Color textColor = isOfflineError ? context.theme.yellow : context.theme.destructive;
-    final IconData icon = isOfflineError ? Icons.wifi_off_rounded : Icons.error_outline_rounded;
-
-    String displayMessage = message;
-    if (message.contains(':') && message.contains('Lỗi')) {
-      displayMessage = message.substring(0, message.indexOf(':'));
-    }
-    if (message.contains('offline') && message.contains('dữ liệu cũ')) {
-      displayMessage = 'Bạn đang offline. Hiển thị dữ liệu cũ.';
-    } else if (message.contains('offline') && message.contains('không có dữ liệu')) {
-      displayMessage = 'Bạn đang offline và không có dữ liệu cache.';
-    } else if (message.contains('offline')) {
-      displayMessage = 'Bạn đang offline.';
-    } else if (message.contains('Lỗi kết nối')) {
-      displayMessage = 'Lỗi kết nối mạng.';
-    }
-
-
-    return Container(
-      width: double.infinity,
-      color: bannerColor,
-      padding:
-      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 16, color: textColor),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              displayMessage,
-              textAlign: TextAlign.center,
-              style: TextStyle(color: textColor, fontSize: 13),
-              softWrap: true,
+                            ),
+                          );
+                        }
+                        return AnimationConfiguration.staggeredList(
+                          position: index,
+                          duration: const Duration(milliseconds: 375),
+                          child: SlideAnimation(
+                            verticalOffset: 50.0,
+                            child: FadeInAnimation(
+                              child: _buildAnimatedQuestionCard(
+                                questionVm.questions[index],
+                                index,
+                                questionVm.isOffline,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                );
+              },
             ),
           ),
         ],
       ),
     );
   }
-
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pbl6mobile/model/services/remote/doctor_service.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 
 import '../../shared/widgets/widget/doctor_form.dart';
 
@@ -56,7 +57,7 @@ class UpdateDoctorPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: context.theme.blue,
         title: Text(
-          'Chỉnh sửa tài khoản bác sĩ',
+          AppLocalizations.of(context).translate('update_doctor_account'),
           style: TextStyle(color: context.theme.primaryForeground),
         ),
         leading: IconButton(
@@ -68,7 +69,7 @@ class UpdateDoctorPage extends StatelessWidget {
       body: DoctorForm(
         isUpdate: true,
         initialData: doctor,
-        role: 'Bác sĩ',
+        role: AppLocalizations.of(context).translate('doctor_role'),
         onSubmit: _onSubmit,
         onSuccess: () {
           Navigator.pop(context, true);

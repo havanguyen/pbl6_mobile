@@ -6,6 +6,7 @@ import 'package:pbl6mobile/view_model/admin_management/doctor_management_vm.dart
 import 'package:pbl6mobile/view_model/location_work_management/location_work_vm.dart';
 import 'package:pbl6mobile/view_model/specialty/specialty_vm.dart';
 import 'package:provider/provider.dart';
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 
 class AppointmentFilterDialog extends StatefulWidget {
   final String? selectedDoctorId;
@@ -46,7 +47,9 @@ class _AppointmentFilterDialogState extends State<AppointmentFilterDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Bộ lọc lịch hẹn'),
+      title: Text(
+        AppLocalizations.of(context).translate('appointment_filter_title'),
+      ),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -68,11 +71,11 @@ class _AppointmentFilterDialogState extends State<AppointmentFilterDialog> {
               _selectedSpecialtyId = null;
             });
           },
-          child: const Text('Đặt lại'),
+          child: Text(AppLocalizations.of(context).translate('reset')),
         ),
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Hủy'),
+          child: Text(AppLocalizations.of(context).translate('cancel')),
         ),
         FilledButton(
           onPressed: () {
@@ -82,7 +85,7 @@ class _AppointmentFilterDialogState extends State<AppointmentFilterDialog> {
               'specialtyId': _selectedSpecialtyId,
             });
           },
-          child: const Text('Áp dụng'),
+          child: Text(AppLocalizations.of(context).translate('apply')),
         ),
       ],
     );
@@ -96,15 +99,20 @@ class _AppointmentFilterDialogState extends State<AppointmentFilterDialog> {
         }
         return DropdownButtonFormField<String>(
           value: _selectedDoctorId,
-          decoration: const InputDecoration(
-            labelText: 'Bác sĩ',
-            border: OutlineInputBorder(),
-            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: InputDecoration(
+            labelText: AppLocalizations.of(context).translate('doctor'),
+            border: const OutlineInputBorder(),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 8,
+            ),
           ),
           items: [
-            const DropdownMenuItem<String>(
+            DropdownMenuItem<String>(
               value: null,
-              child: Text('Tất cả bác sĩ'),
+              child: Text(
+                AppLocalizations.of(context).translate('all_doctors'),
+              ),
             ),
             ...vm.allDoctors.map((Doctor doctor) {
               return DropdownMenuItem<String>(
@@ -132,15 +140,20 @@ class _AppointmentFilterDialogState extends State<AppointmentFilterDialog> {
         }
         return DropdownButtonFormField<String>(
           value: _selectedWorkLocationId,
-          decoration: const InputDecoration(
-            labelText: 'Cơ sở làm việc',
-            border: OutlineInputBorder(),
-            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: InputDecoration(
+            labelText: AppLocalizations.of(context).translate('work_location'),
+            border: const OutlineInputBorder(),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 8,
+            ),
           ),
           items: [
-            const DropdownMenuItem<String>(
+            DropdownMenuItem<String>(
               value: null,
-              child: Text('Tất cả cơ sở'),
+              child: Text(
+                AppLocalizations.of(context).translate('all_locations'),
+              ),
             ),
             ...vm.activeLocations.map((WorkLocation location) {
               return DropdownMenuItem<String>(
@@ -168,15 +181,20 @@ class _AppointmentFilterDialogState extends State<AppointmentFilterDialog> {
         }
         return DropdownButtonFormField<String>(
           value: _selectedSpecialtyId,
-          decoration: const InputDecoration(
-            labelText: 'Chuyên khoa',
-            border: OutlineInputBorder(),
-            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: InputDecoration(
+            labelText: AppLocalizations.of(context).translate('specialty'),
+            border: const OutlineInputBorder(),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 8,
+            ),
           ),
           items: [
-            const DropdownMenuItem<String>(
+            DropdownMenuItem<String>(
               value: null,
-              child: Text('Tất cả chuyên khoa'),
+              child: Text(
+                AppLocalizations.of(context).translate('all_specialties'),
+              ),
             ),
             ...vm.specialties.map((Specialty specialty) {
               return DropdownMenuItem<String>(

@@ -6,6 +6,7 @@ import 'package:pbl6mobile/model/services/remote/appointment_service.dart';
 import 'package:pbl6mobile/view/appointment/widgets/appointment_scheduler.dart';
 import 'package:pbl6mobile/view_model/appointment/appointment_vm.dart';
 import 'package:provider/provider.dart';
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 
 class AppointmentActionDialogs {
   static Future<void> showEditDialog(
@@ -34,7 +35,9 @@ class AppointmentActionDialogs {
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Cập nhật lịch hẹn'),
+        title: Text(
+          AppLocalizations.of(context).translate('update_appointment_title'),
+        ),
         content: Form(
           key: formKey,
           child: SingleChildScrollView(
@@ -45,9 +48,9 @@ class AppointmentActionDialogs {
                   value: statusOptions.contains(selectedStatus)
                       ? selectedStatus
                       : statusOptions.first,
-                  decoration: const InputDecoration(
-                    labelText: 'Trạng thái',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context).translate('status'),
+                    border: const OutlineInputBorder(),
                   ),
                   items: statusOptions.map((status) {
                     return DropdownMenuItem(value: status, child: Text(status));
@@ -61,34 +64,38 @@ class AppointmentActionDialogs {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: notesController,
-                  decoration: const InputDecoration(
-                    labelText: 'Ghi chú',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context).translate('notes'),
+                    border: const OutlineInputBorder(),
                   ),
                   maxLines: 3,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: reasonController,
-                  decoration: const InputDecoration(
-                    labelText: 'Lý do',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context).translate('reason'),
+                    border: const OutlineInputBorder(),
                   ),
                   maxLines: 2,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: priceController,
-                  decoration: const InputDecoration(
-                    labelText: 'Giá tiền (VND)',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(
+                      context,
+                    ).translate('price_vnd'),
+                    border: const OutlineInputBorder(),
                   ),
                   keyboardType: TextInputType.number,
                   validator: (value) {
                     if (value != null &&
                         value.isNotEmpty &&
                         double.tryParse(value) == null) {
-                      return 'Vui lòng nhập số hợp lệ';
+                      return AppLocalizations.of(
+                        context,
+                      ).translate('error_invalid_number');
                     }
                     return null;
                   },
@@ -100,7 +107,7 @@ class AppointmentActionDialogs {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Hủy'),
+            child: Text(AppLocalizations.of(context).translate('cancel')),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -118,15 +125,24 @@ class AppointmentActionDialogs {
                   Navigator.pop(context);
                   if (success) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Cập nhật thành công'),
+                      SnackBar(
+                        content: Text(
+                          AppLocalizations.of(
+                            context,
+                          ).translate('update_success'),
+                        ),
                         backgroundColor: Colors.green,
                       ),
                     );
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text(vm.actionError ?? 'Có lỗi xảy ra'),
+                        content: Text(
+                          vm.actionError ??
+                              AppLocalizations.of(
+                                context,
+                              ).translate('error_occurred_short'),
+                        ),
                         backgroundColor: Colors.red,
                       ),
                     );
@@ -134,7 +150,7 @@ class AppointmentActionDialogs {
                 }
               }
             },
-            child: const Text('Lưu'),
+            child: Text(AppLocalizations.of(context).translate('save')),
           ),
         ],
       ),
@@ -151,24 +167,34 @@ class AppointmentActionDialogs {
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Hủy lịch hẹn'),
+        title: Text(
+          AppLocalizations.of(context).translate('cancel_appointment_title'),
+        ),
         content: Form(
           key: formKey,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('Bạn có chắc chắn muốn hủy lịch hẹn này không?'),
+              Text(
+                AppLocalizations.of(
+                  context,
+                ).translate('cancel_appointment_confirm'),
+              ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: reasonController,
-                decoration: const InputDecoration(
-                  labelText: 'Lý do hủy *',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(
+                    context,
+                  ).translate('cancel_reason_required'),
+                  border: const OutlineInputBorder(),
                 ),
                 maxLines: 3,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Vui lòng nhập lý do';
+                    return AppLocalizations.of(
+                      context,
+                    ).translate('error_enter_reason');
                   }
                   return null;
                 },
@@ -179,7 +205,7 @@ class AppointmentActionDialogs {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Đóng'),
+            child: Text(AppLocalizations.of(context).translate('close')),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
@@ -194,15 +220,24 @@ class AppointmentActionDialogs {
                   Navigator.pop(context);
                   if (success) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Đã hủy lịch hẹn'),
+                      SnackBar(
+                        content: Text(
+                          AppLocalizations.of(
+                            context,
+                          ).translate('cancel_success'),
+                        ),
                         backgroundColor: Colors.green,
                       ),
                     );
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text(vm.actionError ?? 'Có lỗi xảy ra'),
+                        content: Text(
+                          vm.actionError ??
+                              AppLocalizations.of(
+                                context,
+                              ).translate('error_occurred_short'),
+                        ),
                         backgroundColor: Colors.red,
                       ),
                     );
@@ -210,9 +245,11 @@ class AppointmentActionDialogs {
                 }
               }
             },
-            child: const Text(
-              'Hủy Lịch Hẹn',
-              style: TextStyle(color: Colors.white),
+            child: Text(
+              AppLocalizations.of(
+                context,
+              ).translate('cancel_appointment_title'),
+              style: const TextStyle(color: Colors.white),
             ),
           ),
         ],
@@ -239,16 +276,20 @@ class AppointmentActionDialogs {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Xác nhận lịch hẹn'),
-        content: const Text('Bạn có chắc chắn muốn xác nhận lịch hẹn này?'),
+        title: Text(
+          AppLocalizations.of(context).translate('confirm_appointment_title'),
+        ),
+        content: Text(
+          AppLocalizations.of(context).translate('confirm_appointment_message'),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Đóng'),
+            child: Text(AppLocalizations.of(context).translate('close')),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Xác nhận'),
+            child: Text(AppLocalizations.of(context).translate('confirm')),
           ),
         ],
       ),
@@ -260,15 +301,22 @@ class AppointmentActionDialogs {
       if (context.mounted) {
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Đã xác nhận lịch hẹn'),
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context).translate('confirm_success'),
+              ),
               backgroundColor: Colors.green,
             ),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(vm.actionError ?? 'Có lỗi xảy ra'),
+              content: Text(
+                vm.actionError ??
+                    AppLocalizations.of(
+                      context,
+                    ).translate('error_occurred_short'),
+              ),
               backgroundColor: Colors.red,
             ),
           );
@@ -356,7 +404,11 @@ class _RescheduleDialogState extends State<RescheduleDialog> {
       expand: false,
       builder: (context, scrollController) => Scaffold(
         appBar: AppBar(
-          title: const Text('Dời lịch hẹn'),
+          title: Text(
+            AppLocalizations.of(
+              context,
+            ).translate('reschedule_appointment_title'),
+          ),
           leading: IconButton(
             icon: const Icon(Icons.close),
             onPressed: () => Navigator.pop(context),
@@ -366,7 +418,7 @@ class _RescheduleDialogState extends State<RescheduleDialog> {
               onPressed: _selectedSlot == null
                   ? null
                   : () => _confirmReschedule(),
-              child: const Text('Lưu'),
+              child: Text(AppLocalizations.of(context).translate('save')),
             ),
           ],
         ),
@@ -394,18 +446,20 @@ class _RescheduleDialogState extends State<RescheduleDialog> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Xác nhận dời lịch'),
+        title: Text(
+          AppLocalizations.of(context).translate('confirm_reschedule_title'),
+        ),
         content: Text(
-          'Dời sang ${_selectedSlot!.timeStart} ngày ${DateFormat('dd/MM/yyyy').format(_selectedDate!)}?',
+          '${AppLocalizations.of(context).translate('reschedule_confirm_message')}${_selectedSlot!.timeStart} ${DateFormat('dd/MM/yyyy').format(_selectedDate!)}?',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Hủy'),
+            child: Text(AppLocalizations.of(context).translate('cancel')),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Đồng ý'),
+            child: Text(AppLocalizations.of(context).translate('agree')),
           ),
         ],
       ),
@@ -441,15 +495,22 @@ class _RescheduleDialogState extends State<RescheduleDialog> {
         if (success) {
           Navigator.pop(context); // Close sheet
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Dời lịch thành công'),
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context).translate('reschedule_success'),
+              ),
               backgroundColor: Colors.green,
             ),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(vm.actionError ?? 'Có lỗi xảy ra'),
+              content: Text(
+                vm.actionError ??
+                    AppLocalizations.of(
+                      context,
+                    ).translate('error_occurred_short'),
+              ),
               backgroundColor: Colors.red,
             ),
           );

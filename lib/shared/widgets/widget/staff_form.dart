@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 
 enum ButtonState { idle, loading, success, error }
 
@@ -44,20 +45,22 @@ class _AnimatedSubmitButtonState extends State<AnimatedSubmitButton> {
       child: _buildButtonChild(),
     );
   }
+
   Widget _buildButtonChild() {
     switch (_state) {
       case ButtonState.loading:
         return SizedBox(
           height: 52,
           child: Center(
-              child: SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  color: context.theme.white,
-                  strokeWidth: 2,
-                ),
-              )),
+            child: SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                color: context.theme.white,
+                strokeWidth: 2,
+              ),
+            ),
+          ),
         );
       case ButtonState.success:
         return SizedBox(
@@ -104,14 +107,15 @@ class StaffForm extends StatefulWidget {
   final Map<String, dynamic>? initialData;
   final String role;
   final Future<bool> Function({
-  required String email,
-  required String password,
-  required String fullName,
-  String? phone,
-  required String dateOfBirth,
-  required bool isMale,
-  String? id,
-  }) onSubmit;
+    required String email,
+    required String password,
+    required String fullName,
+    String? phone,
+    required String dateOfBirth,
+    required bool isMale,
+    String? id,
+  })
+  onSubmit;
   final VoidCallback? onSuccess;
 
   const StaffForm({
@@ -127,7 +131,8 @@ class StaffForm extends StatefulWidget {
   State<StaffForm> createState() => _StaffFormState();
 }
 
-class _StaffFormState extends State<StaffForm> with SingleTickerProviderStateMixin {
+class _StaffFormState extends State<StaffForm>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _emailController;
   late TextEditingController _passwordController;
@@ -140,10 +145,16 @@ class _StaffFormState extends State<StaffForm> with SingleTickerProviderStateMix
   @override
   void initState() {
     super.initState();
-    _emailController = TextEditingController(text: widget.initialData?['email'] ?? '');
+    _emailController = TextEditingController(
+      text: widget.initialData?['email'] ?? '',
+    );
     _passwordController = TextEditingController();
-    _fullNameController = TextEditingController(text: widget.initialData?['fullName'] ?? '');
-    _phoneController = TextEditingController(text: widget.initialData?['phone'] ?? '');
+    _fullNameController = TextEditingController(
+      text: widget.initialData?['fullName'] ?? '',
+    );
+    _phoneController = TextEditingController(
+      text: widget.initialData?['phone'] ?? '',
+    );
     _dateOfBirthController = TextEditingController();
     _isMale = widget.initialData?['isMale'] ?? true;
 
@@ -156,7 +167,8 @@ class _StaffFormState extends State<StaffForm> with SingleTickerProviderStateMix
     if (dob != null) {
       try {
         final date = DateTime.parse(dob).toLocal();
-        _dateOfBirthController.text = '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+        _dateOfBirthController.text =
+            '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
       } catch (e) {
         _dateOfBirthController.text = dob.toString();
       }
@@ -226,7 +238,9 @@ class _StaffFormState extends State<StaffForm> with SingleTickerProviderStateMix
           }
         });
       } else {
-        _showErrorDialog('${widget.isUpdate ? 'Cập nhật' : 'Tạo'} ${widget.role.toLowerCase()} thất bại.');
+        _showErrorDialog(
+          '${widget.isUpdate ? AppLocalizations.of(context).translate('update') : AppLocalizations.of(context).translate('create')} ${widget.role.toLowerCase()} ${AppLocalizations.of(context).translate('failed')}.',
+        );
       }
       return success;
     }
@@ -238,37 +252,42 @@ class _StaffFormState extends State<StaffForm> with SingleTickerProviderStateMix
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: context.theme.popover,
-        title: Text('Lỗi', style: TextStyle(color: context.theme.popoverForeground)),
-        content: Text(message, style: TextStyle(color: context.theme.popoverForeground)),
+        title: Text(
+          AppLocalizations.of(context).translate('error'),
+          style: TextStyle(color: context.theme.popoverForeground),
+        ),
+        content: Text(
+          message,
+          style: TextStyle(color: context.theme.popoverForeground),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('OK', style: TextStyle(color: context.theme.destructive)),
+            child: Text(
+              AppLocalizations.of(context).translate('ok'),
+              style: TextStyle(color: context.theme.destructive),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildAnimatedFormField({
-    required int index,
-    required Widget child,
-  }) {
+  Widget _buildAnimatedFormField({required int index, required Widget child}) {
     final delay = index * 100;
-    final animation = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Interval(delay / 1000, 1.0, curve: Curves.easeOutCubic),
-    ));
+    final animation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Interval(delay / 1000, 1.0, curve: Curves.easeOutCubic),
+      ),
+    );
 
     return AnimatedBuilder(
       animation: animation,
       builder: (context, child) {
         return Transform.translate(
           offset: Offset(0, (1 - animation.value) * 20),
-          child: Opacity(
-            opacity: animation.value,
-            child: child,
-          ),
+          child: Opacity(opacity: animation.value, child: child),
         );
       },
       child: child,
@@ -294,9 +313,10 @@ class _StaffFormState extends State<StaffForm> with SingleTickerProviderStateMix
                         ? widget.initialData!['fullName'][0].toUpperCase()
                         : 'A',
                     style: TextStyle(
-                        fontSize: 40,
-                        color: context.theme.primary,
-                        fontWeight: FontWeight.bold),
+                      fontSize: 40,
+                      color: context.theme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -308,9 +328,10 @@ class _StaffFormState extends State<StaffForm> with SingleTickerProviderStateMix
                   child: Text(
                     widget.initialData?['fullName'] ?? '',
                     style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: context.theme.textColor),
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: context.theme.textColor,
+                    ),
                   ),
                 ),
               ),
@@ -322,11 +343,16 @@ class _StaffFormState extends State<StaffForm> with SingleTickerProviderStateMix
                 key: const Key('field_staff_name'),
                 controller: _fullNameController,
                 decoration: InputDecoration(
-                  labelText: 'Họ và tên',
+                  labelText: AppLocalizations.of(
+                    context,
+                  ).translate('full_name'),
                   prefixIcon: Icon(Icons.person, color: context.theme.primary),
                 ),
                 validator: (value) {
-                  if (value == null || value.isEmpty) return 'Vui lòng nhập họ và tên';
+                  if (value == null || value.isEmpty)
+                    return AppLocalizations.of(
+                      context,
+                    ).translate('error_enter_full_name');
                   return null;
                 },
               ),
@@ -338,14 +364,21 @@ class _StaffFormState extends State<StaffForm> with SingleTickerProviderStateMix
                 key: const Key('field_staff_email'),
                 controller: _emailController,
                 decoration: InputDecoration(
-                  labelText: 'Email',
+                  labelText: AppLocalizations.of(context).translate('email'),
                   prefixIcon: Icon(Icons.email, color: context.theme.primary),
                 ),
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) {
-                  if (value == null || value.isEmpty) return 'Vui lòng nhập email';
-                  if (!RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$').hasMatch(value)) {
-                    return 'Email không đúng định dạng';
+                  if (value == null || value.isEmpty)
+                    return AppLocalizations.of(
+                      context,
+                    ).translate('email_required');
+                  if (!RegExp(
+                    r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+                  ).hasMatch(value)) {
+                    return AppLocalizations.of(
+                      context,
+                    ).translate('email_invalid');
                   }
                   return null;
                 },
@@ -359,17 +392,27 @@ class _StaffFormState extends State<StaffForm> with SingleTickerProviderStateMix
                 controller: _passwordController,
                 decoration: InputDecoration(
                   labelText: widget.isUpdate
-                      ? 'Mật khẩu mới (để trống nếu không đổi)'
-                      : 'Mật khẩu',
+                      ? AppLocalizations.of(
+                          context,
+                        ).translate('new_password_optional')
+                      : AppLocalizations.of(context).translate('password'),
                   prefixIcon: Icon(Icons.lock, color: context.theme.primary),
                 ),
                 obscureText: true,
                 validator: (value) {
                   if (!widget.isUpdate && (value == null || value.isEmpty)) {
-                    return 'Vui lòng nhập mật khẩu';
+                    return AppLocalizations.of(
+                      context,
+                    ).translate('password_required');
                   }
-                  if (value != null && value.isNotEmpty && (value.length < 8 || !value.contains(RegExp(r'[a-zA-Z]')) || !value.contains(RegExp(r'[0-9]')))) {
-                    return 'Mật khẩu tối thiểu 8 ký tự, có chữ và số';
+                  if (value != null &&
+                      value.isNotEmpty &&
+                      (value.length < 8 ||
+                          !value.contains(RegExp(r'[a-zA-Z]')) ||
+                          !value.contains(RegExp(r'[0-9]')))) {
+                    return AppLocalizations.of(
+                      context,
+                    ).translate('password_complexity_error');
                   }
                   return null;
                 },
@@ -382,13 +425,19 @@ class _StaffFormState extends State<StaffForm> with SingleTickerProviderStateMix
                 key: const Key('field_staff_phone'),
                 controller: _phoneController,
                 decoration: InputDecoration(
-                  labelText: 'Số điện thoại',
+                  labelText: AppLocalizations.of(
+                    context,
+                  ).translate('phone_number'),
                   prefixIcon: Icon(Icons.phone, color: context.theme.primary),
                 ),
                 keyboardType: TextInputType.phone,
                 validator: (value) {
-                  if (value != null && value.isNotEmpty && !RegExp(r'^\d{10}$').hasMatch(value)) {
-                    return 'Số điện thoại phải là 10 chữ số';
+                  if (value != null &&
+                      value.isNotEmpty &&
+                      !RegExp(r'^\d{10}$').hasMatch(value)) {
+                    return AppLocalizations.of(
+                      context,
+                    ).translate('phone_number_invalid');
                   }
                   return null;
                 },
@@ -401,42 +450,65 @@ class _StaffFormState extends State<StaffForm> with SingleTickerProviderStateMix
                 key: const Key('field_staff_dob'),
                 controller: _dateOfBirthController,
                 decoration: InputDecoration(
-                  labelText: 'Ngày sinh (dd/mm/yyyy)',
-                  prefixIcon: Icon(Icons.calendar_today, color: context.theme.primary),
+                  labelText: AppLocalizations.of(
+                    context,
+                  ).translate('date_of_birth_format'),
+                  prefixIcon: Icon(
+                    Icons.calendar_today,
+                    color: context.theme.primary,
+                  ),
                 ),
                 readOnly: true,
                 onTap: _selectDate,
                 validator: (value) {
-                  if (value == null || value.isEmpty) return 'Vui lòng chọn ngày sinh';
+                  if (value == null || value.isEmpty)
+                    return AppLocalizations.of(
+                      context,
+                    ).translate('date_of_birth_required');
                   return null;
                 },
               ),
             ),
             const SizedBox(height: 20),
             _buildAnimatedFormField(
-                index: 5,
-                child: Row(
-                  children: [
-                    Text('Giới tính:', style: TextStyle(color: context.theme.textColor)),
-                    Radio<bool>(
-                        value: true,
-                        groupValue: _isMale,
-                        onChanged: (value) => setState(() => _isMale = true)),
-                    Text('Nam', style: TextStyle(color: context.theme.textColor)),
-                    Radio<bool>(
-                        value: false,
-                        groupValue: _isMale,
-                        onChanged: (value) => setState(() => _isMale = false)),
-                    Text('Nữ', style: TextStyle(color: context.theme.textColor)),
-                  ],
-                )),
+              index: 5,
+              child: Row(
+                children: [
+                  Text(
+                    '${AppLocalizations.of(context).translate('gender')}:',
+                    style: TextStyle(color: context.theme.textColor),
+                  ),
+                  Radio<bool>(
+                    value: true,
+                    groupValue: _isMale,
+                    onChanged: (value) => setState(() => _isMale = true),
+                  ),
+                  Text(
+                    AppLocalizations.of(context).translate('male'),
+                    style: TextStyle(color: context.theme.textColor),
+                  ),
+                  Radio<bool>(
+                    value: false,
+                    groupValue: _isMale,
+                    onChanged: (value) => setState(() => _isMale = false),
+                  ),
+                  Text(
+                    AppLocalizations.of(context).translate('female'),
+                    style: TextStyle(color: context.theme.textColor),
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(height: 32),
             _buildAnimatedFormField(
               index: 6,
               child: AnimatedSubmitButton(
                 onSubmit: _submitForm,
-                idleText: '${widget.isUpdate ? 'Cập nhật' : 'Tạo'} ${widget.role.toLowerCase()}',
-                loadingText: 'Đang xử lý...',
+                idleText:
+                    '${widget.isUpdate ? AppLocalizations.of(context).translate('update') : AppLocalizations.of(context).translate('create')} ${widget.role.toLowerCase()}',
+                loadingText: AppLocalizations.of(
+                  context,
+                ).translate('processing'),
               ),
             ),
             const SizedBox(height: 20),

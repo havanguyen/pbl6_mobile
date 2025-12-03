@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pbl6mobile/view_model/appointment/appointment_vm.dart';
 import 'package:provider/provider.dart';
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 
 class CalendarSettingsDialog extends StatefulWidget {
   const CalendarSettingsDialog({super.key});
@@ -64,7 +65,9 @@ class _CalendarSettingsDialogState extends State<CalendarSettingsDialog> {
                   Icon(Icons.settings, color: theme.primaryColor),
                   const SizedBox(width: 12),
                   Text(
-                    'Cài đặt lịch',
+                    AppLocalizations.of(
+                      context,
+                    ).translate('calendar_settings_title'),
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -88,7 +91,9 @@ class _CalendarSettingsDialogState extends State<CalendarSettingsDialog> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildSectionTitle('Giờ hiển thị'),
+                    _buildSectionTitle(
+                      AppLocalizations.of(context).translate('display_hours'),
+                    ),
                     const SizedBox(height: 16),
                     Container(
                       padding: const EdgeInsets.all(16),
@@ -138,27 +143,31 @@ class _CalendarSettingsDialogState extends State<CalendarSettingsDialog> {
                     ),
 
                     const SizedBox(height: 24),
-                    _buildSectionTitle('Giao diện thẻ'),
+                    _buildSectionTitle(
+                      AppLocalizations.of(context).translate('card_appearance'),
+                    ),
                     const SizedBox(height: 16),
                     Row(
                       children: [
                         _buildBadgeOption(
                           'colored',
-                          'Màu nền',
+                          AppLocalizations.of(
+                            context,
+                          ).translate('background_color'),
                           Icons.rectangle,
                           Colors.blue,
                         ),
                         const SizedBox(width: 12),
                         _buildBadgeOption(
                           'dot',
-                          'Chấm tròn',
+                          AppLocalizations.of(context).translate('dot'),
                           Icons.circle,
                           Colors.orange,
                         ),
                         const SizedBox(width: 12),
                         _buildBadgeOption(
                           'mixed',
-                          'Kết hợp',
+                          AppLocalizations.of(context).translate('mixed'),
                           Icons.view_sidebar,
                           Colors.purple,
                         ),
@@ -166,7 +175,9 @@ class _CalendarSettingsDialogState extends State<CalendarSettingsDialog> {
                     ),
 
                     const SizedBox(height: 24),
-                    _buildSectionTitle('Ngày làm việc'),
+                    _buildSectionTitle(
+                      AppLocalizations.of(context).translate('working_days'),
+                    ),
                     const SizedBox(height: 16),
                     Wrap(
                       spacing: 8,
@@ -221,7 +232,9 @@ class _CalendarSettingsDialogState extends State<CalendarSettingsDialog> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text('Hủy'),
+                      child: Text(
+                        AppLocalizations.of(context).translate('cancel'),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -243,7 +256,9 @@ class _CalendarSettingsDialogState extends State<CalendarSettingsDialog> {
                         ),
                         elevation: 0,
                       ),
-                      child: const Text('Lưu thay đổi'),
+                      child: Text(
+                        AppLocalizations.of(context).translate('save_changes'),
+                      ),
                     ),
                   ),
                 ],
@@ -318,19 +333,19 @@ class _CalendarSettingsDialogState extends State<CalendarSettingsDialog> {
   String _getDayName(int dayIndex) {
     switch (dayIndex) {
       case DateTime.monday:
-        return 'T2';
+        return AppLocalizations.of(context).translate('mon');
       case DateTime.tuesday:
-        return 'T3';
+        return AppLocalizations.of(context).translate('tue');
       case DateTime.wednesday:
-        return 'T4';
+        return AppLocalizations.of(context).translate('wed');
       case DateTime.thursday:
-        return 'T5';
+        return AppLocalizations.of(context).translate('thu');
       case DateTime.friday:
-        return 'T6';
+        return AppLocalizations.of(context).translate('fri');
       case DateTime.saturday:
-        return 'T7';
+        return AppLocalizations.of(context).translate('sat');
       case DateTime.sunday:
-        return 'CN';
+        return AppLocalizations.of(context).translate('sun');
       default:
         return '';
     }

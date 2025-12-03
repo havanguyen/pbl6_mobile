@@ -4,6 +4,7 @@ import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/view/setting/office_hours/create_office_hour_page.dart';
 import 'package:pbl6mobile/view_model/setting/office_hours_vm.dart';
 import 'package:provider/provider.dart';
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 
 class OfficeHoursPage extends StatefulWidget {
   const OfficeHoursPage({super.key});
@@ -31,22 +32,22 @@ class _OfficeHoursPageState extends State<OfficeHoursPage>
     super.dispose();
   }
 
-  String _getDayName(int day) {
+  String _getDayName(BuildContext context, int day) {
     switch (day) {
       case 0:
-        return 'Sunday';
+        return AppLocalizations.of(context).translate('sunday');
       case 1:
-        return 'Monday';
+        return AppLocalizations.of(context).translate('monday');
       case 2:
-        return 'Tuesday';
+        return AppLocalizations.of(context).translate('tuesday');
       case 3:
-        return 'Wednesday';
+        return AppLocalizations.of(context).translate('wednesday');
       case 4:
-        return 'Thursday';
+        return AppLocalizations.of(context).translate('thursday');
       case 5:
-        return 'Friday';
+        return AppLocalizations.of(context).translate('friday');
       case 6:
-        return 'Saturday';
+        return AppLocalizations.of(context).translate('saturday');
       default:
         return 'Unknown';
     }
@@ -116,7 +117,7 @@ class _OfficeHoursPageState extends State<OfficeHoursPage>
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Quản lý giờ làm việc',
+          AppLocalizations.of(context).translate('office_hours_title'),
           style: TextStyle(
             color: context.theme.white,
             fontWeight: FontWeight.bold,
@@ -142,11 +143,20 @@ class _OfficeHoursPageState extends State<OfficeHoursPage>
           labelColor: context.theme.white,
           unselectedLabelColor: context.theme.white.withOpacity(0.7),
           tabs: [
-            Tab(text: 'All (${vm.officeHours.length})'),
-            const Tab(text: 'Doctor @ Loc'),
-            const Tab(text: 'Doctor Only'),
-            const Tab(text: 'Location Only'),
-            const Tab(text: 'Global'),
+            Tab(
+              text:
+                  '${AppLocalizations.of(context).translate('all')} (${vm.officeHours.length})',
+            ),
+            Tab(
+              text: AppLocalizations.of(context).translate('doctor_at_loc_tab'),
+            ),
+            Tab(
+              text: AppLocalizations.of(context).translate('doctor_only_tab'),
+            ),
+            Tab(
+              text: AppLocalizations.of(context).translate('location_only_tab'),
+            ),
+            Tab(text: AppLocalizations.of(context).translate('global_tab')),
           ],
         ),
       ),
@@ -161,7 +171,13 @@ class _OfficeHoursPageState extends State<OfficeHoursPage>
                 return RefreshIndicator(
                   onRefresh: () => vm.fetchOfficeHours(),
                   child: filteredHours.isEmpty
-                      ? const Center(child: Text('No office hours found'))
+                      ? Center(
+                          child: Text(
+                            AppLocalizations.of(
+                              context,
+                            ).translate('no_office_hours_found'),
+                          ),
+                        )
                       : ListView.builder(
                           padding: const EdgeInsets.all(16),
                           itemCount: filteredHours.length,
@@ -197,22 +213,22 @@ class _OfficeHoursPageState extends State<OfficeHoursPage>
       borderColor = Colors.blue.shade200;
       bgColor = Colors.blue.shade50;
       textColor = Colors.blue.shade700;
-      badgeText = 'Global';
+      badgeText = AppLocalizations.of(context).translate('global_badge');
     } else if (isDoctorSpecific && isLocationSpecific) {
       borderColor = Colors.green.shade200;
       bgColor = Colors.green.shade50;
       textColor = Colors.green.shade700;
-      badgeText = 'Dr. & Loc';
+      badgeText = AppLocalizations.of(context).translate('doctor_loc_badge');
     } else if (isDoctorSpecific) {
       borderColor = Colors.purple.shade200;
       bgColor = Colors.purple.shade50;
       textColor = Colors.purple.shade700;
-      badgeText = 'Doctor';
+      badgeText = AppLocalizations.of(context).translate('doctor_badge');
     } else {
       borderColor = Colors.orange.shade200;
       bgColor = Colors.orange.shade50;
       textColor = Colors.orange.shade700;
-      badgeText = 'Location';
+      badgeText = AppLocalizations.of(context).translate('location_badge');
     }
 
     return Card(
@@ -272,7 +288,7 @@ class _OfficeHoursPageState extends State<OfficeHoursPage>
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  '${_getDayName(item.dayOfWeek)}: ${_formatTime(item.startTime)} - ${_formatTime(item.endTime)}',
+                  '${_getDayName(context, item.dayOfWeek)}: ${_formatTime(item.startTime)} - ${_formatTime(item.endTime)}',
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
@@ -339,14 +355,20 @@ class _OfficeHoursPageState extends State<OfficeHoursPage>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Xác nhận xóa'),
-        content: const Text(
-          'Bạn có chắc chắn muốn xóa giờ làm việc này không?',
+        title: Text(
+          AppLocalizations.of(
+            context,
+          ).translate('delete_office_hour_confirm_title'),
+        ),
+        content: Text(
+          AppLocalizations.of(
+            context,
+          ).translate('delete_office_hour_confirm_message'),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Hủy'),
+            child: Text(AppLocalizations.of(context).translate('cancel')),
           ),
           TextButton(
             onPressed: () async {
@@ -354,11 +376,20 @@ class _OfficeHoursPageState extends State<OfficeHoursPage>
               final success = await vm.deleteOfficeHour(item.id);
               if (success && mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Đã xóa thành công')),
+                  SnackBar(
+                    content: Text(
+                      AppLocalizations.of(
+                        context,
+                      ).translate('delete_office_hour_success'),
+                    ),
+                  ),
                 );
               }
             },
-            child: const Text('Xóa', style: TextStyle(color: Colors.red)),
+            child: Text(
+              AppLocalizations.of(context).translate('delete'),
+              style: const TextStyle(color: Colors.red),
+            ),
           ),
         ],
       ),

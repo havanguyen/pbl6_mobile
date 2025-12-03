@@ -19,6 +19,9 @@ import 'package:pbl6mobile/view/setting/super_admin/setting_supperadmin_page.dar
 import 'package:pbl6mobile/view/blog/create_blog_page.dart';
 import 'package:pbl6mobile/view/blog/list_blog_page.dart';
 import 'package:pbl6mobile/view/blog/update_blog_page.dart';
+import 'package:pbl6mobile/view/auth/forgot_password/forgot_password_page.dart';
+import 'package:pbl6mobile/view/auth/forgot_password/otp_page.dart';
+import 'package:pbl6mobile/view/auth/forgot_password/reset_password_page.dart';
 import 'package:provider/provider.dart';
 
 import '../../model/entities/work_location.dart';
@@ -97,6 +100,9 @@ class Routes {
   static const String permissionGroups = '/permissionGroups';
   static const String permissionGroupDetail = '/permissionGroupDetail';
   static const String userPermissionDetail = '/userPermissionDetail';
+  static const String forgotPassword = '/forgotPassword';
+  static const String otp = '/otp';
+  static const String resetPassword = '/resetPassword';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -133,6 +139,26 @@ class Routes {
           type: PageTransitionType.fade,
           settings: settings,
           child: const LoginPage(),
+        );
+      case forgotPassword:
+        return PageTransition(
+          type: PageTransitionType.rightToLeft,
+          settings: settings,
+          child: const ForgotPasswordPage(),
+        );
+      case otp:
+        final args = settings.arguments as Map<String, dynamic>;
+        return PageTransition(
+          type: PageTransitionType.rightToLeft,
+          settings: settings,
+          child: OtpPage(email: args['email']),
+        );
+      case resetPassword:
+        final args = settings.arguments as Map<String, dynamic>;
+        return PageTransition(
+          type: PageTransitionType.rightToLeft,
+          settings: settings,
+          child: ResetPasswordPage(email: args['email'], code: args['code']),
         );
       case mainPageDoctor:
         return PageTransition(
@@ -171,18 +197,14 @@ class Routes {
         return PageTransition(
           type: PageTransitionType.leftToRight,
           settings: settings,
-          child: UpdateSpecialtyPage(
-            specialty: specialty!,
-          ),
+          child: UpdateSpecialtyPage(specialty: specialty!),
         );
       case specialtyDetail:
         final specialty = settings.arguments as Map<String, dynamic>?;
         return PageTransition(
           type: PageTransitionType.leftToRight,
           settings: settings,
-          child: SpecialtyDetailPage(
-            specialty: specialty!,
-          ),
+          child: SpecialtyDetailPage(specialty: specialty!),
         );
       case listLocationWork:
         return PageTransition(
@@ -201,9 +223,7 @@ class Routes {
         return PageTransition(
           type: PageTransitionType.leftToRight,
           settings: settings,
-          child: UpdateLocationWorkPage(
-            location: location,
-          ),
+          child: UpdateLocationWorkPage(location: location),
         );
       case settingDoctor:
         return PageTransition(
@@ -240,9 +260,7 @@ class Routes {
         return PageTransition(
           type: PageTransitionType.leftToRight,
           settings: settings,
-          child: UpdateDoctorPage(
-            doctor: doctor!,
-          ),
+          child: UpdateDoctorPage(doctor: doctor!),
         );
       case doctorDetail:
         final doctorId = settings.arguments as String;
@@ -302,10 +320,7 @@ class Routes {
           settings: settings,
           child: ChangeNotifierProvider(
             create: (_) => ReviewVm(doctorId: doctorId),
-            child: DoctorReviewPage(
-              doctorId: doctorId,
-              doctorName: doctorName,
-            ),
+            child: DoctorReviewPage(doctorId: doctorId, doctorName: doctorName),
           ),
         );
       case updateAdmin:
@@ -313,9 +328,7 @@ class Routes {
         return PageTransition(
           type: PageTransitionType.leftToRight,
           settings: settings,
-          child: UpdateAdminPage(
-            admin: admin!,
-          ),
+          child: UpdateAdminPage(admin: admin!),
         );
       case listBlog:
         return PageTransition(
@@ -366,9 +379,7 @@ class Routes {
         return PageTransition(
           type: PageTransitionType.leftToRight,
           settings: settings,
-          child: UpdatePatientPage(
-            patient: patient,
-          ),
+          child: UpdatePatientPage(patient: patient),
         );
       case listAppointment:
         return PageTransition(

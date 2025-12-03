@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 
 import 'doctor_form.dart';
 
@@ -7,10 +8,11 @@ class SpecialtyForm extends StatefulWidget {
   final bool isUpdate;
   final Map<String, dynamic>? initialData;
   final Future<bool> Function({
-  required String name,
-  String? description,
-  String? id,
-  }) onSubmit;
+    required String name,
+    String? description,
+    String? id,
+  })
+  onSubmit;
   final VoidCallback? onSuccess;
 
   const SpecialtyForm({
@@ -33,10 +35,12 @@ class _SpecialtyFormState extends State<SpecialtyForm> {
   @override
   void initState() {
     super.initState();
-    _nameController =
-        TextEditingController(text: widget.initialData?['name'] ?? '');
-    _descriptionController =
-        TextEditingController(text: widget.initialData?['description'] ?? '');
+    _nameController = TextEditingController(
+      text: widget.initialData?['name'] ?? '',
+    );
+    _descriptionController = TextEditingController(
+      text: widget.initialData?['description'] ?? '',
+    );
   }
 
   @override
@@ -79,16 +83,24 @@ class _SpecialtyFormState extends State<SpecialtyForm> {
             TextFormField(
               controller: _nameController,
               decoration: InputDecoration(
-                labelText: 'Tên chuyên khoa',
-                prefixIcon:
-                Icon(Icons.medical_services, color: context.theme.primary),
+                labelText: AppLocalizations.of(
+                  context,
+                ).translate('specialty_name_label'),
+                prefixIcon: Icon(
+                  Icons.medical_services,
+                  color: context.theme.primary,
+                ),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Vui lòng nhập tên chuyên khoa';
+                  return AppLocalizations.of(
+                    context,
+                  ).translate('specialty_name_required');
                 }
                 if (value.length < 10 || value.length > 200) {
-                  return 'Tên phải từ 10 đến 200 ký tự';
+                  return AppLocalizations.of(
+                    context,
+                  ).translate('specialty_name_length_error');
                 }
                 return null;
               },
@@ -97,16 +109,22 @@ class _SpecialtyFormState extends State<SpecialtyForm> {
             TextFormField(
               controller: _descriptionController,
               decoration: InputDecoration(
-                labelText: 'Mô tả',
-                prefixIcon:
-                Icon(Icons.description, color: context.theme.primary),
+                labelText: AppLocalizations.of(
+                  context,
+                ).translate('specialty_desc_label'),
+                prefixIcon: Icon(
+                  Icons.description,
+                  color: context.theme.primary,
+                ),
               ),
               maxLines: 5,
               validator: (value) {
                 if (value != null &&
                     value.isNotEmpty &&
                     (value.length < 10 || value.length > 1000)) {
-                  return 'Mô tả phải từ 10 đến 1000 ký tự nếu có';
+                  return AppLocalizations.of(
+                    context,
+                  ).translate('specialty_desc_length_error');
                 }
                 return null;
               },
@@ -114,9 +132,10 @@ class _SpecialtyFormState extends State<SpecialtyForm> {
             const SizedBox(height: 32),
             AnimatedSubmitButton(
               onSubmit: _submitForm,
-              idleText:
-              '${widget.isUpdate ? 'Cập nhật' : 'Tạo'} chuyên khoa',
-              loadingText: 'Đang xử lý...',
+              idleText: widget.isUpdate
+                  ? '${AppLocalizations.of(context).translate('update_btn')} ${AppLocalizations.of(context).translate('specialty_label')}'
+                  : '${AppLocalizations.of(context).translate('create_btn')} ${AppLocalizations.of(context).translate('specialty_label')}',
+              loadingText: AppLocalizations.of(context).translate('processing'),
             ),
           ],
         ),

@@ -7,6 +7,7 @@ import 'package:pbl6mobile/view/appointment/create_appointment_page.dart';
 import 'package:pbl6mobile/view/appointment/widgets/appointment_calendar.dart';
 import 'package:pbl6mobile/view/appointment/widgets/custom_calendar_header.dart';
 import 'package:pbl6mobile/view/appointment/widgets/calendar_settings_dialog.dart';
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 
 class ListAppointmentPage extends StatefulWidget {
   const ListAppointmentPage({super.key});
@@ -206,9 +207,11 @@ class _ListAppointmentPageState extends State<ListAppointmentPage>
                           onPressed: () => Navigator.of(context).pop(),
                         ),
                         const SizedBox(width: 8),
-                        const Text(
-                          'Appointments',
-                          style: TextStyle(
+                        Text(
+                          AppLocalizations.of(
+                            context,
+                          ).translate('appointments_title'),
+                          style: const TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
                           ),

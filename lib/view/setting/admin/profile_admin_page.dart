@@ -5,6 +5,7 @@ import 'package:pbl6mobile/model/services/local/profile_cache_service.dart';
 import 'package:pbl6mobile/model/services/remote/auth_service.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/shared/routes/routes.dart';
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 
 class ProfileAdminPage extends StatefulWidget {
   const ProfileAdminPage({super.key});
@@ -22,7 +23,9 @@ class _ProfileAdminPageState extends State<ProfileAdminPage> {
   @override
   void initState() {
     super.initState();
-    _loadProfile();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadProfile();
+    });
   }
 
   Future<void> _loadProfile() async {
@@ -36,43 +39,51 @@ class _ProfileAdminPageState extends State<ProfileAdminPage> {
     final isConnected = !connectivityResult.contains(ConnectivityResult.none);
 
     Profile? updatedProfile;
+    String? tempError;
+
     try {
       updatedProfile = await AuthService.getProfile();
     } catch (e) {
       if (!isConnected) {
-        _error = "Lỗi kết nối. Đang thử tải dữ liệu cache...";
+        tempError = AppLocalizations.of(
+          context,
+        ).translate('offline_load_error');
       } else {
-        _error = "Lỗi khi tải hồ sơ: $e";
+        tempError =
+            "${AppLocalizations.of(context).translate('load_profile_error')}$e";
       }
     }
 
+    if (!mounted) return;
+
     if (updatedProfile != null) {
-      if (mounted) {
-        setState(() {
-          _currentProfile = updatedProfile;
-          _isLoading = false;
-        });
-      }
+      setState(() {
+        _currentProfile = updatedProfile;
+        _isLoading = false;
+      });
     } else {
-      if (!isConnected && mounted) {
-        final cachedProfileMap = await ProfileCacheService.instance.getProfile();
+      if (!isConnected) {
+        final cachedProfileMap = await ProfileCacheService.instance
+            .getProfile();
         if (cachedProfileMap != null) {
           setState(() {
             _currentProfile = Profile.fromJson(cachedProfileMap);
             _isLoading = false;
             _isOffline = true;
-            _error = "Bạn đang offline. Dữ liệu có thể đã cũ.";
+            _error = AppLocalizations.of(context).translate('offline_banner');
           });
         } else {
           setState(() {
             _isLoading = false;
-            _error = "Bạn đang offline và không có dữ liệu cache.";
+            _error = AppLocalizations.of(context).translate('offline_no_cache');
           });
         }
-      } else if (mounted) {
+      } else {
         setState(() {
           _isLoading = false;
-          _error ??= "Không thể tải hồ sơ cá nhân.";
+          _error =
+              tempError ??
+              AppLocalizations.of(context).translate('cannot_load_profile');
         });
       }
     }
@@ -94,7 +105,7 @@ class _ProfileAdminPageState extends State<ProfileAdminPage> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Thông tin cá nhân',
+          AppLocalizations.of(context).translate('personal_information'),
           style: TextStyle(
             color: context.theme.white,
             fontWeight: FontWeight.bold,
@@ -146,7 +157,9 @@ class _ProfileAdminPageState extends State<ProfileAdminPage> {
     }
 
     if (_currentProfile == null) {
-      return const Center(child: Text("Không có dữ liệu hồ sơ."));
+      return Center(
+        child: Text(AppLocalizations.of(context).translate('no_profile_data')),
+      );
     }
 
     return Column(
@@ -229,32 +242,36 @@ class _ProfileAdminPageState extends State<ProfileAdminPage> {
             _buildInfoItem(
               context,
               icon: Icons.badge_outlined,
-              label: 'Vai trò',
+              label: AppLocalizations.of(context).translate('role'),
               value: _currentProfile!.role,
             ),
             _buildInfoItem(
               context,
               icon: Icons.transgender_outlined,
-              label: 'Giới tính',
+              label: AppLocalizations.of(context).translate('gender_label'),
               value: _currentProfile!.isMale != null
-                  ? (_currentProfile!.isMale! ? 'Nam' : 'Nữ')
-                  : 'Chưa cập nhật',
+                  ? (_currentProfile!.isMale!
+                        ? AppLocalizations.of(context).translate('male')
+                        : AppLocalizations.of(context).translate('female'))
+                  : AppLocalizations.of(context).translate('not_updated'),
             ),
             _buildInfoItem(
               context,
               icon: Icons.cake_outlined,
-              label: 'Ngày sinh',
-              value: _currentProfile!.dateOfBirth
-                  ?.toLocal()
-                  .toString()
-                  .split(' ')[0] ??
-                  'Chưa cập nhật',
+              label: AppLocalizations.of(context).translate('dob_label'),
+              value:
+                  _currentProfile!.dateOfBirth?.toLocal().toString().split(
+                    ' ',
+                  )[0] ??
+                  AppLocalizations.of(context).translate('not_updated'),
             ),
             _buildInfoItem(
               context,
               icon: Icons.phone_outlined,
-              label: 'Số điện thoại',
-              value: _currentProfile!.phone ?? 'Chưa cập nhật',
+              label: AppLocalizations.of(context).translate('phone_label'),
+              value:
+                  _currentProfile!.phone ??
+                  AppLocalizations.of(context).translate('not_updated'),
               isLast: true,
             ),
           ],
@@ -264,12 +281,12 @@ class _ProfileAdminPageState extends State<ProfileAdminPage> {
   }
 
   Widget _buildInfoItem(
-      BuildContext context, {
-        required IconData icon,
-        required String label,
-        required String value,
-        bool isLast = false,
-      }) {
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required String value,
+    bool isLast = false,
+  }) {
     return Column(
       children: [
         Row(

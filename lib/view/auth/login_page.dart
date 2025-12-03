@@ -6,6 +6,8 @@ import 'package:pbl6mobile/shared/widgets/button/custom_button_blue.dart';
 import '../../model/services/remote/auth_service.dart';
 import '../../shared/routes/routes.dart';
 import '../../shared/services/store.dart';
+import '../../shared/localization/app_localizations.dart';
+import '../../shared/widgets/language_switcher.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -14,7 +16,8 @@ class LoginPage extends StatefulWidget {
   LoginPageState createState() => LoginPageState();
 }
 
-class LoginPageState extends State<LoginPage> with SingleTickerProviderStateMixin {
+class LoginPageState extends State<LoginPage>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -91,33 +94,31 @@ class LoginPageState extends State<LoginPage> with SingleTickerProviderStateMixi
       );
 
       if (success && mounted) {
-        if((await AuthService.isLoggedIn()) == false) {
+        if ((await AuthService.isLoggedIn()) == false) {
           await Store.clearStorage();
           await Future.delayed(const Duration(seconds: 1));
           Navigator.pushReplacementNamed(context, Routes.login);
-        }
-        else {
+        } else {
           String? role = await Store.getUserRole();
-          if(role == 'SUPER_ADMIN') {
+          if (role == 'SUPER_ADMIN') {
             await Future.delayed(const Duration(seconds: 1));
             Navigator.pushReplacementNamed(context, Routes.mainPageSuperAdmin);
-          }
-          else if(role == 'ADMIN') {
+          } else if (role == 'ADMIN') {
             await Future.delayed(const Duration(seconds: 1));
             Navigator.pushReplacementNamed(context, Routes.mainPageAdmin);
-          }
-          else if(role == 'DOCTOR') {
+          } else if (role == 'DOCTOR') {
             await Future.delayed(const Duration(seconds: 1));
             Navigator.pushReplacementNamed(context, Routes.mainPageDoctor);
-          }
-          else {
+          } else {
             await Store.clearStorage();
             await Future.delayed(const Duration(seconds: 1));
             Navigator.pushReplacementNamed(context, Routes.login);
           }
         }
       } else {
-        _showErrorDialog('Đăng nhập thất bại. Vui lòng kiểm tra email và mật khẩu.');
+        _showErrorDialog(
+          AppLocalizations.of(context).translate('login_failed'),
+        );
       }
 
       if (mounted) {
@@ -130,12 +131,12 @@ class LoginPageState extends State<LoginPage> with SingleTickerProviderStateMixi
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Lỗi'),
+        title: Text(AppLocalizations.of(context).translate('error')),
         content: Text(message),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            child: Text(AppLocalizations.of(context).translate('ok')),
           ),
         ],
       ),
@@ -162,8 +163,8 @@ class LoginPageState extends State<LoginPage> with SingleTickerProviderStateMixi
             image: AssetImage('assets/images/background.jpg'),
             fit: BoxFit.cover,
             colorFilter: ColorFilter.mode(
-                context.theme.blue.withOpacity(0.2),
-                BlendMode.srcOver
+              context.theme.blue.withOpacity(0.2),
+              BlendMode.srcOver,
             ),
           ),
         ),
@@ -175,6 +176,13 @@ class LoginPageState extends State<LoginPage> with SingleTickerProviderStateMixi
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 40, right: 20),
+                      child: const LanguageSwitcher(isCompact: true),
+                    ),
+                  ),
                   const Spacer(flex: 1),
                   AnimatedBuilder(
                     animation: _logoAnimation,
@@ -210,8 +218,13 @@ class LoginPageState extends State<LoginPage> with SingleTickerProviderStateMixi
                       controller: _emailController,
                       focusNode: _focusEmail,
                       decoration: InputDecoration(
-                        labelText: 'Email',
-                        prefixIcon: Icon(Icons.email, color: context.theme.blue),
+                        labelText: AppLocalizations.of(
+                          context,
+                        ).translate('email'),
+                        prefixIcon: Icon(
+                          Icons.email,
+                          color: context.theme.blue,
+                        ),
                         border: const OutlineInputBorder(),
                       ),
                       keyboardType: TextInputType.emailAddress,
@@ -221,11 +234,17 @@ class LoginPageState extends State<LoginPage> with SingleTickerProviderStateMixi
                       },
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Vui lòng nhập email';
+                          return AppLocalizations.of(
+                            context,
+                          ).translate('email_required');
                         }
-                        final emailRegex = RegExp(r'^[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z]+');
+                        final emailRegex = RegExp(
+                          r'^[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z]+',
+                        );
                         if (!emailRegex.hasMatch(value)) {
-                          return 'Email không đúng định dạng';
+                          return AppLocalizations.of(
+                            context,
+                          ).translate('email_invalid');
                         }
                         return null;
                       },
@@ -239,7 +258,10 @@ class LoginPageState extends State<LoginPage> with SingleTickerProviderStateMixi
                       return Opacity(
                         opacity: _passwordAnimation.value,
                         child: Transform.translate(
-                          offset: Offset(50 * (1 - _passwordAnimation.value), 0),
+                          offset: Offset(
+                            50 * (1 - _passwordAnimation.value),
+                            0,
+                          ),
                           child: child,
                         ),
                       );
@@ -249,15 +271,21 @@ class LoginPageState extends State<LoginPage> with SingleTickerProviderStateMixi
                       controller: _passwordController,
                       focusNode: _focusPassword,
                       decoration: InputDecoration(
-                        labelText: 'Mật khẩu',
+                        labelText: AppLocalizations.of(
+                          context,
+                        ).translate('password'),
                         prefixIcon: Icon(Icons.lock, color: context.theme.blue),
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                            _obscurePassword
+                                ? Icons.visibility
+                                : Icons.visibility_off,
                             color: context.theme.blue,
                           ),
                           onPressed: () {
-                            setState(() => _obscurePassword = !_obscurePassword);
+                            setState(
+                              () => _obscurePassword = !_obscurePassword,
+                            );
                           },
                         ),
                         border: const OutlineInputBorder(),
@@ -267,16 +295,34 @@ class LoginPageState extends State<LoginPage> with SingleTickerProviderStateMixi
                       onFieldSubmitted: (_) => _login(),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Vui lòng nhập mật khẩu';
+                          return AppLocalizations.of(
+                            context,
+                          ).translate('password_required');
                         }
                         if (value.length < 8 ||
                             !value.contains(RegExp(r'[a-zA-Z]')) ||
                             !value.contains(RegExp(r'[0-9]'))) {
-                          return 'Mật khẩu tối thiểu 8 ký tự, có ít nhất 1 chữ cái và 1 số';
+                          return AppLocalizations.of(
+                            context,
+                          ).translate('password_invalid');
                         }
                         return null;
                       },
                       onSaved: (value) => _password = value!,
+                    ),
+                  ),
+
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () =>
+                          Navigator.pushNamed(context, Routes.forgotPassword),
+                      child: Text(
+                        AppLocalizations.of(
+                          context,
+                        ).translate('forgot_password'),
+                        style: TextStyle(color: Colors.blue),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -294,8 +340,12 @@ class LoginPageState extends State<LoginPage> with SingleTickerProviderStateMixi
                     child: ScaleAnimatedButton(
                       child: CustomButtonBlue(
                         key: const ValueKey('login_button'),
-                        onTap:  _login,
-                        text: _isLoading ? 'Đang đăng nhập...' : 'Đăng Nhập',
+                        onTap: _login,
+                        text: _isLoading
+                            ? '${AppLocalizations.of(context).translate('login_button')}...'
+                            : AppLocalizations.of(
+                                context,
+                              ).translate('login_button'),
                       ),
                     ),
                   ),
@@ -312,7 +362,7 @@ class LoginPageState extends State<LoginPage> with SingleTickerProviderStateMixi
                       );
                     },
                     child: Text(
-                      'Ứng dụng quản lý dành cho bác sĩ',
+                      AppLocalizations.of(context).translate('app_slogan'),
                       style: TextStyle(
                         color: Colors.blueAccent,
                         fontWeight: FontWeight.bold,

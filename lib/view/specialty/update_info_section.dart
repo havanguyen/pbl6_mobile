@@ -3,6 +3,7 @@ import 'package:pbl6mobile/view_model/specialty/specialty_vm.dart';
 import 'package:provider/provider.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import '../../shared/widgets/widget/info_section_form.dart';
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 
 class UpdateInfoSectionPage extends StatelessWidget {
   final Map<String, dynamic> args;
@@ -17,7 +18,7 @@ class UpdateInfoSectionPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: context.theme.appBar,
         title: Text(
-          'Chỉnh sửa phần thông tin',
+          AppLocalizations.of(context).translate('update_info_section_title'),
           style: TextStyle(color: context.theme.primaryForeground),
         ),
         leading: IconButton(
@@ -33,18 +34,17 @@ class UpdateInfoSectionPage extends StatelessWidget {
           initialData: infoSection,
           specialtyId: specialtyId,
           onSubmit: ({required name, required content, id}) async {
-            final success =
-            await Provider.of<SpecialtyVm>(context, listen: false)
-                .updateInfoSection(
-              id: id!,
-              name: name,
-              content: content,
-            );
+            final success = await Provider.of<SpecialtyVm>(
+              context,
+              listen: false,
+            ).updateInfoSection(id: id!, name: name, content: content);
             return success;
           },
           onSuccess: () {
-            Provider.of<SpecialtyVm>(context, listen: false)
-                .fetchInfoSections(specialtyId, forceRefresh: true);
+            Provider.of<SpecialtyVm>(
+              context,
+              listen: false,
+            ).fetchInfoSections(specialtyId, forceRefresh: true);
           },
         ),
       ),

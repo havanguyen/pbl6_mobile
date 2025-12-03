@@ -4,6 +4,7 @@ import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/view_model/blog/blog_vm.dart';
 import 'package:pbl6mobile/view_model/location_work_management/snackbar_service.dart';
 import 'package:provider/provider.dart';
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 
 class BlogCategoryFormDialog extends StatefulWidget {
   final BlogCategory? initialData;
@@ -30,9 +31,12 @@ class _BlogCategoryFormDialogState extends State<BlogCategoryFormDialog> {
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.initialData?.name ?? '');
-    _descriptionController =
-        TextEditingController(text: widget.initialData?.description ?? '');
+    _nameController = TextEditingController(
+      text: widget.initialData?.name ?? '',
+    );
+    _descriptionController = TextEditingController(
+      text: widget.initialData?.description ?? '',
+    );
   }
 
   @override
@@ -70,10 +74,19 @@ class _BlogCategoryFormDialogState extends State<BlogCategoryFormDialog> {
       if (success) {
         Navigator.of(context).pop();
         widget.snackbarService.showSuccess(
-            '${widget.isUpdate ? 'Cập nhật' : 'Tạo'} danh mục thành công!');
+          widget.isUpdate
+              ? AppLocalizations.of(
+                  context,
+                ).translate('update_category_success')
+              : AppLocalizations.of(
+                  context,
+                ).translate('create_category_success'),
+        );
       } else {
         setState(() {
-          _apiErrorMessage = blogVm.categoryError ?? 'Thao tác thất bại.';
+          _apiErrorMessage =
+              blogVm.categoryError ??
+              AppLocalizations.of(context).translate('failed');
           blogVm.clearCategoryError();
         });
       }
@@ -89,9 +102,13 @@ class _BlogCategoryFormDialogState extends State<BlogCategoryFormDialog> {
       backgroundColor: theme.popover,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Text(
-        widget.isUpdate ? 'Cập nhật Danh mục' : 'Tạo Danh mục mới',
+        widget.isUpdate
+            ? AppLocalizations.of(context).translate('update_category_title')
+            : AppLocalizations.of(context).translate('create_category_title'),
         style: TextStyle(
-            color: theme.popoverForeground, fontWeight: FontWeight.bold),
+          color: theme.popoverForeground,
+          fontWeight: FontWeight.bold,
+        ),
       ),
       content: Form(
         key: _formKey,
@@ -105,12 +122,18 @@ class _BlogCategoryFormDialogState extends State<BlogCategoryFormDialog> {
                 autofocus: true,
                 decoration: _buildInputDecoration(
                   theme: theme,
-                  labelText: 'Tên danh mục',
-                  hintText: 'VD: Tin tức y tế',
+                  labelText: AppLocalizations.of(
+                    context,
+                  ).translate('category_name_label'),
+                  hintText: AppLocalizations.of(
+                    context,
+                  ).translate('category_name_hint'),
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Tên danh mục không được để trống';
+                    return AppLocalizations.of(
+                      context,
+                    ).translate('category_name_required');
                   }
                   return null;
                 },
@@ -122,8 +145,12 @@ class _BlogCategoryFormDialogState extends State<BlogCategoryFormDialog> {
                 style: TextStyle(color: theme.textColor),
                 decoration: _buildInputDecoration(
                   theme: theme,
-                  labelText: 'Mô tả (Không bắt buộc)',
-                  hintText: 'Mô tả ngắn về danh mục',
+                  labelText: AppLocalizations.of(
+                    context,
+                  ).translate('category_desc_label'),
+                  hintText: AppLocalizations.of(
+                    context,
+                  ).translate('category_desc_hint'),
                 ),
                 maxLines: 3,
                 minLines: 1,
@@ -144,26 +171,34 @@ class _BlogCategoryFormDialogState extends State<BlogCategoryFormDialog> {
       actions: [
         TextButton(
           onPressed: isLoading ? null : () => Navigator.pop(context),
-          child: Text('Hủy', style: TextStyle(color: theme.mutedForeground)),
+          child: Text(
+            AppLocalizations.of(context).translate('cancel'),
+            style: TextStyle(color: theme.mutedForeground),
+          ),
         ),
         ElevatedButton(
           onPressed: isLoading ? null : _submitForm,
           style: ElevatedButton.styleFrom(
             backgroundColor: theme.primary,
             foregroundColor: theme.primaryForeground,
-            shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
           ),
           child: isLoading
               ? const SizedBox(
-            width: 20,
-            height: 20,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: Colors.white,
-            ),
-          )
-              : Text(widget.isUpdate ? 'Lưu' : 'Tạo'),
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : Text(
+                  widget.isUpdate
+                      ? AppLocalizations.of(context).translate('save')
+                      : AppLocalizations.of(context).translate('create'),
+                ),
         ),
       ],
     );

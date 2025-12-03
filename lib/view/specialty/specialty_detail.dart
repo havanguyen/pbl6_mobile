@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/shared/routes/routes.dart';
 import 'package:vsc_quill_delta_to_html/vsc_quill_delta_to_html.dart';
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 
 class SpecialtyDetailPage extends StatefulWidget {
   final Map<String, dynamic> specialty;
@@ -25,15 +26,18 @@ class _SpecialtyDetailPageState extends State<SpecialtyDetailPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context
-          .read<SpecialtyVm>()
-          .fetchInfoSections(widget.specialty['id'], forceRefresh: true);
+      context.read<SpecialtyVm>().fetchInfoSections(
+        widget.specialty['id'],
+        forceRefresh: true,
+      );
     });
   }
 
   void _showDeleteDialog(InfoSection infoSection) {
-    final snackbarService =
-    Provider.of<SnackbarService>(context, listen: false);
+    final snackbarService = Provider.of<SnackbarService>(
+      context,
+      listen: false,
+    );
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -41,9 +45,10 @@ class _SpecialtyDetailPageState extends State<SpecialtyDetailPage> {
         infoSection: infoSection,
         specialtyId: widget.specialty['id'],
         onDeleteSuccess: () {
-          context
-              .read<SpecialtyVm>()
-              .fetchInfoSections(widget.specialty['id'], forceRefresh: true);
+          context.read<SpecialtyVm>().fetchInfoSections(
+            widget.specialty['id'],
+            forceRefresh: true,
+          );
         },
         snackbarService: snackbarService,
       ),
@@ -62,7 +67,7 @@ class _SpecialtyDetailPageState extends State<SpecialtyDetailPage> {
           ),
           const SizedBox(height: 20),
           Text(
-            'Chưa có phần thông tin nào',
+            AppLocalizations.of(context).translate('no_info_sections_yet'),
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -73,7 +78,9 @@ class _SpecialtyDetailPageState extends State<SpecialtyDetailPage> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32),
             child: Text(
-              'Nhấn nút + ở góc dưới để thêm thông tin chi tiết cho chuyên khoa này.',
+              AppLocalizations.of(
+                context,
+              ).translate('add_new_info_section_hint'),
               style: TextStyle(color: context.theme.mutedForeground),
               textAlign: TextAlign.center,
             ),
@@ -97,9 +104,11 @@ class _SpecialtyDetailPageState extends State<SpecialtyDetailPage> {
             icon: const Icon(Icons.refresh),
             onPressed: provider.isInfoSectionLoading
                 ? null
-                : () => provider.fetchInfoSections(widget.specialty['id'],
-                forceRefresh: true),
-          )
+                : () => provider.fetchInfoSections(
+                    widget.specialty['id'],
+                    forceRefresh: true,
+                  ),
+          ),
         ],
       ),
       backgroundColor: theme.bg,
@@ -110,8 +119,8 @@ class _SpecialtyDetailPageState extends State<SpecialtyDetailPage> {
               width: double.infinity,
               color: context.theme.yellow,
               padding: const EdgeInsets.all(8.0),
-              child:  Text(
-                'Bạn đang ở chế độ offline. Dữ liệu có thể đã cũ.',
+              child: Text(
+                AppLocalizations.of(context).translate('offline_banner'),
                 textAlign: TextAlign.center,
                 style: TextStyle(color: context.theme.popover),
               ),
@@ -120,11 +129,14 @@ class _SpecialtyDetailPageState extends State<SpecialtyDetailPage> {
             child: Consumer<SpecialtyVm>(
               builder: (context, provider, child) {
                 if (provider.isInfoSectionLoading &&
-                    provider.getInfoSectionsFor(widget.specialty['id']).isEmpty) {
+                    provider
+                        .getInfoSectionsFor(widget.specialty['id'])
+                        .isEmpty) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                final infoSections =
-                provider.getInfoSectionsFor(widget.specialty['id']);
+                final infoSections = provider.getInfoSectionsFor(
+                  widget.specialty['id'],
+                );
                 if (infoSections.isEmpty) {
                   return _buildEmptyState();
                 }
@@ -150,13 +162,14 @@ class _SpecialtyDetailPageState extends State<SpecialtyDetailPage> {
                                   Routes.updateInfoSection,
                                   arguments: {
                                     'infoSection': info.toJson(),
-                                    'specialtyId': widget.specialty['id']
+                                    'specialtyId': widget.specialty['id'],
                                   },
                                 );
                                 if (result == true && mounted) {
                                   provider.fetchInfoSections(
-                                      widget.specialty['id'],
-                                      forceRefresh: true);
+                                    widget.specialty['id'],
+                                    forceRefresh: true,
+                                  );
                                 }
                               },
                             ),
@@ -171,22 +184,25 @@ class _SpecialtyDetailPageState extends State<SpecialtyDetailPage> {
           ),
         ],
       ),
-      floatingActionButton: isOffline ? null : FloatingActionButton(
-        onPressed: () async {
-          final result = await Navigator.pushNamed(
-            context,
-            Routes.createInfoSection,
-            arguments: widget.specialty['id'],
-          );
-          if (result == true && mounted) {
-            context
-                .read<SpecialtyVm>()
-                .fetchInfoSections(widget.specialty['id'], forceRefresh: true);
-          }
-        },
-        backgroundColor: theme.primary,
-        child:  Icon(Icons.add, color: context.theme.white),
-      ),
+      floatingActionButton: isOffline
+          ? null
+          : FloatingActionButton(
+              onPressed: () async {
+                final result = await Navigator.pushNamed(
+                  context,
+                  Routes.createInfoSection,
+                  arguments: widget.specialty['id'],
+                );
+                if (result == true && mounted) {
+                  context.read<SpecialtyVm>().fetchInfoSections(
+                    widget.specialty['id'],
+                    forceRefresh: true,
+                  );
+                }
+              },
+              backgroundColor: theme.primary,
+              child: Icon(Icons.add, color: context.theme.white),
+            ),
     );
   }
 }
@@ -225,7 +241,7 @@ class _InfoSectionTileState extends State<_InfoSectionTile> {
             color: context.theme.popover.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
-          )
+          ),
         ],
       ),
       child: Column(
@@ -237,10 +253,12 @@ class _InfoSectionTileState extends State<_InfoSectionTile> {
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                  border: Border(
-                      bottom: BorderSide(
-                          color:
-                          _isExpanded ? theme.border : Colors.transparent))),
+                border: Border(
+                  bottom: BorderSide(
+                    color: _isExpanded ? theme.border : Colors.transparent,
+                  ),
+                ),
+              ),
               child: Row(
                 children: [
                   Icon(Icons.article_outlined, color: theme.primary, size: 28),
@@ -285,30 +303,44 @@ class _InfoSectionTileState extends State<_InfoSectionTile> {
                       children: [
                         TextButton.icon(
                           onPressed: widget.onEdit,
-                          icon: Icon(Icons.edit_outlined,
-                              size: 18, color: theme.primary),
-                          label: Text('Sửa',
-                              style: TextStyle(color: theme.primary)),
+                          icon: Icon(
+                            Icons.edit_outlined,
+                            size: 18,
+                            color: theme.primary,
+                          ),
+                          label: Text(
+                            AppLocalizations.of(context).translate('edit'),
+                            style: TextStyle(color: theme.primary),
+                          ),
                           style: TextButton.styleFrom(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 8),
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 8),
                         TextButton.icon(
                           onPressed: widget.onDelete,
-                          icon: Icon(Icons.delete_outline,
-                              size: 18, color: theme.destructive),
-                          label: Text('Xóa',
-                              style: TextStyle(color: theme.destructive)),
+                          icon: Icon(
+                            Icons.delete_outline,
+                            size: 18,
+                            color: theme.destructive,
+                          ),
+                          label: Text(
+                            AppLocalizations.of(context).translate('delete'),
+                            style: TextStyle(color: theme.destructive),
+                          ),
                           style: TextButton.styleFrom(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 8),
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
                           ),
                         ),
                       ],
                     ),
-                  ]
+                  ],
                 ],
               ),
             ),
@@ -323,10 +355,7 @@ class _ExpandableHtmlContent extends StatefulWidget {
   final String content;
   final CustomThemeExtension theme;
 
-  const _ExpandableHtmlContent({
-    required this.content,
-    required this.theme,
-  });
+  const _ExpandableHtmlContent({required this.content, required this.theme});
 
   @override
   __ExpandableHtmlContentState createState() => __ExpandableHtmlContentState();
@@ -355,15 +384,19 @@ class __ExpandableHtmlContentState extends State<_ExpandableHtmlContent> {
     final styles = {
       "body": Style(margin: Margins.zero, padding: HtmlPaddings.zero),
       "p": Style(
-          fontSize: FontSize(15),
-          color: widget.theme.mutedForeground,
-          lineHeight: LineHeight.em(1.5)),
-      "h1, h2, h3":
-      Style(fontWeight: FontWeight.w600, color: widget.theme.textColor),
+        fontSize: FontSize(15),
+        color: widget.theme.mutedForeground,
+        lineHeight: LineHeight.em(1.5),
+      ),
+      "h1, h2, h3": Style(
+        fontWeight: FontWeight.w600,
+        color: widget.theme.textColor,
+      ),
       "li": Style(
-          fontSize: FontSize(15),
-          color: widget.theme.mutedForeground,
-          lineHeight: LineHeight.em(1.5)),
+        fontSize: FontSize(15),
+        color: widget.theme.mutedForeground,
+        lineHeight: LineHeight.em(1.5),
+      ),
     };
 
     return Column(
@@ -379,7 +412,11 @@ class __ExpandableHtmlContentState extends State<_ExpandableHtmlContent> {
               return LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [context.theme.popover, context.theme.popover, Colors.transparent],
+                colors: [
+                  context.theme.popover,
+                  context.theme.popover,
+                  Colors.transparent,
+                ],
                 stops: [0.0, 0.7, 1.0],
               ).createShader(Rect.fromLTRB(0, 0, rect.width, rect.height));
             },
@@ -397,7 +434,9 @@ class __ExpandableHtmlContentState extends State<_ExpandableHtmlContent> {
             child: Padding(
               padding: const EdgeInsets.only(top: 8.0),
               child: Text(
-                _isShowingFull ? '... Thu gọn' : 'Xem thêm ...',
+                _isShowingFull
+                    ? AppLocalizations.of(context).translate('view_less')
+                    : AppLocalizations.of(context).translate('view_more'),
                 style: TextStyle(
                   color: widget.theme.primary,
                   fontWeight: FontWeight.bold,

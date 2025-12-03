@@ -11,6 +11,7 @@ import 'package:pbl6mobile/view_model/specialty/specialty_vm.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../shared/widgets/widget/specialty_delete_confirm.dart';
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 
 class ListSpecialtyPage extends StatefulWidget {
   const ListSpecialtyPage({super.key});
@@ -61,8 +62,10 @@ class _ListSpecialtyPageState extends State<ListSpecialtyPage> {
   }
 
   void _showDeleteDialog(Specialty specialty) {
-    final snackbarService =
-    Provider.of<SnackbarService>(context, listen: false);
+    final snackbarService = Provider.of<SnackbarService>(
+      context,
+      listen: false,
+    );
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -81,14 +84,16 @@ class _ListSpecialtyPageState extends State<ListSpecialtyPage> {
     final specialtyVm = context.watch<SpecialtyVm>();
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Quản lý Chuyên khoa'),
+        title: Text(
+          AppLocalizations.of(context).translate('specialty_management_title'),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: specialtyVm.isLoading
                 ? null
                 : () => specialtyVm.fetchSpecialties(forceRefresh: true),
-          )
+          ),
         ],
       ),
       body: Column(
@@ -102,7 +107,7 @@ class _ListSpecialtyPageState extends State<ListSpecialtyPage> {
               child: Text(
                 specialtyVm.error!,
                 textAlign: TextAlign.center,
-                style:  TextStyle(color: context.theme.popover),
+                style: TextStyle(color: context.theme.popover),
               ),
             ),
           if (specialtyVm.isLoading && specialtyVm.specialties.isNotEmpty)
@@ -116,7 +121,11 @@ class _ListSpecialtyPageState extends State<ListSpecialtyPage> {
                 if (specialtyVm.error != null &&
                     specialtyVm.specialties.isEmpty &&
                     !specialtyVm.isOffline) {
-                  return Center(child: Text('Lỗi: ${specialtyVm.error}'));
+                  return Center(
+                    child: Text(
+                      '${AppLocalizations.of(context).translate('error_occurred')} ${specialtyVm.error}',
+                    ),
+                  );
                 }
                 if (specialtyVm.specialties.isEmpty) {
                   return _buildEmptyState();
@@ -127,7 +136,8 @@ class _ListSpecialtyPageState extends State<ListSpecialtyPage> {
                   child: ListView.builder(
                     controller: _scrollController,
                     padding: const EdgeInsets.all(8),
-                    itemCount: specialtyVm.specialties.length +
+                    itemCount:
+                        specialtyVm.specialties.length +
                         (specialtyVm.isLoadingMore ? 1 : 0),
                     itemBuilder: (context, index) {
                       if (index == specialtyVm.specialties.length) {
@@ -146,7 +156,9 @@ class _ListSpecialtyPageState extends State<ListSpecialtyPage> {
                           verticalOffset: 50.0,
                           child: FadeInAnimation(
                             child: _buildSpecialtyCard(
-                                specialty, specialtyVm.isOffline),
+                              specialty,
+                              specialtyVm.isOffline,
+                            ),
                           ),
                         ),
                       );
@@ -170,26 +182,31 @@ class _ListSpecialtyPageState extends State<ListSpecialtyPage> {
             controller: _searchController,
             style: TextStyle(color: context.theme.textColor),
             decoration: InputDecoration(
-              labelText: 'Tìm kiếm chuyên khoa',
+              labelText: AppLocalizations.of(
+                context,
+              ).translate('search_specialty_hint'),
               labelStyle: TextStyle(color: context.theme.mutedForeground),
               prefixIcon: Icon(Icons.search, color: context.theme.primary),
-              border:
-              OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide:
-                BorderSide(color: context.theme.primary, width: 1.5),
+                borderSide: BorderSide(
+                  color: context.theme.primary,
+                  width: 1.5,
+                ),
               ),
               filled: true,
               fillColor: context.theme.input,
               suffixIcon: _searchController.text.isNotEmpty
                   ? IconButton(
-                icon: Icon(Icons.clear, color: context.theme.primary),
-                onPressed: () {
-                  _searchController.clear();
-                  context.read<SpecialtyVm>().updateSearchQuery('');
-                },
-              )
+                      icon: Icon(Icons.clear, color: context.theme.primary),
+                      onPressed: () {
+                        _searchController.clear();
+                        context.read<SpecialtyVm>().updateSearchQuery('');
+                      },
+                    )
                   : null,
             ),
           ),
@@ -198,33 +215,38 @@ class _ListSpecialtyPageState extends State<ListSpecialtyPage> {
             onPressed: isOffline
                 ? null
                 : () async {
-              final result =
-              await Navigator.pushNamed(context, Routes.createSpecialty);
-              if (result == true && mounted) {
-                context
-                    .read<SpecialtyVm>()
-                    .fetchSpecialties(forceRefresh: true);
-              }
-            },
+                    final result = await Navigator.pushNamed(
+                      context,
+                      Routes.createSpecialty,
+                    );
+                    if (result == true && mounted) {
+                      context.read<SpecialtyVm>().fetchSpecialties(
+                        forceRefresh: true,
+                      );
+                    }
+                  },
             icon: const Icon(Icons.add),
-            label: const Text('Thêm chuyên khoa mới'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: context.theme.primary,
-              foregroundColor: context.theme.primaryForeground,
-              minimumSize: const Size(double.infinity, 50),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ).copyWith(
-              backgroundColor: MaterialStateProperty.resolveWith<Color?>(
-                    (Set<MaterialState> states) {
-                  if (states.contains(MaterialState.disabled)) {
-                    return context.theme.grey;
-                  }
-                  return context.theme.primary;
-                },
-              ),
+            label: Text(
+              AppLocalizations.of(context).translate('create_specialty_title'),
             ),
+            style:
+                ElevatedButton.styleFrom(
+                  backgroundColor: context.theme.primary,
+                  foregroundColor: context.theme.primaryForeground,
+                  minimumSize: const Size(double.infinity, 50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ).copyWith(
+                  backgroundColor: MaterialStateProperty.resolveWith<Color?>((
+                    Set<MaterialState> states,
+                  ) {
+                    if (states.contains(MaterialState.disabled)) {
+                      return context.theme.grey;
+                    }
+                    return context.theme.primary;
+                  }),
+                ),
           ),
         ],
       ),
@@ -244,8 +266,10 @@ class _ListSpecialtyPageState extends State<ListSpecialtyPage> {
           const SizedBox(height: 20),
           Text(
             _searchController.text.isEmpty
-                ? 'Chưa có chuyên khoa nào'
-                : 'Không tìm thấy chuyên khoa',
+                ? AppLocalizations.of(context).translate('no_specialties_yet')
+                : AppLocalizations.of(
+                    context,
+                  ).translate('no_specialties_found'),
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -255,8 +279,10 @@ class _ListSpecialtyPageState extends State<ListSpecialtyPage> {
           const SizedBox(height: 8),
           Text(
             _searchController.text.isEmpty
-                ? 'Nhấn nút "Thêm chuyên khoa mới" để bắt đầu.'
-                : 'Hãy thử với từ khóa khác.',
+                ? AppLocalizations.of(
+                    context,
+                  ).translate('add_new_specialty_hint')
+                : AppLocalizations.of(context).translate('try_search_again'),
             style: TextStyle(color: context.theme.mutedForeground),
           ),
         ],
@@ -273,12 +299,16 @@ class _ListSpecialtyPageState extends State<ListSpecialtyPage> {
         padding: const EdgeInsets.all(8),
         itemBuilder: (_, __) => Card(
           margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-          shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          child:  ListTile(
-            leading: CircleAvatar(radius: 28, backgroundColor: context.theme.white),
-            title: SizedBox(height: 16, width: 150),
-            subtitle: SizedBox(height: 12, width: 100),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: ListTile(
+            leading: CircleAvatar(
+              radius: 28,
+              backgroundColor: context.theme.white,
+            ),
+            title: const SizedBox(height: 16, width: 150),
+            subtitle: const SizedBox(height: 12, width: 100),
           ),
         ),
       ),
@@ -291,35 +321,35 @@ class _ListSpecialtyPageState extends State<ListSpecialtyPage> {
       endActionPane: isOffline
           ? null
           : ActionPane(
-        motion: const BehindMotion(),
-        children: [
-          SlidableAction(
-            onPressed: (context) async {
-              final result = await Navigator.pushNamed(
-                context,
-                Routes.updateSpecialty,
-                arguments: specialty.toJson(),
-              );
-              if (result == true && mounted) {
-                context
-                    .read<SpecialtyVm>()
-                    .fetchSpecialties(forceRefresh: true);
-              }
-            },
-            backgroundColor: context.theme.blue,
-            foregroundColor: context.theme.white,
-            icon: Icons.edit,
-            label: 'Sửa',
-          ),
-          SlidableAction(
-            onPressed: (context) => _showDeleteDialog(specialty),
-            backgroundColor: context.theme.destructive,
-            foregroundColor: context.theme.white,
-            icon: Icons.delete,
-            label: 'Xóa',
-          ),
-        ],
-      ),
+              motion: const BehindMotion(),
+              children: [
+                SlidableAction(
+                  onPressed: (context) async {
+                    final result = await Navigator.pushNamed(
+                      context,
+                      Routes.updateSpecialty,
+                      arguments: specialty.toJson(),
+                    );
+                    if (result == true && mounted) {
+                      context.read<SpecialtyVm>().fetchSpecialties(
+                        forceRefresh: true,
+                      );
+                    }
+                  },
+                  backgroundColor: context.theme.blue,
+                  foregroundColor: context.theme.white,
+                  icon: Icons.edit,
+                  label: AppLocalizations.of(context).translate('edit'),
+                ),
+                SlidableAction(
+                  onPressed: (context) => _showDeleteDialog(specialty),
+                  backgroundColor: context.theme.destructive,
+                  foregroundColor: context.theme.white,
+                  icon: Icons.delete,
+                  label: AppLocalizations.of(context).translate('delete'),
+                ),
+              ],
+            ),
       child: Card(
         elevation: 2,
         margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
@@ -366,7 +396,7 @@ class _ListSpecialtyPageState extends State<ListSpecialtyPage> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Số phần thông tin: ${specialty.infoSectionsCount}',
+                        '${AppLocalizations.of(context).translate('info_section_count')}${specialty.infoSectionsCount}',
                         style: TextStyle(
                           color: context.theme.mutedForeground,
                           fontSize: 14,
@@ -379,7 +409,7 @@ class _ListSpecialtyPageState extends State<ListSpecialtyPage> {
                   Icons.arrow_forward_ios,
                   color: context.theme.mutedForeground,
                   size: 16,
-                )
+                ),
               ],
             ),
           ),

@@ -3,6 +3,7 @@ import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/view_model/question/question_vm.dart';
 import 'package:provider/provider.dart';
 import '../../../view_model/location_work_management/snackbar_service.dart';
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 
 class QuestionDeleteConfirmationDialog extends StatefulWidget {
   final Map<String, dynamic> question;
@@ -49,11 +50,16 @@ class _QuestionDeleteConfirmationDialogState
     if (mounted) {
       setState(() => _isLoading = false);
       if (success) {
-        widget.snackbarService.showSuccess('Xóa câu hỏi thành công!');
+        widget.snackbarService.showSuccess(
+          AppLocalizations.of(context).translate('delete_question_success'),
+        );
         widget.onDeleteSuccess();
         Navigator.of(context).pop();
       } else {
-        widget.snackbarService.showError(questionVm.error ?? 'Xóa thất bại');
+        widget.snackbarService.showError(
+          questionVm.error ??
+              AppLocalizations.of(context).translate('delete_failed'),
+        );
       }
     }
   }
@@ -68,7 +74,7 @@ class _QuestionDeleteConfirmationDialogState
           Icon(Icons.warning_amber_rounded, color: context.theme.destructive),
           const SizedBox(width: 10),
           Text(
-            'Xác nhận xóa',
+            AppLocalizations.of(context).translate('confirm_delete'),
             style: TextStyle(color: context.theme.textColor),
           ),
         ],
@@ -81,12 +87,12 @@ class _QuestionDeleteConfirmationDialogState
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Bạn có chắc chắn muốn xóa câu hỏi "${widget.question['title']}" không?',
+                '${AppLocalizations.of(context).translate('confirm_delete_question')} "${widget.question['title']}"?',
                 style: TextStyle(color: context.theme.mutedForeground),
               ),
               const SizedBox(height: 8),
               Text(
-                'Hành động này không thể hoàn tác.',
+                AppLocalizations.of(context).translate('action_cannot_undo'),
                 style: TextStyle(
                   color: context.theme.destructive,
                   fontWeight: FontWeight.w500,
@@ -95,11 +101,14 @@ class _QuestionDeleteConfirmationDialogState
               ),
               const SizedBox(height: 16),
               Text(
-                'Vui lòng nhập mật khẩu của bạn để xác nhận:',
+                AppLocalizations.of(
+                  context,
+                ).translate('enter_password_confirm'),
                 style: TextStyle(
-                    color: context.theme.textColor,
-                    fontWeight: FontWeight.w500,
-                    fontSize: 14),
+                  color: context.theme.textColor,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 14,
+                ),
               ),
               const SizedBox(height: 12),
               TextFormField(
@@ -107,15 +116,17 @@ class _QuestionDeleteConfirmationDialogState
                 obscureText: _obscureText,
                 style: TextStyle(color: context.theme.textColor),
                 decoration: InputDecoration(
-                  labelText: 'Mật khẩu',
+                  labelText: AppLocalizations.of(context).translate('password'),
                   labelStyle: TextStyle(color: context.theme.mutedForeground),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide:
-                    BorderSide(color: context.theme.primary, width: 1.5),
+                    borderSide: BorderSide(
+                      color: context.theme.primary,
+                      width: 1.5,
+                    ),
                   ),
                   filled: true,
                   fillColor: context.theme.input,
@@ -133,10 +144,14 @@ class _QuestionDeleteConfirmationDialogState
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Vui lòng nhập mật khẩu';
+                    return AppLocalizations.of(
+                      context,
+                    ).translate('password_required');
                   }
                   if (value.length < 1) {
-                    return 'Mật khẩu phải có ít nhất 1 ký tự';
+                    return AppLocalizations.of(
+                      context,
+                    ).translate('password_min_length');
                   }
                   return null;
                 },
@@ -148,7 +163,10 @@ class _QuestionDeleteConfirmationDialogState
       actions: <Widget>[
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: Text('Hủy', style: TextStyle(color: context.theme.grey)),
+          child: Text(
+            AppLocalizations.of(context).translate('cancel'),
+            style: TextStyle(color: context.theme.grey),
+          ),
         ),
         ElevatedButton(
           onPressed: _isLoading ? null : _deleteQuestion,
@@ -158,14 +176,14 @@ class _QuestionDeleteConfirmationDialogState
           ),
           child: _isLoading
               ? const SizedBox(
-            width: 20,
-            height: 20,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: Colors.white,
-            ),
-          )
-              : const Text('Xóa'),
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : Text(AppLocalizations.of(context).translate('delete')),
         ),
       ],
     );

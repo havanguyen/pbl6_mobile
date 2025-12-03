@@ -6,6 +6,7 @@ import 'package:pbl6mobile/model/services/remote/work_location_service.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/view_model/setting/office_hours_vm.dart';
 import 'package:provider/provider.dart';
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 
 class CreateOfficeHourPage extends StatefulWidget {
   const CreateOfficeHourPage({super.key});
@@ -62,9 +63,13 @@ class _CreateOfficeHourPageState extends State<CreateOfficeHourPage> {
         setState(() {
           _isLoadingData = false;
         });
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Lỗi tải dữ liệu: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '${AppLocalizations.of(context).translate('loading_data_error')}$e',
+            ),
+          ),
+        );
       }
     }
   }
@@ -104,7 +109,7 @@ class _CreateOfficeHourPageState extends State<CreateOfficeHourPage> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Thêm giờ làm việc',
+          AppLocalizations.of(context).translate('add_office_hour'),
           style: TextStyle(
             color: context.theme.white,
             fontWeight: FontWeight.bold,
@@ -122,9 +127,15 @@ class _CreateOfficeHourPageState extends State<CreateOfficeHourPage> {
                   children: [
                     // Global Checkbox
                     CheckboxListTile(
-                      title: const Text('Global Hours'),
-                      subtitle: const Text(
-                        'Áp dụng cho tất cả địa điểm (không chọn bác sĩ)',
+                      title: Text(
+                        AppLocalizations.of(
+                          context,
+                        ).translate('global_hours_label'),
+                      ),
+                      subtitle: Text(
+                        AppLocalizations.of(
+                          context,
+                        ).translate('global_hours_subtitle'),
                       ),
                       value: _isGlobal,
                       onChanged: (value) {
@@ -140,15 +151,21 @@ class _CreateOfficeHourPageState extends State<CreateOfficeHourPage> {
 
                     // Doctor Selection
                     DropdownButtonFormField<String>(
-                      decoration: const InputDecoration(
-                        labelText: 'Bác sĩ (Tùy chọn)',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: AppLocalizations.of(
+                          context,
+                        ).translate('doctor_optional'),
+                        border: const OutlineInputBorder(),
                       ),
                       value: _selectedDoctorId,
                       items: [
-                        const DropdownMenuItem(
+                        DropdownMenuItem(
                           value: null,
-                          child: Text('Không chọn bác sĩ'),
+                          child: Text(
+                            AppLocalizations.of(
+                              context,
+                            ).translate('no_doctor_selected'),
+                          ),
                         ),
                         ..._doctors.map(
                           (d) => DropdownMenuItem(
@@ -169,15 +186,21 @@ class _CreateOfficeHourPageState extends State<CreateOfficeHourPage> {
 
                     // Location Selection
                     DropdownButtonFormField<String>(
-                      decoration: const InputDecoration(
-                        labelText: 'Địa điểm (Tùy chọn)',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: AppLocalizations.of(
+                          context,
+                        ).translate('location_optional'),
+                        border: const OutlineInputBorder(),
                       ),
                       value: _selectedWorkLocationId,
                       items: [
-                        const DropdownMenuItem(
+                        DropdownMenuItem(
                           value: null,
-                          child: Text('Tất cả địa điểm'),
+                          child: Text(
+                            AppLocalizations.of(
+                              context,
+                            ).translate('all_locations'),
+                          ),
                         ),
                         ..._locations.map(
                           (l) => DropdownMenuItem(
@@ -196,19 +219,56 @@ class _CreateOfficeHourPageState extends State<CreateOfficeHourPage> {
 
                     // Day Selection
                     DropdownButtonFormField<int>(
-                      decoration: const InputDecoration(
-                        labelText: 'Ngày trong tuần',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: AppLocalizations.of(
+                          context,
+                        ).translate('day_of_week'),
+                        border: const OutlineInputBorder(),
                       ),
                       value: _selectedDay,
-                      items: const [
-                        DropdownMenuItem(value: 1, child: Text('Monday')),
-                        DropdownMenuItem(value: 2, child: Text('Tuesday')),
-                        DropdownMenuItem(value: 3, child: Text('Wednesday')),
-                        DropdownMenuItem(value: 4, child: Text('Thursday')),
-                        DropdownMenuItem(value: 5, child: Text('Friday')),
-                        DropdownMenuItem(value: 6, child: Text('Saturday')),
-                        DropdownMenuItem(value: 0, child: Text('Sunday')),
+                      items: [
+                        DropdownMenuItem(
+                          value: 1,
+                          child: Text(
+                            AppLocalizations.of(context).translate('monday'),
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: 2,
+                          child: Text(
+                            AppLocalizations.of(context).translate('tuesday'),
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: 3,
+                          child: Text(
+                            AppLocalizations.of(context).translate('wednesday'),
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: 4,
+                          child: Text(
+                            AppLocalizations.of(context).translate('thursday'),
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: 5,
+                          child: Text(
+                            AppLocalizations.of(context).translate('friday'),
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: 6,
+                          child: Text(
+                            AppLocalizations.of(context).translate('saturday'),
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: 0,
+                          child: Text(
+                            AppLocalizations.of(context).translate('sunday'),
+                          ),
+                        ),
                       ],
                       onChanged: (value) {
                         setState(() {
@@ -225,9 +285,11 @@ class _CreateOfficeHourPageState extends State<CreateOfficeHourPage> {
                           child: InkWell(
                             onTap: () => _selectTime(true),
                             child: InputDecorator(
-                              decoration: const InputDecoration(
-                                labelText: 'Giờ bắt đầu',
-                                border: OutlineInputBorder(),
+                              decoration: InputDecoration(
+                                labelText: AppLocalizations.of(
+                                  context,
+                                ).translate('start_time'),
+                                border: const OutlineInputBorder(),
                               ),
                               child: Text(
                                 _formatTime(_startTime),
@@ -241,9 +303,11 @@ class _CreateOfficeHourPageState extends State<CreateOfficeHourPage> {
                           child: InkWell(
                             onTap: () => _selectTime(false),
                             child: InputDecorator(
-                              decoration: const InputDecoration(
-                                labelText: 'Giờ kết thúc',
-                                border: OutlineInputBorder(),
+                              decoration: InputDecoration(
+                                labelText: AppLocalizations.of(
+                                  context,
+                                ).translate('end_time'),
+                                border: const OutlineInputBorder(),
                               ),
                               child: Text(
                                 _formatTime(_endTime),
@@ -281,8 +345,12 @@ class _CreateOfficeHourPageState extends State<CreateOfficeHourPage> {
                                 if (success && mounted) {
                                   Navigator.pop(context);
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Tạo thành công'),
+                                    SnackBar(
+                                      content: Text(
+                                        AppLocalizations.of(context).translate(
+                                          'create_office_hour_success',
+                                        ),
+                                      ),
                                     ),
                                   );
                                 }
@@ -291,9 +359,11 @@ class _CreateOfficeHourPageState extends State<CreateOfficeHourPage> {
                             ? const CircularProgressIndicator(
                                 color: Colors.white,
                               )
-                            : const Text(
-                                'Tạo giờ làm việc',
-                                style: TextStyle(
+                            : Text(
+                                AppLocalizations.of(
+                                  context,
+                                ).translate('create_office_hour_btn'),
+                                style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,

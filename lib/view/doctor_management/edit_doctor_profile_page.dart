@@ -11,6 +11,7 @@ import 'package:pbl6mobile/view_model/specialty/specialty_vm.dart';
 import 'package:provider/provider.dart';
 import 'package:pbl6mobile/view_model/admin_management/doctor_management_vm.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 
 import '../../shared/widgets/widget/dynamic_list_input.dart';
 import '../../shared/widgets/widget/multi_select_chip.dart';
@@ -63,12 +64,15 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage>
       }
     });
 
-    _degreeController =
-        TextEditingController(text: widget.doctorDetail.degree ?? '');
-    _introductionController =
-        _initializeQuillController(widget.doctorDetail.introduction);
-    _researchController =
-        _initializeQuillController(widget.doctorDetail.research);
+    _degreeController = TextEditingController(
+      text: widget.doctorDetail.degree ?? '',
+    );
+    _introductionController = _initializeQuillController(
+      widget.doctorDetail.introduction,
+    );
+    _researchController = _initializeQuillController(
+      widget.doctorDetail.research,
+    );
     _positions = List.from(widget.doctorDetail.position);
     _memberships = List.from(widget.doctorDetail.memberships);
     _awards = List.from(widget.doctorDetail.awards);
@@ -80,12 +84,11 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage>
 
   void _fetchInitialDropdownData() {
     if (!_initialDataFetched) {
-      print("--- DEBUG: _fetchInitialDropdownData ---");
       Provider.of<SpecialtyVm>(context, listen: false).fetchAllSpecialties();
-      Provider.of<LocationWorkVm>(context, listen: false).fetchLocations(
-        forceRefresh: true,
-        limit: 1000,
-      );
+      Provider.of<LocationWorkVm>(
+        context,
+        listen: false,
+      ).fetchLocations(forceRefresh: true, limit: 1000);
       _initialDataFetched = true;
     }
   }
@@ -105,7 +108,9 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage>
         final deltaJson = jsonDecode(content);
         final doc = quill.Document.fromJson(deltaJson);
         return quill.QuillController(
-            document: doc, selection: const TextSelection.collapsed(offset: 0));
+          document: doc,
+          selection: const TextSelection.collapsed(offset: 0),
+        );
       } catch (e) {
         try {
           final plainText = content
@@ -113,9 +118,13 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage>
               .replaceAll(RegExp(r'<[^>]*>'), '');
           final doc = quill.Document()..insert(0, plainText);
           return quill.QuillController(
-              document: doc, selection: const TextSelection.collapsed(offset: 0));
+            document: doc,
+            selection: const TextSelection.collapsed(offset: 0),
+          );
         } catch (plainTextError) {
-          print("Error initializing Quill with non-JSON content: $plainTextError");
+          print(
+            "Error initializing Quill with non-JSON content: $plainTextError",
+          );
           return quill.QuillController.basic();
         }
       }
@@ -124,11 +133,7 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage>
   }
 
   void _saveProfile() {
-    print("--- DEBUG: _saveProfile CALLED ---");
-
     if (_formKey.currentState!.validate()) {
-      print("--- DEBUG: Form is VALID ---");
-
       String? getQuillJsonOrNull(quill.QuillController controller) {
         if (controller.document.isEmpty() ||
             controller.document.toPlainText().trim().isEmpty) {
@@ -163,73 +168,74 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage>
         'avatarUrl': _pendingAvatarUrlForDelete != null
             ? null
             : (doctorVm.selectedAvatarPath == null
-            ? widget.doctorDetail.avatarUrl
-            : '_pending_upload_'),
+                  ? widget.doctorDetail.avatarUrl
+                  : '_pending_upload_'),
         'portrait': _pendingPortraitUrlForDelete != null
             ? null
             : (doctorVm.selectedPortraitPath == null
-            ? widget.doctorDetail.portrait
-            : '_pending_upload_'),
+                  ? widget.doctorDetail.portrait
+                  : '_pending_upload_'),
       };
 
       if (data['avatarUrl'] == '_pending_upload_' &&
-          doctorVm.selectedAvatarPath == null) data.remove('avatarUrl');
+          doctorVm.selectedAvatarPath == null)
+        data.remove('avatarUrl');
       if (data['portrait'] == '_pending_upload_' &&
-          doctorVm.selectedPortraitPath == null) data.remove('portrait');
-
-      print("--- DEBUG: Data being SENT ---");
-      print(jsonEncode(data));
-      print("--- END DEBUG: Data being SENT ---");
+          doctorVm.selectedPortraitPath == null)
+        data.remove('portrait');
 
       late Future<bool> future;
 
       if (widget.isSelfEdit) {
-        print("--- DEBUG: Calling updateSelfProfile ---");
         future = doctorVm.updateSelfProfile(data);
       } else {
-        print("--- DEBUG: Calling updateDoctorProfile ---");
-        future =
-            doctorVm.updateDoctorProfile(widget.doctorDetail.profileId, data);
+        future = doctorVm.updateDoctorProfile(
+          widget.doctorDetail.profileId,
+          data,
+        );
       }
 
-      future.then((success) {
-        if (mounted) {
-          print("--- DEBUG: Save Future COMPLETED. Success: $success ---");
-          if (success) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                  backgroundColor: context.theme.green,
-                  content: Text(
-                      '${widget.isSelfEdit ? 'Cập nhật' : ('Cập nhật')} hồ sơ thành công')),
-            );
-            _pendingAvatarUrlForDelete = null;
-            _pendingPortraitUrlForDelete = null;
-            Navigator.pop(context, true);
-          } else {
-            print(
-                "--- DEBUG: Save FAILED. VM Error: ${doctorVm.error} | Upload Error: ${doctorVm.uploadError} ---");
-            if (doctorVm.error != null && doctorVm.uploadError == null) {
+      future
+          .then((success) {
+            if (mounted) {
+              if (success) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    backgroundColor: context.theme.green,
+                    content: Text(
+                      AppLocalizations.of(
+                        context,
+                      ).translate('update_profile_success'),
+                    ),
+                  ),
+                );
+                _pendingAvatarUrlForDelete = null;
+                _pendingPortraitUrlForDelete = null;
+                Navigator.pop(context, true);
+              } else {
+                if (doctorVm.error != null && doctorVm.uploadError == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      backgroundColor: context.theme.destructive,
+                      content: Text(doctorVm.error!),
+                    ),
+                  );
+                }
+              }
+            }
+          })
+          .catchError((error) {
+            if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                    backgroundColor: context.theme.destructive,
-                    content: Text(doctorVm.error!)),
+                  backgroundColor: context.theme.destructive,
+                  content: Text(
+                    '${AppLocalizations.of(context).translate('unknown_save_error')}: $error',
+                  ),
+                ),
               );
             }
-          }
-        }
-      }).catchError((error) {
-        if (mounted) {
-          print("--- DEBUG: Save Future ERRORED ---");
-          print(error.toString());
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                backgroundColor: context.theme.destructive,
-                content: Text('Lỗi không xác định khi lưu: $error')),
-          );
-        }
-      });
-    } else {
-      print("--- DEBUG: Form is INVALID ---");
+          });
     }
   }
 
@@ -238,25 +244,38 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage>
     final isOffline = context.watch<DoctorVm>().isOffline;
     final doctorVm = context.watch<DoctorVm>();
     final isProcessing =
-        doctorVm.isLoading || doctorVm.isUploadingAvatar || doctorVm.isUploadingPortrait;
+        doctorVm.isLoading ||
+        doctorVm.isUploadingAvatar ||
+        doctorVm.isUploadingPortrait;
 
     return Scaffold(
       appBar: AppBar(
         backgroundColor: context.theme.primary,
         iconTheme: IconThemeData(color: context.theme.primaryForeground),
         title: Text(
-          'Chỉnh sửa hồ sơ',
+          AppLocalizations.of(context).translate('edit_profile_title'),
           style: TextStyle(color: context.theme.primaryForeground),
         ),
         bottom: TabBar(
           controller: _tabController,
           labelColor: context.theme.primaryForeground,
-          unselectedLabelColor: context.theme.primaryForeground.withOpacity(0.7),
+          unselectedLabelColor: context.theme.primaryForeground.withOpacity(
+            0.7,
+          ),
           indicatorColor: context.theme.primaryForeground,
-          tabs: const [
-            Tab(text: 'Hồ sơ chính', icon: Icon(Icons.person_pin)),
-            Tab(text: 'Chi tiết', icon: Icon(Icons.article)),
-            Tab(text: 'Chuyên môn', icon: Icon(Icons.medical_services)),
+          tabs: [
+            Tab(
+              text: AppLocalizations.of(context).translate('main_profile_tab'),
+              icon: const Icon(Icons.person_pin),
+            ),
+            Tab(
+              text: AppLocalizations.of(context).translate('details_tab'),
+              icon: const Icon(Icons.article),
+            ),
+            Tab(
+              text: AppLocalizations.of(context).translate('specialty_tab'),
+              icon: const Icon(Icons.medical_services),
+            ),
           ],
         ),
       ),
@@ -277,20 +296,27 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage>
         key: const ValueKey('edit_profile_save_button'),
         onPressed: isProcessing || isOffline ? null : _saveProfile,
         tooltip: isOffline
-            ? 'Không thể lưu khi offline'
-            : (isProcessing ? 'Đang xử lý...' : 'Lưu hồ sơ'),
-        backgroundColor: isOffline ? context.theme.muted : context.theme.primary,
+            ? AppLocalizations.of(context).translate('offline_save_error')
+            : (isProcessing
+                  ? AppLocalizations.of(context).translate('saving_profile')
+                  : AppLocalizations.of(context).translate('save_profile')),
+        backgroundColor: isOffline
+            ? context.theme.muted
+            : context.theme.primary,
         icon: isProcessing
             ? SizedBox(
-          width: 20,
-          height: 20,
-          child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: context.theme.primaryForeground),
-        )
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: context.theme.primaryForeground,
+                ),
+              )
             : Icon(Icons.save, color: context.theme.primaryForeground),
         label: Text(
-          isProcessing ? 'Đang lưu...' : 'Lưu hồ sơ',
+          isProcessing
+              ? AppLocalizations.of(context).translate('saving_profile')
+              : AppLocalizations.of(context).translate('save_profile'),
           style: TextStyle(color: context.theme.primaryForeground),
         ),
       ),
@@ -307,14 +333,17 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage>
         _buildPortraitSelector(),
         const SizedBox(height: 24),
         _buildCard(
-          child: _buildTextField(_degreeController, 'Học vị (VD: ThS.BS)',
-              Icons.school,
-              isReadOnly: isOffline),
+          child: _buildTextField(
+            _degreeController,
+            AppLocalizations.of(context).translate('degree_label'),
+            Icons.school,
+            isReadOnly: isOffline,
+          ),
         ),
         const SizedBox(height: 16),
         _buildCard(
           child: QuillEditor(
-            label: "Giới thiệu",
+            label: AppLocalizations.of(context).translate('introduction_label'),
             controller: _introductionController,
             isReadOnly: isOffline,
           ),
@@ -322,7 +351,7 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage>
         const SizedBox(height: 16),
         _buildCard(
           child: QuillEditor(
-            label: "Nghiên cứu khoa học",
+            label: AppLocalizations.of(context).translate('research_label'),
             controller: _researchController,
             isReadOnly: isOffline,
           ),
@@ -340,42 +369,47 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage>
       children: [
         _buildCard(
           child: DynamicListInput(
-              label: 'Chức vụ',
-              items: _positions,
-              onChanged: (val) => setState(() => _positions = val),
-              isReadOnly: isOffline),
+            label: AppLocalizations.of(context).translate('position_label'),
+            items: _positions,
+            onChanged: (val) => setState(() => _positions = val),
+            isReadOnly: isOffline,
+          ),
         ),
         const SizedBox(height: 16),
         _buildCard(
           child: DynamicListInput(
-              label: 'Kinh nghiệm làm việc',
-              items: _experiences,
-              onChanged: (val) => setState(() => _experiences = val),
-              isReadOnly: isOffline),
+            label: AppLocalizations.of(context).translate('experience_label'),
+            items: _experiences,
+            onChanged: (val) => setState(() => _experiences = val),
+            isReadOnly: isOffline,
+          ),
         ),
         const SizedBox(height: 16),
         _buildCard(
           child: DynamicListInput(
-              label: 'Quá trình đào tạo',
-              items: _trainings,
-              onChanged: (val) => setState(() => _trainings = val),
-              isReadOnly: isOffline),
+            label: AppLocalizations.of(context).translate('training_label'),
+            items: _trainings,
+            onChanged: (val) => setState(() => _trainings = val),
+            isReadOnly: isOffline,
+          ),
         ),
         const SizedBox(height: 16),
         _buildCard(
           child: DynamicListInput(
-              label: 'Giải thưởng & Thành tích',
-              items: _awards,
-              onChanged: (val) => setState(() => _awards = val),
-              isReadOnly: isOffline),
+            label: AppLocalizations.of(context).translate('awards_label'),
+            items: _awards,
+            onChanged: (val) => setState(() => _awards = val),
+            isReadOnly: isOffline,
+          ),
         ),
         const SizedBox(height: 16),
         _buildCard(
           child: DynamicListInput(
-              label: 'Thành viên hiệp hội',
-              items: _memberships,
-              onChanged: (val) => setState(() => _memberships = val),
-              isReadOnly: isOffline),
+            label: AppLocalizations.of(context).translate('membership_label'),
+            items: _memberships,
+            onChanged: (val) => setState(() => _memberships = val),
+            isReadOnly: isOffline,
+          ),
         ),
         _buildErrorSnackbarListener(),
         const SizedBox(height: 80),
@@ -406,10 +440,7 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage>
         side: BorderSide(color: context.theme.border, width: 0.5),
       ),
       color: context.theme.card,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: child,
-      ),
+      child: Padding(padding: const EdgeInsets.all(16.0), child: child),
     );
   }
 
@@ -437,8 +468,11 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage>
                 backgroundColor: context.theme.muted.withOpacity(0.5),
                 backgroundImage: imageProvider,
                 child: imageProvider == null
-                    ? Icon(Icons.person_outline_rounded,
-                    size: 60, color: context.theme.mutedForeground)
+                    ? Icon(
+                        Icons.person_outline_rounded,
+                        size: 60,
+                        color: context.theme.mutedForeground,
+                      )
                     : null,
               ),
               if (isUploading)
@@ -450,10 +484,11 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage>
                     shape: BoxShape.circle,
                   ),
                   child: const Center(
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      )),
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
+                  ),
                 ),
               if (!isUploading)
                 Positioned(
@@ -464,26 +499,33 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage>
                     backgroundColor: context.theme.primary.withOpacity(0.9),
                     child: IconButton(
                       key: const ValueKey('edit_profile_avatar_picker'),
-                      icon: Icon(Icons.edit,
-                          color: context.theme.primaryForeground, size: 20),
+                      icon: Icon(
+                        Icons.edit,
+                        color: context.theme.primaryForeground,
+                        size: 20,
+                      ),
                       onPressed: isOffline
                           ? null
                           : () {
-                        print("--- DEBUG: pickAvatarImage CALLED ---");
-                        context.read<DoctorVm>().pickAvatarImage();
-                        setState(() {
-                          _pendingAvatarUrlForDelete = null;
-                        });
-                      },
+                              context.read<DoctorVm>().pickAvatarImage();
+                              setState(() {
+                                _pendingAvatarUrlForDelete = null;
+                              });
+                            },
                       tooltip: isOffline
-                          ? 'Không thể sửa khi offline'
-                          : 'Chọn ảnh đại diện',
+                          ? AppLocalizations.of(
+                              context,
+                            ).translate('offline_save_error')
+                          : AppLocalizations.of(
+                              context,
+                            ).translate('select_avatar'),
                     ),
                   ),
                 ),
               if (!isUploading &&
                   (selectedAvatarPath != null ||
-                      (currentAvatarUrl != null && currentAvatarUrl.isNotEmpty)))
+                      (currentAvatarUrl != null &&
+                          currentAvatarUrl.isNotEmpty)))
                 Positioned(
                   bottom: 0,
                   left: 0,
@@ -491,29 +533,31 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage>
                     radius: 20,
                     backgroundColor: context.theme.destructive.withOpacity(0.9),
                     child: IconButton(
-                      icon: Icon(Icons.delete_outline,
-                          color: context.theme.destructiveForeground, size: 20),
+                      icon: Icon(
+                        Icons.delete_outline,
+                        color: context.theme.destructiveForeground,
+                        size: 20,
+                      ),
                       onPressed: isOffline
                           ? null
                           : () {
-                        print("--- DEBUG: Deleting Avatar ---");
-                        setState(() {
-                          if (widget.doctorDetail.avatarUrl != null &&
-                              widget.doctorDetail.avatarUrl!.isNotEmpty) {
-                            _pendingAvatarUrlForDelete =
-                                widget.doctorDetail.avatarUrl;
-                            print(
-                                "--- DEBUG: Set _pendingAvatarUrlForDelete to: $_pendingAvatarUrlForDelete");
-                          }
-                          context.read<DoctorVm>().selectedAvatarPath =
-                          null;
-                          print(
-                              "--- DEBUG: Set selectedAvatarPath to null ---");
-                        });
-                      },
+                              setState(() {
+                                if (widget.doctorDetail.avatarUrl != null &&
+                                    widget.doctorDetail.avatarUrl!.isNotEmpty) {
+                                  _pendingAvatarUrlForDelete =
+                                      widget.doctorDetail.avatarUrl;
+                                }
+                                context.read<DoctorVm>().selectedAvatarPath =
+                                    null;
+                              });
+                            },
                       tooltip: isOffline
-                          ? 'Không thể sửa khi offline'
-                          : 'Xóa ảnh đại diện',
+                          ? AppLocalizations.of(
+                              context,
+                            ).translate('offline_save_error')
+                          : AppLocalizations.of(
+                              context,
+                            ).translate('remove_avatar'),
                     ),
                   ),
                 ),
@@ -529,7 +573,7 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "Ảnh bìa (Portrait)",
+          AppLocalizations.of(context).translate('portrait_label'),
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -547,8 +591,10 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage>
 
             Widget imageWidget;
             if (selectedPortraitPath != null) {
-              imageWidget =
-                  Image.file(File(selectedPortraitPath), fit: BoxFit.cover);
+              imageWidget = Image.file(
+                File(selectedPortraitPath),
+                fit: BoxFit.cover,
+              );
             } else if (currentPortraitUrl != null &&
                 currentPortraitUrl.isNotEmpty) {
               imageWidget = CachedNetworkImage(
@@ -556,15 +602,21 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage>
                 fit: BoxFit.cover,
                 placeholder: (context, url) =>
                     Container(color: context.theme.muted.withOpacity(0.3)),
-                errorWidget: (context, url, error) =>
-                    Icon(Icons.broken_image, color: context.theme.mutedForeground),
+                errorWidget: (context, url, error) => Icon(
+                  Icons.broken_image,
+                  color: context.theme.mutedForeground,
+                ),
               );
             } else {
               imageWidget = Container(
                 color: context.theme.muted.withOpacity(0.3),
                 child: Center(
-                    child: Icon(Icons.image_outlined,
-                        size: 50, color: context.theme.mutedForeground)),
+                  child: Icon(
+                    Icons.image_outlined,
+                    size: 50,
+                    color: context.theme.mutedForeground,
+                  ),
+                ),
               );
             }
 
@@ -589,83 +641,93 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage>
                           color: Colors.black.withOpacity(0.5),
                         ),
                         child: const Center(
-                            child: CircularProgressIndicator(
-                                color: Colors.white, strokeWidth: 2)),
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        ),
                       ),
                     if (!isUploading)
                       Positioned(
-                          bottom: 8,
-                          right: 8,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (selectedPortraitPath != null ||
-                                  (currentPortraitUrl != null &&
-                                      currentPortraitUrl.isNotEmpty))
-                                CircleAvatar(
-                                  radius: 18,
-                                  backgroundColor: context.theme.destructive
-                                      .withOpacity(0.8),
-                                  child: IconButton(
-                                    icon: Icon(Icons.delete_outline,
-                                        color:
-                                        context.theme.destructiveForeground,
-                                        size: 18),
-                                    onPressed: isOffline
-                                        ? null
-                                        : () {
-                                      print(
-                                          "--- DEBUG: Deleting Portrait ---");
-                                      setState(() {
-                                        if (widget.doctorDetail.portrait !=
-                                            null &&
-                                            widget.doctorDetail.portrait!
-                                                .isNotEmpty) {
-                                          _pendingPortraitUrlForDelete =
-                                              widget.doctorDetail.portrait;
-                                          print(
-                                              "--- DEBUG: Set _pendingPortraitUrlForDelete to: $_pendingPortraitUrlForDelete");
-                                        }
-                                        context
-                                            .read<DoctorVm>()
-                                            .selectedPortraitPath = null;
-                                        print(
-                                            "--- DEBUG: Set selectedPortraitPath to null ---");
-                                      });
-                                    },
-                                    tooltip: isOffline
-                                        ? 'Không thể sửa khi offline'
-                                        : 'Xóa ảnh bìa',
-                                  ),
-                                ),
-                              const SizedBox(width: 8),
+                        bottom: 8,
+                        right: 8,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (selectedPortraitPath != null ||
+                                (currentPortraitUrl != null &&
+                                    currentPortraitUrl.isNotEmpty))
                               CircleAvatar(
                                 radius: 18,
-                                backgroundColor:
-                                context.theme.primary.withOpacity(0.8),
+                                backgroundColor: context.theme.destructive
+                                    .withOpacity(0.8),
                                 child: IconButton(
-                                  icon: Icon(Icons.edit,
-                                      color: context.theme.primaryForeground,
-                                      size: 18),
+                                  icon: Icon(
+                                    Icons.delete_outline,
+                                    color: context.theme.destructiveForeground,
+                                    size: 18,
+                                  ),
                                   onPressed: isOffline
                                       ? null
                                       : () {
-                                    print(
-                                        "--- DEBUG: pickPortraitImage CALLED ---");
-                                    context
-                                        .read<DoctorVm>()
-                                        .pickPortraitImage();
-                                    setState(() {
-                                      _pendingPortraitUrlForDelete = null;
-                                    });
-                                  },
+                                          setState(() {
+                                            if (widget.doctorDetail.portrait !=
+                                                    null &&
+                                                widget
+                                                    .doctorDetail
+                                                    .portrait!
+                                                    .isNotEmpty) {
+                                              _pendingPortraitUrlForDelete =
+                                                  widget.doctorDetail.portrait;
+                                            }
+                                            context
+                                                    .read<DoctorVm>()
+                                                    .selectedPortraitPath =
+                                                null;
+                                          });
+                                        },
                                   tooltip: isOffline
-                                      ? 'Không thể sửa khi offline'
-                                      : 'Chọn ảnh bìa mới',
+                                      ? AppLocalizations.of(
+                                          context,
+                                        ).translate('offline_save_error')
+                                      : AppLocalizations.of(
+                                          context,
+                                        ).translate('remove_portrait'),
                                 ),
                               ),
-                            ],
-                          )),
+                            const SizedBox(width: 8),
+                            CircleAvatar(
+                              radius: 18,
+                              backgroundColor: context.theme.primary
+                                  .withOpacity(0.8),
+                              child: IconButton(
+                                icon: Icon(
+                                  Icons.edit,
+                                  color: context.theme.primaryForeground,
+                                  size: 18,
+                                ),
+                                onPressed: isOffline
+                                    ? null
+                                    : () {
+                                        context
+                                            .read<DoctorVm>()
+                                            .pickPortraitImage();
+                                        setState(() {
+                                          _pendingPortraitUrlForDelete = null;
+                                        });
+                                      },
+                                tooltip: isOffline
+                                    ? AppLocalizations.of(
+                                        context,
+                                      ).translate('offline_save_error')
+                                    : AppLocalizations.of(
+                                        context,
+                                      ).translate('select_portrait'),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                   ],
                 ),
               ),
@@ -677,8 +739,11 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage>
   }
 
   Widget _buildTextField(
-      TextEditingController controller, String label, IconData icon,
-      {bool isReadOnly = false}) {
+    TextEditingController controller,
+    String label,
+    IconData icon, {
+    bool isReadOnly = false,
+  }) {
     return TextFormField(
       controller: controller,
       readOnly: isReadOnly,
@@ -715,28 +780,26 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage>
     return Consumer<SpecialtyVm>(
       builder: (context, specialtyVm, child) {
         if (specialtyVm.isLoadingAll) {
-          return const Center(
+          return Center(
             child: Padding(
-              padding: EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 8),
-                  Text("Đang tải danh sách chuyên khoa..."),
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 8),
+                  Text(
+                    AppLocalizations.of(
+                      context,
+                    ).translate('loading_specialties'),
+                  ),
                 ],
               ),
             ),
           );
         }
 
-        print("--- DEBUG: _buildMultiSelectSpecialties ---");
-        print(
-            "--- All Specialties from VM: ${specialtyVm.allSpecialties.length} ---");
-        print(
-            "--- Initial Selected Specialties: ${_selectedSpecialties.length} ---");
-
         return MultiSelectChipField<Specialty>(
-          label: 'Chuyên khoa',
+          label: AppLocalizations.of(context).translate('specialty_label'),
           allItems: specialtyVm.allSpecialties,
           initialSelectedItems: _selectedSpecialties,
           itemName: (specialty) => specialty.name,
@@ -755,27 +818,24 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage>
     return Consumer<LocationWorkVm>(
       builder: (context, locationVm, child) {
         if (locationVm.isLoading) {
-          return const Center(
+          return Center(
             child: Padding(
-              padding: EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 8),
-                  Text("Đang tải danh sách địa điểm..."),
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 8),
+                  Text(
+                    AppLocalizations.of(context).translate('loading_locations'),
+                  ),
                 ],
               ),
             ),
           );
         }
 
-        print("--- DEBUG: _buildMultiSelectLocations ---");
-        print("--- All Locations from VM: ${locationVm.locations.length} ---");
-        print(
-            "--- Initial Selected Locations: ${_selectedWorkLocations.length} ---");
-
         return MultiSelectChipField<WorkLocation>(
-          label: 'Nơi công tác',
+          label: AppLocalizations.of(context).translate('work_location_label'),
           allItems: locationVm.locations,
           initialSelectedItems: _selectedWorkLocations,
           itemName: (location) => location.name,
@@ -796,16 +856,13 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage>
         if (vm.uploadError != null) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content: Text(vm.uploadError!),
-                backgroundColor: context.theme.destructive,
-                duration: const Duration(seconds: 5),
-                action: SnackBarAction(
-                  label: 'Đã hiểu',
-                  textColor: context.theme.destructiveForeground,
-                  onPressed: () => vm.clearUploadError(),
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(vm.uploadError!),
+                  backgroundColor: context.theme.destructive,
                 ),
-              ));
+              );
+              vm.clearUploadError();
             }
           });
         }

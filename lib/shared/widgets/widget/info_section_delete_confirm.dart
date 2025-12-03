@@ -1,10 +1,10 @@
-
 import 'package:flutter/material.dart';
 import 'package:pbl6mobile/model/entities/info_section.dart';
 import 'package:pbl6mobile/view_model/specialty/specialty_vm.dart';
 import 'package:provider/provider.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import '../../../view_model/location_work_management/snackbar_service.dart';
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 
 class DeleteInfoSectionConfirmationDialog extends StatefulWidget {
   final InfoSection infoSection;
@@ -41,7 +41,9 @@ class _DeleteInfoSectionConfirmationDialogState
     final password = _passwordController.text.trim();
     if (password.isEmpty) {
       setState(() {
-        _apiErrorMessage = 'Vui lòng nhập mật khẩu.';
+        _apiErrorMessage = AppLocalizations.of(
+          context,
+        ).translate('password_required');
       });
       return;
     }
@@ -63,10 +65,14 @@ class _DeleteInfoSectionConfirmationDialogState
       if (success) {
         Navigator.of(context).pop();
         widget.onDeleteSuccess();
-        widget.snackbarService.showSuccess('Xóa phần thông tin thành công!');
+        widget.snackbarService.showSuccess(
+          AppLocalizations.of(context).translate('delete_info_section_success'),
+        );
       } else {
         setState(() {
-          _apiErrorMessage = 'Xóa thất bại. Kiểm tra mật khẩu hoặc thử lại.';
+          _apiErrorMessage = AppLocalizations.of(
+            context,
+          ).translate('delete_failed');
         });
       }
     }
@@ -77,14 +83,16 @@ class _DeleteInfoSectionConfirmationDialogState
     return AlertDialog(
       backgroundColor: context.theme.popover,
       title: Text(
-        'Xác nhận xóa',
+        AppLocalizations.of(
+          context,
+        ).translate('confirm_delete_specialty_title'),
         style: TextStyle(color: context.theme.popoverForeground),
       ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'Bạn có chắc chắn muốn xóa: ${widget.infoSection.name}?',
+            '${AppLocalizations.of(context).translate('confirm_delete_info_section_message')}: ${widget.infoSection.name}?',
             style: TextStyle(color: context.theme.popoverForeground),
           ),
           const SizedBox(height: 16),
@@ -93,7 +101,9 @@ class _DeleteInfoSectionConfirmationDialogState
             obscureText: true,
             style: TextStyle(color: context.theme.textColor),
             decoration: InputDecoration(
-              labelText: 'Nhập mật khẩu của bạn',
+              labelText: AppLocalizations.of(
+                context,
+              ).translate('enter_password_confirm'),
               labelStyle: TextStyle(color: context.theme.mutedForeground),
               border: OutlineInputBorder(
                 borderSide: BorderSide(color: context.theme.border),
@@ -113,26 +123,30 @@ class _DeleteInfoSectionConfirmationDialogState
               _apiErrorMessage!,
               style: TextStyle(color: context.theme.destructive, fontSize: 12),
             ),
-          ]
+          ],
         ],
       ),
       actions: [
         TextButton(
           onPressed: _isDeleting ? null : () => Navigator.pop(context),
-          child:
-          Text('Hủy', style: TextStyle(color: context.theme.mutedForeground)),
+          child: Text(
+            AppLocalizations.of(context).translate('cancel'),
+            style: TextStyle(color: context.theme.mutedForeground),
+          ),
         ),
         _isDeleting
             ? const SizedBox(
-          width: 24,
-          height: 24,
-          child: CircularProgressIndicator(strokeWidth: 2),
-        )
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
             : TextButton(
-          onPressed: _confirmDelete,
-          child: Text('Xóa',
-              style: TextStyle(color: context.theme.destructive)),
-        ),
+                onPressed: _confirmDelete,
+                child: Text(
+                  AppLocalizations.of(context).translate('delete'),
+                  style: TextStyle(color: context.theme.destructive),
+                ),
+              ),
       ],
     );
   }

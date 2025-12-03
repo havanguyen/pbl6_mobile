@@ -7,6 +7,8 @@ import 'package:pbl6mobile/view/setting/office_hours/office_hours_page.dart';
 
 import '../../../shared/themes/cubit/theme_cubit.dart';
 import '../../../shared/widgets/widget/logout_confirm_dialog.dart';
+import '../../../shared/localization/app_localizations.dart';
+import '../../../shared/widgets/language_switcher.dart';
 
 class SettingSupperAdminPage extends StatelessWidget {
   const SettingSupperAdminPage({super.key});
@@ -26,7 +28,7 @@ class SettingSupperAdminPage extends StatelessWidget {
           },
         ),
         title: Text(
-          'Cài đặt',
+          AppLocalizations.of(context).translate('settings'),
           style: TextStyle(
             color: context.theme.white,
             fontWeight: FontWeight.bold,
@@ -44,7 +46,7 @@ class SettingSupperAdminPage extends StatelessWidget {
               size: 28,
             ),
             title: Text(
-              'Thông tin cá nhân',
+              AppLocalizations.of(context).translate('personal_information'),
               style: TextStyle(fontSize: 16, color: context.theme.textColor),
             ),
             onTap: () {
@@ -65,7 +67,7 @@ class SettingSupperAdminPage extends StatelessWidget {
               size: 28,
             ),
             title: Text(
-              'Quản lý phân quyền',
+              AppLocalizations.of(context).translate('permission_management'),
               style: TextStyle(fontSize: 16, color: context.theme.textColor),
             ),
             onTap: () {
@@ -81,7 +83,7 @@ class SettingSupperAdminPage extends StatelessWidget {
               size: 28,
             ),
             title: Text(
-              'Quản lý chuyên khoa',
+              AppLocalizations.of(context).translate('specialty_management'),
               style: TextStyle(fontSize: 16, color: context.theme.textColor),
             ),
             onTap: () {
@@ -97,7 +99,7 @@ class SettingSupperAdminPage extends StatelessWidget {
               size: 28,
             ),
             title: Text(
-              'Quản lý địa điểm khám',
+              AppLocalizations.of(context).translate('location_management'),
               style: TextStyle(fontSize: 16, color: context.theme.textColor),
             ),
             onTap: () {
@@ -113,7 +115,7 @@ class SettingSupperAdminPage extends StatelessWidget {
               size: 28,
             ),
             title: Text(
-              'Quản lý giờ làm việc',
+              AppLocalizations.of(context).translate('office_hours_management'),
               style: TextStyle(fontSize: 16, color: context.theme.textColor),
             ),
             onTap: () {
@@ -134,7 +136,7 @@ class SettingSupperAdminPage extends StatelessWidget {
               size: 28,
             ),
             title: Text(
-              'Quản lý bệnh nhân',
+              AppLocalizations.of(context).translate('patient_management'),
               style: TextStyle(fontSize: 16, color: context.theme.textColor),
             ),
             onTap: () {
@@ -150,7 +152,7 @@ class SettingSupperAdminPage extends StatelessWidget {
               size: 28,
             ),
             title: Text(
-              'Đổi mật khẩu',
+              AppLocalizations.of(context).translate('change_password'),
               style: TextStyle(fontSize: 16, color: context.theme.textColor),
             ),
             onTap: () {
@@ -165,7 +167,7 @@ class SettingSupperAdminPage extends StatelessWidget {
               size: 28,
             ),
             title: Text(
-              'Chủ đề (Theme)',
+              AppLocalizations.of(context).translate('theme'),
               style: TextStyle(fontSize: 16, color: context.theme.textColor),
             ),
             trailing: DropdownButton<ThemeMode>(
@@ -177,21 +179,21 @@ class SettingSupperAdminPage extends StatelessWidget {
                 DropdownMenuItem(
                   value: ThemeMode.light,
                   child: Text(
-                    'Light',
+                    AppLocalizations.of(context).translate('light_mode'),
                     style: TextStyle(color: context.theme.textColor),
                   ),
                 ),
                 DropdownMenuItem(
                   value: ThemeMode.dark,
                   child: Text(
-                    'Dark',
+                    AppLocalizations.of(context).translate('dark_mode'),
                     style: TextStyle(color: context.theme.textColor),
                   ),
                 ),
                 DropdownMenuItem(
                   value: ThemeMode.system,
                   child: Text(
-                    'System',
+                    AppLocalizations.of(context).translate('system_mode'),
                     style: TextStyle(color: context.theme.textColor),
                   ),
                 ),
@@ -205,6 +207,15 @@ class SettingSupperAdminPage extends StatelessWidget {
           ),
           const Divider(height: 1, color: Colors.grey),
           ListTile(
+            leading: Icon(Icons.language, color: context.theme.blue, size: 28),
+            title: Text(
+              AppLocalizations.of(context).translate('language'),
+              style: TextStyle(fontSize: 16, color: context.theme.textColor),
+            ),
+            trailing: const LanguageSwitcher(),
+          ),
+          const Divider(height: 1, color: Colors.grey),
+          ListTile(
             key: const ValueKey('settings_page_logout_button'),
             leading: Icon(
               Icons.logout,
@@ -212,7 +223,7 @@ class SettingSupperAdminPage extends StatelessWidget {
               size: 28,
             ),
             title: Text(
-              'Đăng xuất',
+              AppLocalizations.of(context).translate('logout'),
               style: TextStyle(fontSize: 16, color: context.theme.destructive),
             ),
             onTap: () {

@@ -7,6 +7,7 @@ import 'package:pbl6mobile/model/entities/work_location.dart';
 import 'package:pbl6mobile/view/appointment/widgets/appointment_scheduler.dart';
 import 'package:pbl6mobile/view_model/appointment/create_appointment_vm.dart';
 import 'package:provider/provider.dart';
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 
 class CreateAppointmentPage extends StatefulWidget {
   const CreateAppointmentPage({super.key});
@@ -36,29 +37,31 @@ class _BodyState extends State<_Body> {
   int _currentStep = 0;
   final _formKey = GlobalKey<FormState>();
 
-  final List<String> _steps = [
-    'Bệnh nhân',
-    'Dịch vụ',
-    'Lịch hẹn',
-    'Chi tiết',
-    'Xác nhận',
-  ];
-
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<CreateAppointmentVm>();
     final theme = Theme.of(context);
 
+    final List<String> steps = [
+      AppLocalizations.of(context).translate('step_patient'),
+      AppLocalizations.of(context).translate('step_service'),
+      AppLocalizations.of(context).translate('step_schedule'),
+      AppLocalizations.of(context).translate('step_details'),
+      AppLocalizations.of(context).translate('step_confirm'),
+    ];
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tạo lịch hẹn mới'),
+        title: Text(
+          AppLocalizations.of(context).translate('create_appointment_title'),
+        ),
         elevation: 0,
         centerTitle: true,
       ),
       body: Column(
         children: [
           // Custom Step Indicator
-          _buildStepIndicator(theme),
+          _buildStepIndicator(theme, steps),
 
           Expanded(
             child: Form(
@@ -77,12 +80,12 @@ class _BodyState extends State<_Body> {
     );
   }
 
-  Widget _buildStepIndicator(ThemeData theme) {
+  Widget _buildStepIndicator(ThemeData theme, List<String> steps) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
       color: Colors.white,
       child: Row(
-        children: List.generate(_steps.length, (index) {
+        children: List.generate(steps.length, (index) {
           final isCompleted = index < _currentStep;
           final isCurrent = index == _currentStep;
 
@@ -138,7 +141,7 @@ class _BodyState extends State<_Body> {
                     Expanded(
                       child: Container(
                         height: 2,
-                        color: index == _steps.length - 1
+                        color: index == steps.length - 1
                             ? Colors.transparent
                             : (index < _currentStep
                                   ? theme.primaryColor
@@ -149,7 +152,7 @@ class _BodyState extends State<_Body> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  _steps[index],
+                  steps[index],
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
@@ -211,7 +214,7 @@ class _BodyState extends State<_Body> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text('Quay lại'),
+                child: Text(AppLocalizations.of(context).translate('back')),
               ),
             ),
           if (_currentStep > 0) const SizedBox(width: 16),
@@ -235,7 +238,15 @@ class _BodyState extends State<_Body> {
                         color: Colors.white,
                       ),
                     )
-                  : Text(_currentStep == 4 ? 'Xác nhận đặt lịch' : 'Tiếp tục'),
+                  : Text(
+                      _currentStep == 4
+                          ? AppLocalizations.of(
+                              context,
+                            ).translate('confirm_booking')
+                          : AppLocalizations.of(
+                              context,
+                            ).translate('continue_step'),
+                    ),
             ),
           ),
         ],
@@ -250,17 +261,23 @@ class _BodyState extends State<_Body> {
       bool isValid = true;
       if (_currentStep == 0 && vm.selectedPatient == null) {
         isValid = false;
-        _showError('Vui lòng chọn bệnh nhân');
+        _showError(
+          AppLocalizations.of(context).translate('error_select_patient'),
+        );
       } else if (_currentStep == 1) {
         if (vm.selectedLocation == null ||
             vm.selectedSpecialty == null ||
             vm.selectedDoctor == null) {
           isValid = false;
-          _showError('Vui lòng chọn đầy đủ thông tin dịch vụ');
+          _showError(
+            AppLocalizations.of(context).translate('error_select_service_info'),
+          );
         }
       } else if (_currentStep == 2 && vm.selectedSlot == null) {
         isValid = false;
-        _showError('Vui lòng chọn ngày và giờ hẹn');
+        _showError(
+          AppLocalizations.of(context).translate('error_select_datetime'),
+        );
       }
 
       if (isValid) {
@@ -275,9 +292,9 @@ class _BodyState extends State<_Body> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Tìm kiếm và chọn bệnh nhân',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        Text(
+          AppLocalizations.of(context).translate('search_select_patient'),
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 16),
         Autocomplete<Patient>(
@@ -300,7 +317,9 @@ class _BodyState extends State<_Body> {
                   focusNode: focusNode,
                   onEditingComplete: onEditingComplete,
                   decoration: InputDecoration(
-                    labelText: 'Nhập tên, email hoặc SĐT',
+                    labelText: AppLocalizations.of(
+                      context,
+                    ).translate('search_patient_hint'),
                     prefixIcon: const Icon(Icons.search),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -356,11 +375,13 @@ class _BodyState extends State<_Body> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        vm.selectedPatient!.email ?? 'Không có email',
+                        vm.selectedPatient!.email ??
+                            AppLocalizations.of(context).translate('no_email'),
                         style: TextStyle(color: Colors.grey[600]),
                       ),
                       Text(
-                        vm.selectedPatient!.phone ?? 'Không có SĐT',
+                        vm.selectedPatient!.phone ??
+                            AppLocalizations.of(context).translate('no_phone'),
                         style: TextStyle(color: Colors.grey[600]),
                       ),
                     ],
@@ -384,13 +405,13 @@ class _BodyState extends State<_Body> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Thông tin dịch vụ',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        Text(
+          AppLocalizations.of(context).translate('service_info'),
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 16),
         _buildDropdown<WorkLocation>(
-          label: 'Địa điểm',
+          label: AppLocalizations.of(context).translate('location'),
           value: vm.selectedLocation,
           items: vm.locations,
           itemLabel: (item) => item.name,
@@ -399,7 +420,7 @@ class _BodyState extends State<_Body> {
         ),
         const SizedBox(height: 16),
         _buildDropdown<Specialty>(
-          label: 'Chuyên khoa',
+          label: AppLocalizations.of(context).translate('specialty'),
           value: vm.selectedSpecialty,
           items: vm.allSpecialties,
           itemLabel: (item) => item.name,
@@ -408,7 +429,7 @@ class _BodyState extends State<_Body> {
         ),
         const SizedBox(height: 16),
         _buildDropdown<Doctor>(
-          label: 'Bác sĩ',
+          label: AppLocalizations.of(context).translate('doctor'),
           value: vm.selectedDoctor,
           items: vm.doctors,
           itemLabel: (item) => item.fullName,
@@ -417,7 +438,9 @@ class _BodyState extends State<_Body> {
               ? vm.selectDoctor
               : null,
           icon: Icons.medical_services_outlined,
-          hint: vm.isLoadingDoctors ? 'Đang tải danh sách...' : 'Chọn bác sĩ',
+          hint: vm.isLoadingDoctors
+              ? AppLocalizations.of(context).translate('loading_list')
+              : AppLocalizations.of(context).translate('select_doctor'),
         ),
         if (vm.selectedDoctor != null) ...[
           const SizedBox(height: 24),
@@ -462,7 +485,8 @@ class _BodyState extends State<_Body> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        vm.selectedSpecialty?.name ?? 'Chuyên khoa',
+                        vm.selectedSpecialty?.name ??
+                            AppLocalizations.of(context).translate('specialty'),
                         style: TextStyle(
                           color: theme.primaryColor,
                           fontWeight: FontWeight.w500,
@@ -483,9 +507,9 @@ class _BodyState extends State<_Body> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Chọn thời gian',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        Text(
+          AppLocalizations.of(context).translate('select_time'),
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 16),
         AppointmentScheduler(
@@ -514,7 +538,7 @@ class _BodyState extends State<_Body> {
                 const Icon(Icons.check_circle, color: Colors.green, size: 20),
                 const SizedBox(width: 8),
                 Text(
-                  'Đã chọn: ${vm.selectedSlot!.timeStart} - ${DateFormat('dd/MM/yyyy').format(vm.selectedDate!)}',
+                  '${AppLocalizations.of(context).translate('selected_slot')}${vm.selectedSlot!.timeStart} - ${DateFormat('dd/MM/yyyy').format(vm.selectedDate!)}',
                   style: const TextStyle(
                     color: Colors.green,
                     fontWeight: FontWeight.bold,
@@ -532,14 +556,16 @@ class _BodyState extends State<_Body> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Thông tin chi tiết',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        Text(
+          AppLocalizations.of(context).translate('details_info'),
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 16),
         TextFormField(
           decoration: InputDecoration(
-            labelText: 'Lý do khám',
+            labelText: AppLocalizations.of(
+              context,
+            ).translate('reason_for_visit'),
             prefixIcon: const Icon(Icons.assignment_outlined),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
           ),
@@ -548,7 +574,9 @@ class _BodyState extends State<_Body> {
         const SizedBox(height: 16),
         TextFormField(
           decoration: InputDecoration(
-            labelText: 'Ghi chú thêm',
+            labelText: AppLocalizations.of(
+              context,
+            ).translate('additional_notes'),
             prefixIcon: const Icon(Icons.note_alt_outlined),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
           ),
@@ -562,7 +590,9 @@ class _BodyState extends State<_Body> {
               flex: 2,
               child: TextFormField(
                 decoration: InputDecoration(
-                  labelText: 'Giá khám',
+                  labelText: AppLocalizations.of(
+                    context,
+                  ).translate('examination_price'),
                   prefixIcon: const Icon(Icons.attach_money),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -579,7 +609,7 @@ class _BodyState extends State<_Body> {
               flex: 1,
               child: DropdownButtonFormField<String>(
                 decoration: InputDecoration(
-                  labelText: 'Tiền tệ',
+                  labelText: AppLocalizations.of(context).translate('currency'),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -604,9 +634,9 @@ class _BodyState extends State<_Body> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Xác nhận thông tin',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        Text(
+          AppLocalizations.of(context).translate('confirm_info'),
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 16),
         Container(
@@ -625,14 +655,26 @@ class _BodyState extends State<_Body> {
           ),
           child: Column(
             children: [
-              _buildReviewRow('Bệnh nhân', vm.selectedPatient?.fullName ?? ''),
-              const Divider(height: 24),
-              _buildReviewRow('Bác sĩ', vm.selectedDoctor?.fullName ?? ''),
-              _buildReviewRow('Chuyên khoa', vm.selectedSpecialty?.name ?? ''),
-              _buildReviewRow('Địa điểm', vm.selectedLocation?.name ?? ''),
+              _buildReviewRow(
+                AppLocalizations.of(context).translate('step_patient'),
+                vm.selectedPatient?.fullName ?? '',
+              ),
               const Divider(height: 24),
               _buildReviewRow(
-                'Thời gian',
+                AppLocalizations.of(context).translate('doctor'),
+                vm.selectedDoctor?.fullName ?? '',
+              ),
+              _buildReviewRow(
+                AppLocalizations.of(context).translate('specialty'),
+                vm.selectedSpecialty?.name ?? '',
+              ),
+              _buildReviewRow(
+                AppLocalizations.of(context).translate('location'),
+                vm.selectedLocation?.name ?? '',
+              ),
+              const Divider(height: 24),
+              _buildReviewRow(
+                AppLocalizations.of(context).translate('time'),
                 vm.selectedSlot != null
                     ? '${vm.selectedSlot!.timeStart} - ${DateFormat('dd/MM/yyyy').format(vm.selectedDate!)}'
                     : '',
@@ -640,18 +682,22 @@ class _BodyState extends State<_Body> {
               ),
               const Divider(height: 24),
               _buildReviewRow(
-                'Lý do',
-                vm.reason.isEmpty ? 'Không có' : vm.reason,
+                AppLocalizations.of(context).translate('reason'),
+                vm.reason.isEmpty
+                    ? AppLocalizations.of(context).translate('none')
+                    : vm.reason,
               ),
               _buildReviewRow(
-                'Ghi chú',
-                vm.notes.isEmpty ? 'Không có' : vm.notes,
+                AppLocalizations.of(context).translate('notes'),
+                vm.notes.isEmpty
+                    ? AppLocalizations.of(context).translate('none')
+                    : vm.notes,
               ),
               _buildReviewRow(
-                'Giá',
+                AppLocalizations.of(context).translate('price'),
                 vm.priceAmount != null
                     ? '${vm.priceAmount} ${vm.currency}'
-                    : 'Chưa nhập',
+                    : AppLocalizations.of(context).translate('not_entered'),
               ),
             ],
           ),
@@ -738,8 +784,10 @@ class _BodyState extends State<_Body> {
     if (success && mounted) {
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Đặt lịch thành công!'),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context).translate('booking_success'),
+          ),
           backgroundColor: Colors.green,
         ),
       );

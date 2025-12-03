@@ -8,6 +8,7 @@ import 'package:pbl6mobile/shared/services/store.dart';
 import 'package:pbl6mobile/view_model/location_work_management/snackbar_service.dart';
 import 'package:pbl6mobile/view_model/question/question_vm.dart';
 import 'package:provider/provider.dart';
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 
 class QuestionDetailPage extends StatefulWidget {
   final String questionId;
@@ -54,24 +55,22 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
     vm.error = null;
     vm.isLoading = true;
 
-
     vm.fetchQuestionDetail(widget.questionId).then((_) {
-
       if (vm.currentQuestion != null && !vm.isOffline) {
         vm.fetchAnswers(widget.questionId);
       } else {
-
         if (vm.isLoading) {
           vm.isLoading = false;
-
         }
       }
     });
   }
 
   void _showDeleteAnswerDialog(Answer answer) {
-    final snackbarService =
-    Provider.of<SnackbarService>(context, listen: false);
+    final snackbarService = Provider.of<SnackbarService>(
+      context,
+      listen: false,
+    );
     final questionVm = Provider.of<QuestionVm>(context, listen: false);
 
     showDialog(
@@ -85,19 +84,22 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
             Icon(Icons.warning_amber_rounded, color: context.theme.destructive),
             const SizedBox(width: 10),
             Text(
-              'Xác nhận xóa',
+              AppLocalizations.of(context).translate('confirm_delete'),
               style: TextStyle(color: context.theme.textColor),
             ),
           ],
         ),
         content: Text(
-          'Bạn có chắc chắn muốn xóa câu trả lời này không?',
+          AppLocalizations.of(context).translate('confirm_delete_answer'),
           style: TextStyle(color: context.theme.mutedForeground),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Hủy', style: TextStyle(color: context.theme.grey)),
+            child: Text(
+              AppLocalizations.of(context).translate('cancel'),
+              style: TextStyle(color: context.theme.grey),
+            ),
           ),
           TextButton(
             onPressed: () async {
@@ -105,15 +107,25 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
               final success = await questionVm.deleteAnswer(answer.id);
               if (mounted) {
                 if (success) {
-                  snackbarService.showSuccess('Đã xóa câu trả lời');
+                  snackbarService.showSuccess(
+                    AppLocalizations.of(
+                      context,
+                    ).translate('delete_answer_success'),
+                  );
                 } else {
                   snackbarService.showError(
-                      questionVm.error ?? 'Xóa câu trả lời thất bại');
+                    questionVm.error ??
+                        AppLocalizations.of(
+                          context,
+                        ).translate('delete_answer_failed'),
+                  );
                 }
               }
             },
-            child:
-            Text('Xóa', style: TextStyle(color: context.theme.destructive)),
+            child: Text(
+              AppLocalizations.of(context).translate('delete'),
+              style: TextStyle(color: context.theme.destructive),
+            ),
           ),
         ],
       ),
@@ -121,26 +133,33 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
   }
 
   void _acceptAnswer(Answer answer) async {
-    final snackbarService =
-    Provider.of<SnackbarService>(context, listen: false);
+    final snackbarService = Provider.of<SnackbarService>(
+      context,
+      listen: false,
+    );
     final questionVm = Provider.of<QuestionVm>(context, listen: false);
 
     final success = await questionVm.acceptAnswer(answer.id);
     if (mounted) {
       if (success) {
-        snackbarService.showSuccess('Đã duyệt câu trả lời');
+        snackbarService.showSuccess(
+          AppLocalizations.of(context).translate('approve_answer_success'),
+        );
       } else {
-        snackbarService
-            .showError(questionVm.error ?? 'Duyệt câu trả lời thất bại');
+        snackbarService.showError(
+          questionVm.error ??
+              AppLocalizations.of(context).translate('approve_answer_failed'),
+        );
       }
     }
-
   }
 
   void _showPostAnswerDialog() {
     final questionVm = Provider.of<QuestionVm>(context, listen: false);
-    final snackbarService =
-    Provider.of<SnackbarService>(context, listen: false);
+    final snackbarService = Provider.of<SnackbarService>(
+      context,
+      listen: false,
+    );
     final TextEditingController answerController = TextEditingController();
     final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
@@ -149,28 +168,36 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
       builder: (context) {
         return AlertDialog(
           backgroundColor: context.theme.card,
-          title: Text('Gửi câu trả lời', style: TextStyle(color: context.theme.textColor)),
+          title: Text(
+            AppLocalizations.of(context).translate('submit_answer_title'),
+            style: TextStyle(color: context.theme.textColor),
+          ),
           content: Form(
             key: formKey,
             child: TextFormField(
               key: const ValueKey('answer_quill_editor'),
               controller: answerController,
               decoration: InputDecoration(
-                hintText: 'Nhập câu trả lời của bạn...',
+                hintText: AppLocalizations.of(context).translate('answer_hint'),
                 hintStyle: TextStyle(color: context.theme.mutedForeground),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
               style: TextStyle(color: context.theme.textColor),
               maxLines: 5,
               validator: (value) => (value == null || value.trim().isEmpty)
-                  ? 'Nội dung không được để trống'
+                  ? AppLocalizations.of(context).translate('content_required')
                   : null,
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('Hủy', style: TextStyle(color: context.theme.grey)),
+              child: Text(
+                AppLocalizations.of(context).translate('cancel'),
+                style: TextStyle(color: context.theme.grey),
+              ),
             ),
             ElevatedButton(
               key: const ValueKey('submit_answer_button'),
@@ -187,15 +214,23 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                   );
                   if (mounted) {
                     if (success) {
-                      snackbarService.showSuccess('Đã gửi câu trả lời');
+                      snackbarService.showSuccess(
+                        AppLocalizations.of(
+                          context,
+                        ).translate('submit_answer_success'),
+                      );
                     } else {
                       snackbarService.showError(
-                          questionVm.error ?? 'Gửi câu trả lời thất bại');
+                        questionVm.error ??
+                            AppLocalizations.of(
+                              context,
+                            ).translate('submit_answer_failed'),
+                      );
                     }
                   }
                 }
               },
-              child: const Text('Gửi'),
+              child: Text(AppLocalizations.of(context).translate('submit')),
             ),
           ],
         );
@@ -205,10 +240,13 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
 
   void _showEditAnswerDialog(Answer answer) {
     final questionVm = Provider.of<QuestionVm>(context, listen: false);
-    final snackbarService =
-    Provider.of<SnackbarService>(context, listen: false);
-    final TextEditingController answerController =
-    TextEditingController(text: answer.body);
+    final snackbarService = Provider.of<SnackbarService>(
+      context,
+      listen: false,
+    );
+    final TextEditingController answerController = TextEditingController(
+      text: answer.body,
+    );
     final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
     showDialog(
@@ -216,27 +254,35 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
       builder: (context) {
         return AlertDialog(
           backgroundColor: context.theme.card,
-          title: Text('Chỉnh sửa câu trả lời', style: TextStyle(color: context.theme.textColor)),
+          title: Text(
+            AppLocalizations.of(context).translate('edit_answer_title'),
+            style: TextStyle(color: context.theme.textColor),
+          ),
           content: Form(
             key: formKey,
             child: TextFormField(
               controller: answerController,
               decoration: InputDecoration(
-                hintText: 'Nhập câu trả lời của bạn...',
+                hintText: AppLocalizations.of(context).translate('answer_hint'),
                 hintStyle: TextStyle(color: context.theme.mutedForeground),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
               style: TextStyle(color: context.theme.textColor),
               maxLines: 5,
               validator: (value) => (value == null || value.trim().isEmpty)
-                  ? 'Nội dung không được để trống'
+                  ? AppLocalizations.of(context).translate('content_required')
                   : null,
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('Hủy', style: TextStyle(color: context.theme.grey)),
+              child: Text(
+                AppLocalizations.of(context).translate('cancel'),
+                style: TextStyle(color: context.theme.grey),
+              ),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -252,15 +298,23 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                   );
                   if (mounted) {
                     if (success) {
-                      snackbarService.showSuccess('Đã cập nhật câu trả lời');
+                      snackbarService.showSuccess(
+                        AppLocalizations.of(
+                          context,
+                        ).translate('update_answer_success'),
+                      );
                     } else {
                       snackbarService.showError(
-                          questionVm.error ?? 'Cập nhật thất bại');
+                        questionVm.error ??
+                            AppLocalizations.of(
+                              context,
+                            ).translate('update_failed'),
+                      );
                     }
                   }
                 }
               },
-              child: const Text('Cập nhật'),
+              child: Text(AppLocalizations.of(context).translate('update')),
             ),
           ],
         );
@@ -269,8 +323,10 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
   }
 
   void _showEditQuestionDialog(QuestionVm vm) {
-    final snackbarService =
-    Provider.of<SnackbarService>(context, listen: false);
+    final snackbarService = Provider.of<SnackbarService>(
+      context,
+      listen: false,
+    );
     final question = vm.currentQuestion;
     if (question == null) return;
 
@@ -284,29 +340,56 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
           builder: (context, setDialogState) {
             return AlertDialog(
               backgroundColor: context.theme.card,
-              title: Text('Chỉnh sửa câu hỏi', style: TextStyle(color: context.theme.textColor)),
+              title: Text(
+                AppLocalizations.of(context).translate('edit_question_title'),
+                style: TextStyle(color: context.theme.textColor),
+              ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Chuyên khoa', style: TextStyle(color: context.theme.textColor, fontWeight: FontWeight.w500)),
+                  Text(
+                    AppLocalizations.of(context).translate('specialty_label'),
+                    style: TextStyle(
+                      color: context.theme.textColor,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
                     value: selectedSpecialtyId,
-                    hint: Text('Chọn chuyên khoa', style: TextStyle(color: context.theme.mutedForeground)),
+                    hint: Text(
+                      AppLocalizations.of(
+                        context,
+                      ).translate('select_specialty'),
+                      style: TextStyle(color: context.theme.mutedForeground),
+                    ),
                     isExpanded: true,
-                    style: TextStyle(color: context.theme.textColor, fontSize: 15),
+                    style: TextStyle(
+                      color: context.theme.textColor,
+                      fontSize: 15,
+                    ),
                     decoration: InputDecoration(
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                       filled: true,
                       fillColor: context.theme.input,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
                     ),
                     dropdownColor: context.theme.popover,
                     items: vm.specialties.map((Specialty specialty) {
                       return DropdownMenuItem<String>(
                         value: specialty.id,
-                        child: Text(specialty.name, style: TextStyle(color: context.theme.popoverForeground)),
+                        child: Text(
+                          specialty.name,
+                          style: TextStyle(
+                            color: context.theme.popoverForeground,
+                          ),
+                        ),
                       );
                     }).toList(),
                     onChanged: (value) {
@@ -316,30 +399,71 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                     },
                   ),
                   const SizedBox(height: 16),
-                  Text('Trạng thái', style: TextStyle(color: context.theme.textColor, fontWeight: FontWeight.w500)),
+                  Text(
+                    AppLocalizations.of(context).translate('status'),
+                    style: TextStyle(
+                      color: context.theme.textColor,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
                     value: selectedStatus,
-                    hint: Text('Chọn trạng thái', style: TextStyle(color: context.theme.mutedForeground)),
+                    hint: Text(
+                      AppLocalizations.of(context).translate('select_status'),
+                      style: TextStyle(color: context.theme.mutedForeground),
+                    ),
                     isExpanded: true,
-                    style: TextStyle(color: context.theme.textColor, fontSize: 15),
+                    style: TextStyle(
+                      color: context.theme.textColor,
+                      fontSize: 15,
+                    ),
                     decoration: InputDecoration(
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                       filled: true,
                       fillColor: context.theme.input,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
                     ),
                     dropdownColor: context.theme.popover,
-                    items: const [
-                      DropdownMenuItem(value: 'PENDING', child: Text('⏳ Đang chờ')),
-                      DropdownMenuItem(value: 'ANSWERED', child: Text('✅ Đã trả lời')),
-                      DropdownMenuItem(value: 'CLOSED', child: Text('🔒 Đã đóng')),
+                    items: [
+                      DropdownMenuItem(
+                        value: 'PENDING',
+                        child: Text(
+                          '⏳ ${AppLocalizations.of(context).translate('status_pending')}',
+                        ),
+                      ),
+                      DropdownMenuItem(
+                        value: 'ANSWERED',
+                        child: Text(
+                          '✅ ${AppLocalizations.of(context).translate('status_answered')}',
+                        ),
+                      ),
+                      DropdownMenuItem(
+                        value: 'CLOSED',
+                        child: Text(
+                          '🔒 ${AppLocalizations.of(context).translate('status_closed')}',
+                        ),
+                      ),
                     ],
                     selectedItemBuilder: (context) {
                       return [
-                        Text('⏳ Đang chờ', style: TextStyle(color: context.theme.textColor)),
-                        Text('✅ Đã trả lời', style: TextStyle(color: context.theme.textColor)),
-                        Text('🔒 Đã đóng', style: TextStyle(color: context.theme.textColor)),
+                        Text(
+                          '⏳ ${AppLocalizations.of(context).translate('status_pending')}',
+                          style: TextStyle(color: context.theme.textColor),
+                        ),
+                        Text(
+                          '✅ ${AppLocalizations.of(context).translate('status_answered')}',
+                          style: TextStyle(color: context.theme.textColor),
+                        ),
+                        Text(
+                          '🔒 ${AppLocalizations.of(context).translate('status_closed')}',
+                          style: TextStyle(color: context.theme.textColor),
+                        ),
                       ];
                     },
                     onChanged: (value) {
@@ -353,30 +477,47 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: Text('Hủy', style: TextStyle(color: context.theme.grey)),
+                  child: Text(
+                    AppLocalizations.of(context).translate('cancel'),
+                    style: TextStyle(color: context.theme.grey),
+                  ),
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: context.theme.primary,
                     foregroundColor: context.theme.primaryForeground,
                   ),
-                  onPressed: (selectedSpecialtyId == null || selectedStatus == null) ? null : () async {
-                    Navigator.pop(context);
-                    final data = {
-                      'specialtyId': selectedSpecialtyId,
-                      'status': selectedStatus,
-                    };
-                    final success = await vm.updateQuestion(question.id, data);
-                    if (mounted) {
-                      if (success) {
-                        snackbarService.showSuccess('Đã cập nhật câu hỏi');
-                      } else {
-                        snackbarService.showError(
-                            vm.error ?? 'Cập nhật thất bại');
-                      }
-                    }
-                  },
-                  child: const Text('Cập nhật'),
+                  onPressed:
+                      (selectedSpecialtyId == null || selectedStatus == null)
+                      ? null
+                      : () async {
+                          Navigator.pop(context);
+                          final data = {
+                            'specialtyId': selectedSpecialtyId,
+                            'status': selectedStatus,
+                          };
+                          final success = await vm.updateQuestion(
+                            question.id,
+                            data,
+                          );
+                          if (mounted) {
+                            if (success) {
+                              snackbarService.showSuccess(
+                                AppLocalizations.of(
+                                  context,
+                                ).translate('update_question_success'),
+                              );
+                            } else {
+                              snackbarService.showError(
+                                vm.error ??
+                                    AppLocalizations.of(
+                                      context,
+                                    ).translate('update_failed'),
+                              );
+                            }
+                          }
+                        },
+                  child: Text(AppLocalizations.of(context).translate('update')),
                 ),
               ],
             );
@@ -386,18 +527,27 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
     );
   }
 
+  String _getLocalizedStatus(String status) {
+    switch (status) {
+      case 'ANSWERED':
+        return AppLocalizations.of(context).translate('status_answered');
+      case 'CLOSED':
+        return AppLocalizations.of(context).translate('status_closed');
+      case 'PENDING':
+      default:
+        return AppLocalizations.of(context).translate('status_pending');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-
     return Consumer<QuestionVm>(
       builder: (context, vm, child) {
         Widget bodyContent;
 
         if (vm.isLoading && vm.currentQuestion == null) {
           bodyContent = const Center(child: CircularProgressIndicator());
-        }
-        else if (vm.error != null && vm.currentQuestion == null) {
+        } else if (vm.error != null && vm.currentQuestion == null) {
           bodyContent = Center(
             child: Padding(
               padding: const EdgeInsets.all(20.0),
@@ -423,23 +573,26 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                   const SizedBox(height: 16),
                   ElevatedButton.icon(
                     icon: const Icon(Icons.refresh),
-                    label: const Text('Thử lại'),
+                    label: Text(
+                      AppLocalizations.of(context).translate('retry'),
+                    ),
                     onPressed: _loadData,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: context.theme.primary,
                       foregroundColor: context.theme.primaryForeground,
                     ),
-                  )
+                  ),
                 ],
               ),
             ),
           );
-        }
-        else if (vm.currentQuestion == null) {
-
-          bodyContent = const Center(child: Text("Không tìm thấy câu hỏi"));
-        }
-        else {
+        } else if (vm.currentQuestion == null) {
+          bodyContent = Center(
+            child: Text(
+              AppLocalizations.of(context).translate('question_not_found'),
+            ),
+          );
+        } else {
           final question = vm.currentQuestion!;
           bodyContent = RefreshIndicator(
             onRefresh: () async => _loadData(),
@@ -449,7 +602,6 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
                   Text(
                     question.title,
                     style: TextStyle(
@@ -465,16 +617,20 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                     children: [
                       Padding(
                         padding: const EdgeInsets.only(top: 1.5),
-                        child: Icon(Icons.person_outline,
-                            size: 16, color: context.theme.mutedForeground),
+                        child: Icon(
+                          Icons.person_outline,
+                          size: 16,
+                          color: context.theme.mutedForeground,
+                        ),
                       ),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
                           '${question.authorName} (${question.authorEmail})',
                           style: TextStyle(
-                              fontSize: 14,
-                              color: context.theme.mutedForeground),
+                            fontSize: 14,
+                            color: context.theme.mutedForeground,
+                          ),
                           softWrap: true,
                         ),
                       ),
@@ -484,47 +640,55 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      Icon(Icons.calendar_today_outlined,
-                          size: 16, color: context.theme.mutedForeground),
+                      Icon(
+                        Icons.calendar_today_outlined,
+                        size: 16,
+                        color: context.theme.mutedForeground,
+                      ),
                       const SizedBox(width: 4),
                       Text(
-                        DateFormat('dd/MM/yyyy HH:mm')
-                            .format(question.createdAt.toLocal()),
+                        DateFormat(
+                          'dd/MM/yyyy HH:mm',
+                        ).format(question.createdAt.toLocal()),
                         style: TextStyle(
-                            fontSize: 14,
-                            color: context.theme.mutedForeground),
+                          fontSize: 14,
+                          color: context.theme.mutedForeground,
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
                   Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 4),
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: context.theme.input,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: context.theme.border),
                     ),
                     child: Text(
-                      'Trạng thái: ${question.status}',
+                      '${AppLocalizations.of(context).translate('status')}: ${_getLocalizedStatus(question.status)}',
                       style: TextStyle(
-                          color: context.theme.primary,
-                          fontWeight: FontWeight.w500),
+                        color: context.theme.primary,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 16),
                   Text(
                     question.body,
                     style: TextStyle(
-                        fontSize: 16,
-                        color: context.theme.textColor.withOpacity(0.9),
-                        height: 1.5),
+                      fontSize: 16,
+                      color: context.theme.textColor.withOpacity(0.9),
+                      height: 1.5,
+                    ),
                   ),
                   const Divider(height: 32, thickness: 0.5),
 
-
                   Text(
-                    'Câu trả lời (${vm.currentAnswers.length})',
+                    '${AppLocalizations.of(context).translate('answers_title')} (${vm.currentAnswers.length})',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -535,7 +699,10 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                   if (vm.error != null && vm.error!.contains('câu trả lời'))
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 16.0),
-                      child: Text(vm.error!, style: TextStyle(color: context.theme.destructive)),
+                      child: Text(
+                        vm.error!,
+                        style: TextStyle(color: context.theme.destructive),
+                      ),
                     ),
                   const SizedBox(height: 12),
 
@@ -547,11 +714,14 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
         }
 
         final bool canPostAnswer = _userRole == 'DOCTOR';
-        final bool isAdminRole = (_userRole == 'ADMIN' || _userRole == 'SUPER_ADMIN');
+        final bool isAdminRole =
+            (_userRole == 'ADMIN' || _userRole == 'SUPER_ADMIN');
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Chi tiết câu hỏi'),
+            title: Text(
+              AppLocalizations.of(context).translate('question_detail_title'),
+            ),
             backgroundColor: context.theme.appBar,
             titleTextStyle: TextStyle(
               color: context.theme.primaryForeground,
@@ -564,23 +734,30 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                 IconButton(
                   icon: const Icon(Icons.edit_note_outlined),
                   onPressed: () => _showEditQuestionDialog(vm),
-                  tooltip: 'Chỉnh sửa câu hỏi',
+                  tooltip: AppLocalizations.of(
+                    context,
+                  ).translate('edit_question_tooltip'),
                 ),
               IconButton(
                 icon: const Icon(Icons.refresh),
                 onPressed: vm.isLoading ? null : _loadData,
-              )
+              ),
             ],
           ),
           backgroundColor: context.theme.bg,
           body: bodyContent,
           floatingActionButton: canPostAnswer
               ? FloatingActionButton(
-            onPressed: _showPostAnswerDialog,
-            backgroundColor: context.theme.primary,
-            child: Icon(Icons.add_comment_outlined, color: context.theme.primaryForeground),
-            tooltip: 'Gửi câu trả lời',
-          )
+                  onPressed: _showPostAnswerDialog,
+                  backgroundColor: context.theme.primary,
+                  child: Icon(
+                    Icons.add_comment_outlined,
+                    color: context.theme.primaryForeground,
+                  ),
+                  tooltip: AppLocalizations.of(
+                    context,
+                  ).translate('submit_answer_tooltip'),
+                )
               : null,
         );
       },
@@ -588,25 +765,30 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
   }
 
   Widget _buildAnswersList(QuestionVm vm) {
-
-    if (vm.isLoading && vm.currentQuestion != null && vm.currentAnswers.isEmpty) {
+    if (vm.isLoading &&
+        vm.currentQuestion != null &&
+        vm.currentAnswers.isEmpty) {
       return const Center(
-          child: Padding(
-            padding: EdgeInsets.symmetric(vertical: 24.0),
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ));
-    }
-
-
-    if (!vm.isLoading && vm.currentAnswers.isEmpty && (vm.error == null || !vm.error!.contains('câu trả lời'))) {
-      return Center(
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 24),
-          child: Text('Chưa có câu trả lời nào', style: TextStyle(color: context.theme.mutedForeground)),
+          padding: EdgeInsets.symmetric(vertical: 24.0),
+          child: CircularProgressIndicator(strokeWidth: 2),
         ),
       );
     }
 
+    if (!vm.isLoading &&
+        vm.currentAnswers.isEmpty &&
+        (vm.error == null || !vm.error!.contains('câu trả lời'))) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 24),
+          child: Text(
+            AppLocalizations.of(context).translate('no_answers_yet'),
+            style: TextStyle(color: context.theme.mutedForeground),
+          ),
+        ),
+      );
+    }
 
     return ListView.builder(
       shrinkWrap: true,
@@ -619,10 +801,10 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
     );
   }
 
-
   Widget _buildAnswerCard(Answer answer) {
     final bool isAccepted = answer.isAccepted;
-    final bool isAdminRole = (_userRole == 'ADMIN' || _userRole == 'SUPER_ADMIN');
+    final bool isAdminRole =
+        (_userRole == 'ADMIN' || _userRole == 'SUPER_ADMIN');
     final bool isDoctorRole = (_userRole == 'DOCTOR');
     final bool isOwner = (isDoctorRole && answer.authorId == _currentUserId);
 
@@ -644,12 +826,10 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             if (isAccepted)
               Container(
                 margin: const EdgeInsets.only(bottom: 8),
-                padding:
-                const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: context.theme.green.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(6),
@@ -657,11 +837,16 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.check_circle,
-                        size: 14, color: context.theme.green),
+                    Icon(
+                      Icons.check_circle,
+                      size: 14,
+                      color: context.theme.green,
+                    ),
                     const SizedBox(width: 4),
                     Text(
-                      'ĐÃ DUYỆT',
+                      AppLocalizations.of(
+                        context,
+                      ).translate('status_approved').toUpperCase(),
                       style: TextStyle(
                         color: context.theme.green,
                         fontSize: 11,
@@ -675,18 +860,27 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
 
             Text(
               answer.body,
-              style: TextStyle(color: context.theme.textColor, fontSize: 15, height: 1.4),
+              style: TextStyle(
+                color: context.theme.textColor,
+                fontSize: 15,
+                height: 1.4,
+              ),
             ),
             const SizedBox(height: 8),
 
             Text(
-              'Bác sĩ ID: ${answer.authorId}',
-              style:
-              TextStyle(color: context.theme.mutedForeground, fontSize: 12),
+              '${AppLocalizations.of(context).translate('doctor_id')}: ${answer.authorId}',
+              style: TextStyle(
+                color: context.theme.mutedForeground,
+                fontSize: 12,
+              ),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8.0),
-              child: Divider(height: 1, color: context.theme.border.withOpacity(0.5)),
+              child: Divider(
+                height: 1,
+                color: context.theme.border.withOpacity(0.5),
+              ),
             ),
 
             Row(
@@ -695,7 +889,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                 if (isAdminRole && !isAccepted)
                   _buildAdminButton(
                     icon: Icons.check_circle_outline,
-                    label: 'Duyệt',
+                    label: AppLocalizations.of(context).translate('approve'),
                     color: context.theme.green,
                     onPressed: () => _acceptAnswer(answer),
                   ),
@@ -704,7 +898,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                 if (isAdminRole)
                   _buildAdminButton(
                     icon: Icons.delete_outline,
-                    label: 'Xóa',
+                    label: AppLocalizations.of(context).translate('delete'),
                     color: context.theme.destructive,
                     onPressed: () => _showDeleteAnswerDialog(answer),
                   ),
@@ -712,7 +906,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                 if (isOwner)
                   _buildAdminButton(
                     icon: Icons.edit_outlined,
-                    label: 'Sửa',
+                    label: AppLocalizations.of(context).translate('edit'),
                     color: context.theme.primary,
                     onPressed: () => _showEditAnswerDialog(answer),
                   ),
@@ -722,12 +916,12 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                 if (isOwner)
                   _buildAdminButton(
                     icon: Icons.delete_outline,
-                    label: 'Xóa',
+                    label: AppLocalizations.of(context).translate('delete'),
                     color: context.theme.destructive,
                     onPressed: () => _showDeleteAnswerDialog(answer),
                   ),
               ],
-            )
+            ),
           ],
         ),
       ),

@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:pbl6mobile/model/entities/patient.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/shared/widgets/button/custom_button_blue.dart';
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 
 class PatientForm extends StatefulWidget {
   final Patient? patient;
@@ -38,16 +39,20 @@ class _PatientFormState extends State<PatientForm> {
   @override
   void initState() {
     super.initState();
-    _fullNameController =
-        TextEditingController(text: widget.patient?.fullName ?? '');
+    _fullNameController = TextEditingController(
+      text: widget.patient?.fullName ?? '',
+    );
     _emailController = TextEditingController(text: widget.patient?.email ?? '');
     _phoneController = TextEditingController(text: widget.patient?.phone ?? '');
-    _addressLineController =
-        TextEditingController(text: widget.patient?.addressLine ?? '');
-    _districtController =
-        TextEditingController(text: widget.patient?.district ?? '');
-    _provinceController =
-        TextEditingController(text: widget.patient?.province ?? '');
+    _addressLineController = TextEditingController(
+      text: widget.patient?.addressLine ?? '',
+    );
+    _districtController = TextEditingController(
+      text: widget.patient?.district ?? '',
+    );
+    _provinceController = TextEditingController(
+      text: widget.patient?.province ?? '',
+    );
 
     _isMale = widget.patient?.isMale;
     _selectedDate = widget.patient?.dateOfBirth;
@@ -95,10 +100,12 @@ class _PatientFormState extends State<PatientForm> {
         'addressLine': _addressLineController.text.isEmpty
             ? null
             : _addressLineController.text,
-        'district':
-        _districtController.text.isEmpty ? null : _districtController.text,
-        'province':
-        _provinceController.text.isEmpty ? null : _provinceController.text,
+        'district': _districtController.text.isEmpty
+            ? null
+            : _districtController.text,
+        'province': _provinceController.text.isEmpty
+            ? null
+            : _provinceController.text,
         'isMale': _isMale,
         'dateOfBirth': _selectedDate?.toIso8601String().substring(0, 10),
       };
@@ -153,40 +160,43 @@ class _PatientFormState extends State<PatientForm> {
               duration: const Duration(milliseconds: 375),
               childAnimationBuilder: (widget) => SlideAnimation(
                 verticalOffset: 50.0,
-                child: FadeInAnimation(
-                  child: widget,
-                ),
+                child: FadeInAnimation(child: widget),
               ),
               children: [
                 Card(
                   elevation: 2,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Thông tin cá nhân',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleLarge
+                          AppLocalizations.of(
+                            context,
+                          ).translate('personal_information'),
+                          style: Theme.of(context).textTheme.titleLarge
                               ?.copyWith(
-                            color: context.theme.blue,
-                            fontWeight: FontWeight.bold,
-                          ),
+                                color: context.theme.blue,
+                                fontWeight: FontWeight.bold,
+                              ),
                         ),
                         const SizedBox(height: 20),
                         TextFormField(
                           controller: _fullNameController,
                           decoration: _buildInputDecoration(
-                            labelText: 'Họ và tên',
+                            labelText: AppLocalizations.of(
+                              context,
+                            ).translate('full_name'),
                             icon: Icons.person_outline,
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Vui lòng nhập họ và tên';
+                              return AppLocalizations.of(
+                                context,
+                              ).translate('error_enter_full_name');
                             }
                             return null;
                           },
@@ -195,16 +205,22 @@ class _PatientFormState extends State<PatientForm> {
                         TextFormField(
                           controller: _emailController,
                           decoration: _buildInputDecoration(
-                            labelText: 'Email',
+                            labelText: AppLocalizations.of(
+                              context,
+                            ).translate('email'),
                             icon: Icons.email_outlined,
                           ),
                           keyboardType: TextInputType.emailAddress,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Vui lòng nhập email';
+                              return AppLocalizations.of(
+                                context,
+                              ).translate('email_required');
                             }
                             if (!RegExp(r'\S+@\S+\.\S+').hasMatch(value)) {
-                              return 'Vui lòng nhập email hợp lệ';
+                              return AppLocalizations.of(
+                                context,
+                              ).translate('email_invalid');
                             }
                             return null;
                           },
@@ -213,7 +229,9 @@ class _PatientFormState extends State<PatientForm> {
                         TextFormField(
                           controller: _phoneController,
                           decoration: _buildInputDecoration(
-                            labelText: 'Số điện thoại',
+                            labelText: AppLocalizations.of(
+                              context,
+                            ).translate('phone_number'),
                             icon: Icons.phone_outlined,
                           ),
                           keyboardType: TextInputType.phone,
@@ -222,7 +240,9 @@ class _PatientFormState extends State<PatientForm> {
                         TextFormField(
                           controller: _dateOfBirthController,
                           decoration: _buildInputDecoration(
-                            labelText: 'Ngày sinh',
+                            labelText: AppLocalizations.of(
+                              context,
+                            ).translate('date_of_birth'),
                             icon: Icons.calendar_today_outlined,
                           ),
                           readOnly: true,
@@ -232,14 +252,34 @@ class _PatientFormState extends State<PatientForm> {
                         DropdownButtonFormField<bool?>(
                           value: _isMale,
                           decoration: _buildInputDecoration(
-                            labelText: 'Giới tính',
+                            labelText: AppLocalizations.of(
+                              context,
+                            ).translate('gender'),
                             icon: Icons.wc_outlined,
                           ),
-                          items: const [
+                          items: [
                             DropdownMenuItem(
-                                value: null, child: Text('Không xác định')),
-                            DropdownMenuItem(value: true, child: Text('Nam')),
-                            DropdownMenuItem(value: false, child: Text('Nữ')),
+                              value: null,
+                              child: Text(
+                                AppLocalizations.of(
+                                  context,
+                                ).translate('unknown'),
+                              ),
+                            ),
+                            DropdownMenuItem(
+                              value: true,
+                              child: Text(
+                                AppLocalizations.of(context).translate('male'),
+                              ),
+                            ),
+                            DropdownMenuItem(
+                              value: false,
+                              child: Text(
+                                AppLocalizations.of(
+                                  context,
+                                ).translate('female'),
+                              ),
+                            ),
                           ],
                           onChanged: (value) {
                             setState(() {
@@ -255,27 +295,30 @@ class _PatientFormState extends State<PatientForm> {
                 Card(
                   elevation: 2,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Địa chỉ liên lạc',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleLarge
+                          AppLocalizations.of(
+                            context,
+                          ).translate('contact_address'),
+                          style: Theme.of(context).textTheme.titleLarge
                               ?.copyWith(
-                            color: context.theme.blue,
-                            fontWeight: FontWeight.bold,
-                          ),
+                                color: context.theme.blue,
+                                fontWeight: FontWeight.bold,
+                              ),
                         ),
                         const SizedBox(height: 20),
                         TextFormField(
                           controller: _addressLineController,
                           decoration: _buildInputDecoration(
-                            labelText: 'Địa chỉ',
+                            labelText: AppLocalizations.of(
+                              context,
+                            ).translate('address'),
                             icon: Icons.home_work_outlined,
                           ),
                         ),
@@ -283,7 +326,9 @@ class _PatientFormState extends State<PatientForm> {
                         TextFormField(
                           controller: _districtController,
                           decoration: _buildInputDecoration(
-                            labelText: 'Quận/Huyện',
+                            labelText: AppLocalizations.of(
+                              context,
+                            ).translate('district'),
                             icon: Icons.map_outlined,
                           ),
                         ),
@@ -291,7 +336,9 @@ class _PatientFormState extends State<PatientForm> {
                         TextFormField(
                           controller: _provinceController,
                           decoration: _buildInputDecoration(
-                            labelText: 'Tỉnh/Thành phố',
+                            labelText: AppLocalizations.of(
+                              context,
+                            ).translate('province'),
                             icon: Icons.location_city_outlined,
                           ),
                         ),
@@ -303,9 +350,13 @@ class _PatientFormState extends State<PatientForm> {
                 widget.isLoading
                     ? const CircularProgressIndicator()
                     : CustomButtonBlue(
-                  text: widget.patient == null ? 'Tạo mới' : 'Cập nhật',
-                  onTap: _submitForm,
-                ),
+                        text: widget.patient == null
+                            ? AppLocalizations.of(
+                                context,
+                              ).translate('create_new')
+                            : AppLocalizations.of(context).translate('update'),
+                        onTap: _submitForm,
+                      ),
                 const SizedBox(height: 16),
               ],
             ),

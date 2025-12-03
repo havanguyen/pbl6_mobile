@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pbl6mobile/model/services/remote/doctor_service.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 
 import '../../shared/widgets/widget/doctor_form.dart';
 
@@ -53,7 +54,7 @@ class CreateDoctorPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: context.theme.blue,
         title: Text(
-          'Tạo tài khoản bác sĩ',
+          AppLocalizations.of(context).translate('create_doctor_account'),
           style: TextStyle(color: context.theme.primaryForeground),
         ),
         leading: IconButton(
@@ -65,7 +66,7 @@ class CreateDoctorPage extends StatelessWidget {
       body: DoctorForm(
         isUpdate: false,
         initialData: null,
-        role: 'Bác sĩ',
+        role: AppLocalizations.of(context).translate('doctor_role'),
         onSubmit: _onSubmit,
         onSuccess: () {
           Navigator.pop(context, true);

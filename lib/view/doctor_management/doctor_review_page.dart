@@ -5,13 +5,17 @@ import 'package:pbl6mobile/model/entities/review.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/shared/services/store.dart';
 import 'package:pbl6mobile/view_model/review/review_vm.dart';
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 
 class DoctorReviewPage extends StatefulWidget {
   final String doctorId;
   final String doctorName;
 
-  const DoctorReviewPage(
-      {super.key, required this.doctorId, required this.doctorName});
+  const DoctorReviewPage({
+    super.key,
+    required this.doctorId,
+    required this.doctorName,
+  });
 
   @override
   State<DoctorReviewPage> createState() => _DoctorReviewPageState();
@@ -57,7 +61,7 @@ class _DoctorReviewPageState extends State<DoctorReviewPage> {
         backgroundColor: context.theme.primary,
         iconTheme: IconThemeData(color: context.theme.primaryForeground),
         title: Text(
-          'Đánh giá cho ${widget.doctorName}',
+          '${AppLocalizations.of(context).translate('review_for')} ${widget.doctorName}',
           style: TextStyle(color: context.theme.primaryForeground),
         ),
       ),
@@ -71,7 +75,11 @@ class _DoctorReviewPageState extends State<DoctorReviewPage> {
             return Center(child: Text(reviewVm.error!));
           }
           if (reviewVm.reviews.isEmpty) {
-            return const Center(child: Text('Bác sĩ này chưa có đánh giá.'));
+            return Center(
+              child: Text(
+                AppLocalizations.of(context).translate('no_reviews_yet'),
+              ),
+            );
           }
 
           return RefreshIndicator(
@@ -80,16 +88,16 @@ class _DoctorReviewPageState extends State<DoctorReviewPage> {
               controller: _scrollController,
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.all(16),
-              itemCount:
-              reviewVm.reviews.length + (reviewVm.hasNext ? 1 : 0),
+              itemCount: reviewVm.reviews.length + (reviewVm.hasNext ? 1 : 0),
               itemBuilder: (context, index) {
                 if (index == reviewVm.reviews.length) {
                   return reviewVm.isLoadingMore
                       ? const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: CircularProgressIndicator(),
-                      ))
+                          child: Padding(
+                            padding: EdgeInsets.all(16.0),
+                            child: CircularProgressIndicator(),
+                          ),
+                        )
                       : const SizedBox.shrink();
                 }
                 final review = reviewVm.reviews[index];
@@ -103,7 +111,10 @@ class _DoctorReviewPageState extends State<DoctorReviewPage> {
   }
 
   Widget _buildReviewCard(
-      BuildContext context, Review review, ReviewVm reviewVm) {
+    BuildContext context,
+    Review review,
+    ReviewVm reviewVm,
+  ) {
     return Card(
       key: ValueKey(review.id),
       margin: const EdgeInsets.symmetric(vertical: 8),
@@ -126,7 +137,9 @@ class _DoctorReviewPageState extends State<DoctorReviewPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _StarRating(
-                          rating: review.rating, color: context.theme.yellow),
+                        rating: review.rating,
+                        color: context.theme.yellow,
+                      ),
                       const SizedBox(height: 8),
                       Text(
                         review.title,
@@ -152,7 +165,9 @@ class _DoctorReviewPageState extends State<DoctorReviewPage> {
             Text(
               review.body,
               style: TextStyle(
-                  color: context.theme.mutedForeground, fontSize: 14),
+                color: context.theme.mutedForeground,
+                fontSize: 14,
+              ),
             ),
             const Divider(height: 24),
             Row(
@@ -161,15 +176,18 @@ class _DoctorReviewPageState extends State<DoctorReviewPage> {
                   child: Text(
                     review.authorName,
                     style: TextStyle(
-                        color: context.theme.mutedForeground,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500),
+                      color: context.theme.mutedForeground,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
                 Text(
                   DateFormat('dd/MM/yyyy').format(review.createdAt.toLocal()),
                   style: TextStyle(
-                      color: context.theme.mutedForeground, fontSize: 13),
+                    color: context.theme.mutedForeground,
+                    fontSize: 13,
+                  ),
                 ),
               ],
             ),
@@ -198,23 +216,33 @@ class _DeleteReviewButtonState extends State<_DeleteReviewButton> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: context.theme.popover,
-        title: Text('Xác nhận xóa',
-            style: TextStyle(color: context.theme.popoverForeground)),
-        content: Text('Bạn có chắc chắn muốn xóa đánh giá này?',
-            style: TextStyle(color: context.theme.popoverForeground)),
+        title: Text(
+          AppLocalizations.of(context).translate('confirm_delete_review'),
+          style: TextStyle(color: context.theme.popoverForeground),
+        ),
+        content: Text(
+          AppLocalizations.of(
+            context,
+          ).translate('confirm_delete_review_message'),
+          style: TextStyle(color: context.theme.popoverForeground),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('Hủy',
-                style: TextStyle(color: context.theme.mutedForeground)),
+            child: Text(
+              AppLocalizations.of(context).translate('cancel'),
+              style: TextStyle(color: context.theme.mutedForeground),
+            ),
           ),
           TextButton(
             onPressed: () async {
               Navigator.pop(ctx);
               _handleDelete();
             },
-            child:
-            Text('Xóa', style: TextStyle(color: context.theme.destructive)),
+            child: Text(
+              AppLocalizations.of(context).translate('delete'),
+              style: TextStyle(color: context.theme.destructive),
+            ),
           ),
         ],
       ),
@@ -233,9 +261,14 @@ class _DeleteReviewButtonState extends State<_DeleteReviewButton> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(success ? 'Xóa đánh giá thành công' : 'Xóa thất bại'),
-        backgroundColor:
-        success ? context.theme.green : context.theme.destructive,
+        content: Text(
+          success
+              ? AppLocalizations.of(context).translate('delete_review_success')
+              : AppLocalizations.of(context).translate('delete_review_failed'),
+        ),
+        backgroundColor: success
+            ? context.theme.green
+            : context.theme.destructive,
       ),
     );
   }
@@ -244,20 +277,23 @@ class _DeleteReviewButtonState extends State<_DeleteReviewButton> {
   Widget build(BuildContext context) {
     return _isDeleting
         ? SizedBox(
-      width: 24,
-      height: 24,
-      child: CircularProgressIndicator(
-        strokeWidth: 2,
-        color: context.theme.destructive,
-      ),
-    )
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: context.theme.destructive,
+            ),
+          )
         : IconButton(
-      visualDensity: VisualDensity.compact,
-      padding: EdgeInsets.zero,
-      icon: Icon(Icons.delete_outline,
-          color: context.theme.destructive, size: 22),
-      onPressed: _showDeleteConfirmDialog,
-    );
+            visualDensity: VisualDensity.compact,
+            padding: EdgeInsets.zero,
+            icon: Icon(
+              Icons.delete_outline,
+              color: context.theme.destructive,
+              size: 22,
+            ),
+            onPressed: _showDeleteConfirmDialog,
+          );
   }
 }
 

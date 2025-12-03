@@ -6,6 +6,7 @@ import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import '../../../shared/routes/routes.dart';
 import '../../../shared/widgets/animation/scale_animation.dart';
 import '../../../shared/widgets/button/custom_circular_button.dart';
+import '../../../shared/localization/app_localizations.dart';
 
 class MainPageDoctor extends StatefulWidget {
   const MainPageDoctor({super.key});
@@ -28,15 +29,28 @@ class _MainPageDoctorState extends State<MainPageDoctor> {
       final profile = await AuthService.getProfile();
       if (profile == null || !mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Không thể tải hồ sơ bác sĩ.')));
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(
+                context,
+              ).translate('error_load_doctor_profile'),
+            ),
+          ),
+        );
         return;
       }
 
-      final doctorDetail =
-      await DoctorService.getDoctorWithProfile(profile.id);
+      final doctorDetail = await DoctorService.getDoctorWithProfile(profile.id);
       if (doctorDetail == null || !mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Không thể tải hồ sơ chuyên môn.')));
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(
+                context,
+              ).translate('error_load_specialty_profile'),
+            ),
+          ),
+        );
         return;
       }
 
@@ -51,7 +65,12 @@ class _MainPageDoctorState extends State<MainPageDoctor> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Đã xảy ra lỗi: ${e.toString()}')));
+          SnackBar(
+            content: Text(
+              '${AppLocalizations.of(context).translate('error_occurred')}${e.toString()}',
+            ),
+          ),
+        );
       }
     } finally {
       if (mounted) {
@@ -74,10 +93,7 @@ class _MainPageDoctorState extends State<MainPageDoctor> {
           image: DecorationImage(
             image: AssetImage('assets/images/background_bd.jpg'),
             fit: BoxFit.cover,
-            colorFilter: ColorFilter.mode(
-              Color(0x802196F3),
-              BlendMode.overlay,
-            ),
+            colorFilter: ColorFilter.mode(Color(0x802196F3), BlendMode.overlay),
           ),
         ),
         child: Stack(
@@ -88,9 +104,15 @@ class _MainPageDoctorState extends State<MainPageDoctor> {
               child: ScaleAnimatedButton(
                 child: Container(
                   decoration: BoxDecoration(
-                      color: context.theme.blue, shape: BoxShape.circle),
+                    color: context.theme.blue,
+                    shape: BoxShape.circle,
+                  ),
                   child: IconButton(
-                    icon: Icon(Icons.menu, color: context.theme.white, size: 35),
+                    icon: Icon(
+                      Icons.menu,
+                      color: context.theme.white,
+                      size: 35,
+                    ),
                     onPressed: () {
                       Navigator.pushNamed(context, Routes.settingDoctor);
                     },
@@ -122,7 +144,9 @@ class _MainPageDoctorState extends State<MainPageDoctor> {
                   context,
                   size: 110,
                   icon: Icons.calendar_today_outlined,
-                  label: 'QUẢN LÝ LỊCH TRÌNH',
+                  label: AppLocalizations.of(
+                    context,
+                  ).translate('schedule_management'),
                   onTap: () {
                     print('Quản lý lịch trình');
                   },
@@ -138,7 +162,9 @@ class _MainPageDoctorState extends State<MainPageDoctor> {
                   context,
                   size: 110,
                   icon: Icons.question_answer_outlined,
-                  label: 'TRẢ LỜI CÂU HỎI',
+                  label: AppLocalizations.of(
+                    context,
+                  ).translate('answer_questions'),
                   onTap: () {
                     Navigator.pushNamed(context, Routes.listQuestion);
                   },
@@ -153,7 +179,9 @@ class _MainPageDoctorState extends State<MainPageDoctor> {
                   context,
                   size: 140,
                   icon: Icons.rate_review_outlined,
-                  label: 'CẢM NHẬN BỆNH NHÂN',
+                  label: AppLocalizations.of(
+                    context,
+                  ).translate('patient_reviews'),
                   onTap: () => _navigateToReviews(context),
                 ),
               ),
@@ -167,7 +195,9 @@ class _MainPageDoctorState extends State<MainPageDoctor> {
                   context,
                   size: 120,
                   icon: Icons.account_circle_outlined,
-                  label: 'QUẢN LÝ HỒ SƠ',
+                  label: AppLocalizations.of(
+                    context,
+                  ).translate('profile_management'),
                   onTap: () {
                     Navigator.pushNamed(context, Routes.profileDoctor);
                   },
@@ -182,7 +212,9 @@ class _MainPageDoctorState extends State<MainPageDoctor> {
                   context,
                   size: 140,
                   icon: Icons.lock_reset_outlined,
-                  label: 'ĐỔI MẬT KHẨU',
+                  label: AppLocalizations.of(
+                    context,
+                  ).translate('change_password'),
                   onTap: () {
                     Navigator.pushNamed(context, Routes.changePassword);
                   },
@@ -195,7 +227,7 @@ class _MainPageDoctorState extends State<MainPageDoctor> {
               right: 0,
               child: Center(
                 child: Text(
-                  'Ứng dụng quản lý dành cho bác sĩ',
+                  AppLocalizations.of(context).translate('app_slogan'),
                   style: TextStyle(
                     color: context.theme.blue,
                     fontWeight: FontWeight.bold,

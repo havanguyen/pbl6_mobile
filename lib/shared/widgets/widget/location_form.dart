@@ -5,17 +5,19 @@ import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/shared/widgets/button/custom_button_blue.dart';
 import 'package:timezone/data/latest.dart' as tzData;
 import 'package:timezone/timezone.dart' as tz;
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 
 class LocationForm extends StatefulWidget {
   final bool isUpdate;
   final WorkLocation? initialData;
   final Future<bool> Function({
-  required String name,
-  required String address,
-  required String phone,
-  required String timezone,
-  String? id,
-  }) onSubmit;
+    required String name,
+    required String address,
+    required String phone,
+    required String timezone,
+    String? id,
+  })
+  onSubmit;
 
   const LocationForm({
     super.key,
@@ -28,7 +30,8 @@ class LocationForm extends StatefulWidget {
   State<LocationForm> createState() => _LocationFormState();
 }
 
-class _LocationFormState extends State<LocationForm> with SingleTickerProviderStateMixin {
+class _LocationFormState extends State<LocationForm>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _phoneController;
@@ -44,7 +47,9 @@ class _LocationFormState extends State<LocationForm> with SingleTickerProviderSt
     super.initState();
     _nameController = TextEditingController(text: widget.initialData?.name);
     _phoneController = TextEditingController(text: widget.initialData?.phone);
-    _addressController = TextEditingController(text: widget.initialData?.address);
+    _addressController = TextEditingController(
+      text: widget.initialData?.address,
+    );
 
     _selectedTimezone = widget.initialData?.timezone;
 
@@ -87,7 +92,8 @@ class _LocationFormState extends State<LocationForm> with SingleTickerProviderSt
           Navigator.of(context).pop(true);
         } else {
           _showErrorDialog(
-              '${widget.isUpdate ? 'Cập nhật' : 'Tạo'} địa điểm thất bại. Vui lòng thử lại.');
+            AppLocalizations.of(context).translate('save_location_failed'),
+          );
         }
       }
     }
@@ -98,45 +104,42 @@ class _LocationFormState extends State<LocationForm> with SingleTickerProviderSt
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: context.theme.popover,
-        title: Text('Lỗi', style: TextStyle(color: context.theme.popoverForeground)),
-        content: Text(message,
-            style: TextStyle(color: context.theme.popoverForeground)),
+        title: Text(
+          AppLocalizations.of(context).translate('error'),
+          style: TextStyle(color: context.theme.popoverForeground),
+        ),
+        content: Text(
+          message,
+          style: TextStyle(color: context.theme.popoverForeground),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('OK', style: TextStyle(color: context.theme.destructive)),
+            child: Text(
+              AppLocalizations.of(context).translate('ok'),
+              style: TextStyle(color: context.theme.destructive),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildAnimatedFormField({
-    required int index,
-    required Widget child,
-  }) {
+  Widget _buildAnimatedFormField({required int index, required Widget child}) {
     final delay = index * 100;
-    final animation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Interval(
-        delay / 1000,
-        1.0,
-        curve: Curves.easeOutCubic,
+    final animation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Interval(delay / 1000, 1.0, curve: Curves.easeOutCubic),
       ),
-    ));
+    );
 
     return AnimatedBuilder(
       animation: animation,
       builder: (context, child) {
         return Transform.translate(
           offset: Offset(0, (1 - animation.value) * 20),
-          child: Opacity(
-            opacity: animation.value,
-            child: child,
-          ),
+          child: Opacity(opacity: animation.value, child: child),
         );
       },
       child: child,
@@ -172,8 +175,13 @@ class _LocationFormState extends State<LocationForm> with SingleTickerProviderSt
                     fontSize: 16,
                   ),
                   decoration: InputDecoration(
-                    labelText: 'Tên địa điểm',
-                    prefixIcon: Icon(Icons.location_on, color: context.theme.primary),
+                    labelText: AppLocalizations.of(
+                      context,
+                    ).translate('location_name_label'),
+                    prefixIcon: Icon(
+                      Icons.location_on,
+                      color: context.theme.primary,
+                    ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(color: context.theme.border),
@@ -194,10 +202,14 @@ class _LocationFormState extends State<LocationForm> with SingleTickerProviderSt
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Vui lòng nhập tên địa điểm';
+                      return AppLocalizations.of(
+                        context,
+                      ).translate('location_name_required');
                     }
                     if (value.length < 10 || value.length > 200) {
-                      return 'Tên phải từ 10 đến 200 ký tự';
+                      return AppLocalizations.of(
+                        context,
+                      ).translate('location_name_length_error');
                     }
                     return null;
                   },
@@ -227,8 +239,13 @@ class _LocationFormState extends State<LocationForm> with SingleTickerProviderSt
                     fontSize: 16,
                   ),
                   decoration: InputDecoration(
-                    labelText: 'Địa chỉ',
-                    prefixIcon: Icon(Icons.home_work, color: context.theme.primary),
+                    labelText: AppLocalizations.of(
+                      context,
+                    ).translate('address_label'),
+                    prefixIcon: Icon(
+                      Icons.home_work,
+                      color: context.theme.primary,
+                    ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(color: context.theme.border),
@@ -249,7 +266,9 @@ class _LocationFormState extends State<LocationForm> with SingleTickerProviderSt
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Vui lòng nhập địa chỉ';
+                      return AppLocalizations.of(
+                        context,
+                      ).translate('address_required');
                     }
                     return null;
                   },
@@ -279,7 +298,9 @@ class _LocationFormState extends State<LocationForm> with SingleTickerProviderSt
                     fontSize: 16,
                   ),
                   decoration: InputDecoration(
-                    labelText: 'Số điện thoại',
+                    labelText: AppLocalizations.of(
+                      context,
+                    ).translate('phone_label'),
                     prefixIcon: Icon(Icons.phone, color: context.theme.primary),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -302,10 +323,14 @@ class _LocationFormState extends State<LocationForm> with SingleTickerProviderSt
                   keyboardType: TextInputType.phone,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Vui lòng nhập số điện thoại';
+                      return AppLocalizations.of(
+                        context,
+                      ).translate('phone_required');
                     }
                     if (!RegExp(r'^\+?\d{9,15}$').hasMatch(value)) {
-                      return 'Số điện thoại không hợp lệ';
+                      return AppLocalizations.of(
+                        context,
+                      ).translate('phone_invalid');
                     }
                     return null;
                   },
@@ -336,8 +361,13 @@ class _LocationFormState extends State<LocationForm> with SingleTickerProviderSt
                     fontSize: 16,
                   ),
                   decoration: InputDecoration(
-                    labelText: 'Múi giờ',
-                    prefixIcon: Icon(Icons.access_time, color: context.theme.primary),
+                    labelText: AppLocalizations.of(
+                      context,
+                    ).translate('timezone_label'),
+                    prefixIcon: Icon(
+                      Icons.access_time,
+                      color: context.theme.primary,
+                    ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(color: context.theme.border),
@@ -357,21 +387,26 @@ class _LocationFormState extends State<LocationForm> with SingleTickerProviderSt
                     ),
                   ),
                   items: _timezones
-                      .map((tz) => DropdownMenuItem(
-                    value: tz,
-                    child: Text(
-                      tz,
-                      style: TextStyle(color: context.theme.textColor),
-                    ),
-                  ))
+                      .map(
+                        (tz) => DropdownMenuItem(
+                          value: tz,
+                          child: Text(
+                            tz,
+                            style: TextStyle(color: context.theme.textColor),
+                          ),
+                        ),
+                      )
                       .toList(),
                   onChanged: (value) {
                     setState(() {
                       _selectedTimezone = value;
                     });
                   },
-                  validator: (value) =>
-                  value == null ? 'Vui lòng chọn múi giờ' : null,
+                  validator: (value) => value == null
+                      ? AppLocalizations.of(
+                          context,
+                        ).translate('timezone_required')
+                      : null,
                   dropdownStyleData: DropdownStyleData(
                     maxHeight: 300,
                     decoration: BoxDecoration(
@@ -404,8 +439,18 @@ class _LocationFormState extends State<LocationForm> with SingleTickerProviderSt
                     _submitForm(context);
                   },
                   text: _isLoading
-                      ? 'Đang ${widget.isUpdate ? 'cập nhật' : 'tạo'}...'
-                      : '${widget.isUpdate ? 'Cập nhật' : 'Tạo'} địa điểm',
+                      ? (widget.isUpdate
+                            ? AppLocalizations.of(context).translate('updating')
+                            : AppLocalizations.of(
+                                context,
+                              ).translate('creating'))
+                      : (widget.isUpdate
+                            ? AppLocalizations.of(
+                                context,
+                              ).translate('update_location_btn')
+                            : AppLocalizations.of(
+                                context,
+                              ).translate('create_location_btn')),
                 ),
               ),
             ),

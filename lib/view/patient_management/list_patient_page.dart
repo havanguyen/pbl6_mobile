@@ -9,6 +9,7 @@ import 'package:pbl6mobile/shared/widgets/widget/patient_delete_confirm.dart';
 import 'package:pbl6mobile/view_model/patient/patient_vm.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 
 class PatientListPage extends StatefulWidget {
   const PatientListPage({super.key});
@@ -57,7 +58,9 @@ class _PatientListPageState extends State<PatientListPage> {
     final patientVm = context.watch<PatientVm>();
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Quản lý Bệnh nhân'),
+        title: Text(
+          AppLocalizations.of(context).translate('patient_management_title'),
+        ),
         backgroundColor: context.theme.blue,
         elevation: 0,
         actions: [
@@ -91,8 +94,12 @@ class _PatientListPageState extends State<PatientListPage> {
         onPressed: () {
           if (patientVm.isOffline) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Không thể tạo bệnh nhân khi đang offline'),
+              SnackBar(
+                content: Text(
+                  AppLocalizations.of(
+                    context,
+                  ).translate('offline_create_patient_error'),
+                ),
               ),
             );
           } else {
@@ -113,8 +120,10 @@ class _PatientListPageState extends State<PatientListPage> {
       child: TextField(
         controller: _searchController,
         decoration: InputDecoration(
-          labelText: 'Tìm kiếm bệnh nhân',
-          hintText: 'Nhập tên, email, SĐT...',
+          labelText: AppLocalizations.of(context).translate('search_patient'),
+          hintText: AppLocalizations.of(
+            context,
+          ).translate('search_patient_hint'),
           prefixIcon: const Icon(Icons.search),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
@@ -134,7 +143,7 @@ class _PatientListPageState extends State<PatientListPage> {
       color: context.theme.grey.withOpacity(0.3),
       padding: const EdgeInsets.all(8),
       child: Text(
-        'Bạn đang offline. Dữ liệu có thể đã cũ.',
+        AppLocalizations.of(context).translate('offline_banner'),
         textAlign: TextAlign.center,
         style: TextStyle(color: context.theme.bg, fontWeight: FontWeight.w500),
       ),
@@ -150,7 +159,11 @@ class _PatientListPageState extends State<PatientListPage> {
     }).toList();
 
     if (displayedPatients.isEmpty && !patientVm.isLoading) {
-      return const Center(child: Text("Không tìm thấy bệnh nhân nào."));
+      return Center(
+        child: Text(
+          AppLocalizations.of(context).translate('no_patients_found'),
+        ),
+      );
     }
     return ListView.builder(
       controller: _scrollController,
@@ -176,8 +189,12 @@ class _PatientListPageState extends State<PatientListPage> {
                       onPressed: (context) {
                         if (patientVm.isOffline) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Không thể sửa khi đang offline'),
+                            SnackBar(
+                              content: Text(
+                                AppLocalizations.of(
+                                  context,
+                                ).translate('offline_edit_error'),
+                              ),
                             ),
                           );
                           return;
@@ -191,15 +208,17 @@ class _PatientListPageState extends State<PatientListPage> {
                       backgroundColor: context.theme.green,
                       foregroundColor: Colors.white,
                       icon: Icons.edit,
-                      label: 'Sửa',
+                      label: AppLocalizations.of(context).translate('edit'),
                     ),
                     SlidableAction(
                       onPressed: (context) {
                         if (patientVm.isOffline) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
+                            SnackBar(
                               content: Text(
-                                'Không thể xóa/khôi phục khi đang offline',
+                                AppLocalizations.of(
+                                  context,
+                                ).translate('offline_delete_error'),
                               ),
                             ),
                           );
@@ -220,7 +239,9 @@ class _PatientListPageState extends State<PatientListPage> {
                           : context.theme.red,
                       foregroundColor: Colors.white,
                       icon: isDeleted ? Icons.restore : Icons.delete,
-                      label: isDeleted ? 'Khôi phục' : 'Xóa',
+                      label: isDeleted
+                          ? AppLocalizations.of(context).translate('restore')
+                          : AppLocalizations.of(context).translate('delete'),
                     ),
                   ],
                 ),
@@ -261,7 +282,11 @@ class _PatientListPageState extends State<PatientListPage> {
       onTap: () {
         if (patientVm.isOffline) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Không thể sửa khi đang offline')),
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context).translate('offline_edit_error'),
+              ),
+            ),
           );
           return;
         }
@@ -314,7 +339,9 @@ class _PatientListPageState extends State<PatientListPage> {
                 Padding(
                   padding: const EdgeInsets.only(top: 4.0),
                   child: Chip(
-                    label: const Text('Đã xóa'),
+                    label: Text(
+                      AppLocalizations.of(context).translate('deleted'),
+                    ),
                     backgroundColor: context.theme.grey.withOpacity(0.2),
                     labelStyle: TextStyle(
                       fontSize: 10,

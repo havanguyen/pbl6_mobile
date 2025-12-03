@@ -10,6 +10,7 @@ import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import '../../shared/widgets/widget/staff_delete_confirm.dart';
 import 'package:pbl6mobile/view_model/location_work_management/snackbar_service.dart';
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 
 class AdminListPage extends StatefulWidget {
   const AdminListPage({super.key});
@@ -47,7 +48,8 @@ class _AdminListPageState extends State<AdminListPage> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
       context.read<StaffVm>().loadMore();
     }
   }
@@ -62,7 +64,10 @@ class _AdminListPageState extends State<AdminListPage> {
   }
 
   void _showDeleteDialog(Staff staff) {
-    final snackbarService = Provider.of<SnackbarService>(context, listen: false);
+    final snackbarService = Provider.of<SnackbarService>(
+      context,
+      listen: false,
+    );
     final staffVm = Provider.of<StaffVm>(context, listen: false);
 
     showDialog(
@@ -99,24 +104,31 @@ class _AdminListPageState extends State<AdminListPage> {
             controller: _searchController,
             style: TextStyle(color: context.theme.textColor),
             decoration: InputDecoration(
-              labelText: 'Tìm kiếm theo tên hoặc email',
+              labelText: AppLocalizations.of(
+                context,
+              ).translate('search_by_name_email'),
               labelStyle: TextStyle(color: context.theme.mutedForeground),
               prefixIcon: Icon(Icons.search, color: context.theme.primary),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: context.theme.primary, width: 1.5),
+                borderSide: BorderSide(
+                  color: context.theme.primary,
+                  width: 1.5,
+                ),
               ),
               filled: true,
               fillColor: context.theme.input,
               suffixIcon: _searchController.text.isNotEmpty
                   ? IconButton(
-                icon: Icon(Icons.clear, color: context.theme.primary),
-                onPressed: () {
-                  _searchController.clear();
-                  context.read<StaffVm>().resetFilters();
-                },
-              )
+                      icon: Icon(Icons.clear, color: context.theme.primary),
+                      onPressed: () {
+                        _searchController.clear();
+                        context.read<StaffVm>().resetFilters();
+                      },
+                    )
                   : null,
             ),
           ),
@@ -126,28 +138,43 @@ class _AdminListPageState extends State<AdminListPage> {
               Expanded(
                 child: ElevatedButton(
                   key: const Key('btn_add_admin'),
-                  onPressed: isOffline ? null : () async {
-                    final result = await Navigator.pushNamed(context, Routes.createAdmin);
-                    if (result == true) {
-                      context.read<StaffVm>().fetchStaffs(forceRefresh: true);
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: context.theme.primary,
-                    foregroundColor: context.theme.primaryForeground,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ).copyWith(
-                    backgroundColor: MaterialStateProperty.resolveWith<Color?>(
-                          (Set<MaterialState> states) {
-                        if (states.contains(MaterialState.disabled)) {
-                          return context.theme.grey;
-                        }
-                        return context.theme.primary;
-                      },
-                    ),
+                  onPressed: isOffline
+                      ? null
+                      : () async {
+                          final result = await Navigator.pushNamed(
+                            context,
+                            Routes.createAdmin,
+                          );
+                          if (result == true) {
+                            context.read<StaffVm>().fetchStaffs(
+                              forceRefresh: true,
+                            );
+                          }
+                        },
+                  style:
+                      ElevatedButton.styleFrom(
+                        backgroundColor: context.theme.primary,
+                        foregroundColor: context.theme.primaryForeground,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ).copyWith(
+                        backgroundColor:
+                            MaterialStateProperty.resolveWith<Color?>((
+                              Set<MaterialState> states,
+                            ) {
+                              if (states.contains(MaterialState.disabled)) {
+                                return context.theme.grey;
+                              }
+                              return context.theme.primary;
+                            }),
+                      ),
+                  child: Text(
+                    AppLocalizations.of(
+                      context,
+                    ).translate('create_admin_account'),
                   ),
-                  child: const Text('Tạo tài khoản admin'),
                 ),
               ),
               const SizedBox(width: 12),
@@ -157,7 +184,10 @@ class _AdminListPageState extends State<AdminListPage> {
                   color: context.theme.input,
                 ),
                 child: IconButton(
-                  icon: Icon(Icons.filter_alt_outlined, color: context.theme.primary),
+                  icon: Icon(
+                    Icons.filter_alt_outlined,
+                    color: context.theme.primary,
+                  ),
                   onPressed: _showFilterSheet,
                 ),
               ),
@@ -170,79 +200,142 @@ class _AdminListPageState extends State<AdminListPage> {
 
   Widget _buildFilterSection() {
     return Consumer<StaffVm>(
-        builder: (context, staffVm, child) {
-          return Container(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Bộ lọc & Sắp xếp', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: context.theme.textColor)),
-                const SizedBox(height: 24),
-                Text('Giới tính', style: TextStyle(color: context.theme.textColor, fontWeight: FontWeight.w500)),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    ChoiceChip(
-                      label: const Text('Tất cả'),
-                      selected: staffVm.isMale == null,
-                      onSelected: (selected) {
-                        staffVm.updateGenderFilter(null);
-                      },
-                      selectedColor: context.theme.primary,
-                      labelStyle: TextStyle(color: staffVm.isMale == null ? context.theme.primaryForeground : context.theme.textColor),
-                    ),
-                    const SizedBox(width: 8),
-                    ChoiceChip(
-                      label: const Text('Nam'),
-                      selected: staffVm.isMale == true,
-                      onSelected: (selected) {
-                        staffVm.updateGenderFilter(true);
-                      },
-                      selectedColor: context.theme.primary,
-                      labelStyle: TextStyle(color: staffVm.isMale == true ? context.theme.primaryForeground : context.theme.textColor),
-                    ),
-                    const SizedBox(width: 8),
-                    ChoiceChip(
-                      label: const Text('Nữ'),
-                      selected: staffVm.isMale == false,
-                      onSelected: (selected) {
-                        staffVm.updateGenderFilter(false);
-                      },
-                      selectedColor: context.theme.primary,
-                      labelStyle: TextStyle(color: staffVm.isMale == false ? context.theme.primaryForeground : context.theme.textColor),
-                    ),
-                  ],
+      builder: (context, staffVm, child) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                AppLocalizations.of(context).translate('filter_sort'),
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: context.theme.textColor,
                 ),
-                const SizedBox(height: 24),
-                Text('Sắp xếp', style: TextStyle(color: context.theme.textColor, fontWeight: FontWeight.w500)),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    DropdownButton<String>(
-                      value: staffVm.sortBy,
-                      items: const [
-                        DropdownMenuItem(value: 'createdAt', child: Text('Ngày tạo')),
-                        DropdownMenuItem(value: 'fullName', child: Text('Tên')),
-                        DropdownMenuItem(value: 'email', child: Text('Email')),
-                      ],
-                      onChanged: (value) => staffVm.updateSortFilter(sortBy: value),
-                    ),
-                    const SizedBox(width: 16),
-                    DropdownButton<String>(
-                      value: staffVm.sortOrder,
-                      items: const [
-                        DropdownMenuItem(value: 'asc', child: Text('Tăng dần')),
-                        DropdownMenuItem(value: 'desc', child: Text('Giảm dần')),
-                      ],
-                      onChanged: (value) => staffVm.updateSortFilter(sortOrder: value),
-                    ),
-                  ],
+              ),
+              const SizedBox(height: 24),
+              Text(
+                AppLocalizations.of(context).translate('gender'),
+                style: TextStyle(
+                  color: context.theme.textColor,
+                  fontWeight: FontWeight.w500,
                 ),
-              ],
-            ),
-          );
-        });
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  ChoiceChip(
+                    label: Text(AppLocalizations.of(context).translate('all')),
+                    selected: staffVm.isMale == null,
+                    onSelected: (selected) {
+                      staffVm.updateGenderFilter(null);
+                    },
+                    selectedColor: context.theme.primary,
+                    labelStyle: TextStyle(
+                      color: staffVm.isMale == null
+                          ? context.theme.primaryForeground
+                          : context.theme.textColor,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  ChoiceChip(
+                    label: Text(AppLocalizations.of(context).translate('male')),
+                    selected: staffVm.isMale == true,
+                    onSelected: (selected) {
+                      staffVm.updateGenderFilter(true);
+                    },
+                    selectedColor: context.theme.primary,
+                    labelStyle: TextStyle(
+                      color: staffVm.isMale == true
+                          ? context.theme.primaryForeground
+                          : context.theme.textColor,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  ChoiceChip(
+                    label: Text(
+                      AppLocalizations.of(context).translate('female'),
+                    ),
+                    selected: staffVm.isMale == false,
+                    onSelected: (selected) {
+                      staffVm.updateGenderFilter(false);
+                    },
+                    selectedColor: context.theme.primary,
+                    labelStyle: TextStyle(
+                      color: staffVm.isMale == false
+                          ? context.theme.primaryForeground
+                          : context.theme.textColor,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              Text(
+                AppLocalizations.of(context).translate('sort'),
+                style: TextStyle(
+                  color: context.theme.textColor,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  DropdownButton<String>(
+                    value: staffVm.sortBy,
+                    items: [
+                      DropdownMenuItem(
+                        value: 'createdAt',
+                        child: Text(
+                          AppLocalizations.of(
+                            context,
+                          ).translate('created_date'),
+                        ),
+                      ),
+                      DropdownMenuItem(
+                        value: 'fullName',
+                        child: Text(
+                          AppLocalizations.of(context).translate('name'),
+                        ),
+                      ),
+                      DropdownMenuItem(
+                        value: 'email',
+                        child: Text(
+                          AppLocalizations.of(context).translate('email'),
+                        ),
+                      ),
+                    ],
+                    onChanged: (value) =>
+                        staffVm.updateSortFilter(sortBy: value),
+                  ),
+                  const SizedBox(width: 16),
+                  DropdownButton<String>(
+                    value: staffVm.sortOrder,
+                    items: [
+                      DropdownMenuItem(
+                        value: 'asc',
+                        child: Text(
+                          AppLocalizations.of(context).translate('ascending'),
+                        ),
+                      ),
+                      DropdownMenuItem(
+                        value: 'desc',
+                        child: Text(
+                          AppLocalizations.of(context).translate('descending'),
+                        ),
+                      ),
+                    ],
+                    onChanged: (value) =>
+                        staffVm.updateSortFilter(sortOrder: value),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   Widget _buildShimmerList() {
@@ -256,20 +349,39 @@ class _AdminListPageState extends State<AdminListPage> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Container(width: 48.0, height: 48.0, decoration: BoxDecoration(color: context.theme.white, shape: BoxShape.circle)),
+              Container(
+                width: 48.0,
+                height: 48.0,
+                decoration: BoxDecoration(
+                  color: context.theme.white,
+                  shape: BoxShape.circle,
+                ),
+              ),
               const Padding(padding: EdgeInsets.symmetric(horizontal: 8.0)),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Container(width: double.infinity, height: 12.0, color: context.theme.white),
+                    Container(
+                      width: double.infinity,
+                      height: 12.0,
+                      color: context.theme.white,
+                    ),
                     const Padding(padding: EdgeInsets.symmetric(vertical: 4.0)),
-                    Container(width: double.infinity, height: 10.0, color: context.theme.white),
+                    Container(
+                      width: double.infinity,
+                      height: 10.0,
+                      color: context.theme.white,
+                    ),
                     const Padding(padding: EdgeInsets.symmetric(vertical: 2.0)),
-                    Container(width: 100.0, height: 8.0, color: context.theme.white),
+                    Container(
+                      width: 100.0,
+                      height: 8.0,
+                      color: context.theme.white,
+                    ),
                   ],
                 ),
-              )
+              ),
             ],
           ),
         ),
@@ -280,78 +392,106 @@ class _AdminListPageState extends State<AdminListPage> {
   Widget _buildAnimatedAdminCard(Staff admin, int index, bool isOffline) {
     return Slidable(
       key: ValueKey('admin_item_${admin.id}'),
-      endActionPane: isOffline ? null : ActionPane(
-        motion: const BehindMotion(),
-        children: [
-          SlidableAction(
-            key: ValueKey('admin_edit_button_${admin.id}'),
-            onPressed: (context) async {
-              final result = await Navigator.pushNamed(context, Routes.updateAdmin, arguments: admin.toJson());
-              if (result == true) context.read<StaffVm>().fetchStaffs(forceRefresh: true);
-            },
-            backgroundColor: context.theme.blue,
-            foregroundColor: context.theme.white,
-            icon: Icons.edit,
-            label: 'Sửa',
-          ),
-          SlidableAction(
-            onPressed: (context) => _showDeleteDialog(admin),
-            backgroundColor: context.theme.destructive,
-            foregroundColor: context.theme.white,
-            icon: Icons.delete,
-            label: 'Xóa',
-          ),
-        ],
-      ),
+      endActionPane: isOffline
+          ? null
+          : ActionPane(
+              motion: const BehindMotion(),
+              children: [
+                SlidableAction(
+                  key: ValueKey('admin_edit_button_${admin.id}'),
+                  onPressed: (context) async {
+                    final result = await Navigator.pushNamed(
+                      context,
+                      Routes.updateAdmin,
+                      arguments: admin.toJson(),
+                    );
+                    if (result == true)
+                      context.read<StaffVm>().fetchStaffs(forceRefresh: true);
+                  },
+                  backgroundColor: context.theme.blue,
+                  foregroundColor: context.theme.white,
+                  icon: Icons.edit,
+                  label: AppLocalizations.of(context).translate('edit'),
+                ),
+                SlidableAction(
+                  onPressed: (context) => _showDeleteDialog(admin),
+                  backgroundColor: context.theme.destructive,
+                  foregroundColor: context.theme.white,
+                  icon: Icons.delete,
+                  label: AppLocalizations.of(context).translate('delete'),
+                ),
+              ],
+            ),
       child: Card(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         child: InkWell(
-            key: Key('btn_edit_admin_$index'),
-            onTap: isOffline ? null : () async {
-              final result = await Navigator.pushNamed(context, Routes.updateAdmin, arguments: admin.toJson());
-              if (result == true) context.read<StaffVm>().fetchStaffs(forceRefresh: true);
-            },
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Hero(
-                    tag: 'avatar_${admin.id}',
-                    child: CircleAvatar(
-                      radius: 24,
-                      backgroundColor: context.theme.primary.withOpacity(0.1),
-                      child: Text(
-                        admin.fullName.isNotEmpty ? admin.fullName[0].toUpperCase() : 'A',
-                        style: TextStyle(fontSize: 20, color: context.theme.primary, fontWeight: FontWeight.bold),
+          key: Key('btn_edit_admin_$index'),
+          onTap: isOffline
+              ? null
+              : () async {
+                  final result = await Navigator.pushNamed(
+                    context,
+                    Routes.updateAdmin,
+                    arguments: admin.toJson(),
+                  );
+                  if (result == true)
+                    context.read<StaffVm>().fetchStaffs(forceRefresh: true);
+                },
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Hero(
+                  tag: 'avatar_${admin.id}',
+                  child: CircleAvatar(
+                    radius: 24,
+                    backgroundColor: context.theme.primary.withOpacity(0.1),
+                    child: Text(
+                      admin.fullName.isNotEmpty
+                          ? admin.fullName[0].toUpperCase()
+                          : 'A',
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: context.theme.primary,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Hero(
-                          tag: 'name_${admin.id}',
-                          child: Material(
-                            color: Colors.transparent,
-                            child: Text(
-                              admin.fullName,
-                              style: TextStyle(color: context.theme.cardForeground, fontSize: 16, fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Hero(
+                        tag: 'name_${admin.id}',
+                        child: Material(
+                          color: Colors.transparent,
+                          child: Text(
+                            admin.fullName,
+                            style: TextStyle(
+                              color: context.theme.cardForeground,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          admin.email,
-                          style: TextStyle(color: context.theme.mutedForeground, fontSize: 14),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        admin.email,
+                        style: TextStyle(
+                          color: context.theme.mutedForeground,
+                          fontSize: 14,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            )),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -360,12 +500,15 @@ class _AdminListPageState extends State<AdminListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Quản lý Admin'),
+        title: Text(
+          AppLocalizations.of(context).translate('admin_management_title'),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () => context.read<StaffVm>().fetchStaffs(forceRefresh: true),
-          )
+            onPressed: () =>
+                context.read<StaffVm>().fetchStaffs(forceRefresh: true),
+          ),
         ],
       ),
       body: Consumer<StaffVm>(
@@ -381,7 +524,7 @@ class _AdminListPageState extends State<AdminListPage> {
                   child: Text(
                     provider.error!,
                     textAlign: TextAlign.center,
-                    style:  TextStyle(color: context.theme.popover),
+                    style: TextStyle(color: context.theme.popover),
                   ),
                 ),
               if (provider.isLoading && provider.staffs.isNotEmpty)
@@ -394,15 +537,25 @@ class _AdminListPageState extends State<AdminListPage> {
                     }
 
                     if (provider.staffs.isEmpty) {
-                      return const Center(child: Text('Không có admin nào'));
+                      return Center(
+                        child: Text(
+                          AppLocalizations.of(
+                            context,
+                          ).translate('no_admins_found'),
+                        ),
+                      );
                     }
 
                     return RefreshIndicator(
-                      onRefresh: () async => context.read<StaffVm>().fetchStaffs(forceRefresh: true),
+                      onRefresh: () async => context
+                          .read<StaffVm>()
+                          .fetchStaffs(forceRefresh: true),
                       child: ListView.builder(
                         key: const ValueKey('admin_list_scroll_view'),
                         controller: _scrollController,
-                        itemCount: provider.staffs.length + (provider.isLoadingMore ? 1 : 0),
+                        itemCount:
+                            provider.staffs.length +
+                            (provider.isLoadingMore ? 1 : 0),
                         itemBuilder: (context, index) {
                           if (index == provider.staffs.length) {
                             return const Center(
@@ -418,7 +571,11 @@ class _AdminListPageState extends State<AdminListPage> {
                             child: SlideAnimation(
                               verticalOffset: 50.0,
                               child: FadeInAnimation(
-                                child: _buildAnimatedAdminCard(provider.staffs[index], index, provider.isOffline),
+                                child: _buildAnimatedAdminCard(
+                                  provider.staffs[index],
+                                  index,
+                                  provider.isOffline,
+                                ),
                               ),
                             ),
                           );

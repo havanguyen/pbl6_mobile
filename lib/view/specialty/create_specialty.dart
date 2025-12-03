@@ -3,6 +3,7 @@ import 'package:pbl6mobile/view_model/specialty/specialty_vm.dart';
 import 'package:provider/provider.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import '../../shared/widgets/widget/specialty_form.dart';
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 
 class CreateSpecialtyPage extends StatelessWidget {
   const CreateSpecialtyPage({super.key});
@@ -13,7 +14,7 @@ class CreateSpecialtyPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: context.theme.appBar,
         title: Text(
-          'Tạo chuyên khoa',
+          AppLocalizations.of(context).translate('create_specialty_title'),
           style: TextStyle(color: context.theme.primaryForeground),
         ),
         leading: IconButton(
@@ -27,11 +28,10 @@ class CreateSpecialtyPage extends StatelessWidget {
         child: SpecialtyForm(
           isUpdate: false,
           onSubmit: ({required name, description, id}) async {
-            return await Provider.of<SpecialtyVm>(context, listen: false)
-                .createSpecialty(
-              name: name,
-              description: description,
-            );
+            return await Provider.of<SpecialtyVm>(
+              context,
+              listen: false,
+            ).createSpecialty(name: name, description: description);
           },
         ),
       ),

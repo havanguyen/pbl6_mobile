@@ -9,12 +9,12 @@ import 'package:pbl6mobile/view_model/blog/blog_vm.dart';
 import 'package:pbl6mobile/view_model/location_work_management/snackbar_service.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 
 class ManageCategoriesPage extends StatelessWidget {
   const ManageCategoriesPage({super.key});
 
-  void _showCategoryFormDialog(BuildContext context,
-      {BlogCategory? category}) {
+  void _showCategoryFormDialog(BuildContext context, {BlogCategory? category}) {
     final blogVm = context.read<BlogVm>();
     showDialog(
       context: context,
@@ -29,8 +29,7 @@ class ManageCategoriesPage extends StatelessWidget {
     );
   }
 
-  void _showCategoryDeleteDialog(
-      BuildContext context, BlogCategory category) {
+  void _showCategoryDeleteDialog(BuildContext context, BlogCategory category) {
     final blogVm = context.read<BlogVm>();
     showDialog(
       context: context,
@@ -97,7 +96,7 @@ class ManageCategoriesPage extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Chưa có danh mục nào',
+              AppLocalizations.of(context).translate('no_categories_yet'),
               style: TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.w500,
@@ -108,9 +107,11 @@ class ManageCategoriesPage extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 40.0),
               child: Text(
-                'Nhấn nút "+" để thêm danh mục mới.',
-                style:
-                TextStyle(color: context.theme.mutedForeground, fontSize: 13),
+                AppLocalizations.of(context).translate('add_new_category_hint'),
+                style: TextStyle(
+                  color: context.theme.mutedForeground,
+                  fontSize: 13,
+                ),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -121,7 +122,10 @@ class ManageCategoriesPage extends StatelessWidget {
   }
 
   Widget _buildCategoryCard(
-      BuildContext context, BlogCategory category, int index) {
+    BuildContext context,
+    BlogCategory category,
+    int index,
+  ) {
     final theme = context.theme;
     return AnimationConfiguration.staggeredList(
       position: index,
@@ -142,7 +146,7 @@ class ManageCategoriesPage extends StatelessWidget {
                   backgroundColor: theme.blue,
                   foregroundColor: theme.white,
                   icon: Icons.edit_outlined,
-                  label: 'Sửa',
+                  label: AppLocalizations.of(context).translate('edit'),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 SlidableAction(
@@ -151,7 +155,7 @@ class ManageCategoriesPage extends StatelessWidget {
                   backgroundColor: theme.destructive,
                   foregroundColor: theme.white,
                   icon: Icons.delete_outline_rounded,
-                  label: 'Xóa',
+                  label: AppLocalizations.of(context).translate('delete'),
                   borderRadius: BorderRadius.circular(12),
                 ),
               ],
@@ -165,7 +169,8 @@ class ManageCategoriesPage extends StatelessWidget {
               ),
               clipBehavior: Clip.antiAlias,
               child: ListTile(
-                onTap: () => _showCategoryFormDialog(context, category: category),
+                onTap: () =>
+                    _showCategoryFormDialog(context, category: category),
                 leading: CircleAvatar(
                   backgroundColor: theme.primary.withOpacity(0.1),
                   foregroundColor: theme.primary,
@@ -179,7 +184,8 @@ class ManageCategoriesPage extends StatelessWidget {
                   ),
                 ),
                 subtitle: Text(
-                  category.description ?? 'Không có mô tả',
+                  category.description ??
+                      AppLocalizations.of(context).translate('none'),
                   style: TextStyle(color: theme.mutedForeground),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -206,7 +212,7 @@ class ManageCategoriesPage extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Text(
-              "Lỗi: ${blogVm.categoryError!}",
+              "${AppLocalizations.of(context).translate('error')}: ${blogVm.categoryError!}",
               style: TextStyle(color: theme.destructive),
               textAlign: TextAlign.center,
             ),
@@ -233,7 +239,9 @@ class ManageCategoriesPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Quản lý Danh mục Blog'),
+        title: Text(
+          AppLocalizations.of(context).translate('manage_blog_categories'),
+        ),
         elevation: 0.5,
         backgroundColor: theme.card,
         titleTextStyle: TextStyle(
@@ -248,9 +256,9 @@ class ManageCategoriesPage extends StatelessWidget {
         actions: [
           IconButton(
             icon: Icon(Icons.refresh, color: theme.mutedForeground),
-            tooltip: "Làm mới",
+            tooltip: AppLocalizations.of(context).translate('reset'),
             onPressed: () => blogVm.fetchBlogCategories(forceRefresh: true),
-          )
+          ),
         ],
       ),
       backgroundColor: theme.bg,
@@ -259,7 +267,9 @@ class ManageCategoriesPage extends StatelessWidget {
         onPressed: () => _showCategoryFormDialog(context),
         backgroundColor: theme.primary,
         child: Icon(Icons.add, color: theme.primaryForeground),
-        tooltip: 'Thêm danh mục mới',
+        tooltip: AppLocalizations.of(
+          context,
+        ).translate('create_category_title'),
       ),
     );
   }

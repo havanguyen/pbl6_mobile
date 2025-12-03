@@ -3,6 +3,7 @@ import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 
 import '../../model/services/remote/work_location_service.dart';
 import '../../shared/widgets/widget/location_form.dart';
+import '../../shared/localization/app_localizations.dart';
 
 class CreateLocationWorkPage extends StatelessWidget {
   const CreateLocationWorkPage({super.key});
@@ -13,7 +14,7 @@ class CreateLocationWorkPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: context.theme.appBar,
         title: Text(
-          'Tạo địa điểm làm việc',
+          AppLocalizations.of(context).translate('create_location_title'),
           style: TextStyle(color: context.theme.primaryForeground),
         ),
         leading: IconButton(
@@ -26,14 +27,22 @@ class CreateLocationWorkPage extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: LocationForm(
           isUpdate: false,
-          onSubmit: ({required name, required address, required phone, required timezone, id}) async {
-            return await LocationWorkService.createLocation(
-              name: name,
-              address: address,
-              phone: phone,
-              timezone: timezone,
-            );
-          }, initialData: null,
+          onSubmit:
+              ({
+                required name,
+                required address,
+                required phone,
+                required timezone,
+                id,
+              }) async {
+                return await LocationWorkService.createLocation(
+                  name: name,
+                  address: address,
+                  phone: phone,
+                  timezone: timezone,
+                );
+              },
+          initialData: null,
         ),
       ),
     );

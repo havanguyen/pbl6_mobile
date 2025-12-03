@@ -71,9 +71,12 @@ class AuthService {
             try {
               print('Attempting to refresh token...');
               if (await refreshToken()) {
-                print('Token refreshed successfully. Retrying original request...');
+                print(
+                  'Token refreshed successfully. Retrying original request...',
+                );
                 final newAccessToken = await Store.getAccessToken();
-                e.requestOptions.headers['Authorization'] = 'Bearer $newAccessToken';
+                e.requestOptions.headers['Authorization'] =
+                    'Bearer $newAccessToken';
 
                 final response = await _secureDio.fetch(e.requestOptions);
                 return handler.resolve(response);
@@ -106,7 +109,10 @@ class AuthService {
       );
       if (response.statusCode == 201 || response.statusCode == 200) {
         final data = response.data['data'];
-        if (data != null && data['access_token'] != null && data['refresh_token'] != null && data['user']?['role'] != null) {
+        if (data != null &&
+            data['access_token'] != null &&
+            data['refresh_token'] != null &&
+            data['user']?['role'] != null) {
           await Store.setAccessToken(data['access_token']);
           await Store.setRefreshToken(data['refresh_token']);
           await Store.setUserRole(data['user']['role']);
@@ -142,7 +148,9 @@ class AuthService {
       );
       if (response.statusCode == 201 || response.statusCode == 200) {
         final data = response.data['data'];
-        if (data != null && data['access_token'] != null && data['refresh_token'] != null) {
+        if (data != null &&
+            data['access_token'] != null &&
+            data['refresh_token'] != null) {
           await Store.setAccessToken(data['access_token']);
           await Store.setRefreshToken(data['refresh_token']);
           print('Token refreshed successfully.');
@@ -176,9 +184,7 @@ class AuthService {
     try {
       final refreshToken = await Store.getRefreshToken();
       if (refreshToken != null) {
-        await _secureDio.delete(
-          '/auth/logout',
-        );
+        await _secureDio.delete('/auth/logout');
         print('API logout call successful.');
       } else {
         print('No refresh token found, skipping API logout call.');
@@ -203,10 +209,7 @@ class AuthService {
     try {
       final response = await _secureDio.post(
         '/auth/change-password',
-        data: {
-          'currentPassword': currentPassword,
-          'newPassword': newPassword,
-        },
+        data: {'currentPassword': currentPassword, 'newPassword': newPassword},
       );
       return response.statusCode == 200;
     } catch (e) {
@@ -240,9 +243,7 @@ class AuthService {
     }
   }
 
-  static Future<bool> verifyPassword({
-    required String password,
-  }) async {
+  static Future<bool> verifyPassword({required String password}) async {
     try {
       final response = await _secureDio.post(
         '/auth/verify-password',
@@ -255,6 +256,61 @@ class AuthService {
       return false;
     } catch (e) {
       print("Verify password error: $e");
+      if (e is DioException) {
+        print("DioException Response: ${e.response?.data}");
+      }
+      return false;
+    }
+  }
+
+  static Future<bool> requestPasswordReset({required String email}) async {
+    try {
+      final response = await _dio.post(
+        '/auth/password-reset/request',
+        data: {'email': email},
+      );
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      print("Request password reset error: $e");
+      if (e is DioException) {
+        print("DioException Response: ${e.response?.data}");
+      }
+      return false;
+    }
+  }
+
+  static Future<bool> verifyResetCode({
+    required String email,
+    required String code,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/auth/password-reset/verify-code',
+        data: {'email': email, 'code': code},
+      );
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      print("Verify reset code error: $e");
+      if (e is DioException) {
+        print("DioException Response: ${e.response?.data}");
+      }
+      return false;
+    }
+  }
+
+  static Future<bool> confirmPasswordReset({
+    required String email,
+    required String code,
+    required String newPassword,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/auth/password-reset/confirm',
+        data: {'email': email, 'code': code, 'newPassword': newPassword},
+      );
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      print("Confirm password reset error: $e");
       if (e is DioException) {
         print("DioException Response: ${e.response?.data}");
       }

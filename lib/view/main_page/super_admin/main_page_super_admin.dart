@@ -4,6 +4,7 @@ import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import '../../../shared/routes/routes.dart';
 import '../../../shared/widgets/animation/scale_animation.dart';
 import '../../../shared/widgets/button/custom_circular_button.dart';
+import '../../../shared/localization/app_localizations.dart';
 
 class MainPageSuperAdmin extends StatelessWidget {
   const MainPageSuperAdmin({super.key});
@@ -20,10 +21,7 @@ class MainPageSuperAdmin extends StatelessWidget {
           image: DecorationImage(
             image: AssetImage('assets/images/background_bd.jpg'),
             fit: BoxFit.cover,
-            colorFilter: ColorFilter.mode(
-              Color(0x802196F3),
-              BlendMode.overlay,
-            ),
+            colorFilter: ColorFilter.mode(Color(0x802196F3), BlendMode.overlay),
           ),
         ),
         child: Stack(
@@ -34,10 +32,16 @@ class MainPageSuperAdmin extends StatelessWidget {
               child: ScaleAnimatedButton(
                 child: Container(
                   decoration: BoxDecoration(
-                      color: context.theme.blue, shape: BoxShape.circle),
+                    color: context.theme.blue,
+                    shape: BoxShape.circle,
+                  ),
                   child: IconButton(
                     key: const ValueKey('main_page_settings_button'),
-                    icon: Icon(Icons.menu, color: context.theme.white, size: 35),
+                    icon: Icon(
+                      Icons.menu,
+                      color: context.theme.white,
+                      size: 35,
+                    ),
                     onPressed: () {
                       Navigator.pushNamed(context, Routes.settingSuperAdmin);
                     },
@@ -70,7 +74,9 @@ class MainPageSuperAdmin extends StatelessWidget {
                   context,
                   size: 110,
                   icon: Icons.calendar_today_outlined,
-                  label: 'QUẢN LÝ LỊCH KHÁM',
+                  label: AppLocalizations.of(
+                    context,
+                  ).translate('appointment_management'),
                   onTap: () {
                     Navigator.pushNamed(context, Routes.listAppointment);
                   },
@@ -86,7 +92,9 @@ class MainPageSuperAdmin extends StatelessWidget {
                   context,
                   size: 110,
                   icon: Icons.question_answer_outlined,
-                  label: 'QUẢN LÝ BÁC SĨ',
+                  label: AppLocalizations.of(
+                    context,
+                  ).translate('doctor_management'),
                   onTap: () {
                     Navigator.pushNamed(context, Routes.listDoctor);
                   },
@@ -102,7 +110,9 @@ class MainPageSuperAdmin extends StatelessWidget {
                   context,
                   size: 140,
                   icon: Icons.rate_review_outlined,
-                  label: 'QUẢN LÝ MỤC HỎI ĐÁP',
+                  label: AppLocalizations.of(
+                    context,
+                  ).translate('qa_management'),
                   onTap: () {
                     Navigator.pushNamed(context, Routes.listQuestion);
                   },
@@ -118,7 +128,9 @@ class MainPageSuperAdmin extends StatelessWidget {
                   context,
                   size: 120,
                   icon: Icons.article_outlined,
-                  label: 'QUẢN LÝ BLOG',
+                  label: AppLocalizations.of(
+                    context,
+                  ).translate('blog_management'),
                   onTap: () {
                     Navigator.pushNamed(context, Routes.listBlog);
                   },
@@ -134,7 +146,9 @@ class MainPageSuperAdmin extends StatelessWidget {
                   context,
                   size: 140,
                   icon: Icons.lock_reset_outlined,
-                  label: 'QUẢN LÝ TÀI KHOẢN ADMIN',
+                  label: AppLocalizations.of(
+                    context,
+                  ).translate('admin_account_management'),
                   onTap: () {
                     Navigator.pushNamed(context, Routes.listAdmin);
                   },
@@ -147,7 +161,9 @@ class MainPageSuperAdmin extends StatelessWidget {
               right: 0,
               child: Center(
                 child: Text(
-                  'Bạn đang đăng nhập với tư cách là super admin',
+                  AppLocalizations.of(
+                    context,
+                  ).translate('logged_in_as_super_admin'),
                   style: TextStyle(
                     color: context.theme.blue,
                     fontWeight: FontWeight.bold,

@@ -7,6 +7,9 @@ import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/shared/routes/routes.dart';
 import 'package:pbl6mobile/shared/themes/cubit/theme_cubit.dart';
 import 'package:pbl6mobile/shared/themes/cubit/theme_state.dart';
+import 'package:pbl6mobile/shared/themes/cubit/language_cubit.dart';
+import 'package:pbl6mobile/shared/themes/cubit/language_state.dart';
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 import 'package:pbl6mobile/view/splash/splash.dart';
 import 'package:pbl6mobile/view_model/admin_management/admin_management_vm.dart';
 import 'package:pbl6mobile/view_model/admin_management/doctor_management_vm.dart';
@@ -46,25 +49,33 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider<AppointmentVm>(create: (_) => AppointmentVm()),
         ChangeNotifierProvider<OfficeHoursVm>(create: (_) => OfficeHoursVm()),
         BlocProvider<ThemeCubit>(create: (_) => ThemeCubit()..loadTheme()),
+        BlocProvider<LanguageCubit>(
+          create: (_) => LanguageCubit()..loadLanguage(),
+        ),
       ],
       child: BlocBuilder<ThemeCubit, ThemeState>(
-        builder: (context, state) {
-          return MaterialApp(
-            title: 'Flutter App PBL6',
-            debugShowCheckedModeBanner: false,
-            themeMode: state.themeMode,
-            theme: lightTheme,
-            darkTheme: darkTheme,
-            onGenerateRoute: Routes.onGenerateRoute,
-            home: const SplashPage(),
-            localizationsDelegates: const [
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-              FlutterQuillLocalizations.delegate,
-            ],
-            supportedLocales: const [Locale('en'), Locale('vi')],
-            locale: const Locale('vi'),
+        builder: (context, themeState) {
+          return BlocBuilder<LanguageCubit, LanguageState>(
+            builder: (context, languageState) {
+              return MaterialApp(
+                title: 'Flutter App PBL6',
+                debugShowCheckedModeBanner: false,
+                themeMode: themeState.themeMode,
+                theme: lightTheme,
+                darkTheme: darkTheme,
+                onGenerateRoute: Routes.onGenerateRoute,
+                home: const SplashPage(),
+                localizationsDelegates: const [
+                  AppLocalizations.delegate,
+                  GlobalMaterialLocalizations.delegate,
+                  GlobalWidgetsLocalizations.delegate,
+                  GlobalCupertinoLocalizations.delegate,
+                  FlutterQuillLocalizations.delegate,
+                ],
+                supportedLocales: const [Locale('en'), Locale('vi')],
+                locale: languageState.locale,
+              );
+            },
           );
         },
       ),

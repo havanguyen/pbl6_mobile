@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pbl6mobile/model/services/remote/staff_service.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 
 import '../../shared/widgets/widget/staff_form.dart';
 
@@ -69,7 +70,7 @@ class UpdateAdminPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: context.theme.blue,
         title: Text(
-          'Chỉnh sửa tài khoản admin',
+          AppLocalizations.of(context).translate('edit_admin_account'),
           style: TextStyle(color: context.theme.primaryForeground),
         ),
         leading: IconButton(

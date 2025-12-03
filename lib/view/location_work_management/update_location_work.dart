@@ -4,6 +4,7 @@ import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 
 import '../../model/services/remote/work_location_service.dart';
 import '../../shared/widgets/widget/location_form.dart';
+import '../../shared/localization/app_localizations.dart';
 
 class UpdateLocationWorkPage extends StatelessWidget {
   final WorkLocation location;
@@ -16,7 +17,7 @@ class UpdateLocationWorkPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: context.theme.appBar,
         title: Text(
-          'Chỉnh sửa địa điểm làm việc',
+          AppLocalizations.of(context).translate('update_location_title'),
           style: TextStyle(color: context.theme.primaryForeground),
         ),
         leading: IconButton(
@@ -30,15 +31,22 @@ class UpdateLocationWorkPage extends StatelessWidget {
         child: LocationForm(
           isUpdate: true,
           initialData: location,
-          onSubmit: ({required name, required address, required phone, required timezone, id}) async {
-            return await LocationWorkService.updateLocation(
-              id: id!,
-              name: name,
-              address: address,
-              phone: phone,
-              timezone: timezone,
-            );
-          },
+          onSubmit:
+              ({
+                required name,
+                required address,
+                required phone,
+                required timezone,
+                id,
+              }) async {
+                return await LocationWorkService.updateLocation(
+                  id: id!,
+                  name: name,
+                  address: address,
+                  phone: phone,
+                  timezone: timezone,
+                );
+              },
         ),
       ),
     );

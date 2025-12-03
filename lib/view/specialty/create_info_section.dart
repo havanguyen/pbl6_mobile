@@ -3,6 +3,7 @@ import 'package:pbl6mobile/view_model/specialty/specialty_vm.dart';
 import 'package:provider/provider.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import '../../shared/widgets/widget/info_section_form.dart';
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 
 class CreateInfoSectionPage extends StatelessWidget {
   final String specialtyId;
@@ -15,7 +16,7 @@ class CreateInfoSectionPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: context.theme.appBar,
         title: Text(
-          'Tạo phần thông tin',
+          AppLocalizations.of(context).translate('create_info_section_title'),
           style: TextStyle(color: context.theme.primaryForeground),
         ),
         leading: IconButton(
@@ -30,16 +31,20 @@ class CreateInfoSectionPage extends StatelessWidget {
           isUpdate: false,
           specialtyId: specialtyId,
           onSubmit: ({required name, required content, id}) async {
-            return await Provider.of<SpecialtyVm>(context, listen: false)
-                .createInfoSection(
+            return await Provider.of<SpecialtyVm>(
+              context,
+              listen: false,
+            ).createInfoSection(
               specialtyId: specialtyId,
               name: name,
               content: content,
             );
           },
           onSuccess: () {
-            Provider.of<SpecialtyVm>(context, listen: false)
-                .fetchInfoSections(specialtyId, forceRefresh: true);
+            Provider.of<SpecialtyVm>(
+              context,
+              listen: false,
+            ).fetchInfoSections(specialtyId, forceRefresh: true);
           },
         ),
       ),

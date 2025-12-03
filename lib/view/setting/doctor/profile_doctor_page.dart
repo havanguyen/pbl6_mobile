@@ -3,6 +3,7 @@ import 'package:pbl6mobile/model/entities/doctor_detail.dart';
 import 'package:pbl6mobile/model/services/remote/auth_service.dart';
 import 'package:pbl6mobile/model/services/remote/doctor_service.dart';
 import 'package:pbl6mobile/view/doctor_management/doctor_detail_page.dart';
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 
 class ProfileDoctorPage extends StatefulWidget {
   const ProfileDoctorPage({super.key});
@@ -27,14 +28,26 @@ class _ProfileDoctorPageState extends State<ProfileDoctorPage> {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Scaffold(
-            appBar: AppBar(title: const Text("Đang tải hồ sơ...")),
+            appBar: AppBar(
+              title: Text(
+                AppLocalizations.of(context).translate('loading_data'),
+              ),
+            ),
             body: const Center(child: CircularProgressIndicator()),
           );
         }
         if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
           return Scaffold(
-            appBar: AppBar(title: const Text("Lỗi")),
-            body: const Center(child: Text('Không thể tải hồ sơ chuyên môn.')),
+            appBar: AppBar(
+              title: Text(AppLocalizations.of(context).translate('error')),
+            ),
+            body: Center(
+              child: Text(
+                AppLocalizations.of(
+                  context,
+                ).translate('error_load_doctor_profile'),
+              ),
+            ),
           );
         }
         return DoctorDetailPage(doctorId: snapshot.data!.id, isSelfView: true);
