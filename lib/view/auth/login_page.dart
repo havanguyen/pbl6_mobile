@@ -155,222 +155,278 @@ class LoginPageState extends State<LoginPage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      body: Container(
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/images/background.jpg'),
-            fit: BoxFit.cover,
-            colorFilter: ColorFilter.mode(
-              context.theme.blue.withOpacity(0.2),
-              BlendMode.srcOver,
+    return Theme(
+      data: lightTheme,
+      child: Scaffold(
+        resizeToAvoidBottomInset: false,
+        body: Container(
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage('assets/images/background.jpg'),
+              fit: BoxFit.cover,
+              colorFilter: ColorFilter.mode(
+                context.theme.blue.withOpacity(0.2),
+                BlendMode.srcOver,
+              ),
             ),
           ),
-        ),
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 40.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Align(
-                    alignment: Alignment.topRight,
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 40, right: 20),
-                      child: const LanguageSwitcher(isCompact: true),
-                    ),
-                  ),
-                  const Spacer(flex: 1),
-                  AnimatedBuilder(
-                    animation: _logoAnimation,
-                    builder: (context, child) {
-                      return Opacity(
-                        opacity: _logoAnimation.value,
-                        child: Transform.translate(
-                          offset: Offset(0, 50 * (1 - _logoAnimation.value)),
-                          child: child,
-                        ),
-                      );
-                    },
-                    child: Image.asset(
-                      'assets/images/logo.png',
-                      color: context.theme.blue,
-                      height: 200,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  AnimatedBuilder(
-                    animation: _emailAnimation,
-                    builder: (context, child) {
-                      return Opacity(
-                        opacity: _emailAnimation.value,
-                        child: Transform.translate(
-                          offset: Offset(-50 * (1 - _emailAnimation.value), 0),
-                          child: child,
-                        ),
-                      );
-                    },
-                    child: TextFormField(
-                      key: const ValueKey('login_email_field'),
-                      controller: _emailController,
-                      focusNode: _focusEmail,
-                      decoration: InputDecoration(
-                        labelText: AppLocalizations.of(
-                          context,
-                        ).translate('email'),
-                        prefixIcon: Icon(
-                          Icons.email,
-                          color: context.theme.blue,
-                        ),
-                        border: const OutlineInputBorder(),
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Align(
+                      alignment: Alignment.topRight,
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 40, right: 20),
+                        child: const LanguageSwitcher(isCompact: true),
                       ),
-                      keyboardType: TextInputType.emailAddress,
-                      textInputAction: TextInputAction.next,
-                      onFieldSubmitted: (_) {
-                        _focusPassword.requestFocus();
-                      },
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return AppLocalizations.of(
-                            context,
-                          ).translate('email_required');
-                        }
-                        final emailRegex = RegExp(
-                          r'^[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z]+',
+                    ),
+                    const Spacer(flex: 1),
+                    AnimatedBuilder(
+                      animation: _logoAnimation,
+                      builder: (context, child) {
+                        return Opacity(
+                          opacity: _logoAnimation.value,
+                          child: Transform.translate(
+                            offset: Offset(0, 50 * (1 - _logoAnimation.value)),
+                            child: child,
+                          ),
                         );
-                        if (!emailRegex.hasMatch(value)) {
-                          return AppLocalizations.of(
-                            context,
-                          ).translate('email_invalid');
-                        }
-                        return null;
                       },
-                      onSaved: (value) => _email = value!,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  AnimatedBuilder(
-                    animation: _passwordAnimation,
-                    builder: (context, child) {
-                      return Opacity(
-                        opacity: _passwordAnimation.value,
-                        child: Transform.translate(
-                          offset: Offset(
-                            50 * (1 - _passwordAnimation.value),
-                            0,
-                          ),
-                          child: child,
-                        ),
-                      );
-                    },
-                    child: TextFormField(
-                      key: const ValueKey('login_password_field'),
-                      controller: _passwordController,
-                      focusNode: _focusPassword,
-                      decoration: InputDecoration(
-                        labelText: AppLocalizations.of(
-                          context,
-                        ).translate('password'),
-                        prefixIcon: Icon(Icons.lock, color: context.theme.blue),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility
-                                : Icons.visibility_off,
-                            color: context.theme.blue,
-                          ),
-                          onPressed: () {
-                            setState(
-                              () => _obscurePassword = !_obscurePassword,
-                            );
-                          },
-                        ),
-                        border: const OutlineInputBorder(),
+                      child: Image.asset(
+                        'assets/images/logo.png',
+                        color: context.theme.blue,
+                        height: 200,
                       ),
-                      obscureText: _obscurePassword,
-                      textInputAction: TextInputAction.done,
-                      onFieldSubmitted: (_) => _login(),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return AppLocalizations.of(
-                            context,
-                          ).translate('password_required');
-                        }
-                        if (value.length < 8 ||
-                            !value.contains(RegExp(r'[a-zA-Z]')) ||
-                            !value.contains(RegExp(r'[0-9]'))) {
-                          return AppLocalizations.of(
-                            context,
-                          ).translate('password_invalid');
-                        }
-                        return null;
-                      },
-                      onSaved: (value) => _password = value!,
                     ),
-                  ),
+                    const SizedBox(height: 20),
+                    AnimatedBuilder(
+                      animation: _emailAnimation,
+                      builder: (context, child) {
+                        return Opacity(
+                          opacity: _emailAnimation.value,
+                          child: Transform.translate(
+                            offset: Offset(
+                              -50 * (1 - _emailAnimation.value),
+                              0,
+                            ),
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: TextFormField(
+                        key: const ValueKey('login_email_field'),
+                        controller: _emailController,
+                        focusNode: _focusEmail,
+                        decoration: InputDecoration(
+                          labelText: AppLocalizations.of(
+                            context,
+                          ).translate('email'),
+                          labelStyle: TextStyle(
+                            color: context.theme.mutedForeground,
+                          ),
+                          prefixIcon: Icon(
+                            Icons.email,
+                            color: context.theme.primary,
+                          ),
+                          filled: true,
+                          fillColor: context.theme.input,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: context.theme.border.withOpacity(0.5),
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: context.theme.primary,
+                              width: 1.5,
+                            ),
+                          ),
+                        ),
+                        style: TextStyle(color: context.theme.textColor),
+                        keyboardType: TextInputType.emailAddress,
+                        textInputAction: TextInputAction.next,
+                        onFieldSubmitted: (_) {
+                          _focusPassword.requestFocus();
+                        },
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return AppLocalizations.of(
+                              context,
+                            ).translate('email_required');
+                          }
+                          final emailRegex = RegExp(
+                            r'^[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z]+',
+                          );
+                          if (!emailRegex.hasMatch(value)) {
+                            return AppLocalizations.of(
+                              context,
+                            ).translate('email_invalid');
+                          }
+                          return null;
+                        },
+                        onSaved: (value) => _email = value!,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    AnimatedBuilder(
+                      animation: _passwordAnimation,
+                      builder: (context, child) {
+                        return Opacity(
+                          opacity: _passwordAnimation.value,
+                          child: Transform.translate(
+                            offset: Offset(
+                              50 * (1 - _passwordAnimation.value),
+                              0,
+                            ),
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: TextFormField(
+                        key: const ValueKey('login_password_field'),
+                        controller: _passwordController,
+                        focusNode: _focusPassword,
+                        decoration: InputDecoration(
+                          labelText: AppLocalizations.of(
+                            context,
+                          ).translate('password'),
+                          labelStyle: TextStyle(
+                            color: context.theme.mutedForeground,
+                          ),
+                          prefixIcon: Icon(
+                            Icons.lock,
+                            color: context.theme.primary,
+                          ),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscurePassword
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                              color: context.theme.mutedForeground,
+                            ),
+                            onPressed: () {
+                              setState(
+                                () => _obscurePassword = !_obscurePassword,
+                              );
+                            },
+                          ),
+                          filled: true,
+                          fillColor: context.theme.input,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: context.theme.border.withOpacity(0.5),
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: context.theme.primary,
+                              width: 1.5,
+                            ),
+                          ),
+                        ),
+                        style: TextStyle(color: context.theme.textColor),
+                        obscureText: _obscurePassword,
+                        textInputAction: TextInputAction.done,
+                        onFieldSubmitted: (_) => _login(),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return AppLocalizations.of(
+                              context,
+                            ).translate('password_required');
+                          }
+                          if (value.length < 8 ||
+                              !value.contains(RegExp(r'[a-zA-Z]')) ||
+                              !value.contains(RegExp(r'[0-9]'))) {
+                            return AppLocalizations.of(
+                              context,
+                            ).translate('password_invalid');
+                          }
+                          return null;
+                        },
+                        onSaved: (value) => _password = value!,
+                      ),
+                    ),
 
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () =>
-                          Navigator.pushNamed(context, Routes.forgotPassword),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () =>
+                            Navigator.pushNamed(context, Routes.forgotPassword),
+                        child: Text(
+                          AppLocalizations.of(
+                            context,
+                          ).translate('forgot_password'),
+                          style: TextStyle(color: context.theme.primary),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    AnimatedBuilder(
+                      animation: _buttonAnimation,
+                      builder: (context, child) {
+                        return Opacity(
+                          opacity: _buttonAnimation.value,
+                          child: Transform.scale(
+                            scale: 0.5 + 0.5 * _buttonAnimation.value,
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: ScaleAnimatedButton(
+                        child: CustomButtonBlue(
+                          key: const ValueKey('login_button'),
+                          onTap: _login,
+                          text: _isLoading
+                              ? '${AppLocalizations.of(context).translate('login_button')}...'
+                              : AppLocalizations.of(
+                                  context,
+                                ).translate('login_button'),
+                        ),
+                      ),
+                    ),
+                    const Spacer(flex: 2),
+                    AnimatedBuilder(
+                      animation: _footerAnimation,
+                      builder: (context, child) {
+                        return Opacity(
+                          opacity: _footerAnimation.value,
+                          child: Transform.translate(
+                            offset: Offset(
+                              0,
+                              30 * (1 - _footerAnimation.value),
+                            ),
+                            child: child,
+                          ),
+                        );
+                      },
                       child: Text(
-                        AppLocalizations.of(
-                          context,
-                        ).translate('forgot_password'),
-                        style: TextStyle(color: Colors.blue),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  AnimatedBuilder(
-                    animation: _buttonAnimation,
-                    builder: (context, child) {
-                      return Opacity(
-                        opacity: _buttonAnimation.value,
-                        child: Transform.scale(
-                          scale: 0.5 + 0.5 * _buttonAnimation.value,
-                          child: child,
+                        AppLocalizations.of(context).translate('app_slogan'),
+                        style: TextStyle(
+                          color: context.theme.primary,
+                          fontWeight: FontWeight.bold,
                         ),
-                      );
-                    },
-                    child: ScaleAnimatedButton(
-                      child: CustomButtonBlue(
-                        key: const ValueKey('login_button'),
-                        onTap: _login,
-                        text: _isLoading
-                            ? '${AppLocalizations.of(context).translate('login_button')}...'
-                            : AppLocalizations.of(
-                                context,
-                              ).translate('login_button'),
                       ),
                     ),
-                  ),
-                  const Spacer(flex: 2),
-                  AnimatedBuilder(
-                    animation: _footerAnimation,
-                    builder: (context, child) {
-                      return Opacity(
-                        opacity: _footerAnimation.value,
-                        child: Transform.translate(
-                          offset: Offset(0, 30 * (1 - _footerAnimation.value)),
-                          child: child,
-                        ),
-                      );
-                    },
-                    child: Text(
-                      AppLocalizations.of(context).translate('app_slogan'),
-                      style: TextStyle(
-                        color: Colors.blueAccent,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 30),
-                ],
+                    const SizedBox(height: 30),
+                  ],
+                ),
               ),
             ),
           ),

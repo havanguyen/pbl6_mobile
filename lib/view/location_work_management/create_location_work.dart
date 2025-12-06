@@ -33,6 +33,7 @@ class CreateLocationWorkPage extends StatelessWidget {
                 required address,
                 required phone,
                 required timezone,
+                googleMapUrl,
                 id,
               }) async {
                 return await LocationWorkService.createLocation(
@@ -40,6 +41,7 @@ class CreateLocationWorkPage extends StatelessWidget {
                   address: address,
                   phone: phone,
                   timezone: timezone,
+                  googleMapUrl: googleMapUrl,
                 );
               },
           initialData: null,

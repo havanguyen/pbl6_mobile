@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/view/appointment/widgets/appointment_filter_dialog.dart';
 import 'package:pbl6mobile/view_model/appointment/appointment_vm.dart';
 import 'package:provider/provider.dart';
@@ -183,7 +184,6 @@ class _ListAppointmentPageState extends State<ListAppointmentPage>
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<AppointmentVm>();
-    final theme = Theme.of(context);
 
     return Scaffold(
       body: SafeArea(
@@ -196,14 +196,17 @@ class _ListAppointmentPageState extends State<ListAppointmentPage>
               // Custom Header
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                color: Colors.white,
+                color: context.theme.card,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Row(
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.arrow_back),
+                          icon: Icon(
+                            Icons.arrow_back,
+                            color: context.theme.textColor,
+                          ),
                           onPressed: () => Navigator.of(context).pop(),
                         ),
                         const SizedBox(width: 8),
@@ -211,9 +214,10 @@ class _ListAppointmentPageState extends State<ListAppointmentPage>
                           AppLocalizations.of(
                             context,
                           ).translate('appointments_title'),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
+                            color: context.theme.textColor,
                           ),
                         ),
                       ],
@@ -230,7 +234,10 @@ class _ListAppointmentPageState extends State<ListAppointmentPage>
                             ),
                           ),
                         IconButton(
-                          icon: const Icon(Icons.refresh),
+                          icon: Icon(
+                            Icons.refresh,
+                            color: context.theme.textColor,
+                          ),
                           onPressed: () {
                             _fetchDataForVisibleDates(details: null);
                           },
@@ -242,13 +249,16 @@ class _ListAppointmentPageState extends State<ListAppointmentPage>
                                 (_selectedDoctorId != null ||
                                     _selectedWorkLocationId != null ||
                                     _selectedSpecialtyId != null)
-                                ? theme.primaryColor
-                                : null,
+                                ? context.theme.primary
+                                : context.theme.textColor,
                           ),
                           onPressed: _showFilterDialog,
                         ),
                         IconButton(
-                          icon: const Icon(Icons.settings),
+                          icon: Icon(
+                            Icons.settings,
+                            color: context.theme.textColor,
+                          ),
                           onPressed: () {
                             showDialog(
                               context: context,

@@ -68,13 +68,16 @@ class UpdateAdminPage extends StatelessWidget {
       // THÊM KEY TẠI ĐÂY
       key: const Key('update_admin_page_view'),
       appBar: AppBar(
-        backgroundColor: context.theme.blue,
+        backgroundColor: context.theme.appBar,
         title: Text(
           AppLocalizations.of(context).translate('edit_admin_account'),
-          style: TextStyle(color: context.theme.primaryForeground),
+          style: TextStyle(
+            color: context.theme.white,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: context.theme.primaryForeground),
+          icon: Icon(Icons.arrow_back, color: context.theme.white),
           onPressed: () => Navigator.pop(context),
         ),
       ),

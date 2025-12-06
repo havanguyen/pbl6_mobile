@@ -60,15 +60,24 @@ class _PatientListPageState extends State<PatientListPage> {
       appBar: AppBar(
         title: Text(
           AppLocalizations.of(context).translate('patient_management_title'),
+          style: TextStyle(
+            color: context.theme.white,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        backgroundColor: context.theme.blue,
+        backgroundColor: context.theme.appBar,
         elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: context.theme.white),
+          onPressed: () => Navigator.pop(context),
+        ),
         actions: [
           IconButton(
             icon: Icon(
               patientVm.includeDeleted
                   ? Icons.history
                   : Icons.history_toggle_off,
+              color: context.theme.white,
             ),
             onPressed: () {
               patientVm.toggleIncludeDeleted();
@@ -76,6 +85,7 @@ class _PatientListPageState extends State<PatientListPage> {
           ),
         ],
       ),
+      backgroundColor: context.theme.bg,
       body: Column(
         children: [
           _buildSearchBar(),
@@ -116,22 +126,42 @@ class _PatientListPageState extends State<PatientListPage> {
 
   Widget _buildSearchBar() {
     return Padding(
-      padding: const EdgeInsets.all(10.0),
+      padding: const EdgeInsets.all(16.0),
       child: TextField(
         controller: _searchController,
+        style: TextStyle(color: context.theme.textColor),
         decoration: InputDecoration(
-          labelText: AppLocalizations.of(context).translate('search_patient'),
           hintText: AppLocalizations.of(
             context,
           ).translate('search_patient_hint'),
-          prefixIcon: const Icon(Icons.search),
+          hintStyle: TextStyle(
+            color: context.theme.mutedForeground.withOpacity(0.7),
+          ),
+          prefixIcon: Icon(
+            Icons.search,
+            color: context.theme.primary,
+            size: 20,
+          ),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(color: context.theme.grey.withOpacity(0.5)),
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(
+              color: context.theme.border.withOpacity(0.5),
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: context.theme.primary, width: 1.5),
           ),
           filled: true,
-          fillColor: context.theme.white,
-          contentPadding: const EdgeInsets.symmetric(vertical: 10),
+          fillColor: context.theme.input,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 12,
+          ),
         ),
       ),
     );
@@ -295,10 +325,10 @@ class _PatientListPageState extends State<PatientListPage> {
       child: Card(
         margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         elevation: 2,
-        shadowColor: Colors.grey.withOpacity(0.2),
+        shadowColor: context.theme.border.withOpacity(0.1),
         color: isDeleted
-            ? context.theme.grey.withOpacity(0.1)
-            : context.theme.white,
+            ? context.theme.muted.withOpacity(0.1)
+            : context.theme.card,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         child: ListTile(
           contentPadding: const EdgeInsets.symmetric(

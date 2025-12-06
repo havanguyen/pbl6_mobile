@@ -2,10 +2,60 @@ import 'package:flutter/material.dart';
 import '../themes/app_color.dart';
 
 ThemeData darkTheme = ThemeData(
+  brightness: Brightness.dark,
+  scaffoldBackgroundColor: AppColors.bgDark,
+  colorScheme: const ColorScheme.dark(
+    primary: AppColors.primaryDark,
+    surface: AppColors.bgDark,
+    onSurface: AppColors.textColorDark,
+    secondary: AppColors.secondaryDark,
+    onSecondary: AppColors.secondaryForegroundDark,
+    error: AppColors.destructiveDark,
+    onError: AppColors.destructiveForegroundDark,
+    background: AppColors.bgDark,
+    onBackground: AppColors.textColorDark,
+  ),
+  appBarTheme: const AppBarTheme(
+    backgroundColor: AppColors.appBarDark,
+    foregroundColor: AppColors.whiteColorDark,
+  ),
+  cardColor: AppColors.cardDark,
+  textTheme: const TextTheme(
+    bodyLarge: TextStyle(color: AppColors.textColorDark),
+    bodyMedium: TextStyle(color: AppColors.textColorDark),
+    titleLarge: TextStyle(color: AppColors.textColorDark),
+    titleMedium: TextStyle(color: AppColors.textColorDark),
+    titleSmall: TextStyle(color: AppColors.textColorDark),
+  ),
   extensions: const <ThemeExtension<dynamic>>[CustomThemeExtension.darkMode],
 );
 
 ThemeData lightTheme = ThemeData(
+  brightness: Brightness.light,
+  scaffoldBackgroundColor: AppColors.bgLight,
+  colorScheme: const ColorScheme.light(
+    primary: AppColors.primaryLight,
+    surface: AppColors.bgLight,
+    onSurface: AppColors.textColorLight,
+    secondary: AppColors.secondaryLight,
+    onSecondary: AppColors.secondaryForegroundLight,
+    error: AppColors.destructiveLight,
+    onError: AppColors.destructiveForegroundLight,
+    background: AppColors.bgLight,
+    onBackground: AppColors.textColorLight,
+  ),
+  appBarTheme: const AppBarTheme(
+    backgroundColor: AppColors.appBarLight,
+    foregroundColor: AppColors.whiteColorLight,
+  ),
+  cardColor: AppColors.cardLight,
+  textTheme: const TextTheme(
+    bodyLarge: TextStyle(color: AppColors.textColorLight),
+    bodyMedium: TextStyle(color: AppColors.textColorLight),
+    titleLarge: TextStyle(color: AppColors.textColorLight),
+    titleMedium: TextStyle(color: AppColors.textColorLight),
+    titleSmall: TextStyle(color: AppColors.textColorLight),
+  ),
   extensions: const <ThemeExtension<dynamic>>[CustomThemeExtension.lightMode],
 );
 
@@ -267,7 +317,8 @@ class CustomThemeExtension extends ThemeExtension<CustomThemeExtension> {
       input: input ?? this.input,
       ring: ring ?? this.ring,
       destructive: destructive ?? this.destructive,
-      destructiveForeground: destructiveForeground ?? this.destructiveForeground,
+      destructiveForeground:
+          destructiveForeground ?? this.destructiveForeground,
       chart1: chart1 ?? this.chart1,
       chart2: chart2 ?? this.chart2,
       chart3: chart3 ?? this.chart3,
@@ -276,9 +327,11 @@ class CustomThemeExtension extends ThemeExtension<CustomThemeExtension> {
       sidebarBackground: sidebarBackground ?? this.sidebarBackground,
       sidebarForeground: sidebarForeground ?? this.sidebarForeground,
       sidebarPrimary: sidebarPrimary ?? this.sidebarPrimary,
-      sidebarPrimaryForeground: sidebarPrimaryForeground ?? this.sidebarPrimaryForeground,
+      sidebarPrimaryForeground:
+          sidebarPrimaryForeground ?? this.sidebarPrimaryForeground,
       sidebarAccent: sidebarAccent ?? this.sidebarAccent,
-      sidebarAccentForeground: sidebarAccentForeground ?? this.sidebarAccentForeground,
+      sidebarAccentForeground:
+          sidebarAccentForeground ?? this.sidebarAccentForeground,
       sidebarBorder: sidebarBorder ?? this.sidebarBorder,
       sidebarRing: sidebarRing ?? this.sidebarRing,
     );
@@ -286,9 +339,9 @@ class CustomThemeExtension extends ThemeExtension<CustomThemeExtension> {
 
   @override
   ThemeExtension<CustomThemeExtension> lerp(
-      covariant ThemeExtension<CustomThemeExtension>? other,
-      double t,
-      ) {
+    covariant ThemeExtension<CustomThemeExtension>? other,
+    double t,
+  ) {
     if (other is! CustomThemeExtension) {
       return this;
     }
@@ -304,33 +357,69 @@ class CustomThemeExtension extends ThemeExtension<CustomThemeExtension> {
       white: Color.lerp(white, other.white, t)!,
       primary: Color.lerp(primary, other.primary, t)!,
       foreground: Color.lerp(foreground, other.foreground, t)!,
-      primaryForeground: Color.lerp(primaryForeground, other.primaryForeground, t)!,
+      primaryForeground: Color.lerp(
+        primaryForeground,
+        other.primaryForeground,
+        t,
+      )!,
       secondary: Color.lerp(secondary, other.secondary, t)!,
-      secondaryForeground: Color.lerp(secondaryForeground, other.secondaryForeground, t)!,
+      secondaryForeground: Color.lerp(
+        secondaryForeground,
+        other.secondaryForeground,
+        t,
+      )!,
       accent: Color.lerp(accent, other.accent, t)!,
-      accentForeground: Color.lerp(accentForeground, other.accentForeground, t)!,
+      accentForeground: Color.lerp(
+        accentForeground,
+        other.accentForeground,
+        t,
+      )!,
       card: Color.lerp(card, other.card, t)!,
       cardForeground: Color.lerp(cardForeground, other.cardForeground, t)!,
       popover: Color.lerp(popover, other.popover, t)!,
-      popoverForeground: Color.lerp(popoverForeground, other.popoverForeground, t)!,
+      popoverForeground: Color.lerp(
+        popoverForeground,
+        other.popoverForeground,
+        t,
+      )!,
       muted: Color.lerp(muted, other.muted, t)!,
       mutedForeground: Color.lerp(mutedForeground, other.mutedForeground, t)!,
       border: Color.lerp(border, other.border, t)!,
       input: Color.lerp(input, other.input, t)!,
       ring: Color.lerp(ring, other.ring, t)!,
       destructive: Color.lerp(destructive, other.destructive, t)!,
-      destructiveForeground: Color.lerp(destructiveForeground, other.destructiveForeground, t)!,
+      destructiveForeground: Color.lerp(
+        destructiveForeground,
+        other.destructiveForeground,
+        t,
+      )!,
       chart1: Color.lerp(chart1, other.chart1, t)!,
       chart2: Color.lerp(chart2, other.chart2, t)!,
       chart3: Color.lerp(chart3, other.chart3, t)!,
       chart4: Color.lerp(chart4, other.chart4, t)!,
       chart5: Color.lerp(chart5, other.chart5, t)!,
-      sidebarBackground: Color.lerp(sidebarBackground, other.sidebarBackground, t)!,
-      sidebarForeground: Color.lerp(sidebarForeground, other.sidebarForeground, t)!,
+      sidebarBackground: Color.lerp(
+        sidebarBackground,
+        other.sidebarBackground,
+        t,
+      )!,
+      sidebarForeground: Color.lerp(
+        sidebarForeground,
+        other.sidebarForeground,
+        t,
+      )!,
       sidebarPrimary: Color.lerp(sidebarPrimary, other.sidebarPrimary, t)!,
-      sidebarPrimaryForeground: Color.lerp(sidebarPrimaryForeground, other.sidebarPrimaryForeground, t)!,
+      sidebarPrimaryForeground: Color.lerp(
+        sidebarPrimaryForeground,
+        other.sidebarPrimaryForeground,
+        t,
+      )!,
       sidebarAccent: Color.lerp(sidebarAccent, other.sidebarAccent, t)!,
-      sidebarAccentForeground: Color.lerp(sidebarAccentForeground, other.sidebarAccentForeground, t)!,
+      sidebarAccentForeground: Color.lerp(
+        sidebarAccentForeground,
+        other.sidebarAccentForeground,
+        t,
+      )!,
       sidebarBorder: Color.lerp(sidebarBorder, other.sidebarBorder, t)!,
       sidebarRing: Color.lerp(sidebarRing, other.sidebarRing, t)!,
     );

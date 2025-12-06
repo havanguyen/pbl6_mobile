@@ -501,6 +501,10 @@ class AppStrings {
       'am': 'AM',
       'pm': 'PM',
       'global_badge': 'Global',
+      'rule_type_label': 'Rule Type',
+      'rule_type_specific': 'Specific (Doctor @ Location)',
+      'rule_type_doctor_default': 'Doctor Default',
+      'rule_type_location_default': 'Location Default',
     },
     'vi': {
       'login': 'Đăng nhập',
@@ -1000,6 +1004,10 @@ class AppStrings {
       'am': 'SA',
       'pm': 'CH',
       'global_badge': 'Chung',
+      'rule_type_label': 'Loại quy tắc',
+      'rule_type_specific': 'Cụ thể (BS @ Địa điểm)',
+      'rule_type_doctor_default': 'Mặc định cho Bác sĩ',
+      'rule_type_location_default': 'Mặc định cho Địa điểm',
     },
   };
 }

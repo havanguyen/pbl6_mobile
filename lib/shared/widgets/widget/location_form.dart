@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:pbl6mobile/model/entities/work_location.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/shared/widgets/button/custom_button_blue.dart';
 import 'package:timezone/data/latest.dart' as tzData;
@@ -15,6 +16,7 @@ class LocationForm extends StatefulWidget {
     required String address,
     required String phone,
     required String timezone,
+    String? googleMapUrl,
     String? id,
   })
   onSubmit;
@@ -36,6 +38,7 @@ class _LocationFormState extends State<LocationForm>
   late TextEditingController _nameController;
   late TextEditingController _phoneController;
   late TextEditingController _addressController;
+  late TextEditingController _googleMapUrlController;
 
   String? _selectedTimezone;
   bool _isLoading = false;
@@ -49,6 +52,9 @@ class _LocationFormState extends State<LocationForm>
     _phoneController = TextEditingController(text: widget.initialData?.phone);
     _addressController = TextEditingController(
       text: widget.initialData?.address,
+    );
+    _googleMapUrlController = TextEditingController(
+      text: widget.initialData?.googleMapUrl,
     );
 
     _selectedTimezone = widget.initialData?.timezone;
@@ -71,6 +77,7 @@ class _LocationFormState extends State<LocationForm>
     _nameController.dispose();
     _phoneController.dispose();
     _addressController.dispose();
+    _googleMapUrlController.dispose();
     _animationController.dispose();
     super.dispose();
   }
@@ -83,7 +90,8 @@ class _LocationFormState extends State<LocationForm>
         name: _nameController.text,
         address: _addressController.text,
         phone: _phoneController.text,
-        timezone: _selectedTimezone!,
+        timezone: _selectedTimezone ?? '',
+        googleMapUrl: _googleMapUrlController.text,
       );
 
       if (mounted) {
@@ -146,6 +154,43 @@ class _LocationFormState extends State<LocationForm>
     );
   }
 
+  void _generateMapUrl() {
+    final address = _addressController.text.trim();
+    if (address.isNotEmpty) {
+      final encodedAddress = Uri.encodeComponent(address);
+      setState(() {
+        _googleMapUrlController.text =
+            'https://www.google.com/maps/search/?api=1&query=$encodedAddress';
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context).translate('address_required_for_map'),
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<void> _openMapUrl() async {
+    final urlString = _googleMapUrlController.text.trim();
+    if (urlString.isNotEmpty) {
+      final uri = Uri.tryParse(urlString);
+      if (uri != null && await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context).translate('invalid_url'),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Form(
@@ -206,7 +251,8 @@ class _LocationFormState extends State<LocationForm>
                         context,
                       ).translate('location_name_required');
                     }
-                    if (value.length < 10 || value.length > 200) {
+                    if (value.length < 2 || value.length > 160) {
+                      // Updated validation to 2-160 chars
                       return AppLocalizations.of(
                         context,
                       ).translate('location_name_length_error');
@@ -265,11 +311,7 @@ class _LocationFormState extends State<LocationForm>
                     ),
                   ),
                   validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return AppLocalizations.of(
-                        context,
-                      ).translate('address_required');
-                    }
+                    // Optional field
                     return null;
                   },
                 ),
@@ -322,15 +364,12 @@ class _LocationFormState extends State<LocationForm>
                   ),
                   keyboardType: TextInputType.phone,
                   validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return AppLocalizations.of(
-                        context,
-                      ).translate('phone_required');
-                    }
-                    if (!RegExp(r'^\+?\d{9,15}$').hasMatch(value)) {
-                      return AppLocalizations.of(
-                        context,
-                      ).translate('phone_invalid');
+                    if (value != null && value.isNotEmpty) {
+                      if (!RegExp(r'^\+?\d{9,15}$').hasMatch(value)) {
+                        return AppLocalizations.of(
+                          context,
+                        ).translate('phone_invalid');
+                      }
                     }
                     return null;
                   },
@@ -402,11 +441,7 @@ class _LocationFormState extends State<LocationForm>
                       _selectedTimezone = value;
                     });
                   },
-                  validator: (value) => value == null
-                      ? AppLocalizations.of(
-                          context,
-                        ).translate('timezone_required')
-                      : null,
+                  validator: (value) => null, // Optional
                   dropdownStyleData: DropdownStyleData(
                     maxHeight: 300,
                     decoration: BoxDecoration(
@@ -417,10 +452,84 @@ class _LocationFormState extends State<LocationForm>
                 ),
               ),
             ),
+            const SizedBox(height: 20),
+            _buildAnimatedFormField(
+              index: 4,
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: context.theme.border.withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: TextFormField(
+                  key: const ValueKey('location_form_google_map_url_field'),
+                  controller: _googleMapUrlController,
+                  style: TextStyle(
+                    color: context.theme.textColor,
+                    fontSize: 16,
+                  ),
+                  decoration: InputDecoration(
+                    labelText: "Google Map URL", // Ideally localized
+                    prefixIcon: Icon(Icons.map, color: context.theme.primary),
+                    suffixIcon: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (_addressController.text.isNotEmpty)
+                          IconButton(
+                            icon: const Icon(Icons.auto_fix_high),
+                            tooltip: 'Generate from Address',
+                            onPressed: _generateMapUrl,
+                            color: context.theme.primary,
+                          ),
+                        if (_googleMapUrlController.text.isNotEmpty)
+                          IconButton(
+                            icon: const Icon(Icons.open_in_new),
+                            tooltip: 'Open in Maps',
+                            onPressed: _openMapUrl,
+                            color: context.theme.primary,
+                          ),
+                      ],
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: context.theme.border),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: context.theme.primary,
+                        width: 1.5,
+                      ),
+                    ),
+                    filled: true,
+                    fillColor: context.theme.input,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value != null && value.isNotEmpty) {
+                      final uri = Uri.tryParse(value);
+                      if (uri == null || !uri.hasAbsolutePath) {
+                        return "Invalid URL"; // Ideally localized
+                      }
+                    }
+                    return null;
+                  },
+                  onChanged: (_) => setState(() {}),
+                ),
+              ),
+            ),
             const SizedBox(height: 32),
 
             _buildAnimatedFormField(
-              index: 4,
+              index: 5,
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
                 decoration: BoxDecoration(

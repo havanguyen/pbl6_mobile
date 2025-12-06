@@ -89,11 +89,14 @@ class _MainPageDoctorState extends State<MainPageDoctor> {
       body: Container(
         width: size.width,
         height: size.height,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           image: DecorationImage(
             image: AssetImage('assets/images/background_bd.jpg'),
             fit: BoxFit.cover,
-            colorFilter: ColorFilter.mode(Color(0x802196F3), BlendMode.overlay),
+            colorFilter: ColorFilter.mode(
+              context.theme.blue.withOpacity(0.5),
+              BlendMode.overlay,
+            ),
           ),
         ),
         child: Stack(

@@ -140,11 +140,13 @@ class _ListBlogPageState extends State<ListBlogPage> {
                 ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: context.theme.border),
+                  borderSide: BorderSide.none,
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: context.theme.border),
+                  borderSide: BorderSide(
+                    color: context.theme.border.withOpacity(0.5),
+                  ),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -934,13 +936,23 @@ class _ListBlogPageState extends State<ListBlogPage> {
     final isOffline = blogVm.isOffline;
 
     return Scaffold(
+      backgroundColor: context.theme.bg,
       appBar: AppBar(
+        backgroundColor: context.theme.appBar,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: context.theme.white),
+          onPressed: () => Navigator.pop(context),
+        ),
         title: Text(
           AppLocalizations.of(context).translate('blog_management_title'),
+          style: TextStyle(
+            color: context.theme.white,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.category_rounded),
+            icon: Icon(Icons.category_rounded, color: context.theme.white),
             tooltip: AppLocalizations.of(
               context,
             ).translate('manage_blog_categories'),
@@ -951,7 +963,7 @@ class _ListBlogPageState extends State<ListBlogPage> {
                   },
           ),
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: Icon(Icons.refresh, color: context.theme.white),
             onPressed: () => blogVm.fetchBlogs(forceRefresh: true),
           ),
         ],

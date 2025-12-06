@@ -724,11 +724,11 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
             ),
             backgroundColor: context.theme.appBar,
             titleTextStyle: TextStyle(
-              color: context.theme.primaryForeground,
+              color: context.theme.white,
               fontSize: 18,
               fontWeight: FontWeight.w600,
             ),
-            iconTheme: IconThemeData(color: context.theme.primaryForeground),
+            iconTheme: IconThemeData(color: context.theme.white),
             actions: [
               if (isAdminRole && vm.currentQuestion != null)
                 IconButton(

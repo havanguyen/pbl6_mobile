@@ -11,7 +11,8 @@ class PermissionGroupsPage extends StatefulWidget {
   State<PermissionGroupsPage> createState() => _PermissionGroupsPageState();
 }
 
-class _PermissionGroupsPageState extends State<PermissionGroupsPage> with SingleTickerProviderStateMixin {
+class _PermissionGroupsPageState extends State<PermissionGroupsPage>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -29,13 +30,15 @@ class _PermissionGroupsPageState extends State<PermissionGroupsPage> with Single
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => PermissionVm()..getAllGroups()..fetchUsers(),
+      create: (_) => PermissionVm()
+        ..getAllGroups()
+        ..fetchUsers(),
       child: Consumer<PermissionVm>(
         builder: (context, vm, child) {
           return Scaffold(
             backgroundColor: context.theme.bg,
             appBar: AppBar(
-              backgroundColor: context.theme.blue,
+              backgroundColor: context.theme.appBar,
               elevation: 0,
               leading: IconButton(
                 icon: Icon(Icons.arrow_back, color: context.theme.white),
@@ -85,73 +88,82 @@ class _PermissionGroupsPageState extends State<PermissionGroupsPage> with Single
       body: vm.isLoading && vm.groups.isEmpty
           ? const Center(child: CircularProgressIndicator())
           : ListView.separated(
-        padding: const EdgeInsets.all(16),
-        itemCount: vm.groups.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 12),
-        itemBuilder: (context, index) {
-          final group = vm.groups[index];
-          return Card(
-            elevation: 0,
-            color: context.theme.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: BorderSide(color: context.theme.grey.withOpacity(0.2)),
-            ),
-            child: InkWell(
-              onTap: () {
-                Navigator.pushNamed(
-                  context,
-                  Routes.permissionGroupDetail,
-                  arguments: group,
-                ).then((_) => vm.getAllGroups());
-              },
-              borderRadius: BorderRadius.circular(12),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: context.theme.blue.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(Icons.security, color: context.theme.blue),
+              padding: const EdgeInsets.all(16),
+              itemCount: vm.groups.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              itemBuilder: (context, index) {
+                final group = vm.groups[index];
+                return Card(
+                  elevation: 0,
+                  color: context.theme.card,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(
+                      color: context.theme.border.withOpacity(0.2),
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                  ),
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.pushNamed(
+                        context,
+                        Routes.permissionGroupDetail,
+                        arguments: group,
+                      ).then((_) => vm.getAllGroups());
+                    },
+                    borderRadius: BorderRadius.circular(12),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
                         children: [
-                          Text(
-                            group.name,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: context.theme.textColor,
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: context.theme.blue.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(
+                              Icons.security,
+                              color: context.theme.blue,
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            group.description,
-                            style: TextStyle(
-                              color: context.theme.grey,
-                              fontSize: 14,
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  group.name,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: context.theme.textColor,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  group.description,
+                                  style: TextStyle(
+                                    color: context.theme.grey,
+                                    fontSize: 14,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Icon(
+                            Icons.arrow_forward_ios,
+                            size: 16,
+                            color: context.theme.grey.withOpacity(0.5),
                           ),
                         ],
                       ),
                     ),
-                    Icon(Icons.arrow_forward_ios, size: 16, color: context.theme.grey.withOpacity(0.5)),
-                  ],
-                ),
-              ),
+                  ),
+                );
+              },
             ),
-          );
-        },
-      ),
     );
   }
 
@@ -159,89 +171,108 @@ class _PermissionGroupsPageState extends State<PermissionGroupsPage> with Single
     return vm.isLoading && vm.users.isEmpty
         ? const Center(child: CircularProgressIndicator())
         : ListView.separated(
-      padding: const EdgeInsets.all(16),
-      itemCount: vm.users.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
-      itemBuilder: (context, index) {
-        final user = vm.users[index];
-        return Card(
-          elevation: 0,
-          color: context.theme.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(color: context.theme.grey.withOpacity(0.2)),
-          ),
-          child: InkWell(
-            onTap: () {
-              Navigator.pushNamed(
-                context,
-                Routes.userPermissionDetail,
-                arguments: user,
-              );
-            },
-            borderRadius: BorderRadius.circular(12),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    backgroundColor: context.theme.blue.withOpacity(0.1),
-                    child: Text(
-                      user.fullName.isNotEmpty ? user.fullName[0].toUpperCase() : '?',
-                      style: TextStyle(color: context.theme.blue, fontWeight: FontWeight.bold),
-                    ),
+            padding: const EdgeInsets.all(16),
+            itemCount: vm.users.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            itemBuilder: (context, index) {
+              final user = vm.users[index];
+              return Card(
+                elevation: 0,
+                color: context.theme.card,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: BorderSide(
+                    color: context.theme.border.withOpacity(0.2),
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                ),
+                child: InkWell(
+                  onTap: () {
+                    Navigator.pushNamed(
+                      context,
+                      Routes.userPermissionDetail,
+                      arguments: user,
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
                       children: [
-                        Text(
-                          user.fullName,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: context.theme.textColor,
+                        CircleAvatar(
+                          backgroundColor: context.theme.blue.withOpacity(0.1),
+                          child: Text(
+                            user.fullName.isNotEmpty
+                                ? user.fullName[0].toUpperCase()
+                                : '?',
+                            style: TextStyle(
+                              color: context.theme.blue,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: context.theme.grey.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Text(
-                                user.role,
-                                style: TextStyle(fontSize: 10, color: context.theme.textColor),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                user.email,
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                user.fullName,
                                 style: TextStyle(
-                                  color: context.theme.grey,
-                                  fontSize: 12,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: context.theme.textColor,
                                 ),
-                                overflow: TextOverflow.ellipsis,
                               ),
-                            ),
-                          ],
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: context.theme.grey.withOpacity(
+                                        0.1,
+                                      ),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      user.role,
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        color: context.theme.textColor,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      user.email,
+                                      style: TextStyle(
+                                        color: context.theme.grey,
+                                        fontSize: 12,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(
+                          Icons.arrow_forward_ios,
+                          size: 16,
+                          color: context.theme.grey.withOpacity(0.5),
                         ),
                       ],
                     ),
                   ),
-                  Icon(Icons.arrow_forward_ios, size: 16, color: context.theme.grey.withOpacity(0.5)),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
+                ),
+              );
+            },
+          );
   }
 
   void _showCreateGroupDialog(BuildContext context, PermissionVm vm) {
@@ -273,12 +304,20 @@ class _PermissionGroupsPageState extends State<PermissionGroupsPage> with Single
             child: Text('Hủy', style: TextStyle(color: context.theme.grey)),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: context.theme.blue, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: context.theme.blue,
+              foregroundColor: Colors.white,
+            ),
             onPressed: () async {
               Navigator.pop(context);
-              final success = await vm.createGroup(nameController.text, descController.text);
+              final success = await vm.createGroup(
+                nameController.text,
+                descController.text,
+              );
               if (success && context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tạo nhóm thành công')));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Tạo nhóm thành công')),
+                );
               }
             },
             child: const Text('Tạo'),

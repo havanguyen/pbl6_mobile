@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 class CustomCalendarHeader extends StatelessWidget {
@@ -20,15 +21,14 @@ class CustomCalendarHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final displayDate = controller.displayDate ?? DateTime.now();
     final dateText = DateFormat('MMMM yyyy').format(displayDate);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+        color: context.theme.card,
+        border: Border(bottom: BorderSide(color: context.theme.border)),
       ),
       child: Column(
         children: [
@@ -38,12 +38,12 @@ class CustomCalendarHeader extends StatelessWidget {
               // Today Button (Compact)
               IconButton(
                 onPressed: onTodayTap,
-                icon: const Icon(Icons.today),
+                icon: Icon(Icons.today, color: context.theme.textColor),
                 tooltip: 'Today',
                 style: IconButton.styleFrom(
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(6),
-                    side: BorderSide(color: Colors.grey.shade300),
+                    side: BorderSide(color: context.theme.border),
                   ),
                 ),
               ),
@@ -55,7 +55,10 @@ class CustomCalendarHeader extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.chevron_left),
+                      icon: Icon(
+                        Icons.chevron_left,
+                        color: context.theme.textColor,
+                      ),
                       onPressed: () {
                         controller.backward!();
                       },
@@ -67,16 +70,20 @@ class CustomCalendarHeader extends StatelessWidget {
                     Flexible(
                       child: Text(
                         dateText,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
+                          color: context.theme.textColor,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     const SizedBox(width: 4),
                     IconButton(
-                      icon: const Icon(Icons.chevron_right),
+                      icon: Icon(
+                        Icons.chevron_right,
+                        color: context.theme.textColor,
+                      ),
                       onPressed: () {
                         controller.forward!();
                       },
@@ -94,7 +101,8 @@ class CustomCalendarHeader extends StatelessWidget {
               FilledButton(
                 onPressed: onAddTap,
                 style: FilledButton.styleFrom(
-                  backgroundColor: theme.primaryColor,
+                  backgroundColor: context.theme.primary,
+                  foregroundColor: context.theme.primaryForeground,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(6),
                   ),
@@ -114,9 +122,9 @@ class CustomCalendarHeader extends StatelessWidget {
                 child: Container(
                   height: 40,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
+                    color: context.theme.bg,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.grey.shade200),
+                    border: Border.all(color: context.theme.border),
                   ),
                   child: Row(
                     children: [
@@ -126,21 +134,21 @@ class CustomCalendarHeader extends StatelessWidget {
                         view: CalendarView.day,
                         tooltip: 'Day',
                       ),
-                      _buildDivider(),
+                      _buildDivider(context),
                       _buildViewButton(
                         context,
                         icon: Icons.view_week_outlined,
                         view: CalendarView.week,
                         tooltip: 'Week',
                       ),
-                      _buildDivider(),
+                      _buildDivider(context),
                       _buildViewButton(
                         context,
                         icon: Icons.grid_view,
                         view: CalendarView.month,
                         tooltip: 'Month',
                       ),
-                      _buildDivider(),
+                      _buildDivider(context),
                       _buildViewButton(
                         context,
                         icon: Icons.calendar_view_month,
@@ -165,11 +173,10 @@ class CustomCalendarHeader extends StatelessWidget {
     required String tooltip,
   }) {
     final isSelected = currentView == view;
-    final theme = Theme.of(context);
 
     return Expanded(
       child: Material(
-        color: isSelected ? Colors.white : Colors.transparent,
+        color: isSelected ? context.theme.card : Colors.transparent,
         borderRadius: BorderRadius.circular(6),
         child: InkWell(
           onTap: () => onViewChanged(view),
@@ -178,11 +185,11 @@ class CustomCalendarHeader extends StatelessWidget {
             alignment: Alignment.center,
             decoration: isSelected
                 ? BoxDecoration(
-                    color: Colors.white,
+                    color: context.theme.card,
                     borderRadius: BorderRadius.circular(6),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: context.theme.mutedForeground.withOpacity(0.1),
                         blurRadius: 2,
                         offset: const Offset(0, 1),
                       ),
@@ -192,7 +199,9 @@ class CustomCalendarHeader extends StatelessWidget {
             child: Icon(
               icon,
               size: 20,
-              color: isSelected ? theme.primaryColor : Colors.grey.shade600,
+              color: isSelected
+                  ? context.theme.primary
+                  : context.theme.mutedForeground,
             ),
           ),
         ),
@@ -200,7 +209,7 @@ class CustomCalendarHeader extends StatelessWidget {
     );
   }
 
-  Widget _buildDivider() {
-    return Container(width: 1, height: 20, color: Colors.grey.shade300);
+  Widget _buildDivider(BuildContext context) {
+    return Container(width: 1, height: 20, color: context.theme.border);
   }
 }

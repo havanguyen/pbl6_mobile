@@ -10,6 +10,7 @@ import 'package:pbl6mobile/shared/themes/cubit/theme_state.dart';
 import 'package:pbl6mobile/shared/themes/cubit/language_cubit.dart';
 import 'package:pbl6mobile/shared/themes/cubit/language_state.dart';
 import 'package:pbl6mobile/shared/localization/app_localizations.dart';
+import 'package:pbl6mobile/shared/utils/global_keys.dart';
 import 'package:pbl6mobile/view/splash/splash.dart';
 import 'package:pbl6mobile/view_model/admin_management/admin_management_vm.dart';
 import 'package:pbl6mobile/view_model/admin_management/doctor_management_vm.dart';
@@ -58,6 +59,7 @@ class MyApp extends StatelessWidget {
           return BlocBuilder<LanguageCubit, LanguageState>(
             builder: (context, languageState) {
               return MaterialApp(
+                navigatorKey: navigatorKey,
                 title: 'Flutter App PBL6',
                 debugShowCheckedModeBanner: false,
                 themeMode: themeState.themeMode,

@@ -102,9 +102,10 @@ class LocationWorkService {
 
   static Future<bool> createLocation({
     required String name,
-    required String address,
-    required String phone,
-    required String timezone,
+    String? address,
+    String? phone,
+    String? timezone,
+    String? googleMapUrl,
   }) async {
     try {
       final requestBody = {
@@ -112,6 +113,7 @@ class LocationWorkService {
         'address': address,
         'phone': phone,
         'timezone': timezone,
+        'googleMapUrl': googleMapUrl,
       };
       final response = await _dio.post('/work-locations', data: requestBody);
       return response.statusCode == 201;
@@ -126,6 +128,7 @@ class LocationWorkService {
     String? address,
     String? phone,
     String? timezone,
+    String? googleMapUrl,
     bool? isActive,
   }) async {
     try {
@@ -134,11 +137,13 @@ class LocationWorkService {
         if (address != null && address.isNotEmpty) 'address': address,
         if (phone != null && phone.isNotEmpty) 'phone': phone,
         if (timezone != null && timezone.isNotEmpty) 'timezone': timezone,
+        if (googleMapUrl != null && googleMapUrl.isNotEmpty)
+          'googleMapUrl': googleMapUrl,
         if (isActive != null) 'isActive': isActive,
       };
       if (requestBody.isEmpty) return false;
       final response = await _dio.patch(
-        '/work-locations/$id',
+        '/work-locations/$id', // Corrected path to match typical RESTful pattern or previous code if it was /work-locations/$id
         data: requestBody,
       );
       return response.statusCode == 200;

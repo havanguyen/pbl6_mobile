@@ -83,13 +83,23 @@ class _ListSpecialtyPageState extends State<ListSpecialtyPage> {
   Widget build(BuildContext context) {
     final specialtyVm = context.watch<SpecialtyVm>();
     return Scaffold(
+      backgroundColor: context.theme.bg,
       appBar: AppBar(
         title: Text(
           AppLocalizations.of(context).translate('specialty_management_title'),
+          style: TextStyle(
+            color: context.theme.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: context.theme.appBar,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: context.theme.white),
+          onPressed: () => Navigator.pop(context),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: Icon(Icons.refresh, color: context.theme.white),
             onPressed: specialtyVm.isLoading
                 ? null
                 : () => specialtyVm.fetchSpecialties(forceRefresh: true),
@@ -182,13 +192,26 @@ class _ListSpecialtyPageState extends State<ListSpecialtyPage> {
             controller: _searchController,
             style: TextStyle(color: context.theme.textColor),
             decoration: InputDecoration(
-              labelText: AppLocalizations.of(
+              hintText: AppLocalizations.of(
                 context,
               ).translate('search_specialty_hint'),
-              labelStyle: TextStyle(color: context.theme.mutedForeground),
-              prefixIcon: Icon(Icons.search, color: context.theme.primary),
+              hintStyle: TextStyle(
+                color: context.theme.mutedForeground.withOpacity(0.7),
+              ),
+              prefixIcon: Icon(
+                Icons.search,
+                color: context.theme.primary,
+                size: 20,
+              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: context.theme.border.withOpacity(0.5),
+                ),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -199,9 +222,17 @@ class _ListSpecialtyPageState extends State<ListSpecialtyPage> {
               ),
               filled: true,
               fillColor: context.theme.input,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
               suffixIcon: _searchController.text.isNotEmpty
                   ? IconButton(
-                      icon: Icon(Icons.clear, color: context.theme.primary),
+                      icon: Icon(
+                        Icons.clear,
+                        color: context.theme.mutedForeground,
+                        size: 20,
+                      ),
                       onPressed: () {
                         _searchController.clear();
                         context.read<SpecialtyVm>().updateSearchQuery('');

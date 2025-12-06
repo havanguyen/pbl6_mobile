@@ -499,13 +499,20 @@ class _AdminListPageState extends State<AdminListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: context.theme.bg,
       appBar: AppBar(
+        backgroundColor: context.theme.appBar,
         title: Text(
           AppLocalizations.of(context).translate('admin_management_title'),
+          style: TextStyle(
+            color: context.theme.white,
+            fontWeight: FontWeight.bold,
+          ),
         ),
+        iconTheme: IconThemeData(color: context.theme.white),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: Icon(Icons.refresh, color: context.theme.white),
             onPressed: () =>
                 context.read<StaffVm>().fetchStaffs(forceRefresh: true),
           ),

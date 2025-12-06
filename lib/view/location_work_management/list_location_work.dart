@@ -149,11 +149,11 @@ class _LocationWorkListPageState extends State<LocationWorkListPage>
                 controller: _searchController,
                 style: TextStyle(color: context.theme.textColor, fontSize: 16),
                 decoration: InputDecoration(
-                  labelText: AppLocalizations.of(
+                  hintText: AppLocalizations.of(
                     context,
                   ).translate('search_location_hint'),
-                  labelStyle: TextStyle(
-                    color: context.theme.mutedForeground,
+                  hintStyle: TextStyle(
+                    color: context.theme.mutedForeground.withOpacity(0.7),
                     fontSize: 14,
                   ),
                   prefixIcon: Icon(
@@ -163,7 +163,13 @@ class _LocationWorkListPageState extends State<LocationWorkListPage>
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: context.theme.border),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: context.theme.border.withOpacity(0.5),
+                    ),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -182,7 +188,7 @@ class _LocationWorkListPageState extends State<LocationWorkListPage>
                       ? IconButton(
                           icon: Icon(
                             Icons.clear,
-                            color: context.theme.primary,
+                            color: context.theme.mutedForeground,
                             size: 20,
                           ),
                           onPressed: () {
@@ -324,7 +330,7 @@ class _LocationWorkListPageState extends State<LocationWorkListPage>
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        location.address,
+                        location.address ?? '',
                         style: TextStyle(
                           color: context.theme.mutedForeground,
                           fontSize: 14,
@@ -332,6 +338,48 @@ class _LocationWorkListPageState extends State<LocationWorkListPage>
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
+                      if (location.phone != null &&
+                          location.phone!.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.phone,
+                              size: 14,
+                              color: context.theme.mutedForeground,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              location.phone!,
+                              style: TextStyle(
+                                color: context.theme.mutedForeground,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                      if (location.timezone != null &&
+                          location.timezone!.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.access_time,
+                              size: 14,
+                              color: context.theme.mutedForeground,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              location.timezone!,
+                              style: TextStyle(
+                                color: context.theme.mutedForeground,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                       const SizedBox(height: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(
@@ -675,31 +723,18 @@ class _LocationWorkListPageState extends State<LocationWorkListPage>
                 context,
               ).translate('location_management_title'),
               style: TextStyle(
-                color: context.theme.primaryForeground,
-                fontWeight: FontWeight.w600,
+                color: context.theme.white,
+                fontWeight: FontWeight.bold,
               ),
             ),
             leading: IconButton(
-              icon: Icon(
-                Icons.arrow_back,
-                color: context.theme.primaryForeground,
-              ),
+              icon: Icon(Icons.arrow_back, color: context.theme.white),
               onPressed: () => Navigator.pop(context),
             ),
             actions: [
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                decoration: BoxDecoration(
-                  color: Colors.transparent,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: IconButton(
-                  icon: Icon(
-                    Icons.refresh,
-                    color: context.theme.primaryForeground,
-                  ),
-                  onPressed: _loadData,
-                ),
+              IconButton(
+                icon: Icon(Icons.refresh, color: context.theme.white),
+                onPressed: _loadData,
               ),
             ],
           ),
@@ -776,7 +811,7 @@ class _LocationWorkListPageState extends State<LocationWorkListPage>
                           loc,
                         ) {
                           final name = loc.name.toLowerCase();
-                          final address = loc.address.toLowerCase();
+                          final address = loc.address?.toLowerCase() ?? '';
                           final query = _searchQuery.toLowerCase();
                           return name.contains(query) ||
                               address.contains(query);
@@ -829,82 +864,84 @@ class _LocationWorkListPageState extends State<LocationWorkListPage>
         );
       },
       child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: context.theme.destructive.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.error_outline,
-                  size: 64,
-                  color: context.theme.destructive,
-                ),
-              ),
-              const SizedBox(height: 24),
-              Text(
-                AppLocalizations.of(context).translate('error_occurred'),
-                style: TextStyle(
-                  color: context.theme.destructive,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                provider.error ??
-                    AppLocalizations.of(context).translate('unknown_error'),
-                style: TextStyle(
-                  color: context.theme.mutedForeground.withOpacity(0.7),
-                  fontSize: 14,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: context.theme.primary.withOpacity(0.2),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: ElevatedButton(
-                  onPressed: () => Provider.of<LocationWorkVm>(
-                    context,
-                    listen: false,
-                  ).fetchLocations(forceRefresh: true),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: context.theme.primary,
-                    foregroundColor: context.theme.primaryForeground,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(32.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: context.theme.destructive.withOpacity(0.1),
+                    shape: BoxShape.circle,
                   ),
-                  child: Text(
-                    AppLocalizations.of(context).translate('retry'),
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  child: Icon(
+                    Icons.error_outline,
+                    size: 64,
+                    color: context.theme.destructive,
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 24),
+                Text(
+                  AppLocalizations.of(context).translate('error_occurred'),
+                  style: TextStyle(
+                    color: context.theme.destructive,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  provider.error ??
+                      AppLocalizations.of(context).translate('unknown_error'),
+                  style: TextStyle(
+                    color: context.theme.mutedForeground.withOpacity(0.7),
+                    fontSize: 14,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: context.theme.primary.withOpacity(0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: ElevatedButton(
+                    onPressed: () => Provider.of<LocationWorkVm>(
+                      context,
+                      listen: false,
+                    ).fetchLocations(forceRefresh: true),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: context.theme.primary,
+                      foregroundColor: context.theme.primaryForeground,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text(
+                      AppLocalizations.of(context).translate('retry'),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -2,12 +2,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:pbl6mobile/model/entities/question.dart';
+import 'package:pbl6mobile/model/entities/specialty.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/shared/routes/routes.dart';
 import 'package:pbl6mobile/shared/services/store.dart';
 import 'package:pbl6mobile/view_model/question/question_vm.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
 import 'package:pbl6mobile/view_model/location_work_management/snackbar_service.dart';
@@ -120,6 +120,111 @@ class _ListQuestionPageState extends State<ListQuestionPage> {
         builder: (_, scrollController) => SingleChildScrollView(
           controller: scrollController,
           child: _buildFilterSection(),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: context.theme.bg,
+      appBar: AppBar(
+        backgroundColor: context.theme.appBar,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: context.theme.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          AppLocalizations.of(context).translate('question_management_title'),
+          style: TextStyle(
+            color: context.theme.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        elevation: 0,
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildSearchSection(),
+            Expanded(
+              child: Consumer<QuestionVm>(
+                builder: (context, questionVm, child) {
+                  if (questionVm.isLoading) {
+                    return _buildShimmerList();
+                  }
+
+                  if (questionVm.error != null) {
+                    return Center(
+                      child: Text(
+                        questionVm.error!,
+                        style: TextStyle(color: context.theme.destructive),
+                      ),
+                    );
+                  }
+
+                  if (questionVm.questions.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.question_answer_outlined,
+                            size: 64,
+                            color: context.theme.mutedForeground,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            AppLocalizations.of(
+                              context,
+                            ).translate('no_questions_found'),
+                            style: TextStyle(
+                              color: context.theme.mutedForeground,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return RefreshIndicator(
+                    onRefresh: () async {
+                      await questionVm.fetchQuestions(forceRefresh: true);
+                      await questionVm.fetchSpecialties();
+                    },
+                    child: ListView.builder(
+                      controller: _scrollController,
+                      padding: const EdgeInsets.only(bottom: 80),
+                      itemCount:
+                          questionVm.questions.length +
+                          (questionVm.hasNextPage ? 1 : 0),
+                      itemBuilder: (context, index) {
+                        if (index == questionVm.questions.length) {
+                          return Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: context.theme.primary,
+                              ),
+                            ),
+                          );
+                        }
+                        final question = questionVm.questions[index];
+                        return _buildAnimatedQuestionCard(
+                          question,
+                          index,
+                          false,
+                        );
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -798,306 +903,152 @@ class _ListQuestionPageState extends State<ListQuestionPage> {
           side: BorderSide(color: context.theme.border.withOpacity(0.5)),
         ),
         clipBehavior: Clip.antiAlias,
+        color: context.theme.card,
         child: InkWell(
-          onTap: isOffline
-              ? null
-              : () async {
-                  Navigator.pushNamed(
-                    context,
-                    Routes.questionDetail,
-                    arguments: question.id,
-                  );
-                },
-          borderRadius: BorderRadius.circular(12),
+          onTap: () {
+            // Navigate to detail
+            Navigator.pushNamed(
+              context,
+              Routes.questionDetail,
+              arguments: question.id,
+            );
+          },
           child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
+            padding: const EdgeInsets.all(16),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CircleAvatar(
-                  radius: 24,
-                  backgroundColor: statusColor.withOpacity(0.1),
-                  child: Icon(statusIcon, color: statusColor, size: 24),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        question.title,
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 20,
+                      backgroundColor: context.theme.primary.withOpacity(0.1),
+                      child: Text(
+                        question.authorName.isNotEmpty == true
+                            ? question.authorName[0].toUpperCase()
+                            : '?',
                         style: TextStyle(
-                          color: context.theme.cardForeground,
-                          fontSize: 15,
+                          color: context.theme.primary,
                           fontWeight: FontWeight.bold,
                         ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 6),
-                      Row(
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(
-                            Icons.person_outline,
-                            size: 14,
-                            color: context.theme.mutedForeground,
+                          Text(
+                            question.authorName,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              color: context.theme.textColor,
+                            ),
                           ),
+                          const SizedBox(height: 2),
+                          Text(
+                            formattedDate,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: context.theme.mutedForeground,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  question.title,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: context.theme.textColor,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  question.body,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: context.theme.mutedForeground,
+                    height: 1.4,
+                  ),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: statusColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: statusColor.withOpacity(0.3)),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(statusIcon, size: 14, color: statusColor),
                           const SizedBox(width: 4),
-                          Expanded(
+                          Text(
+                            statusText,
+                            style: TextStyle(
+                              color: statusColor,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (question.specialtyId != null)
+                      Consumer<QuestionVm>(
+                        builder: (context, vm, _) {
+                          final specialty = vm.specialties.firstWhere(
+                            (s) => s.id == question.specialtyId,
+                            orElse: () => Specialty(
+                              id: '',
+                              name: 'Unknown',
+                              description: '',
+                              infoSectionsCount: 0,
+                            ),
+                          );
+                          if (specialty.name == 'Unknown')
+                            return const SizedBox.shrink();
+                          return Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: context.theme.muted,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
                             child: Text(
-                              question.authorName,
+                              specialty.name,
                               style: TextStyle(
                                 color: context.theme.mutedForeground,
                                 fontSize: 12,
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
                             ),
-                          ),
-                        ],
+                          );
+                        },
                       ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: statusColor.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              statusText.toUpperCase(),
-                              key: ValueKey(
-                                'question_status_${question.status}',
-                              ),
-                              style: TextStyle(
-                                color: statusColor,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          Text(
-                            formattedDate,
-                            style: TextStyle(
-                              color: context.theme.mutedForeground.withOpacity(
-                                0.8,
-                              ),
-                              fontSize: 11,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                  ],
                 ),
               ],
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    final provider = context.read<QuestionVm>();
-    final bool isSearchingOrFiltering =
-        _searchController.text.isNotEmpty ||
-        provider.selectedStatus != null ||
-        provider.selectedSpecialtyId != null;
-
-    return Center(
-      child: Opacity(
-        opacity: 0.7,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              isSearchingOrFiltering
-                  ? Icons.search_off_rounded
-                  : Icons.question_answer_outlined,
-              size: 60,
-              color: context.theme.mutedForeground,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              isSearchingOrFiltering
-                  ? AppLocalizations.of(context).translate('no_questions_found')
-                  : AppLocalizations.of(context).translate('no_questions_yet'),
-              style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w500,
-                color: context.theme.textColor,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 40.0),
-              child: Text(
-                isSearchingOrFiltering
-                    ? AppLocalizations.of(
-                        context,
-                      ).translate('no_questions_hint')
-                    : AppLocalizations.of(
-                        context,
-                      ).translate('no_questions_system_hint'),
-                style: TextStyle(
-                  color: context.theme.mutedForeground,
-                  fontSize: 13,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            if (isSearchingOrFiltering)
-              Padding(
-                padding: const EdgeInsets.only(top: 20.0),
-                child: TextButton.icon(
-                  icon: const Icon(Icons.refresh, size: 18),
-                  label: Text(
-                    AppLocalizations.of(context).translate('reload_list'),
-                  ),
-                  onPressed: () {
-                    _searchController.clear();
-                    provider.resetFilters();
-                  },
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildErrorState(String errorMessage) {
-    final provider = context.read<QuestionVm>();
-    final bool isNetworkError =
-        errorMessage.contains('Lỗi kết nối') ||
-        errorMessage.contains('offline');
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              isNetworkError
-                  ? Icons.wifi_off_rounded
-                  : Icons.error_outline_rounded,
-              size: 60,
-              color: context.theme.mutedForeground,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              isNetworkError
-                  ? 'Lỗi kết nối mạng'
-                  : AppLocalizations.of(
-                      context,
-                    ).translate('error_occurred_short'),
-              style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w500,
-                color: context.theme.textColor,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              errorMessage,
-              textAlign: TextAlign.center,
-              style: TextStyle(color: context.theme.destructive, fontSize: 13),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: () {
-                provider.fetchQuestions(forceRefresh: true);
-              },
-              icon: const Icon(Icons.refresh),
-              label: Text(AppLocalizations.of(context).translate('retry')),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: context.theme.primary,
-                foregroundColor: context.theme.primaryForeground,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: context.theme.bg,
-      body: Column(
-        children: [
-          _buildSearchSection(),
-          Expanded(
-            child: Consumer<QuestionVm>(
-              builder: (context, questionVm, child) {
-                if (questionVm.isLoading) {
-                  return _buildShimmerList();
-                }
-
-                if (questionVm.error != null) {
-                  return _buildErrorState(questionVm.error!);
-                }
-
-                if (questionVm.questions.isEmpty) {
-                  return _buildEmptyState();
-                }
-
-                return RefreshIndicator(
-                  onRefresh: () async {
-                    await questionVm.fetchQuestions(forceRefresh: true);
-                  },
-                  child: AnimationLimiter(
-                    child: ListView.builder(
-                      controller: _scrollController,
-                      padding: const EdgeInsets.only(top: 8, bottom: 20),
-                      itemCount:
-                          questionVm.questions.length +
-                          (questionVm.isLoadingMore ? 1 : 0),
-                      itemBuilder: (context, index) {
-                        if (index == questionVm.questions.length) {
-                          return Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Center(
-                              child: SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: context.theme.primary,
-                                ),
-                              ),
-                            ),
-                          );
-                        }
-                        return AnimationConfiguration.staggeredList(
-                          position: index,
-                          duration: const Duration(milliseconds: 375),
-                          child: SlideAnimation(
-                            verticalOffset: 50.0,
-                            child: FadeInAnimation(
-                              child: _buildAnimatedQuestionCard(
-                                questionVm.questions[index],
-                                index,
-                                questionVm.isOffline,
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 
 class CustomButtonBlue extends StatelessWidget {
   final VoidCallback onTap;
@@ -21,7 +22,10 @@ class CustomButtonBlue extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.blue.shade200, Colors.blue.shade500],
+          colors: [
+            context.theme.primary.withOpacity(0.7),
+            context.theme.primary,
+          ],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),

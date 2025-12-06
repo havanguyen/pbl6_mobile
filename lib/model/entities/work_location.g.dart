@@ -3,9 +3,10 @@ part of 'work_location.dart';
 WorkLocation _$WorkLocationFromJson(Map<String, dynamic> json) => WorkLocation(
   id: json['id'] as String? ?? '',
   name: json['name'] as String? ?? '',
-  address: json['address'] as String? ?? '',
-  phone: json['phone'] as String? ?? '',
-  timezone: json['timezone'] as String? ?? '',
+  address: json['address'] as String?,
+  phone: json['phone'] as String?,
+  timezone: json['timezone'] as String?,
+  googleMapUrl: json['googleMapUrl'] as String?,
   isActive: json['isActive'] as bool? ?? false,
   createdAt: json['createdAt'] == null
       ? DateTime(1970)
@@ -22,6 +23,7 @@ Map<String, dynamic> _$WorkLocationToJson(WorkLocation instance) =>
       'address': instance.address,
       'phone': instance.phone,
       'timezone': instance.timezone,
+      'googleMapUrl': instance.googleMapUrl,
       'isActive': instance.isActive,
       'createdAt': instance.createdAt.toIso8601String(),
       'updatedAt': instance.updatedAt.toIso8601String(),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/model/entities/appointment_data.dart';
 import 'package:pbl6mobile/view/appointment/widgets/appointment_details_sheet.dart';
 import 'package:pbl6mobile/view_model/appointment/appointment_vm.dart';
@@ -30,6 +31,25 @@ class AppointmentCalendar extends StatelessWidget {
       view: currentView,
       dataSource: vm.dataSource,
       firstDayOfWeek: 1,
+      viewHeaderStyle: ViewHeaderStyle(
+        dayTextStyle: TextStyle(color: context.theme.mutedForeground),
+        dateTextStyle: TextStyle(
+          color: context.theme.textColor,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      headerStyle: CalendarHeaderStyle(
+        textStyle: TextStyle(
+          color: context.theme.textColor,
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
+        backgroundColor: context.theme.bg,
+      ),
+      todayHighlightColor: context.theme.primary,
+      selectionDecoration: BoxDecoration(
+        border: Border.all(color: context.theme.primary, width: 2),
+      ),
       timeSlotViewSettings: TimeSlotViewSettings(
         startHour: vm.startHour,
         endHour: vm.endHour,
@@ -38,19 +58,36 @@ class AppointmentCalendar extends StatelessWidget {
         dayFormat: 'EEE',
         timeFormat: 'HH:mm',
         timeIntervalHeight: 60,
+        timeTextStyle: TextStyle(color: context.theme.mutedForeground),
       ),
-      scheduleViewSettings: const ScheduleViewSettings(
+      scheduleViewSettings: ScheduleViewSettings(
         appointmentItemHeight: 90,
         monthHeaderSettings: MonthHeaderSettings(
           monthFormat: 'MMMM, yyyy',
           height: 70,
           textAlign: TextAlign.left,
-          backgroundColor: Color(0xFFf5f5f5),
+          backgroundColor: context.theme.bg,
+          monthTextStyle: TextStyle(
+            color: context.theme.textColor,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
-      monthViewSettings: const MonthViewSettings(
+      monthViewSettings: MonthViewSettings(
         appointmentDisplayMode: MonthAppointmentDisplayMode.appointment,
         showAgenda: true,
+        agendaStyle: AgendaStyle(
+          backgroundColor: context.theme.bg,
+          dateTextStyle: TextStyle(
+            color: context.theme.textColor,
+            fontWeight: FontWeight.bold,
+          ),
+          dayTextStyle: TextStyle(
+            color: context.theme.mutedForeground,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
       onViewChanged: (ViewChangedDetails details) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -60,7 +97,7 @@ class AppointmentCalendar extends StatelessWidget {
       onTap: (CalendarTapDetails details) {
         if (details.targetElement == CalendarElement.appointment) {
           final AppointmentData appointment = details.appointments!.first;
-          final color = _getStatusColor(appointment.status);
+          final color = _getStatusColor(context, appointment.status);
           showModalBottomSheet(
             context: context,
             isScrollControlled: true,
@@ -76,34 +113,49 @@ class AppointmentCalendar extends StatelessWidget {
             calendarAppointmentDetails.appointments.first;
 
         if (currentView == CalendarView.schedule) {
-          return _buildScheduleCard(appointment);
+          return _buildScheduleCard(context, appointment);
         }
 
         return LayoutBuilder(
           builder: (context, constraints) {
             if (vm.badgeVariant == 'dot') {
-              return _buildDotBadge(appointment, currentView, constraints);
+              return _buildDotBadge(
+                context,
+                appointment,
+                currentView,
+                constraints,
+              );
             } else if (vm.badgeVariant == 'mixed') {
-              return _buildMixedBadge(appointment, currentView, constraints);
+              return _buildMixedBadge(
+                context,
+                appointment,
+                currentView,
+                constraints,
+              );
             }
-            return _buildColoredBadge(appointment, currentView, constraints);
+            return _buildColoredBadge(
+              context,
+              appointment,
+              currentView,
+              constraints,
+            );
           },
         );
       },
     );
   }
 
-  Widget _buildScheduleCard(AppointmentData appointment) {
-    final color = _getStatusColor(appointment.status);
+  Widget _buildScheduleCard(BuildContext context, AppointmentData appointment) {
+    final color = _getStatusColor(context, appointment.status);
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.theme.card,
         borderRadius: BorderRadius.circular(12),
         border: Border(left: BorderSide(color: color, width: 4)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: context.theme.popover.withOpacity(0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -118,15 +170,18 @@ class AppointmentCalendar extends StatelessWidget {
               children: [
                 Text(
                   '${appointment.appointmentStartTime.hour}:${appointment.appointmentStartTime.minute.toString().padLeft(2, '0')}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
-                    color: Colors.black87,
+                    color: context.theme.textColor,
                   ),
                 ),
                 Text(
                   '${appointment.appointmentEndTime.hour}:${appointment.appointmentEndTime.minute.toString().padLeft(2, '0')}',
-                  style: const TextStyle(color: Colors.black54, fontSize: 13),
+                  style: TextStyle(
+                    color: context.theme.mutedForeground,
+                    fontSize: 13,
+                  ),
                 ),
               ],
             ),
@@ -146,17 +201,17 @@ class AppointmentCalendar extends StatelessWidget {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.medical_services,
                         size: 14,
-                        color: Colors.grey,
+                        color: context.theme.mutedForeground,
                       ),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
                           appointment.doctor.name ?? 'N/A',
-                          style: const TextStyle(
-                            color: Colors.black54,
+                          style: TextStyle(
+                            color: context.theme.mutedForeground,
                             fontSize: 13,
                           ),
                           overflow: TextOverflow.ellipsis,
@@ -189,11 +244,12 @@ class AppointmentCalendar extends StatelessWidget {
   }
 
   Widget _buildColoredBadge(
+    BuildContext context,
     AppointmentData appointment,
     CalendarView view,
     BoxConstraints constraints,
   ) {
-    final color = _getStatusColor(appointment.status);
+    final color = _getStatusColor(context, appointment.status);
     final isSmall = constraints.maxHeight < 40;
     final isMedium = constraints.maxHeight < 60;
 
@@ -203,7 +259,7 @@ class AppointmentCalendar extends StatelessWidget {
         borderRadius: BorderRadius.circular(4),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: context.theme.popover.withOpacity(0.1),
             blurRadius: 2,
             offset: const Offset(0, 1),
           ),
@@ -214,8 +270,8 @@ class AppointmentCalendar extends StatelessWidget {
           ? Center(
               child: Text(
                 appointment.patient.fullName,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: context.theme.white,
                   fontSize: 9,
                   fontWeight: FontWeight.bold,
                 ),
@@ -229,8 +285,8 @@ class AppointmentCalendar extends StatelessWidget {
               children: [
                 Text(
                   appointment.patient.fullName,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: context.theme.white,
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
                   ),
@@ -241,7 +297,10 @@ class AppointmentCalendar extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     'BS: ${appointment.doctor.name ?? 'N/A'}',
-                    style: const TextStyle(color: Colors.white70, fontSize: 9),
+                    style: TextStyle(
+                      color: context.theme.white.withOpacity(0.7),
+                      fontSize: 9,
+                    ),
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
                   ),
@@ -252,18 +311,19 @@ class AppointmentCalendar extends StatelessWidget {
   }
 
   Widget _buildDotBadge(
+    BuildContext context,
     AppointmentData appointment,
     CalendarView view,
     BoxConstraints constraints,
   ) {
-    final color = _getStatusColor(appointment.status);
+    final color = _getStatusColor(context, appointment.status);
     final isSmall = constraints.maxHeight < 40;
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.theme.card,
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: context.theme.border),
       ),
       padding: EdgeInsets.symmetric(horizontal: 4, vertical: isSmall ? 0 : 2),
       child: Row(
@@ -279,7 +339,7 @@ class AppointmentCalendar extends StatelessWidget {
             child: Text(
               appointment.patient.fullName,
               style: TextStyle(
-                color: Colors.black87,
+                color: context.theme.textColor,
                 fontSize: isSmall ? 9 : 11,
                 fontWeight: FontWeight.w500,
               ),
@@ -293,11 +353,12 @@ class AppointmentCalendar extends StatelessWidget {
   }
 
   Widget _buildMixedBadge(
+    BuildContext context,
     AppointmentData appointment,
     CalendarView view,
     BoxConstraints constraints,
   ) {
-    final color = _getStatusColor(appointment.status);
+    final color = _getStatusColor(context, appointment.status);
     final isSmall = constraints.maxHeight < 40;
     final isMedium = constraints.maxHeight < 60;
 
@@ -315,7 +376,7 @@ class AppointmentCalendar extends StatelessWidget {
           Text(
             appointment.patient.fullName,
             style: TextStyle(
-              color: Colors.black87,
+              color: context.theme.textColor,
               fontSize: isSmall ? 9 : 11,
               fontWeight: FontWeight.bold,
             ),
@@ -327,7 +388,10 @@ class AppointmentCalendar extends StatelessWidget {
             Flexible(
               child: Text(
                 'BS: ${appointment.doctor.name ?? 'N/A'}',
-                style: const TextStyle(color: Colors.black54, fontSize: 9),
+                style: TextStyle(
+                  color: context.theme.mutedForeground,
+                  fontSize: 9,
+                ),
                 overflow: TextOverflow.ellipsis,
                 maxLines: 1,
               ),
@@ -338,20 +402,20 @@ class AppointmentCalendar extends StatelessWidget {
     );
   }
 
-  Color _getStatusColor(String status) {
+  Color _getStatusColor(BuildContext context, String status) {
     switch (status) {
       case 'BOOKED':
-        return Colors.blue;
+        return context.theme.blue;
       case 'COMPLETED':
-        return Colors.green;
+        return context.theme.green;
       case 'CANCELLED':
       case 'CANCELLED_BY_STAFF':
       case 'CANCELLED_BY_PATIENT':
-        return Colors.red;
+        return context.theme.destructive;
       case 'RESCHEDULED':
-        return Colors.orange;
+        return context.theme.yellow;
       default:
-        return Colors.grey;
+        return context.theme.muted;
     }
   }
 }

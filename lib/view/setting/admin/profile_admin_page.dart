@@ -98,7 +98,7 @@ class _ProfileAdminPageState extends State<ProfileAdminPage> {
     return Scaffold(
       backgroundColor: context.theme.bg,
       appBar: AppBar(
-        backgroundColor: context.theme.blue,
+        backgroundColor: context.theme.appBar,
         elevation: 0.5,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: context.theme.white, size: 28),
@@ -128,8 +128,10 @@ class _ProfileAdminPageState extends State<ProfileAdminPage> {
               },
             ),
           IconButton(
-            icon: const Icon(Icons.refresh),
-            color: context.theme.white,
+            icon: Icon(
+              Icons.refresh,
+              color: context.theme.white,
+            ), // Explicit Icon widget with color
             onPressed: _isLoading ? null : _reloadProfile,
           ),
         ],

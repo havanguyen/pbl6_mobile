@@ -5,11 +5,12 @@ import '../../entities/work_location.dart';
 
 class WorkLocationDatabaseHelper {
   static const _databaseName = "work_locations.db";
-  static const _databaseVersion = 1;
+  static const _databaseVersion = 2;
   static const _table = "work_locations";
 
   WorkLocationDatabaseHelper._privateConstructor();
-  static final WorkLocationDatabaseHelper instance = WorkLocationDatabaseHelper._privateConstructor();
+  static final WorkLocationDatabaseHelper instance =
+      WorkLocationDatabaseHelper._privateConstructor();
 
   static Database? _database;
 
@@ -25,6 +26,7 @@ class WorkLocationDatabaseHelper {
       path,
       version: _databaseVersion,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
   }
 
@@ -33,14 +35,23 @@ class WorkLocationDatabaseHelper {
       CREATE TABLE $_table (
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
-        address TEXT NOT NULL,
-        phone TEXT NOT NULL,
-        timezone TEXT NOT NULL,
+        address TEXT,
+        phone TEXT,
+        timezone TEXT,
+        googleMapUrl TEXT,
         isActive INTEGER,
         createdAt TEXT NOT NULL,
         updatedAt TEXT NOT NULL
       )
     ''');
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      // Recreate table to apply nullability changes and add new column
+      await db.execute('DROP TABLE IF EXISTS $_table');
+      await _onCreate(db, newVersion);
+    }
   }
 
   Future<void> insertLocations(List<WorkLocation> locations) async {
@@ -49,11 +60,7 @@ class WorkLocationDatabaseHelper {
     for (var location in locations) {
       final data = location.toJson();
       data['isActive'] = (location.isActive ? 1 : 0);
-      batch.insert(
-        _table,
-        data,
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
+      batch.insert(_table, data, conflictAlgorithm: ConflictAlgorithm.replace);
     }
     await batch.commit(noResult: true);
   }

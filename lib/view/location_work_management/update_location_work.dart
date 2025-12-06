@@ -37,6 +37,7 @@ class UpdateLocationWorkPage extends StatelessWidget {
                 required address,
                 required phone,
                 required timezone,
+                googleMapUrl,
                 id,
               }) async {
                 return await LocationWorkService.updateLocation(
@@ -45,6 +46,7 @@ class UpdateLocationWorkPage extends StatelessWidget {
                   address: address,
                   phone: phone,
                   timezone: timezone,
+                  googleMapUrl: googleMapUrl,
                 );
               },
         ),

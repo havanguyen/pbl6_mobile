@@ -4,6 +4,8 @@ import 'package:pbl6mobile/shared/services/store.dart';
 
 import '../../entities/profile.dart';
 import '../local/profile_cache_service.dart';
+import 'package:pbl6mobile/shared/utils/global_keys.dart';
+import 'package:pbl6mobile/shared/routes/routes.dart';
 
 class AuthService {
   const AuthService._();
@@ -198,6 +200,10 @@ class AuthService {
       await Store.clearStorage();
       await ProfileCacheService.instance.clearProfile();
       print('Local storage cleared.');
+      navigatorKey.currentState?.pushNamedAndRemoveUntil(
+        Routes.login,
+        (route) => false,
+      );
     }
     return true;
   }
