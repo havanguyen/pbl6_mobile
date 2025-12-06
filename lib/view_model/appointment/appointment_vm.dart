@@ -110,7 +110,7 @@ class AppointmentVm extends ChangeNotifier {
         workLocationId: workLocationId,
         specialtyId: specialtyId,
         patientId: patientId,
-        limit: 1000,
+        limit: 100,
       );
       print(
         '--- [DEBUG] AppointmentVm: Service returned. Response is null? ${response == null} ---',

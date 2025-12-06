@@ -63,7 +63,8 @@ class _AccountDoctorPageState extends State<AccountDoctorPage> {
       }
     } else {
       if (!isConnected && mounted) {
-        final cachedProfileMap = await ProfileCacheService.instance.getProfile();
+        final cachedProfileMap = await ProfileCacheService.instance
+            .getProfile();
         if (cachedProfileMap != null) {
           if (cachedProfileMap['role'] == 'DOCTOR') {
             setState(() {
@@ -105,11 +106,7 @@ class _AccountDoctorPageState extends State<AccountDoctorPage> {
         backgroundColor: context.theme.blue,
         elevation: 0.5,
         leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back,
-            color: context.theme.white,
-            size: 28,
-          ),
+          icon: Icon(Icons.arrow_back, color: context.theme.white, size: 28),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -123,10 +120,7 @@ class _AccountDoctorPageState extends State<AccountDoctorPage> {
         actions: [
           if (_currentProfile != null && !_isOffline)
             IconButton(
-              icon: Icon(
-                Icons.edit,
-                color: context.theme.white,
-              ),
+              icon: Icon(Icons.edit, color: context.theme.white),
               onPressed: () async {
                 final shouldReload = await Navigator.pushNamed(
                   context,
@@ -142,7 +136,7 @@ class _AccountDoctorPageState extends State<AccountDoctorPage> {
             icon: const Icon(Icons.refresh),
             color: context.theme.white,
             onPressed: _isLoading ? null : _reloadProfile,
-          )
+          ),
         ],
       ),
       body: _buildBody(),
@@ -217,15 +211,15 @@ class _AccountDoctorPageState extends State<AccountDoctorPage> {
               : null,
           child: (avatarUrl == null || avatarUrl.isEmpty)
               ? Text(
-            _currentProfile!.fullName.isNotEmpty
-                ? _currentProfile!.fullName[0].toUpperCase()
-                : 'D',
-            style: TextStyle(
-              fontSize: 48,
-              fontWeight: FontWeight.bold,
-              color: context.theme.primary,
-            ),
-          )
+                  _currentProfile!.fullName.isNotEmpty
+                      ? _currentProfile!.fullName[0].toUpperCase()
+                      : 'D',
+                  style: TextStyle(
+                    fontSize: 48,
+                    fontWeight: FontWeight.bold,
+                    color: context.theme.primary,
+                  ),
+                )
               : null,
         ),
         const SizedBox(height: 16),
@@ -240,10 +234,7 @@ class _AccountDoctorPageState extends State<AccountDoctorPage> {
         const SizedBox(height: 8),
         Text(
           _currentProfile!.email,
-          style: TextStyle(
-            fontSize: 16,
-            color: context.theme.mutedForeground,
-          ),
+          style: TextStyle(fontSize: 16, color: context.theme.mutedForeground),
         ),
       ],
     );
@@ -270,7 +261,11 @@ class _AccountDoctorPageState extends State<AccountDoctorPage> {
               context,
               icon: Icons.cake_outlined,
               label: 'Ngày sinh',
-              value: _currentProfile!.dateOfBirth?.toLocal().toIso8601String().split('T')[0] ??
+              value:
+                  _currentProfile!.dateOfBirth
+                      ?.toLocal()
+                      .toIso8601String()
+                      .split('T')[0] ??
                   'Chưa cập nhật',
             ),
             _buildInfoItem(
@@ -286,11 +281,13 @@ class _AccountDoctorPageState extends State<AccountDoctorPage> {
     );
   }
 
-  Widget _buildInfoItem(BuildContext context,
-      {required IconData icon,
-        required String label,
-        required String value,
-        bool isLast = false}) {
+  Widget _buildInfoItem(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required String value,
+    bool isLast = false,
+  }) {
     return Column(
       children: [
         Row(

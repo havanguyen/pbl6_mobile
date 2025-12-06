@@ -9,6 +9,8 @@ import 'package:pbl6mobile/view/appointment/widgets/appointment_calendar.dart';
 import 'package:pbl6mobile/view/appointment/widgets/custom_calendar_header.dart';
 import 'package:pbl6mobile/view/appointment/widgets/calendar_settings_dialog.dart';
 import 'package:pbl6mobile/shared/localization/app_localizations.dart';
+import 'package:pbl6mobile/shared/services/store.dart';
+import 'package:pbl6mobile/model/services/remote/doctor_service.dart';
 
 class ListAppointmentPage extends StatefulWidget {
   const ListAppointmentPage({super.key});
@@ -27,6 +29,7 @@ class _ListAppointmentPageState extends State<ListAppointmentPage>
   String? _selectedDoctorId;
   String? _selectedWorkLocationId;
   String? _selectedSpecialtyId;
+  bool _isDoctor = false;
 
   @override
   void initState() {
@@ -35,8 +38,41 @@ class _ListAppointmentPageState extends State<ListAppointmentPage>
     _tabController!.addListener(_onTabChanged);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _fetchDataForVisibleDates(details: null);
+      _initializePage();
     });
+  }
+
+  Future<void> _initializePage() async {
+    print('--- [DEBUG] ListAppointmentPage._initializePage ---');
+    final role = await Store.getUserRole();
+    print('User Role: $role');
+
+    if (role?.toUpperCase() == 'DOCTOR') {
+      print('User is DOCTOR. Fetching self profile...');
+      setState(() {
+        _isDoctor = true;
+      });
+      // Fetch self profile to get doctor ID
+      try {
+        final doctorProfile = await DoctorService.getSelfProfileComplete();
+        if (doctorProfile != null) {
+          print(
+            'Doctor Profile Fetched: ID=${doctorProfile.id}, Name=${doctorProfile.fullName}',
+          );
+          setState(() {
+            _selectedDoctorId = doctorProfile.id;
+          });
+        } else {
+          print('Doctor Profile is NULL');
+        }
+      } catch (e) {
+        print('Error fetching doctor profile: $e');
+      }
+    } else {
+      print('User is NOT DOCTOR (or role is null)');
+    }
+
+    _fetchDataForVisibleDates(details: null);
   }
 
   @override
@@ -168,6 +204,7 @@ class _ListAppointmentPageState extends State<ListAppointmentPage>
         selectedDoctorId: _selectedDoctorId,
         selectedWorkLocationId: _selectedWorkLocationId,
         selectedSpecialtyId: _selectedSpecialtyId,
+        isDoctor: _isDoctor,
       ),
     );
 

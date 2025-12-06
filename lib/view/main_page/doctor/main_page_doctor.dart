@@ -151,7 +151,7 @@ class _MainPageDoctorState extends State<MainPageDoctor> {
                     context,
                   ).translate('schedule_management'),
                   onTap: () {
-                    print('Quản lý lịch trình');
+                    Navigator.pushNamed(context, Routes.listAppointment);
                   },
                 ),
               ),

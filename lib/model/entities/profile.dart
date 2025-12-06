@@ -4,7 +4,7 @@ part 'profile.freezed.dart';
 part 'profile.g.dart';
 
 @freezed
-class Profile with _$Profile {
+abstract class Profile with _$Profile {
   const factory Profile({
     required String id,
     required String fullName,
@@ -19,56 +19,8 @@ class Profile with _$Profile {
     required DateTime updatedAt,
   }) = _Profile;
 
+  const Profile._();
+
   factory Profile.fromJson(Map<String, dynamic> json) =>
       _$ProfileFromJson(json);
-
-  @override
-  // TODO: implement avatarUrl
-  String? get avatarUrl => throw UnimplementedError();
-
-  @override
-  // TODO: implement createdAt
-  DateTime get createdAt => throw UnimplementedError();
-
-  @override
-  // TODO: implement dateOfBirth
-  DateTime? get dateOfBirth => throw UnimplementedError();
-
-  @override
-  // TODO: implement deletedAt
-  DateTime? get deletedAt => throw UnimplementedError();
-
-  @override
-  // TODO: implement email
-  String get email => throw UnimplementedError();
-
-  @override
-  // TODO: implement fullName
-  String get fullName => throw UnimplementedError();
-
-  @override
-  // TODO: implement id
-  String get id => throw UnimplementedError();
-
-  @override
-  // TODO: implement isMale
-  bool? get isMale => throw UnimplementedError();
-
-  @override
-  // TODO: implement phone
-  String? get phone => throw UnimplementedError();
-
-  @override
-  // TODO: implement role
-  String get role => throw UnimplementedError();
-
-  @override
-  Map<String, dynamic> toJson() {
-    // TODO: implement toJson
-    throw UnimplementedError();
-  }
-
-  @override
-  // TODO: implement updatedAt
-  DateTime get updatedAt => throw UnimplementedError();
 }

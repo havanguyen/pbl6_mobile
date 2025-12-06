@@ -92,17 +92,46 @@ class SpecialtyService {
           meta: response.data['meta'] ?? {},
         );
       }
-      return GetSpecialtiesResponse(success: false, message: response.data['message'] ?? 'API call failed');
+      return GetSpecialtiesResponse(
+        success: false,
+        message: response.data['message'] ?? 'API call failed',
+      );
     } catch (e) {
       return GetSpecialtiesResponse(success: false, message: 'Lỗi: $e');
     }
   }
 
-  static Future<bool> createSpecialty({required String name, String? description}) async {
+  static Future<List<Specialty>> getPublicSpecialties() async {
+    try {
+      final response = await _dio.get('/specialties/public');
+
+      if (response.statusCode == 200) {
+        if (response.data is List) {
+          return (response.data as List)
+              .map((json) => Specialty.fromJson(json as Map<String, dynamic>))
+              .toList();
+        } else if (response.data is Map && response.data['data'] is List) {
+          return (response.data['data'] as List)
+              .map((json) => Specialty.fromJson(json as Map<String, dynamic>))
+              .toList();
+        }
+      }
+      return [];
+    } catch (e) {
+      print('Error fetching public specialties: $e');
+      return [];
+    }
+  }
+
+  static Future<bool> createSpecialty({
+    required String name,
+    String? description,
+  }) async {
     try {
       final requestBody = {
         'name': name,
-        if (description != null && description.isNotEmpty) 'description': description,
+        if (description != null && description.isNotEmpty)
+          'description': description,
       };
       final response = await _dio.post('/specialties', data: requestBody);
       return response.statusCode == 201;
@@ -111,11 +140,16 @@ class SpecialtyService {
     }
   }
 
-  static Future<bool> updateSpecialty({required String id, String? name, String? description}) async {
+  static Future<bool> updateSpecialty({
+    required String id,
+    String? name,
+    String? description,
+  }) async {
     try {
       final requestBody = {
         if (name != null && name.isNotEmpty) 'name': name,
-        if (description != null && description.isNotEmpty) 'description': description,
+        if (description != null && description.isNotEmpty)
+          'description': description,
       };
       if (requestBody.isEmpty) return false;
       final response = await _dio.patch('/specialties/$id', data: requestBody);
@@ -125,7 +159,10 @@ class SpecialtyService {
     }
   }
 
-  static Future<bool> deleteSpecialty(String id, {required String password}) async {
+  static Future<bool> deleteSpecialty(
+    String id, {
+    required String password,
+  }) async {
     try {
       if (!await AuthService.verifyPassword(password: password)) {
         return false;
@@ -137,9 +174,13 @@ class SpecialtyService {
     }
   }
 
-  static Future<Map<String, dynamic>> getInfoSections(String specialtyId) async {
+  static Future<Map<String, dynamic>> getInfoSections(
+    String specialtyId,
+  ) async {
     try {
-      final response = await _dio.get('/specialties/$specialtyId/info-sections');
+      final response = await _dio.get(
+        '/specialties/$specialtyId/info-sections',
+      );
       if (response.statusCode == 200) {
         return response.data;
       }
@@ -160,28 +201,41 @@ class SpecialtyService {
         'name': name,
         'content': content,
       };
-      final response = await _dio.post('/specialties/info-sections', data: requestBody);
+      final response = await _dio.post(
+        '/specialties/info-sections',
+        data: requestBody,
+      );
       return response.statusCode == 201;
     } catch (e) {
       return false;
     }
   }
 
-  static Future<bool> updateInfoSection({required String id, String? name, String? content}) async {
+  static Future<bool> updateInfoSection({
+    required String id,
+    String? name,
+    String? content,
+  }) async {
     try {
       final requestBody = {
         if (name != null && name.isNotEmpty) 'name': name,
         if (content != null && content.isNotEmpty) 'content': content,
       };
       if (requestBody.isEmpty) return false;
-      final response = await _dio.patch('/specialties/info-sections/$id', data: requestBody);
+      final response = await _dio.patch(
+        '/specialties/info-sections/$id',
+        data: requestBody,
+      );
       return response.statusCode == 200;
     } catch (e) {
       return false;
     }
   }
 
-  static Future<bool> deleteInfoSection(String id, {required String password}) async {
+  static Future<bool> deleteInfoSection(
+    String id, {
+    required String password,
+  }) async {
     try {
       if (!await AuthService.verifyPassword(password: password)) {
         return false;

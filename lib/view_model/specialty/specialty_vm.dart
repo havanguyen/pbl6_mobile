@@ -40,12 +40,14 @@ class SpecialtyVm extends ChangeNotifier {
   final SpecialtyDatabaseHelper _dbHelper = SpecialtyDatabaseHelper.instance;
 
   SpecialtyVm() {
-    Connectivity()
-        .onConnectivityChanged
-        .listen((List<ConnectivityResult> results) {
-      bool isConnected = results.any((result) =>
-      result == ConnectivityResult.wifi ||
-          result == ConnectivityResult.mobile);
+    Connectivity().onConnectivityChanged.listen((
+      List<ConnectivityResult> results,
+    ) {
+      bool isConnected = results.any(
+        (result) =>
+            result == ConnectivityResult.wifi ||
+            result == ConnectivityResult.mobile,
+      );
       if (isConnected && _isOffline) {
         _isOffline = false;
         fetchSpecialties(forceRefresh: true);
@@ -54,16 +56,14 @@ class SpecialtyVm extends ChangeNotifier {
   }
 
   Future<void> fetchAllSpecialties() async {
-    if (_allSpecialties.isNotEmpty || _isFetchingAll) return;
+    print('--- [DEBUG] SpecialtyVm.fetchAllSpecialties (Public) ---');
+    if (_allSpecialties.isNotEmpty || _isFetchingAll) {
+      return;
+    }
 
     _isFetchingAll = true;
     _error = null;
     notifyListeners();
-
-    final List<Specialty> results = [];
-    int currentPage = 1;
-    bool hasMore = true;
-    const int safeLimit = 50;
 
     var connectivityResult = await Connectivity().checkConnectivity();
     if (connectivityResult.contains(ConnectivityResult.none)) {
@@ -74,25 +74,12 @@ class SpecialtyVm extends ChangeNotifier {
     }
 
     try {
-      while (hasMore) {
-        final result = await SpecialtyService.getAllSpecialties(
-          page: currentPage,
-          limit: safeLimit,
-        );
-
-        if (result.success) {
-          results.addAll(result.data);
-          hasMore = result.meta['hasNext'] ?? false;
-          if (hasMore) {
-            currentPage++;
-          }
-        } else {
-          _error = result.message;
-          hasMore = false;
-        }
-      }
+      // Use public endpoint to avoid 403 Forbidden for Doctors
+      final results = await SpecialtyService.getPublicSpecialties();
       _allSpecialties = results;
+      print('Total specialties fetched: ${_allSpecialties.length}');
     } catch (e) {
+      print('Error dealing with fetch public: $e');
       _error = 'Lỗi khi tải tất cả chuyên khoa: $e';
       _allSpecialties = [];
     } finally {
@@ -186,8 +173,10 @@ class SpecialtyVm extends ChangeNotifier {
     }
   }
 
-  Future<void> fetchInfoSections(String specialtyId,
-      {bool forceRefresh = false}) async {
+  Future<void> fetchInfoSections(
+    String specialtyId, {
+    bool forceRefresh = false,
+  }) async {
     if (_infoSections.containsKey(specialtyId) && !forceRefresh) return;
 
     _isInfoSectionLoading = true;
@@ -238,20 +227,30 @@ class SpecialtyVm extends ChangeNotifier {
     return _infoSections[specialtyId] ?? [];
   }
 
-  Future<bool> createSpecialty(
-      {required String name, String? description}) async {
-    final success =
-    await SpecialtyService.createSpecialty(name: name, description: description);
+  Future<bool> createSpecialty({
+    required String name,
+    String? description,
+  }) async {
+    final success = await SpecialtyService.createSpecialty(
+      name: name,
+      description: description,
+    );
     if (success) {
       fetchSpecialties(forceRefresh: true);
     }
     return success;
   }
 
-  Future<bool> updateSpecialty(
-      {required String id, String? name, String? description}) async {
+  Future<bool> updateSpecialty({
+    required String id,
+    String? name,
+    String? description,
+  }) async {
     final success = await SpecialtyService.updateSpecialty(
-        id: id, name: name, description: description);
+      id: id,
+      name: name,
+      description: description,
+    );
     if (success) {
       fetchSpecialties(forceRefresh: true);
     }
@@ -259,8 +258,10 @@ class SpecialtyVm extends ChangeNotifier {
   }
 
   Future<bool> deleteSpecialty(String id, String password) async {
-    final success =
-    await SpecialtyService.deleteSpecialty(id, password: password);
+    final success = await SpecialtyService.deleteSpecialty(
+      id,
+      password: password,
+    );
     if (success) {
       _specialties.removeWhere((s) => s.id == id);
       await _dbHelper.deleteSpecialty(id);
@@ -269,22 +270,32 @@ class SpecialtyVm extends ChangeNotifier {
     return success;
   }
 
-  Future<bool> createInfoSection(
-      {required String specialtyId,
-        required String name,
-        required String content}) async {
+  Future<bool> createInfoSection({
+    required String specialtyId,
+    required String name,
+    required String content,
+  }) async {
     final success = await SpecialtyService.createInfoSection(
-        specialtyId: specialtyId, name: name, content: content);
+      specialtyId: specialtyId,
+      name: name,
+      content: content,
+    );
     if (success) {
       await fetchInfoSections(specialtyId, forceRefresh: true);
     }
     return success;
   }
 
-  Future<bool> updateInfoSection(
-      {required String id, String? name, String? content}) async {
+  Future<bool> updateInfoSection({
+    required String id,
+    String? name,
+    String? content,
+  }) async {
     final success = await SpecialtyService.updateInfoSection(
-        id: id, name: name, content: content);
+      id: id,
+      name: name,
+      content: content,
+    );
     if (success) {
       _infoSections.clear();
       notifyListeners();
@@ -293,9 +304,14 @@ class SpecialtyVm extends ChangeNotifier {
   }
 
   Future<bool> deleteInfoSection(
-      String id, String specialtyId, String password) async {
-    final success =
-    await SpecialtyService.deleteInfoSection(id, password: password);
+    String id,
+    String specialtyId,
+    String password,
+  ) async {
+    final success = await SpecialtyService.deleteInfoSection(
+      id,
+      password: password,
+    );
     if (success) {
       await fetchInfoSections(specialtyId, forceRefresh: true);
     }

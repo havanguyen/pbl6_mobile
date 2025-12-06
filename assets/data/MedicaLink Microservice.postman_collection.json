@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "68f33581-6099-4d64-bdb1-7216295258ce",
 		"name": "MedicaLink Microservice",
-		"description": "# MedicaLink Microservice API Documentation\n\n## Overview\n\nThe MedicaLink Microservice API provides a comprehensive healthcare management system with features for managing doctors, staff, specialties, work locations, permissions, and authentication. This API enables healthcare organizations to efficiently manage their resources and provide better patient care.\n\n## Base URL\n\nAll API requests use the base URL stored in the `{{base_url}}` environment variable.\n\n## Authentication\n\nMost endpoints require authentication using a Bearer token. The token is automatically managed through the login and refresh token endpoints.\n\n### Authentication Endpoints\n\n#### Login\n\n- **URL**: `/auth/login`\n    \n- **Method**: POST\n    \n- **Description**: Authenticates a user and returns access and refresh tokens.\n    \n- **Request Body**:\n    \n    ``` json\n        {\n          \"email\": \"user@example.com\",\n          \"password\": \"password\"\n        }\n    \n     ```\n    \n- **Response**:\n    \n    ``` json\n        {\n          \"access_token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n          \"refresh_token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"\n        }\n    \n     ```\n    \n\n#### Refresh Token\n\n- **URL**: `/auth/refresh`\n    \n- **Method**: POST\n    \n- **Description**: Refreshes an expired access token using a valid refresh token.\n    \n- **Request Body**:\n    \n    ``` json\n        {\n          \"refresh_token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"\n        }\n    \n     ```\n    \n- **Response**: Same as login response.\n    \n\n#### Get Profile\n\n- **URL**: `/auth/profile`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves the profile of the authenticated user.\n    \n- **Response**: User profile details.\n    \n\n#### Verify Password\n\n- **URL**: `/auth/verify-password`\n    \n- **Method**: POST\n    \n- **Description**: Verifies if the provided password matches the authenticated user's password.\n    \n- **Request Body**:\n    \n    ``` json\n        {\n          \"password\": \"current_password\"\n        }\n    \n     ```\n    \n- **Response**: Success or failure message.\n    \n\n#### Change Password\n\n- **URL**: `/auth/change-password`\n    \n- **Method**: POST\n    \n- **Description**: Changes the password for the authenticated user.\n    \n- **Request Body**:\n    \n    ``` json\n        {\n          \"current_password\": \"old_password\",\n          \"new_password\": \"new_password\"\n        }\n    \n     ```\n    \n- **Response**: Success or failure message.\n    \n\n## Doctors Management\n\n### Account Management\n\n#### Get Doctors List\n\n- **URL**: `/doctors?page=1&limit=10`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves a paginated list of doctors.\n    \n- **Query Parameters**:\n    \n    - `page`: Page number (default: 1)\n        \n    - `limit`: Number of items per page (default: 10)\n        \n- **Response**: List of doctor accounts with pagination metadata.\n    \n\n#### Create Doctor\n\n- **URL**: `/doctors`\n    \n- **Method**: POST\n    \n- **Description**: Creates a new doctor account.\n    \n- **Request Body**:\n    \n    ``` json\n        {\n          \"email\": \"doctor@example.com\",\n          \"name\": \"Dr. John Doe\",\n          \"phone\": \"+1234567890\",\n          \"specialtyId\": \"specialty-id\"\n        }\n    \n     ```\n    \n- **Response**: Created doctor account details.\n    \n\n#### Get Specific Doctor\n\n- **URL**: `/doctors/:id`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves details of a specific doctor by ID.\n    \n- **Path Parameters**:\n    \n    - `id`: Doctor ID\n        \n- **Response**: Doctor account details.\n    \n\n#### Get Doctor with Profile\n\n- **URL**: `/doctors/:id/complete`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves complete doctor information including profile details.\n    \n- **Path Parameters**:\n    \n    - `id`: Doctor ID\n        \n- **Response**: Complete doctor information.\n    \n\n#### Update Staff Account\n\n- **URL**: `/doctors/:id`\n    \n- **Method**: PATCH\n    \n- **Description**: Updates a doctor's account information.\n    \n- **Path Parameters**:\n    \n    - `id`: Doctor ID\n        \n- **Request Body**: Fields to update.\n    \n- **Response**: Updated doctor account.\n    \n\n#### Soft Delete Doctor\n\n- **URL**: `/doctors/:id`\n    \n- **Method**: DELETE\n    \n- **Description**: Soft deletes a doctor account (marks as inactive).\n    \n- **Path Parameters**:\n    \n    - `id`: Doctor ID\n        \n- **Response**: Success message.\n    \n\n#### Get Doctor Statistics\n\n- **URL**: `/doctors/stats`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves statistical information about doctors.\n    \n- **Response**: Doctor statistics.\n    \n\n### Profile Management\n\n#### Get Doctor Profiles (Public)\n\n- **URL**: `/doctors/profile/public?page=1&limit=20`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves public doctor profiles with pagination.\n    \n- **Query Parameters**:\n    \n    - `page`: Page number (default: 1)\n        \n    - `limit`: Number of items per page (default: 20)\n        \n- **Response**: List of public doctor profiles.\n    \n\n#### Update Profile\n\n- **URL**: `/doctors/profile/:profile-id`\n    \n- **Method**: PATCH\n    \n- **Description**: Updates a doctor's profile information.\n    \n- **Path Parameters**:\n    \n    - `profile-id`: Profile ID\n        \n- **Request Body**: Fields to update.\n    \n- **Response**: Updated profile information.\n    \n\n#### Toggle Active Status\n\n- **URL**: `/doctors/profile/:profile-id/toggle-active`\n    \n- **Method**: PATCH\n    \n- **Description**: Toggles the active status of a doctor's profile.\n    \n- **Path Parameters**:\n    \n    - `profile-id`: Profile ID\n        \n- **Response**: Updated status information.\n    \n\n## Staff Management\n\n#### Get Staff List\n\n- **URL**: `/staffs?page=1&limit=10`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves a paginated list of staff members.\n    \n- **Query Parameters**:\n    \n    - `page`: Page number (default: 1)\n        \n    - `limit`: Number of items per page (default: 10)\n        \n- **Response**: List of staff accounts with pagination metadata.\n    \n\n#### Create Staff Account\n\n- **URL**: `/staffs`\n    \n- **Method**: POST\n    \n- **Description**: Creates a new staff account.\n    \n- **Request Body**:\n    \n    ``` json\n        {\n          \"email\": \"staff@example.com\",\n          \"name\": \"Staff Name\",\n          \"role\": \"admin\"\n        }\n    \n     ```\n    \n- **Response**: Created staff account details.\n    \n\n#### Get Specific Staff\n\n- **URL**: `/staffs/:id`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves details of a specific staff member by ID.\n    \n- **Path Parameters**:\n    \n    - `id`: Staff ID\n        \n- **Response**: Staff account details.\n    \n\n#### Update Staff Account\n\n- **URL**: `/staffs/:id`\n    \n- **Method**: PATCH\n    \n- **Description**: Updates a staff member's account information.\n    \n- **Path Parameters**:\n    \n    - `id`: Staff ID\n        \n- **Request Body**: Fields to update.\n    \n- **Response**: Updated staff account.\n    \n\n#### Soft Delete Staff\n\n- **URL**: `/staffs/:id`\n    \n- **Method**: DELETE\n    \n- **Description**: Soft deletes a staff account (marks as inactive).\n    \n- **Path Parameters**:\n    \n    - `id`: Staff ID\n        \n- **Response**: Success message.\n    \n\n#### Get Staff Statistics\n\n- **URL**: `/staffs/stats`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves statistical information about staff members.\n    \n- **Response**: Staff statistics.\n    \n\n## Specialty Management\n\n#### Get All Specialties\n\n- **URL**: `/specialties?sortBy=createdAt&page=1&limit=2&sortOrder=DESC`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves a paginated list of medical specialties.\n    \n- **Query Parameters**:\n    \n    - `sortBy`: Field to sort by (default: createdAt)\n        \n    - `page`: Page number (default: 1)\n        \n    - `limit`: Number of items per page (default: 2)\n        \n    - `sortOrder`: Sort order (ASC or DESC)\n        \n- **Response**: List of specialties with pagination metadata.\n    \n\n#### Get One Specialty\n\n- **URL**: `/specialties/:spec-id`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves details of a specific specialty by ID.\n    \n- **Path Parameters**:\n    \n    - `spec-id`: Specialty ID\n        \n- **Response**: Specialty details.\n    \n\n#### Create Specialty\n\n- **URL**: `/specialties`\n    \n- **Method**: POST\n    \n- **Description**: Creates a new medical specialty.\n    \n- **Request Body**:\n    \n    ``` json\n        {\n          \"name\": \"Cardiology\",\n          \"description\": \"Heart specialists\",\n          \"slug\": \"cardiology\"\n        }\n    \n     ```\n    \n- **Response**: Created specialty details.\n    \n\n#### Update Specialty\n\n- **URL**: `/specialties/:spec-id`\n    \n- **Method**: PATCH\n    \n- **Description**: Updates a specialty's information.\n    \n- **Path Parameters**:\n    \n    - `spec-id`: Specialty ID\n        \n- **Request Body**: Fields to update.\n    \n- **Response**: Updated specialty information.\n    \n\n#### Delete Specialty\n\n- **URL**: `/specialties/:spec-id`\n    \n- **Method**: DELETE\n    \n- **Description**: Deletes a specialty.\n    \n- **Path Parameters**:\n    \n    - `spec-id`: Specialty ID\n        \n- **Response**: Success message.\n    \n\n#### Get Specialties Public\n\n- **URL**: `/specialties/public`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves public information about all specialties.\n    \n- **Response**: List of public specialty information.\n    \n\n#### Get Specialty Public\n\n- **URL**: `/specialties/public/:slug`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves public information about a specific specialty by slug.\n    \n- **Path Parameters**:\n    \n    - `slug`: Specialty slug\n        \n- **Response**: Public specialty information.\n    \n\n#### Get Specialties Stats\n\n- **URL**: `/specialties/stats`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves statistical information about specialties.\n    \n- **Response**: Specialty statistics.\n    \n\n### Info Section Management\n\n#### Get All Info Sections\n\n- **URL**: `/specialties/:spec-id/info-sections`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves all information sections for a specific specialty.\n    \n- **Path Parameters**:\n    \n    - `spec-id`: Specialty ID\n        \n- **Response**: List of information sections.\n    \n\n#### Create Info Section\n\n- **URL**: `/specialties/info-sections`\n    \n- **Method**: POST\n    \n- **Description**: Creates a new information section for a specialty.\n    \n- **Request Body**:\n    \n    ``` json\n        {\n          \"specialtyId\": \"specialty-id\",\n          \"title\": \"Section Title\",\n          \"content\": \"Section content\",\n          \"order\": 1\n        }\n    \n     ```\n    \n- **Response**: Created information section details.\n    \n\n#### Delete Info Section\n\n- **URL**: `/specialties/info-section/:id`\n    \n- **Method**: DELETE\n    \n- **Description**: Deletes an information section.\n    \n- **Path Parameters**:\n    \n    - `id`: Info section ID\n        \n- **Response**: Success message.\n    \n\n## Work Location Management\n\n#### Get Location By ID\n\n- **URL**: `/work-locations/:id`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves details of a specific work location by ID.\n    \n- **Path Parameters**:\n    \n    - `id`: Location ID\n        \n- **Response**: Work location details.\n    \n\n#### Get All Locations\n\n- **URL**: `/work-locations?sortBy=name&sortOrder=DESC`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves all work locations with sorting options.\n    \n- **Query Parameters**:\n    \n    - `sortBy`: Field to sort by (default: name)\n        \n    - `sortOrder`: Sort order (ASC or DESC)\n        \n- **Response**: List of work locations.\n    \n\n#### Create Work Location\n\n- **URL**: `/work-locations`\n    \n- **Method**: POST\n    \n- **Description**: Creates a new work location.\n    \n- **Request Body**:\n    \n    ``` json\n        {\n          \"name\": \"Main Hospital\",\n          \"address\": \"123 Medical St\",\n          \"city\": \"Healthcare City\",\n          \"state\": \"HC\",\n          \"zipCode\": \"12345\",\n          \"phone\": \"+1234567890\"\n        }\n    \n     ```\n    \n- **Response**: Created work location details.\n    \n\n#### Update Work Location\n\n- **URL**: `/work-locations/:id`\n    \n- **Method**: PATCH\n    \n- **Description**: Updates a work location's information.\n    \n- **Path Parameters**:\n    \n    - `id`: Location ID\n        \n- **Request Body**: Fields to update.\n    \n- **Response**: Updated work location information.\n    \n\n#### Delete Work Location\n\n- **URL**: `/work-locations/:id`\n    \n- **Method**: DELETE\n    \n- **Description**: Deletes a work location.\n    \n- **Path Parameters**:\n    \n    - `id`: Location ID\n        \n- **Response**: Success message.\n    \n\n#### Get All Locations (Public)\n\n- **URL**: `/work-locations/public?sortBy=createdAt&sortOrder=ASC`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves public information about all work locations.\n    \n- **Query Parameters**:\n    \n    - `sortBy`: Field to sort by (default: createdAt)\n        \n    - `sortOrder`: Sort order (ASC or DESC)\n        \n- **Response**: List of public work location information.\n    \n\n## Permission Management\n\n#### Get All Permissions\n\n- **URL**: `/permissions`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves all available permissions in the system.\n    \n- **Response**: List of permissions.\n    \n\n#### Get Permission Stats\n\n- **URL**: `/permissions/stats`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves statistical information about permissions.\n    \n- **Response**: Permission statistics.\n    \n\n#### Get My Permissions\n\n- **URL**: `/permissions/me`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves permissions for the authenticated user.\n    \n- **Response**: User's permissions.\n    \n\n### Group Management\n\n#### Get Permission Groups\n\n- **URL**: `/permissions/groups`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves all permission groups.\n    \n- **Response**: List of permission groups.\n    \n\n#### Create Group\n\n- **URL**: `/permissions/groups`\n    \n- **Method**: POST\n    \n- **Description**: Creates a new permission group.\n    \n- **Request Body**:\n    \n    ``` json\n        {\n          \"name\": \"Administrators\",\n          \"description\": \"Full system access\"\n        }\n    \n     ```\n    \n- **Response**: Created group details.\n    \n\n#### Update Group\n\n- **URL**: `/permissions/groups/:groupId`\n    \n- **Method**: PUT\n    \n- **Description**: Updates a permission group.\n    \n- **Path Parameters**:\n    \n    - `groupId`: Group ID\n        \n- **Request Body**: Fields to update.\n    \n- **Response**: Updated group information.\n    \n\n#### Delete Group\n\n- **URL**: `/permissions/groups/:groupId`\n    \n- **Method**: DELETE\n    \n- **Description**: Deletes a permission group.\n    \n- **Path Parameters**:\n    \n    - `groupId`: Group ID\n        \n- **Response**: Success message.\n    \n\n#### Get Group Permissions\n\n- **URL**: `/permissions/groups/:groupId/permissions`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves all permissions assigned to a group.\n    \n- **Path Parameters**:\n    \n    - `groupId`: Group ID\n        \n- **Response**: List of group permissions.\n    \n\n#### Assign Group Permission\n\n- **URL**: `/permissions/groups/:groupId/permissions`\n    \n- **Method**: POST\n    \n- **Description**: Assigns permissions to a group.\n    \n- **Path Parameters**:\n    \n    - `groupId`: Group ID\n        \n- **Request Body**:\n    \n    ``` json\n        {\n          \"permissions\": [\"permission1\", \"permission2\"]\n        }\n    \n     ```\n    \n- **Response**: Updated group permissions.\n    \n\n#### Revoke Group Permission\n\n- **URL**: `/permissions/groups/:groupId/permissions`\n    \n- **Method**: DELETE\n    \n- **Description**: Revokes permissions from a group.\n    \n- **Path Parameters**:\n    \n    - `groupId`: Group ID\n        \n- **Request Body**:\n    \n    ``` json\n        {\n          \"permissions\": [\"permission1\", \"permission2\"]\n        }\n    \n     ```\n    \n- **Response**: Updated group permissions.\n    \n\n### User Permission Management\n\n#### Get User Permissions\n\n- **URL**: `/permissions/users/:userId`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves all permissions assigned to a user.\n    \n- **Path Parameters**:\n    \n    - `userId`: User ID\n        \n- **Response**: List of user permissions.\n    \n\n#### Assign Permission To User\n\n- **URL**: `/permissions/users/assign`\n    \n- **Method**: POST\n    \n- **Description**: Assigns permissions directly to a user.\n    \n- **Request Body**:\n    \n    ``` json\n        {\n          \"userId\": \"user-id\",\n          \"permissions\": [\"permission1\", \"permission2\"]\n        }\n    \n     ```\n    \n- **Response**: Updated user permissions.\n    \n\n#### Revoke User Permission\n\n- **URL**: `/permissions/users/revoke`\n    \n- **Method**: DELETE\n    \n- **Description**: Revokes permissions from a user.\n    \n- **Request Body**:\n    \n    ``` json\n        {\n          \"userId\": \"user-id\",\n          \"permissions\": [\"permission1\", \"permission2\"]\n        }\n    \n     ```\n    \n- **Response**: Updated user permissions.\n    \n\n#### Invalidate Permission Cache\n\n- **URL**: `/permissions/users/:userId/cache`\n    \n- **Method**: DELETE\n    \n- **Description**: Invalidates the permission cache for a user.\n    \n- **Path Parameters**:\n    \n    - `userId`: User ID\n        \n- **Response**: Success message.\n    \n\n#### Refresh Permission Cache\n\n- **URL**: `/permissions/users/:userId/refresh-cache`\n    \n- **Method**: POST\n    \n- **Description**: Refreshes the permission cache for a user.\n    \n- **Path Parameters**:\n    \n    - `userId`: User ID\n        \n- **Response**: Success message.\n    \n\n### User Group Management\n\n#### Get User Groups\n\n- **URL**: `/permissions/users/:userId/groups`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves all groups a user belongs to.\n    \n- **Path Parameters**:\n    \n    - `userId`: User ID\n        \n- **Response**: List of user groups.\n    \n\n#### Add User To Group\n\n- **URL**: `/permissions/users/:userId/groups`\n    \n- **Method**: POST\n    \n- **Description**: Adds a user to a permission group.\n    \n- **Path Parameters**:\n    \n    - `userId`: User ID\n        \n- **Request Body**:\n    \n    ``` json\n        {\n          \"groupId\": \"group-id\"\n        }\n    \n     ```\n    \n- **Response**: Updated user groups.\n    \n\n#### Remove User From Group\n\n- **URL**: `/permissions/users/:userId/groups/:groupId`\n    \n- **Method**: DELETE\n    \n- **Description**: Removes a user from a permission group.\n    \n- **Path Parameters**:\n    \n    - `userId`: User ID\n        \n    - `groupId`: Group ID\n        \n- **Response**: Success message.\n    \n\n## Health Endpoints\n\n#### Health Check\n\n- **URL**: `/health`\n    \n- **Method**: GET\n    \n- **Description**: Checks the health status of the API.\n    \n- **Response**: Health status information.\n    \n\n#### Health Simple (Check All)\n\n- **URL**: `/health/simple`\n    \n- **Method**: GET\n    \n- **Description**: Performs a simple health check of all system components.\n    \n- **Response**: Simple health status information.\n    \n\n## Error Handling\n\nThe API uses standard HTTP status codes to indicate the success or failure of requests:\n\n- `200 OK`: The request was successful.\n    \n- `201 Created`: A new resource was successfully created.\n    \n- `400 Bad Request`: The request was invalid or cannot be served.\n    \n- `401 Unauthorized`: Authentication is required and has failed or has not been provided.\n    \n- `403 Forbidden`: The authenticated user does not have permission to access the requested resource.\n    \n- `404 Not Found`: The requested resource could not be found.\n    \n- `500 Internal Server Error`: An error occurred on the server.\n    \n\nError responses include a message describing the error and, when applicable, additional details to help troubleshoot the issue.\n\n## Rate Limiting\n\nThe API implements rate limiting to prevent abuse. If you exceed the rate limit, you will receive a `429 Too Many Requests` response. The response headers include information about your current rate limit status.\n\n## Pagination\n\nMany endpoints that return collections support pagination through the following query parameters:\n\n- `page`: The page number to retrieve (starting from 1).\n    \n- `limit`: The number of items per page.\n    \n\nPaginated responses include metadata about the total number of items and pages.\n\n## Sorting\n\nEndpoints that return collections often support sorting through the following query parameters:\n\n- `sortBy`: The field to sort by.\n    \n- `sortOrder`: The sort order (ASC for ascending, DESC for descending).\n    \n\n## Filtering\n\nSome endpoints support filtering through query parameters. The specific parameters vary by endpoint and are documented in the endpoint descriptions.",
+		"description": "# MedicaLink Microservice API Documentation\n\n## Overview\n\nThe MedicaLink Microservice API provides a comprehensive healthcare management system with features for managing doctors, staff, specialties, work locations, permissions, and authentication. This API enables healthcare organizations to efficiently manage their resources and provide better patient care.\n\n## Base URL\n\nAll API requests use the base URL stored in the `{{base_url}}` environment variable.\n\n## Authentication\n\nMost endpoints require authentication using a Bearer token. The token is automatically managed through the login and refresh token endpoints.\n\n### Authentication Endpoints\n\n#### Login\n\n- **URL**: `/auth/login`\n    \n- **Method**: POST\n    \n- **Description**: Authenticates a user and returns access and refresh tokens.\n    \n- **Request Body**:\n    \n    ``` json\n          {\n            \"email\": \"user@example.com\",\n            \"password\": \"password\"\n          }\n    \n     ```\n    \n- **Response**:\n    \n    ``` json\n          {\n            \"access_token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n            \"refresh_token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"\n          }\n    \n     ```\n    \n\n#### Refresh Token\n\n- **URL**: `/auth/refresh`\n    \n- **Method**: POST\n    \n- **Description**: Refreshes an expired access token using a valid refresh token.\n    \n- **Request Body**:\n    \n    ``` json\n          {\n            \"refresh_token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"\n          }\n    \n     ```\n    \n- **Response**: Same as login response.\n    \n\n#### Get Profile\n\n- **URL**: `/auth/profile`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves the profile of the authenticated user.\n    \n- **Response**: User profile details.\n    \n\n#### Verify Password\n\n- **URL**: `/auth/verify-password`\n    \n- **Method**: POST\n    \n- **Description**: Verifies if the provided password matches the authenticated user's password.\n    \n- **Request Body**:\n    \n    ``` json\n          {\n            \"password\": \"current_password\"\n          }\n    \n     ```\n    \n- **Response**: Success or failure message.\n    \n\n#### Change Password\n\n- **URL**: `/auth/change-password`\n    \n- **Method**: POST\n    \n- **Description**: Changes the password for the authenticated user.\n    \n- **Request Body**:\n    \n    ``` json\n          {\n            \"current_password\": \"old_password\",\n            \"new_password\": \"new_password\"\n          }\n    \n     ```\n    \n- **Response**: Success or failure message.\n    \n\n## Doctors Management\n\n### Account Management\n\n#### Get Doctors List\n\n- **URL**: `/doctors?page=1&limit=10`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves a paginated list of doctors.\n    \n- **Query Parameters**:\n    \n    - `page`: Page number (default: 1)\n        \n    - `limit`: Number of items per page (default: 10)\n        \n- **Response**: List of doctor accounts with pagination metadata.\n    \n\n#### Create Doctor\n\n- **URL**: `/doctors`\n    \n- **Method**: POST\n    \n- **Description**: Creates a new doctor account.\n    \n- **Request Body**:\n    \n    ``` json\n          {\n            \"email\": \"doctor@example.com\",\n            \"name\": \"Dr. John Doe\",\n            \"phone\": \"+1234567890\",\n            \"specialtyId\": \"specialty-id\"\n          }\n    \n     ```\n    \n- **Response**: Created doctor account details.\n    \n\n#### Get Specific Doctor\n\n- **URL**: `/doctors/:id`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves details of a specific doctor by ID.\n    \n- **Path Parameters**:\n    \n    - `id`: Doctor ID\n        \n- **Response**: Doctor account details.\n    \n\n#### Get Doctor with Profile\n\n- **URL**: `/doctors/:id/complete`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves complete doctor information including profile details.\n    \n- **Path Parameters**:\n    \n    - `id`: Doctor ID\n        \n- **Response**: Complete doctor information.\n    \n\n#### Update Staff Account\n\n- **URL**: `/doctors/:id`\n    \n- **Method**: PATCH\n    \n- **Description**: Updates a doctor's account information.\n    \n- **Path Parameters**:\n    \n    - `id`: Doctor ID\n        \n- **Request Body**: Fields to update.\n    \n- **Response**: Updated doctor account.\n    \n\n#### Soft Delete Doctor\n\n- **URL**: `/doctors/:id`\n    \n- **Method**: DELETE\n    \n- **Description**: Soft deletes a doctor account (marks as inactive).\n    \n- **Path Parameters**:\n    \n    - `id`: Doctor ID\n        \n- **Response**: Success message.\n    \n\n#### Get Doctor Statistics\n\n- **URL**: `/doctors/stats`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves statistical information about doctors.\n    \n- **Response**: Doctor statistics.\n    \n\n### Profile Management\n\n#### Get Doctor Profiles (Public)\n\n- **URL**: `/doctors/profile/public?page=1&limit=20`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves public doctor profiles with pagination.\n    \n- **Query Parameters**:\n    \n    - `page`: Page number (default: 1)\n        \n    - `limit`: Number of items per page (default: 20)\n        \n- **Response**: List of public doctor profiles.\n    \n\n#### Update Profile\n\n- **URL**: `/doctors/profile/:profile-id`\n    \n- **Method**: PATCH\n    \n- **Description**: Updates a doctor's profile information.\n    \n- **Path Parameters**:\n    \n    - `profile-id`: Profile ID\n        \n- **Request Body**: Fields to update.\n    \n- **Response**: Updated profile information.\n    \n\n#### Toggle Active Status\n\n- **URL**: `/doctors/profile/:profile-id/toggle-active`\n    \n- **Method**: PATCH\n    \n- **Description**: Toggles the active status of a doctor's profile.\n    \n- **Path Parameters**:\n    \n    - `profile-id`: Profile ID\n        \n- **Response**: Updated status information.\n    \n\n## Staff Management\n\n#### Get Staff List\n\n- **URL**: `/staffs?page=1&limit=10`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves a paginated list of staff members.\n    \n- **Query Parameters**:\n    \n    - `page`: Page number (default: 1)\n        \n    - `limit`: Number of items per page (default: 10)\n        \n- **Response**: List of staff accounts with pagination metadata.\n    \n\n#### Create Staff Account\n\n- **URL**: `/staffs`\n    \n- **Method**: POST\n    \n- **Description**: Creates a new staff account.\n    \n- **Request Body**:\n    \n    ``` json\n          {\n            \"email\": \"staff@example.com\",\n            \"name\": \"Staff Name\",\n            \"role\": \"admin\"\n          }\n    \n     ```\n    \n- **Response**: Created staff account details.\n    \n\n#### Get Specific Staff\n\n- **URL**: `/staffs/:id`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves details of a specific staff member by ID.\n    \n- **Path Parameters**:\n    \n    - `id`: Staff ID\n        \n- **Response**: Staff account details.\n    \n\n#### Update Staff Account\n\n- **URL**: `/staffs/:id`\n    \n- **Method**: PATCH\n    \n- **Description**: Updates a staff member's account information.\n    \n- **Path Parameters**:\n    \n    - `id`: Staff ID\n        \n- **Request Body**: Fields to update.\n    \n- **Response**: Updated staff account.\n    \n\n#### Soft Delete Staff\n\n- **URL**: `/staffs/:id`\n    \n- **Method**: DELETE\n    \n- **Description**: Soft deletes a staff account (marks as inactive).\n    \n- **Path Parameters**:\n    \n    - `id`: Staff ID\n        \n- **Response**: Success message.\n    \n\n#### Get Staff Statistics\n\n- **URL**: `/staffs/stats`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves statistical information about staff members.\n    \n- **Response**: Staff statistics.\n    \n\n## Specialty Management\n\n#### Get All Specialties\n\n- **URL**: `/specialties?sortBy=createdAt&page=1&limit=2&sortOrder=DESC`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves a paginated list of medical specialties.\n    \n- **Query Parameters**:\n    \n    - `sortBy`: Field to sort by (default: createdAt)\n        \n    - `page`: Page number (default: 1)\n        \n    - `limit`: Number of items per page (default: 2)\n        \n    - `sortOrder`: Sort order (ASC or DESC)\n        \n- **Response**: List of specialties with pagination metadata.\n    \n\n#### Get One Specialty\n\n- **URL**: `/specialties/:spec-id`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves details of a specific specialty by ID.\n    \n- **Path Parameters**:\n    \n    - `spec-id`: Specialty ID\n        \n- **Response**: Specialty details.\n    \n\n#### Create Specialty\n\n- **URL**: `/specialties`\n    \n- **Method**: POST\n    \n- **Description**: Creates a new medical specialty.\n    \n- **Request Body**:\n    \n    ``` json\n          {\n            \"name\": \"Cardiology\",\n            \"description\": \"Heart specialists\",\n            \"slug\": \"cardiology\"\n          }\n    \n     ```\n    \n- **Response**: Created specialty details.\n    \n\n#### Update Specialty\n\n- **URL**: `/specialties/:spec-id`\n    \n- **Method**: PATCH\n    \n- **Description**: Updates a specialty's information.\n    \n- **Path Parameters**:\n    \n    - `spec-id`: Specialty ID\n        \n- **Request Body**: Fields to update.\n    \n- **Response**: Updated specialty information.\n    \n\n#### Delete Specialty\n\n- **URL**: `/specialties/:spec-id`\n    \n- **Method**: DELETE\n    \n- **Description**: Deletes a specialty.\n    \n- **Path Parameters**:\n    \n    - `spec-id`: Specialty ID\n        \n- **Response**: Success message.\n    \n\n#### Get Specialties Public\n\n- **URL**: `/specialties/public`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves public information about all specialties.\n    \n- **Response**: List of public specialty information.\n    \n\n#### Get Specialty Public\n\n- **URL**: `/specialties/public/:slug`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves public information about a specific specialty by slug.\n    \n- **Path Parameters**:\n    \n    - `slug`: Specialty slug\n        \n- **Response**: Public specialty information.\n    \n\n#### Get Specialties Stats\n\n- **URL**: `/specialties/stats`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves statistical information about specialties.\n    \n- **Response**: Specialty statistics.\n    \n\n### Info Section Management\n\n#### Get All Info Sections\n\n- **URL**: `/specialties/:spec-id/info-sections`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves all information sections for a specific specialty.\n    \n- **Path Parameters**:\n    \n    - `spec-id`: Specialty ID\n        \n- **Response**: List of information sections.\n    \n\n#### Create Info Section\n\n- **URL**: `/specialties/info-sections`\n    \n- **Method**: POST\n    \n- **Description**: Creates a new information section for a specialty.\n    \n- **Request Body**:\n    \n    ``` json\n          {\n            \"specialtyId\": \"specialty-id\",\n            \"title\": \"Section Title\",\n            \"content\": \"Section content\",\n            \"order\": 1\n          }\n    \n     ```\n    \n- **Response**: Created information section details.\n    \n\n#### Delete Info Section\n\n- **URL**: `/specialties/info-section/:id`\n    \n- **Method**: DELETE\n    \n- **Description**: Deletes an information section.\n    \n- **Path Parameters**:\n    \n    - `id`: Info section ID\n        \n- **Response**: Success message.\n    \n\n## Work Location Management\n\n#### Get Location By ID\n\n- **URL**: `/work-locations/:id`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves details of a specific work location by ID.\n    \n- **Path Parameters**:\n    \n    - `id`: Location ID\n        \n- **Response**: Work location details.\n    \n\n#### Get All Locations\n\n- **URL**: `/work-locations?sortBy=name&sortOrder=DESC`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves all work locations with sorting options.\n    \n- **Query Parameters**:\n    \n    - `sortBy`: Field to sort by (default: name)\n        \n    - `sortOrder`: Sort order (ASC or DESC)\n        \n- **Response**: List of work locations.\n    \n\n#### Create Work Location\n\n- **URL**: `/work-locations`\n    \n- **Method**: POST\n    \n- **Description**: Creates a new work location.\n    \n- **Request Body**:\n    \n    ``` json\n          {\n            \"name\": \"Main Hospital\",\n            \"address\": \"123 Medical St\",\n            \"city\": \"Healthcare City\",\n            \"state\": \"HC\",\n            \"zipCode\": \"12345\",\n            \"phone\": \"+1234567890\"\n          }\n    \n     ```\n    \n- **Response**: Created work location details.\n    \n\n#### Update Work Location\n\n- **URL**: `/work-locations/:id`\n    \n- **Method**: PATCH\n    \n- **Description**: Updates a work location's information.\n    \n- **Path Parameters**:\n    \n    - `id`: Location ID\n        \n- **Request Body**: Fields to update.\n    \n- **Response**: Updated work location information.\n    \n\n#### Delete Work Location\n\n- **URL**: `/work-locations/:id`\n    \n- **Method**: DELETE\n    \n- **Description**: Deletes a work location.\n    \n- **Path Parameters**:\n    \n    - `id`: Location ID\n        \n- **Response**: Success message.\n    \n\n#### Get All Locations (Public)\n\n- **URL**: `/work-locations/public?sortBy=createdAt&sortOrder=ASC`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves public information about all work locations.\n    \n- **Query Parameters**:\n    \n    - `sortBy`: Field to sort by (default: createdAt)\n        \n    - `sortOrder`: Sort order (ASC or DESC)\n        \n- **Response**: List of public work location information.\n    \n\n## Permission Management\n\n#### Get All Permissions\n\n- **URL**: `/permissions`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves all available permissions in the system.\n    \n- **Response**: List of permissions.\n    \n\n#### Get Permission Stats\n\n- **URL**: `/permissions/stats`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves statistical information about permissions.\n    \n- **Response**: Permission statistics.\n    \n\n#### Get My Permissions\n\n- **URL**: `/permissions/me`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves permissions for the authenticated user.\n    \n- **Response**: User's permissions.\n    \n\n### Group Management\n\n#### Get Permission Groups\n\n- **URL**: `/permissions/groups`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves all permission groups.\n    \n- **Response**: List of permission groups.\n    \n\n#### Create Group\n\n- **URL**: `/permissions/groups`\n    \n- **Method**: POST\n    \n- **Description**: Creates a new permission group.\n    \n- **Request Body**:\n    \n    ``` json\n          {\n            \"name\": \"Administrators\",\n            \"description\": \"Full system access\"\n          }\n    \n     ```\n    \n- **Response**: Created group details.\n    \n\n#### Update Group\n\n- **URL**: `/permissions/groups/:groupId`\n    \n- **Method**: PUT\n    \n- **Description**: Updates a permission group.\n    \n- **Path Parameters**:\n    \n    - `groupId`: Group ID\n        \n- **Request Body**: Fields to update.\n    \n- **Response**: Updated group information.\n    \n\n#### Delete Group\n\n- **URL**: `/permissions/groups/:groupId`\n    \n- **Method**: DELETE\n    \n- **Description**: Deletes a permission group.\n    \n- **Path Parameters**:\n    \n    - `groupId`: Group ID\n        \n- **Response**: Success message.\n    \n\n#### Get Group Permissions\n\n- **URL**: `/permissions/groups/:groupId/permissions`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves all permissions assigned to a group.\n    \n- **Path Parameters**:\n    \n    - `groupId`: Group ID\n        \n- **Response**: List of group permissions.\n    \n\n#### Assign Group Permission\n\n- **URL**: `/permissions/groups/:groupId/permissions`\n    \n- **Method**: POST\n    \n- **Description**: Assigns permissions to a group.\n    \n- **Path Parameters**:\n    \n    - `groupId`: Group ID\n        \n- **Request Body**:\n    \n    ``` json\n          {\n            \"permissions\": [\"permission1\", \"permission2\"]\n          }\n    \n     ```\n    \n- **Response**: Updated group permissions.\n    \n\n#### Revoke Group Permission\n\n- **URL**: `/permissions/groups/:groupId/permissions`\n    \n- **Method**: DELETE\n    \n- **Description**: Revokes permissions from a group.\n    \n- **Path Parameters**:\n    \n    - `groupId`: Group ID\n        \n- **Request Body**:\n    \n    ``` json\n          {\n            \"permissions\": [\"permission1\", \"permission2\"]\n          }\n    \n     ```\n    \n- **Response**: Updated group permissions.\n    \n\n### User Permission Management\n\n#### Get User Permissions\n\n- **URL**: `/permissions/users/:userId`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves all permissions assigned to a user.\n    \n- **Path Parameters**:\n    \n    - `userId`: User ID\n        \n- **Response**: List of user permissions.\n    \n\n#### Assign Permission To User\n\n- **URL**: `/permissions/users/assign`\n    \n- **Method**: POST\n    \n- **Description**: Assigns permissions directly to a user.\n    \n- **Request Body**:\n    \n    ``` json\n          {\n            \"userId\": \"user-id\",\n            \"permissions\": [\"permission1\", \"permission2\"]\n          }\n    \n     ```\n    \n- **Response**: Updated user permissions.\n    \n\n#### Revoke User Permission\n\n- **URL**: `/permissions/users/revoke`\n    \n- **Method**: DELETE\n    \n- **Description**: Revokes permissions from a user.\n    \n- **Request Body**:\n    \n    ``` json\n          {\n            \"userId\": \"user-id\",\n            \"permissions\": [\"permission1\", \"permission2\"]\n          }\n    \n     ```\n    \n- **Response**: Updated user permissions.\n    \n\n#### Invalidate Permission Cache\n\n- **URL**: `/permissions/users/:userId/cache`\n    \n- **Method**: DELETE\n    \n- **Description**: Invalidates the permission cache for a user.\n    \n- **Path Parameters**:\n    \n    - `userId`: User ID\n        \n- **Response**: Success message.\n    \n\n#### Refresh Permission Cache\n\n- **URL**: `/permissions/users/:userId/refresh-cache`\n    \n- **Method**: POST\n    \n- **Description**: Refreshes the permission cache for a user.\n    \n- **Path Parameters**:\n    \n    - `userId`: User ID\n        \n- **Response**: Success message.\n    \n\n### User Group Management\n\n#### Get User Groups\n\n- **URL**: `/permissions/users/:userId/groups`\n    \n- **Method**: GET\n    \n- **Description**: Retrieves all groups a user belongs to.\n    \n- **Path Parameters**:\n    \n    - `userId`: User ID\n        \n- **Response**: List of user groups.\n    \n\n#### Add User To Group\n\n- **URL**: `/permissions/users/:userId/groups`\n    \n- **Method**: POST\n    \n- **Description**: Adds a user to a permission group.\n    \n- **Path Parameters**:\n    \n    - `userId`: User ID\n        \n- **Request Body**:\n    \n    ``` json\n          {\n            \"groupId\": \"group-id\"\n          }\n    \n     ```\n    \n- **Response**: Updated user groups.\n    \n\n#### Remove User From Group\n\n- **URL**: `/permissions/users/:userId/groups/:groupId`\n    \n- **Method**: DELETE\n    \n- **Description**: Removes a user from a permission group.\n    \n- **Path Parameters**:\n    \n    - `userId`: User ID\n        \n    - `groupId`: Group ID\n        \n- **Response**: Success message.\n    \n\n## Health Endpoints\n\n#### Health Check\n\n- **URL**: `/health`\n    \n- **Method**: GET\n    \n- **Description**: Checks the health status of the API.\n    \n- **Response**: Health status information.\n    \n\n#### Health Simple (Check All)\n\n- **URL**: `/health/simple`\n    \n- **Method**: GET\n    \n- **Description**: Performs a simple health check of all system components.\n    \n- **Response**: Simple health status information.\n    \n\n## Error Handling\n\nThe API uses standard HTTP status codes to indicate the success or failure of requests:\n\n- `200 OK`: The request was successful.\n    \n- `201 Created`: A new resource was successfully created.\n    \n- `400 Bad Request`: The request was invalid or cannot be served.\n    \n- `401 Unauthorized`: Authentication is required and has failed or has not been provided.\n    \n- `403 Forbidden`: The authenticated user does not have permission to access the requested resource.\n    \n- `404 Not Found`: The requested resource could not be found.\n    \n- `500 Internal Server Error`: An error occurred on the server.\n    \n\nError responses include a message describing the error and, when applicable, additional details to help troubleshoot the issue.\n\n## Rate Limiting\n\nThe API implements rate limiting to prevent abuse. If you exceed the rate limit, you will receive a `429 Too Many Requests` response. The response headers include information about your current rate limit status.\n\n## Pagination\n\nMany endpoints that return collections support pagination through the following query parameters:\n\n- `page`: The page number to retrieve (starting from 1).\n    \n- `limit`: The number of items per page.\n    \n\nPaginated responses include metadata about the total number of items and pages.\n\n## Sorting\n\nEndpoints that return collections often support sorting through the following query parameters:\n\n- `sortBy`: The field to sort by.\n    \n- `sortOrder`: The sort order (ASC for ascending, DESC for descending).\n    \n\n## Filtering\n\nSome endpoints support filtering through query parameters. The specific parameters vary by endpoint and are documented in the endpoint descriptions.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "28645472",
 		"_collection_link": "https://www.postman.com/ldb258204-349552/workspace/bao-le-s-workspace/collection/48053700-68f33581-6099-4d64-bdb1-7216295258ce?action=share&source=collection_link&creator=28645472"
@@ -143,7 +143,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/work-locations/public?sortBy=createdAt&sortOrder=ASC",
+							"raw": "{{base_url}}/work-locations/public?sortBy=createdAt&sortOrder=DESC",
 							"host": [
 								"{{base_url}}"
 							],
@@ -158,7 +158,7 @@
 								},
 								{
 									"key": "sortOrder",
-									"value": "ASC"
+									"value": "DESC"
 								}
 							]
 						}
@@ -184,7 +184,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/doctors/profile/public?page=1&limit=20",
+							"raw": "{{base_url}}/doctors/profile/public?page=1&limit=20&sortBy=createdAt&sortOrder=desc&specialtyIds=cmilivguc000mpi01c0pa9lb8&workLocationIds=cmilitz2r000lpi01y61vta56",
 							"host": [
 								"{{base_url}}"
 							],
@@ -210,23 +210,19 @@
 								},
 								{
 									"key": "sortBy",
-									"value": "createdAt",
-									"disabled": true
+									"value": "createdAt"
 								},
 								{
 									"key": "sortOrder",
-									"value": "desc",
-									"disabled": true
+									"value": "desc"
 								},
 								{
 									"key": "specialtyIds",
-									"value": "cmgj7jo5u0004ku4o8599vdoy",
-									"disabled": true
+									"value": "cmilivguc000mpi01c0pa9lb8"
 								},
 								{
 									"key": "workLocationIds",
-									"value": "cmg95vs2g0003kuoc06nl4v8h",
-									"disabled": true
+									"value": "cmilitz2r000lpi01y61vta56"
 								}
 							]
 						}
@@ -265,7 +261,7 @@
 							"variable": [
 								{
 									"key": "id",
-									"value": "cmhucyfby0002j1bgpsjjjb2l"
+									"value": "cmihngfx9000emk015nenvg1u"
 								}
 							]
 						}
@@ -478,7 +474,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"email\": \"hane@medicalink.com\"\n}",
+									"raw": "{\n    \"email\": \"amani_zulauf@hotmail.com\"\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -496,7 +492,7 @@
 										"request"
 									]
 								},
-								"description": "Generated from cURL: curl -X POST \"{{base_url}}/auth/password-reset/request\" -H \"Content-Type: application/json\" -d '{\"email\": \"user@example.com\"}'"
+								"description": "Initiates the password reset process by sending a reset link or code to the user's registered email address."
 							},
 							"response": []
 						},
@@ -512,7 +508,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\"email\": \"user@example.com\", \"code\": \"123456\"}",
+									"raw": "{\n    \"email\": \"amani_zulauf@hotmail.com\",\n    \"code\": \"904154\"\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -530,7 +526,7 @@
 										"verify-code"
 									]
 								},
-								"description": "Generated from cURL: curl -X POST \"{{base_url}}/auth/password-reset/verify-code\" -H \"Content-Type: application/json\" -d '{\"email\": \"user@example.com\", \"code\": \"123456\"}'"
+								"description": "Verifies the validity of the password reset token or code provided by the user."
 							},
 							"response": []
 						},
@@ -546,7 +542,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\"email\": \"user@example.com\", \"code\": \"123456\", \"newPassword\": \"NewPassword123!\"}",
+									"raw": "{\n    \"email\": \"amani_zulauf@hotmail.com\",\n    \"code\": \"904154\",\n    \"newPassword\": \"Doctor123!\"\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -564,7 +560,7 @@
 										"confirm"
 									]
 								},
-								"description": "Generated from cURL: curl -X POST \"{{base_url}}/auth/password-reset/confirm\" -H \"Content-Type: application/json\" -d '{\"email\": \"user@example.com\", \"code\": \"123456\", \"newPassword\": \"NewPassword123!\"}'"
+								"description": "Allows the user to set a new password using a valid password reset code."
 							},
 							"response": []
 						}
@@ -607,7 +603,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "// {\r\n//     \"email\": \"testadmin1@medicalink.com\",\r\n//     \"password\": \"Admin123!\"\r\n// }\r\n// {\r\n//     \"email\": \"hane@medicalink.com\",\r\n//     \"password\": \"NewPassword123!\"\r\n// }\r\n{\r\n    \"email\": \"superadmin@medicalink.com\",\r\n    \"password\": \"SuperAdmin123!\"\r\n}",
+							"raw": "// {\r\n//     \"email\": \"testadmin1@medicalink.com\",\r\n//     \"password\": \"Admin123!\"\r\n// }\r\n// {\r\n//     \"email\": \"camren_conn@hotmail.com\",\r\n//     \"password\": \"Doctor123!\"\r\n// }\r\n{\r\n    \"email\": \"superadmin@medicalink.com\",\r\n    \"password\": \"SuperAdmin123!\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -623,7 +619,8 @@
 								"auth",
 								"login"
 							]
-						}
+						},
+						"description": "Authenticates a user with their credentials and returns access and refresh tokens for session management."
 					},
 					"response": [
 						{
@@ -770,7 +767,8 @@
 								"auth",
 								"refresh"
 							]
-						}
+						},
+						"description": "Issues a new access token using a valid refresh token, allowing users to maintain their session without re-authenticating."
 					},
 					"response": [
 						{
@@ -898,7 +896,8 @@
 								"auth",
 								"verify-password"
 							]
-						}
+						},
+						"description": "Checks if the provided password matches the current user's password. Useful for sensitive operations requiring password confirmation."
 					},
 					"response": [
 						{
@@ -1026,7 +1025,8 @@
 								"auth",
 								"change-password"
 							]
-						}
+						},
+						"description": "Allows the authenticated user to change their password by providing the current and new passwords."
 					},
 					"response": [
 						{
@@ -1191,7 +1191,49 @@
 								"auth",
 								"profile"
 							]
+						},
+						"description": "Retrieves the profile information of the currently authenticated user."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Self Account",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
 						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"fullName\": \"{{$randomFullName}}\",\n    \"phone\": \"{{$timestamp}}\",\n    \"isMale\": false,\n    \"dateOfBirth\": \"1999-03-05\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"profile"
+							]
+						},
+						"description": "Updates the profile details of the authenticated user, such as name, email, or other personal information."
 					},
 					"response": []
 				}
@@ -1240,7 +1282,8 @@
 										"permissions",
 										"groups"
 									]
-								}
+								},
+								"description": "Lists all permission groups."
 							},
 							"response": [
 								{
@@ -1348,7 +1391,8 @@
 										"permissions",
 										"groups"
 									]
-								}
+								},
+								"description": "Creates a new permission group."
 							},
 							"response": [
 								{
@@ -1472,7 +1516,8 @@
 											"value": "cmgtdjs700000ku74li35w6n8"
 										}
 									]
-								}
+								},
+								"description": "Updates an existing permission group."
 							},
 							"response": [
 								{
@@ -1587,7 +1632,8 @@
 											"value": "cmg3he4bv0000kurw9qpze672"
 										}
 									]
-								}
+								},
+								"description": "Deletes a permission group."
 							},
 							"response": [
 								{
@@ -1698,10 +1744,11 @@
 									"variable": [
 										{
 											"key": "groupId",
-											"value": "cmgtdjs700000ku74li35w6n8"
+											"value": "cmied3yb40000sb6un19tsn7l"
 										}
 									]
-								}
+								},
+								"description": "Retrieves details of a specific permission group."
 							},
 							"response": [
 								{
@@ -1801,7 +1848,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"permissionId\": \"cmgewz6hf000kkuqcpmizwljw\",\r\n    \"effect\": \"ALLOW\"\r\n    // \"conditions\": []\r\n}",
+									"raw": "{\r\n    \"permissionId\": \"cmhucn4tn001ij1lftazjjpdx\",\r\n    \"effect\": \"ALLOW\"\r\n    // \"conditions\": []\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -1822,10 +1869,11 @@
 									"variable": [
 										{
 											"key": "groupId",
-											"value": "cmgtdjs700000ku74li35w6n8"
+											"value": "cmied3yb40000sb6un19tsn7l"
 										}
 									]
-								}
+								},
+								"description": "Adds permissions to a group."
 							},
 							"response": [
 								{
@@ -1960,7 +2008,8 @@
 											"value": "cmg3jylpd0000ku4kh2obt4h0"
 										}
 									]
-								}
+								},
+								"description": "Removes permissions from a group."
 							},
 							"response": [
 								{
@@ -2088,7 +2137,8 @@
 											"value": "cmfpuwois0007kucs2ejep4q0"
 										}
 									]
-								}
+								},
+								"description": "Lists all permissions assigned to a user."
 							},
 							"response": [
 								{
@@ -2196,7 +2246,8 @@
 										"users",
 										"assign"
 									]
-								}
+								},
+								"description": "Grants a specific permission to a user."
 							},
 							"response": [
 								{
@@ -2317,7 +2368,8 @@
 										"users",
 										"revoke"
 									]
-								}
+								},
+								"description": "Revokes a specific permission from a user."
 							},
 							"response": [
 								{
@@ -2436,7 +2488,8 @@
 											"value": "cmfpuwois0007kucs2ejep4q0"
 										}
 									]
-								}
+								},
+								"description": "Invalidate user's permissions cache"
 							},
 							"response": [
 								{
@@ -2555,7 +2608,8 @@
 											"value": "cmfpuwois0007kucs2ejep4q0"
 										}
 									]
-								}
+								},
+								"description": "Refresh user's permissions cache"
 							},
 							"response": [
 								{
@@ -2675,7 +2729,8 @@
 											"value": "cmfpuwois0007kucs2ejep4q0"
 										}
 									]
-								}
+								},
+								"description": "Lists all groups a user belongs to."
 							},
 							"response": [
 								{
@@ -2790,7 +2845,8 @@
 											"value": "cmfpuwois0007kucs2ejep4q0"
 										}
 									]
-								}
+								},
+								"description": "Assigns a user to a group.."
 							},
 							"response": [
 								{
@@ -2919,7 +2975,8 @@
 											"value": "cmg3jylpd0000ku4kh2obt4h0"
 										}
 									]
-								}
+								},
+								"description": "Removes a user from a group"
 							},
 							"response": [
 								{
@@ -3020,10 +3077,6 @@
 					]
 				},
 				{
-					"name": "New Folder",
-					"item": []
-				},
-				{
 					"name": "All permissions",
 					"event": [
 						{
@@ -3049,7 +3102,8 @@
 							"path": [
 								"permissions"
 							]
-						}
+						},
+						"description": "Returns a list of all permissions available in the system."
 					},
 					"response": [
 						{
@@ -3160,7 +3214,8 @@
 								"permissions",
 								"stats"
 							]
-						}
+						},
+						"description": "Retrieves statistical data or summary information about permissions in the system."
 					},
 					"response": [
 						{
@@ -3259,7 +3314,8 @@
 								"permissions",
 								"me"
 							]
-						}
+						},
+						"description": "Retrieves the permissions assigned to the currently authenticated user."
 					},
 					"response": [
 						{
@@ -3343,14 +3399,6 @@
 							"body": "{\n    \"success\": true,\n    \"message\": \"Data retrieved successfully\",\n    \"data\": [\n        {\n            \"resource\": \"profile\",\n            \"action\": \"update\",\n            \"effect\": \"ALLOW\",\n            \"conditions\": [\n                {\n                    \"field\": \"isSelfUpdate\",\n                    \"value\": true,\n                    \"operator\": \"eq\"\n                }\n            ]\n        },\n        {\n            \"resource\": \"system\",\n            \"action\": \"admin\",\n            \"effect\": \"ALLOW\"\n        },\n        {\n            \"resource\": \"permissions\",\n            \"action\": \"manage\",\n            \"effect\": \"ALLOW\"\n        },\n        {\n            \"resource\": \"groups\",\n            \"action\": \"manage\",\n            \"effect\": \"ALLOW\"\n        },\n        {\n            \"resource\": \"staff\",\n            \"action\": \"manage\",\n            \"effect\": \"ALLOW\"\n        },\n        {\n            \"resource\": \"doctors\",\n            \"action\": \"manage\",\n            \"effect\": \"ALLOW\"\n        },\n        {\n            \"resource\": \"patients\",\n            \"action\": \"manage\",\n            \"effect\": \"ALLOW\"\n        },\n        {\n            \"resource\": \"appointments\",\n            \"action\": \"manage\",\n            \"effect\": \"ALLOW\"\n        },\n        {\n            \"resource\": \"specialties\",\n            \"action\": \"manage\",\n            \"effect\": \"ALLOW\"\n        },\n        {\n            \"resource\": \"work-locations\",\n            \"action\": \"manage\",\n            \"effect\": \"ALLOW\"\n        },\n        {\n            \"resource\": \"schedules\",\n            \"action\": \"manage\",\n            \"effect\": \"ALLOW\"\n        },\n        {\n            \"resource\": \"blogs\",\n            \"action\": \"manage\",\n            \"effect\": \"ALLOW\"\n        },\n        {\n            \"resource\": \"questions\",\n            \"action\": \"manage\",\n            \"effect\": \"ALLOW\"\n        },\n        {\n            \"resource\": \"notifications\",\n            \"action\": \"manage\",\n            \"effect\": \"ALLOW\"\n        }\n    ],\n    \"timestamp\": \"2025-09-28T07:56:12.696Z\",\n    \"path\": \"/api/permissions/me\",\n    \"method\": \"GET\",\n    \"statusCode\": 200\n}"
 						}
 					]
-				},
-				{
-					"name": "New Request",
-					"request": {
-						"method": "GET",
-						"header": []
-					},
-					"response": []
 				}
 			],
 			"description": "Not done yet"
@@ -3592,7 +3640,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    // \"email\": \"testadmin1@medicalink.com\",\r\n    \"email\": \"ldb258204@gmail.com\",\r\n    \"password\": \"Admin123!\",\r\n    \"fullName\": \"Test Admin 01\",\r\n    \"role\": \"ADMIN\",\r\n    \"phone\": \"0987654322\",\r\n    \"dateOfBirth\": \"2004-01-01\"\r\n}\r\n// {\r\n//     \"fullName\": \"Admin Duc\",\r\n//     \"email\": \"testadmin1@com\",\r\n//     \"password\": \"Admin123!\",\r\n//     \"role\": \"ADMIN\",\r\n//     \"isMale\": \"false\",\r\n//     \"dateOfBirth\": \"1994-02-21\",\r\n//     \"phone\": \"0987654301\"\r\n// }",
+							"raw": "{\r\n    \"email\": \"testadmin1@medicalink.com\",\r\n    // \"email\": \"ldb258204@gmail.com\",\r\n    \"password\": \"Admin123!\",\r\n    \"fullName\": \"Test Admin 01\",\r\n    \"role\": \"ADMIN\",\r\n    \"phone\": \"0987654322\",\r\n    \"dateOfBirth\": \"2004-01-01\"\r\n}\r\n// {\r\n//     \"fullName\": \"Admin Duc\",\r\n//     \"email\": \"testadmin1@com\",\r\n//     \"password\": \"Admin123!\",\r\n//     \"role\": \"ADMIN\",\r\n//     \"isMale\": \"false\",\r\n//     \"dateOfBirth\": \"1994-02-21\",\r\n//     \"phone\": \"0987654301\"\r\n// }",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -4608,36 +4656,6 @@
 							]
 						},
 						{
-							"name": "Get Statistics",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											""
-										],
-										"type": "text/javascript",
-										"packages": {}
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "{{base_url}}/doctors/stats",
-									"host": [
-										"{{base_url}}"
-									],
-									"path": [
-										"doctors",
-										"stats"
-									]
-								}
-							},
-							"response": []
-						},
-						{
 							"name": "Update Doctor Account",
 							"event": [
 								{
@@ -4919,7 +4937,7 @@
 										"header": [],
 										"body": {
 											"mode": "raw",
-											"raw": "{\r\n  \"isActive\": false,\r\n  \"degree\": \"{{$randomNamePrefix}}\",\r\n  \"position\": [\"{{$randomNameSuffix}}\", \"{{$randomNameSuffix}}\", \"{{$randomNameSuffix}}\"],\r\n  \"introduction\": \"{{$randomLoremParagraph}}\",\r\n  \"memberships\": [\"{{$randomLoremSentence}}\", \"{{$randomLoremSentence}}\"],\r\n  \"awards\": [\"{{$randomLoremSentence}}\", \"{{$randomLoremSentence}}\", \"{{$randomLoremSentence}}\"],\r\n  \"research\": \"<p><b>{{$randomLoremSentence}}</b></p><p>{{$randomLoremParagraph}}</p>\",\r\n  \"trainingProcess\": [\"{{$randomLoremSentence}}\", \"{{$randomLoremSentence}}\"],\r\n  \"experience\": [\"{{$randomLoremSentence}}\"],\r\n  \"avatarUrl\": \"{{$randomImageUrl}}\",\r\n  \"portrait\": \"{{$randomImageUrl}}\",\r\n  \"specialtyIds\": [],\r\n  \"locationIds\": []\r\n}\r\n",
+											"raw": "{\r\n//   \"appointmentDuration\": 45,\r\n//   \"isActive\": true,\r\n//   \"degree\": \"{{$randomNamePrefix}}\",\r\n//   \"position\": [\"{{$randomNameSuffix}}\", \"{{$randomNameSuffix}}\", \"{{$randomNameSuffix}}\"],\r\n//   \"introduction\": \"{{$randomLoremParagraph}}\",\r\n//   \"memberships\": [\"{{$randomLoremSentence}}\", \"{{$randomLoremSentence}}\"],\r\n//   \"awards\": [\"{{$randomLoremSentence}}\", \"{{$randomLoremSentence}}\", \"{{$randomLoremSentence}}\"],\r\n//   \"research\": \"<p><b>{{$randomLoremSentence}}</b></p><p>{{$randomLoremParagraph}}</p>\",\r\n//   \"trainingProcess\": [\"{{$randomLoremSentence}}\", \"{{$randomLoremSentence}}\"],\r\n//   \"experience\": [\"{{$randomLoremSentence}}\"],\r\n//   \"avatarUrl\": \"{{$randomImageUrl}}\",\r\n//   \"portrait\": \"{{$randomImageUrl}}\",\r\n  \"specialtyIds\": [\"cmi5ae3vz000psbs3p8vcljdq\", \"cmhucyra70005j1bgty5ocgdc\"],\r\n  \"locationIds\": [\"cmhuczylv000lj1bgh0zdzkgw\"]\r\n}\r\n",
 											"options": {
 												"raw": {
 													"language": "json"
@@ -5058,7 +5076,7 @@
 									"variable": [
 										{
 											"key": "id",
-											"value": "cmgj44xsn0000kuukh176m759"
+											"value": "cmiczy75w0000sbtrwxj4i9qq"
 										}
 									]
 								}
@@ -5150,7 +5168,7 @@
 							]
 						},
 						{
-							"name": "Create Profile",
+							"name": "Create Profile (Depracated - Now will auto create)",
 							"event": [
 								{
 									"listen": "test",
@@ -5294,7 +5312,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n//   \"degree\": \"Super 2222222222\",\r\n//   \"position\": [\"CEO\"],\r\n//   \"introduction\": \"Dont care me...\",\r\n//   \"memberships\": [\"Avenger\", \"Justice\"],\r\n//   \"awards\": [\"Nobel\"],\r\n//   \"research\": \"<p><b>1. Scientific works:</b></p><p>Ministerial level projects accepted:</p>\",\r\n//   \"trainingProcess\": [\"1989 – 1992: Specialist Doctor, Military Medical Academy.\", \"1992: Endoscopic Surgery Training at Viet Duc Hospital.\"],\r\n//   \"experience\": [\"July 1985-May 1987: Chief of Military Medicine, Air Defense - Air Force Intermediate Officer School.\", \"June 1987-April 2000: Attending Physician, Abdominal Surgery Department, 108 Military Central Hospital.\", \"April 2000-March 2003: Head of the People's Surgery Department, 108 Military Central Hospital, Technical Specialist of the Military Medicine Department - abdominal surgery.\"],\r\n//   \"avatarUrl\": \"\",\r\n//   \"portrait\": \"\",\r\n  \"specialtyIds\": [\"cmhucyv6v000aj1bg4hkmm1mm\"],\r\n  \"locationIds\": [\"cmhud01aa000qj1bgunjvu1xa\"]\r\n}\r\n",
+									"raw": "{\r\n//    \"degree\": \"Dr.\",\r\n//    \"position\": [\"Vice President of MedicaLink\"]\r\n   \"introduction\": \"{{$randomLoremParagraph}}\"\r\n//   \"memberships\": [\"Avenger\", \"Justice\"],\r\n//   \"awards\": [\"Nobel\"],\r\n//   \"research\": \"<p><b>1. Scientific works:</b></p><p>Ministerial level projects accepted:</p>\",\r\n//   \"trainingProcess\": [\"1989 – 1992: Specialist Doctor, Military Medical Academy.\", \"1992: Endoscopic Surgery Training at Viet Duc Hospital.\"],\r\n//   \"experience\": [\"July 1985-May 1987: Chief of Military Medicine, Air Defense - Air Force Intermediate Officer School.\", \"June 1987-April 2000: Attending Physician, Abdominal Surgery Department, 108 Military Central Hospital.\", \"April 2000-March 2003: Head of the People's Surgery Department, 108 Military Central Hospital, Technical Specialist of the Military Medicine Department - abdominal surgery.\"],\r\n//   \"avatarUrl\": \"\",\r\n//   \"portrait\": \"\",\r\n//   \"specialtyIds\": [\"cmhucyv6v000aj1bg4hkmm1mm\"],\r\n//   \"locationIds\": [\"cmhud01aa000qj1bgunjvu1xa\"]\r\n}\r\n",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -5314,7 +5332,7 @@
 									"variable": [
 										{
 											"key": "profile-id",
-											"value": "cmhucygcv0004j1bg39hkt5vp"
+											"value": "cmiczy78i0000sbpadw5x5z1y"
 										}
 									]
 								}
@@ -5551,7 +5569,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/doctors?page=1&limit=10",
+							"raw": "{{base_url}}/doctors?page=1&limit=10&search=dinhducbkdn2004@gmail.com",
 							"host": [
 								"{{base_url}}"
 							],
@@ -5569,14 +5587,13 @@
 								},
 								{
 									"key": "isMale",
-									"value": "true",
+									"value": "false",
 									"disabled": true
 								},
 								{
 									"key": "search",
-									"value": "testdoctor",
-									"description": "search by name or email",
-									"disabled": true
+									"value": "dinhducbkdn2004@gmail.com",
+									"description": "search by name or email"
 								},
 								{
 									"key": "createdFrom",
@@ -8359,7 +8376,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/office-hours",
+							"raw": "{{base_url}}/office-hours?doctorId=cmihngfx9000emk015nenvg1u&workLocationId=cmilitz2r000lpi01y61vta56",
 							"host": [
 								"{{base_url}}"
 							],
@@ -8369,13 +8386,11 @@
 							"query": [
 								{
 									"key": "doctorId",
-									"value": "cmh4mqf210000ku40hjeapwcu",
-									"disabled": true
+									"value": "cmihngfx9000emk015nenvg1u"
 								},
 								{
 									"key": "workLocationId",
-									"value": "",
-									"disabled": true
+									"value": "cmilitz2r000lpi01y61vta56"
 								}
 							]
 						},
@@ -8389,7 +8404,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/office-hours/public",
+							"raw": "{{base_url}}/office-hours/public?doctorId=cmihngfx9000emk015nenvg1u&workLocationId=cmilitz2r000lpi01y61vta56",
 							"host": [
 								"{{base_url}}"
 							],
@@ -8400,13 +8415,11 @@
 							"query": [
 								{
 									"key": "doctorId",
-									"value": "cmgj7e61s0002ku4o2sbclfyq",
-									"disabled": true
+									"value": "cmihngfx9000emk015nenvg1u"
 								},
 								{
 									"key": "workLocationId",
-									"value": "",
-									"disabled": true
+									"value": "cmilitz2r000lpi01y61vta56"
 								}
 							]
 						}
@@ -8478,7 +8491,7 @@
 			]
 		},
 		{
-			"name": "Appointments [Not Done, But can Test]",
+			"name": "Booking & Appointments",
 			"item": [
 				{
 					"name": "Booking Flow [Public]",
@@ -8492,7 +8505,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{base_url}}/doctors/profile/:proflie-id/slots?doctorId=cmhucygcv0004j1bg39hkt5vp&serviceDate=2025-11-20",
+									"raw": "{{base_url}}/doctors/profile/:proflie-id/slots?locationId=cmilitz2r000lpi01y61vta56&allowPast=true&serviceDate=2025-11-26",
 									"host": [
 										"{{base_url}}"
 									],
@@ -8504,29 +8517,22 @@
 									],
 									"query": [
 										{
-											"key": "workLocationId",
-											"value": "cmgg00hk10001mh01wllrrim9",
-											"disabled": true
-										},
-										{
-											"key": "doctorId",
-											"value": "cmhucygcv0004j1bg39hkt5vp"
+											"key": "locationId",
+											"value": "cmilitz2r000lpi01y61vta56"
 										},
 										{
 											"key": "allowPast",
-											"value": "true",
-											"description": "Enable this for staff scheduler",
-											"disabled": true
+											"value": "true"
 										},
 										{
 											"key": "serviceDate",
-											"value": "2025-11-20"
+											"value": "2025-11-26"
 										}
 									],
 									"variable": [
 										{
 											"key": "proflie-id",
-											"value": "cmgj7e61s0002ku4o2sbclfyq"
+											"value": "cmihngfx9000emk015nenvg1u"
 										}
 									]
 								},
@@ -8544,7 +8550,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"doctorId\": \"cmhucygcv0004j1bg39hkt5vp\",\r\n    \"locationId\": \"cmhud01aa000qj1bgunjvu1xa\",\r\n    \"serviceDate\": \"2025-11-20\",\r\n    \"timeStart\": \"09:00\",\r\n    \"timeEnd\": \"09:30\"\r\n}",
+									"raw": "{\r\n    \"doctorId\": \"cmieffmdl0000sb81k4o5rr8p\",\r\n    \"locationId\": \"cmhuczylv000lj1bgh0zdzkgw\",\r\n    \"serviceDate\": \"2025-11-26\",\r\n    \"timeStart\": \"08:45\",\r\n    \"timeEnd\": \"09:30\"\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -8830,7 +8836,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"serviceDate\": \"2025-11-17\",\r\n    \"timeStart\": \"14:30\",\r\n    \"timeEnd\": \"15:00\",\r\n    \"doctorId\": \"cmhucygcv0004j1bg39hkt5vp\",\r\n    \"locationId\": \"cmhucygcv0004j1bg39hkt5vp\",\r\n    \"patientId\": \"cmhx4yiqu0006j1ilv0zshbkn\",\r\n    \"specialtyId\": \"cmhucygcv0004j1bg39hkt5vp\",\r\n    \"reason\": \"{{$randomLoremParagraph}}\",\r\n    \"notes\": \"{{$randomLoremParagraph}}\",\r\n    \"priceAmount\": 200,\r\n    \"currency\": \"USD\"\r\n}",
+									"raw": "{\r\n    \"serviceDate\": \"2026-01-01\",\r\n    \"timeStart\": \"09:30\",\r\n    \"timeEnd\": \"10:00\",\r\n    \"doctorId\": \"cmgt6ogdj000jpg01iwa0tjb8\",\r\n    \"locationId\": \"cmgg00hk10001mh01wllrrim9\",\r\n    \"patientId\": \"cmii625go000rpa017oxi43ku\",\r\n    \"specialtyId\": \"cmh64r34y0000p10116sbjfzb\",\r\n    \"reason\": \"{{$randomLoremParagraph}}\",\r\n    \"notes\": \"{{$randomLoremParagraph}}\",\r\n    \"priceAmount\": 200,\r\n    \"currency\": \"USD\"\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -8929,7 +8935,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{base_url}}/patients?page=1&limit=10&sortBy=createdAt&sortOrder=desc&includedDeleted=true",
+							"raw": "{{base_url}}/patients?page=1&limit=10&sortBy=createdAt&sortOrder=desc&includedDeleted=true&search=Bệnh nhân A",
 							"host": [
 								"{{base_url}}"
 							],
@@ -8956,6 +8962,10 @@
 								{
 									"key": "includedDeleted",
 									"value": "true"
+								},
+								{
+									"key": "search",
+									"value": "Bệnh nhân A"
 								}
 							]
 						}
@@ -9096,6 +9106,167 @@
 							]
 						},
 						"description": "Same with public but without throttle"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Stats",
+			"item": [
+				{
+					"name": "Revenue Overview",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"serviceDate\": \"2026-01-01\",\r\n    \"timeStart\": \"09:30\",\r\n    \"timeEnd\": \"10:00\",\r\n    \"doctorId\": \"cmgt6ogdj000jpg01iwa0tjb8\",\r\n    \"locationId\": \"cmgg00hk10001mh01wllrrim9\",\r\n    \"patientId\": \"cmii625go000rpa017oxi43ku\",\r\n    \"specialtyId\": \"cmh64r34y0000p10116sbjfzb\",\r\n    \"reason\": \"{{$randomLoremParagraph}}\",\r\n    \"notes\": \"{{$randomLoremParagraph}}\",\r\n    \"priceAmount\": 200,\r\n    \"currency\": \"USD\"\r\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/stats/revenue",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"stats",
+								"revenue"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Revenue By Doctor",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"serviceDate\": \"2026-01-01\",\r\n    \"timeStart\": \"09:30\",\r\n    \"timeEnd\": \"10:00\",\r\n    \"doctorId\": \"cmgt6ogdj000jpg01iwa0tjb8\",\r\n    \"locationId\": \"cmgg00hk10001mh01wllrrim9\",\r\n    \"patientId\": \"cmii625go000rpa017oxi43ku\",\r\n    \"specialtyId\": \"cmh64r34y0000p10116sbjfzb\",\r\n    \"reason\": \"{{$randomLoremParagraph}}\",\r\n    \"notes\": \"{{$randomLoremParagraph}}\",\r\n    \"priceAmount\": 200,\r\n    \"currency\": \"USD\"\r\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/stats/revenue-by-doctor?limit=5",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"stats",
+								"revenue-by-doctor"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "5"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Patients",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"serviceDate\": \"2026-01-01\",\r\n    \"timeStart\": \"09:30\",\r\n    \"timeEnd\": \"10:00\",\r\n    \"doctorId\": \"cmgt6ogdj000jpg01iwa0tjb8\",\r\n    \"locationId\": \"cmgg00hk10001mh01wllrrim9\",\r\n    \"patientId\": \"cmii625go000rpa017oxi43ku\",\r\n    \"specialtyId\": \"cmh64r34y0000p10116sbjfzb\",\r\n    \"reason\": \"{{$randomLoremParagraph}}\",\r\n    \"notes\": \"{{$randomLoremParagraph}}\",\r\n    \"priceAmount\": 200,\r\n    \"currency\": \"USD\"\r\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/stats/patients",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"stats",
+								"patients"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Appointments",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"serviceDate\": \"2026-01-01\",\r\n    \"timeStart\": \"09:30\",\r\n    \"timeEnd\": \"10:00\",\r\n    \"doctorId\": \"cmgt6ogdj000jpg01iwa0tjb8\",\r\n    \"locationId\": \"cmgg00hk10001mh01wllrrim9\",\r\n    \"patientId\": \"cmii625go000rpa017oxi43ku\",\r\n    \"specialtyId\": \"cmh64r34y0000p10116sbjfzb\",\r\n    \"reason\": \"{{$randomLoremParagraph}}\",\r\n    \"notes\": \"{{$randomLoremParagraph}}\",\r\n    \"priceAmount\": 200,\r\n    \"currency\": \"USD\"\r\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/stats/appointments",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"stats",
+								"appointments"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reviews",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"serviceDate\": \"2026-01-01\",\r\n    \"timeStart\": \"09:30\",\r\n    \"timeEnd\": \"10:00\",\r\n    \"doctorId\": \"cmgt6ogdj000jpg01iwa0tjb8\",\r\n    \"locationId\": \"cmgg00hk10001mh01wllrrim9\",\r\n    \"patientId\": \"cmii625go000rpa017oxi43ku\",\r\n    \"specialtyId\": \"cmh64r34y0000p10116sbjfzb\",\r\n    \"reason\": \"{{$randomLoremParagraph}}\",\r\n    \"notes\": \"{{$randomLoremParagraph}}\",\r\n    \"priceAmount\": 200,\r\n    \"currency\": \"USD\"\r\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/stats/reviews-overview",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"stats",
+								"reviews-overview"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Q&A",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"serviceDate\": \"2026-01-01\",\r\n    \"timeStart\": \"09:30\",\r\n    \"timeEnd\": \"10:00\",\r\n    \"doctorId\": \"cmgt6ogdj000jpg01iwa0tjb8\",\r\n    \"locationId\": \"cmgg00hk10001mh01wllrrim9\",\r\n    \"patientId\": \"cmii625go000rpa017oxi43ku\",\r\n    \"specialtyId\": \"cmh64r34y0000p10116sbjfzb\",\r\n    \"reason\": \"{{$randomLoremParagraph}}\",\r\n    \"notes\": \"{{$randomLoremParagraph}}\",\r\n    \"priceAmount\": 200,\r\n    \"currency\": \"USD\"\r\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/stats/qa-overview",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"stats",
+								"qa-overview"
+							]
+						}
 					},
 					"response": []
 				}
