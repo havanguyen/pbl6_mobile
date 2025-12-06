@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 import 'package:pbl6mobile/shared/routes/routes.dart';
 import 'package:pbl6mobile/view_model/permission/permission_vm.dart';
 import 'package:provider/provider.dart';
@@ -38,14 +39,16 @@ class _PermissionGroupsPageState extends State<PermissionGroupsPage>
           return Scaffold(
             backgroundColor: context.theme.bg,
             appBar: AppBar(
-              backgroundColor: context.theme.appBar,
+              backgroundColor: context.theme.blue,
               elevation: 0,
               leading: IconButton(
                 icon: Icon(Icons.arrow_back, color: context.theme.white),
                 onPressed: () => Navigator.pop(context),
               ),
               title: Text(
-                'Phân quyền & Bảo mật',
+                AppLocalizations.of(
+                  context,
+                ).translate('permission_management_title'),
                 style: TextStyle(
                   color: context.theme.white,
                   fontWeight: FontWeight.bold,
@@ -58,9 +61,11 @@ class _PermissionGroupsPageState extends State<PermissionGroupsPage>
                 labelColor: context.theme.white,
                 unselectedLabelColor: context.theme.white.withOpacity(0.6),
                 indicatorWeight: 3,
-                tabs: const [
-                  Tab(text: 'Nhóm quyền'),
-                  Tab(text: 'Người dùng'),
+                tabs: [
+                  Tab(
+                    text: AppLocalizations.of(context).translate('group_tab'),
+                  ),
+                  Tab(text: AppLocalizations.of(context).translate('user_tab')),
                 ],
               ),
             ),
@@ -238,10 +243,12 @@ class _PermissionGroupsPageState extends State<PermissionGroupsPage>
                                       borderRadius: BorderRadius.circular(4),
                                     ),
                                     child: Text(
-                                      user.role,
+                                      user.role
+                                          .toUpperCase(), // 'Doctor' -> 'DOCTOR'
                                       style: TextStyle(
                                         fontSize: 10,
                                         color: context.theme.textColor,
+                                        fontWeight: FontWeight.bold,
                                       ),
                                     ),
                                   ),
@@ -283,25 +290,38 @@ class _PermissionGroupsPageState extends State<PermissionGroupsPage>
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: context.theme.bg,
-        title: const Text('Tạo nhóm quyền mới'),
+        title: Text(
+          AppLocalizations.of(context).translate('create_group_title'),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: nameController,
-              decoration: const InputDecoration(labelText: 'Tên nhóm'),
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(
+                  context,
+                ).translate('group_name_label'),
+              ),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: descController,
-              decoration: const InputDecoration(labelText: 'Mô tả'),
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(
+                  context,
+                ).translate('group_desc_label'),
+              ),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Hủy', style: TextStyle(color: context.theme.grey)),
+            child: Text(
+              AppLocalizations.of(context).translate('cancel'),
+              style: TextStyle(color: context.theme.grey),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -316,11 +336,15 @@ class _PermissionGroupsPageState extends State<PermissionGroupsPage>
               );
               if (success && context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Tạo nhóm thành công')),
+                  SnackBar(
+                    content: Text(
+                      AppLocalizations.of(context).translate('create_success'),
+                    ),
+                  ),
                 );
               }
             },
-            child: const Text('Tạo'),
+            child: Text(AppLocalizations.of(context).translate('create_btn')),
           ),
         ],
       ),

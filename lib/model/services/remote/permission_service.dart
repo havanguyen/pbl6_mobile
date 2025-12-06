@@ -1,39 +1,32 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:dio/dio.dart';
 import 'package:pbl6mobile/model/entities/permission.dart';
 import 'package:pbl6mobile/model/entities/permission_group.dart';
-import 'package:pbl6mobile/shared/services/store.dart';
+import 'package:pbl6mobile/model/services/remote/auth_service.dart';
 
 class PermissionService {
-  static Future<Map<String, String>> _getHeaders() async {
-    final token = await Store.getAccessToken();
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $token',
-    };
-  }
-
-  static String get _baseUrl => dotenv.env['API_BASE_URL'] ?? '';
+  static Dio get _dio => AuthService.getSecureDioInstance();
 
   static Future<Map<String, dynamic>> getAllGroups() async {
     try {
-      final headers = await _getHeaders();
-      final response = await http.get(
-        Uri.parse('$_baseUrl/permissions/groups'),
-        headers: headers,
-      );
+      final response = await _dio.get('/permissions/groups');
 
-      final body = jsonDecode(response.body);
-      if (response.statusCode == 200 && body['success'] == true) {
-        final List<dynamic> data = body['data'];
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        final List<dynamic> data = response.data['data'];
         final groups = data.map((e) => PermissionGroup.fromJson(e)).toList();
         return {'success': true, 'data': groups};
       } else {
-        return {'success': false, 'message': body['message'] ?? 'Unknown error'};
+        return {
+          'success': false,
+          'message': response.data['message'] ?? 'Unknown error',
+        };
       }
     } catch (e) {
-      return {'success': false, 'message': e.toString()};
+      return {
+        'success': false,
+        'message': e is DioException
+            ? e.response?.data['message'] ?? e.message
+            : e.toString(),
+      };
     }
   }
 
@@ -42,18 +35,11 @@ class PermissionService {
     required String description,
   }) async {
     try {
-      final headers = await _getHeaders();
-      final response = await http.post(
-        Uri.parse('$_baseUrl/permissions/groups'),
-        headers: headers,
-        body: jsonEncode({
-          'name': name,
-          'description': description,
-        }),
+      final response = await _dio.post(
+        '/permissions/groups',
+        data: {'name': name, 'description': description},
       );
-
-      final body = jsonDecode(response.body);
-      return response.statusCode == 201 && body['success'] == true;
+      return response.statusCode == 201 && response.data['success'] == true;
     } catch (e) {
       return false;
     }
@@ -66,122 +52,122 @@ class PermissionService {
     bool? isActive,
   }) async {
     try {
-      final headers = await _getHeaders();
       final Map<String, dynamic> data = {};
       if (name != null) data['name'] = name;
       if (description != null) data['description'] = description;
       if (isActive != null) data['isActive'] = isActive;
 
-      final response = await http.patch(
-        Uri.parse('$_baseUrl/permissions/groups/$id'),
-        headers: headers,
-        body: jsonEncode(data),
-      );
+      final response = await _dio.put('/permissions/groups/$id', data: data);
 
-      final body = jsonDecode(response.body);
-      return response.statusCode == 200 && body['success'] == true;
+      print(
+        'PermissionService.updateGroup response: ${response.statusCode} ${response.data}',
+      );
+      return response.statusCode == 200 && response.data['success'] == true;
     } catch (e) {
+      print('PermissionService.updateGroup exception: $e');
       return false;
     }
   }
 
   static Future<bool> deleteGroup(String id) async {
     try {
-      final headers = await _getHeaders();
-      final response = await http.delete(
-        Uri.parse('$_baseUrl/permissions/groups/$id'),
-        headers: headers,
-      );
-
-      final body = jsonDecode(response.body);
-      return response.statusCode == 200 && body['success'] == true;
+      final response = await _dio.delete('/permissions/groups/$id');
+      return response.statusCode == 200 && response.data['success'] == true;
     } catch (e) {
       return false;
     }
   }
 
-  static Future<Map<String, dynamic>> getGroupPermissions(String groupId) async {
+  static Future<Map<String, dynamic>> getGroupPermissions(
+    String groupId,
+  ) async {
     try {
-      final headers = await _getHeaders();
-      final response = await http.get(
-        Uri.parse('$_baseUrl/permissions/groups/$groupId/permissions'),
-        headers: headers,
+      final response = await _dio.get(
+        '/permissions/groups/$groupId/permissions',
       );
 
-      final body = jsonDecode(response.body);
-      if (response.statusCode == 200 && body['success'] == true) {
-        final List<dynamic> data = body['data'];
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        final List<dynamic> data = response.data['data'];
         final permissions = data.map((e) => Permission.fromJson(e)).toList();
         return {'success': true, 'data': permissions};
       } else {
-        return {'success': false, 'message': body['message'] ?? 'Unknown error'};
+        return {
+          'success': false,
+          'message': response.data['message'] ?? 'Unknown error',
+        };
       }
     } catch (e) {
-      return {'success': false, 'message': e.toString()};
+      return {
+        'success': false,
+        'message': e is DioException
+            ? e.response?.data['message'] ?? e.message
+            : e.toString(),
+      };
     }
   }
 
   static Future<Map<String, dynamic>> getAllPermissions() async {
     try {
-      final headers = await _getHeaders();
-      final response = await http.get(
-        Uri.parse('$_baseUrl/permissions'),
-        headers: headers,
-      );
+      final response = await _dio.get('/permissions');
 
-      final body = jsonDecode(response.body);
-      if (response.statusCode == 200 && body['success'] == true) {
-        final List<dynamic> data = body['data'];
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        final List<dynamic> data = response.data['data'];
         final permissions = data.map((e) => Permission.fromJson(e)).toList();
         return {'success': true, 'data': permissions};
       } else {
-        return {'success': false, 'message': body['message'] ?? 'Unknown error'};
+        return {
+          'success': false,
+          'message': response.data['message'] ?? 'Unknown error',
+        };
       }
     } catch (e) {
-      return {'success': false, 'message': e.toString()};
+      return {
+        'success': false,
+        'message': e is DioException
+            ? e.response?.data['message'] ?? e.message
+            : e.toString(),
+      };
     }
   }
 
-  static Future<bool> assignPermissionsToGroup(String groupId, List<String> permissions) async {
+  static Future<bool> assignPermissionsToGroup(
+    String groupId,
+    List<String> permissions,
+  ) async {
     try {
-      final headers = await _getHeaders();
-
       final responses = await Future.wait(
-          permissions.map((permissionId) => http.post(
-            Uri.parse('$_baseUrl/permissions/groups/$groupId/permissions'),
-            headers: headers,
-            body: jsonEncode({
-              'permissionId': permissionId,
-            }),
-          ))
+        permissions.map(
+          (permissionId) => _dio.post(
+            '/permissions/groups/$groupId/permissions',
+            data: {'permissionId': permissionId},
+          ),
+        ),
       );
 
       return responses.every((response) {
-        final body = jsonDecode(response.body);
-        return response.statusCode == 201 && body['success'] == true;
+        return response.statusCode == 201 && response.data['success'] == true;
       });
     } catch (e) {
       return false;
     }
   }
 
-  static Future<bool> revokePermissionsFromGroup(String groupId, List<String> permissions) async {
+  static Future<bool> revokePermissionsFromGroup(
+    String groupId,
+    List<String> permissions,
+  ) async {
     try {
-      final headers = await _getHeaders();
-
       final responses = await Future.wait(
-          permissions.map((permissionId) => http.delete(
-            Uri.parse('$_baseUrl/permissions/groups/$groupId/permissions'),
-            headers: headers,
-            body: jsonEncode({
-              'permissionId': permissionId,
-            }),
-          ))
+        permissions.map(
+          (permissionId) => _dio.delete(
+            '/permissions/groups/$groupId/permissions',
+            data: {'permissionId': permissionId},
+          ),
+        ),
       );
 
       return responses.every((response) {
-        final body = jsonDecode(response.body);
-        return response.statusCode == 200 && body['success'] == true;
+        return response.statusCode == 200 && response.data['success'] == true;
       });
     } catch (e) {
       return false;
@@ -190,65 +176,104 @@ class PermissionService {
 
   static Future<List<Permission>> getUserPermissions(String userId) async {
     try {
-      final headers = await _getHeaders();
-      final response = await http.get(
-        Uri.parse('$_baseUrl/permissions/users/$userId'),
-        headers: headers,
-      );
+      final response = await _dio.get('/permissions/users/$userId');
 
       if (response.statusCode == 200) {
-        final body = jsonDecode(response.body);
-        if (body['success'] == true) {
-          final List<dynamic> data = body['data'];
+        if (response.data['success'] == true) {
+          final List<dynamic> data = response.data['data'];
+          // API returns objects without IDs at this endpoint
+          // We map them to Permission objects with empty IDs, creating a snapshot
           return data.map((json) => Permission.fromJson(json)).toList();
         }
       }
       return [];
     } catch (e) {
+      print('getUserPermissions error: $e');
       return [];
     }
   }
 
-  static Future<bool> assignPermissionsToUser(String userId, List<String> permissions) async {
+  static Future<bool> assignUserPermission(
+    String userId,
+    String permissionId, {
+    String effect = 'ALLOW',
+  }) async {
     try {
-      final headers = await _getHeaders();
+      final response = await _dio.post(
+        '/permissions/users/assign',
+        data: {
+          'userId': userId,
+          'permissionId': permissionId,
+          'effect': effect,
+        },
+      );
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      print('assignUserPermission error: $e');
+      if (e is DioException) {
+        print('Assign error response: ${e.response?.data}');
+      }
+      return false;
+    }
+  }
 
+  static Future<bool> revokeUserPermission(
+    String userId,
+    String permissionId,
+  ) async {
+    try {
+      final response = await _dio.delete(
+        '/permissions/users/revoke',
+        data: {'userId': userId, 'permissionId': permissionId},
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      print('revokeUserPermission error: $e');
+      if (e is DioException) {
+        print('Revoke error response: ${e.response?.data}');
+      }
+      return false;
+    }
+  }
+
+  static Future<bool> assignPermissionsToUser(
+    String userId,
+    List<String> permissions,
+  ) async {
+    try {
       final responses = await Future.wait(
-          permissions.map((permissionId) => http.post(
-            Uri.parse('$_baseUrl/permissions/users/$userId/permissions'),
-            headers: headers,
-            body: jsonEncode({
-              'permissionId': permissionId,
-            }),
-          ))
+        permissions.map(
+          (permissionId) => _dio.post(
+            '/permissions/users/$userId/permissions',
+            data: {'permissionId': permissionId},
+          ),
+        ),
       );
 
       return responses.every((response) {
-        final body = jsonDecode(response.body);
-        return response.statusCode == 201 && body['success'] == true;
+        return response.statusCode == 201 && response.data['success'] == true;
       });
     } catch (e) {
       return false;
     }
   }
 
-  static Future<bool> revokePermissionsFromUser(String userId, List<String> permissions) async {
+  static Future<bool> revokePermissionsFromUser(
+    String userId,
+    List<String> permissions,
+  ) async {
     try {
-      final headers = await _getHeaders();
-
       final responses = await Future.wait(
-          permissions.map((permissionId) => http.delete(
-            Uri.parse('$_baseUrl/permissions/users/$userId/permissions'),
-            headers: headers,
-            body: jsonEncode({
-              'permissionId': permissionId,
-            }),
-          ))
+        permissions.map(
+          (permissionId) => _dio.delete(
+            '/permissions/users/$userId/permissions',
+            data: {'permissionId': permissionId},
+          ),
+        ),
       );
 
       return responses.every((response) {
-        final body = jsonDecode(response.body);
-        return response.statusCode == 200 && body['success'] == true;
+        return response.statusCode == 200 && response.data['success'] == true;
       });
     } catch (e) {
       return false;
@@ -257,25 +282,24 @@ class PermissionService {
 
   static Future<List<PermissionGroup>> getUserGroups(String userId) async {
     try {
-      final headers = await _getHeaders();
-      final response = await http.get(
-        Uri.parse('$_baseUrl/permissions/users/$userId/groups'),
-        headers: headers,
-      );
+      final response = await _dio.get('/permissions/users/$userId/groups');
 
       if (response.statusCode == 200) {
-        final body = jsonDecode(response.body);
-        if (body['success'] == true) {
-          final List<dynamic> data = body['data'];
-          return data.map((json) => PermissionGroup(
-            id: json['groupId'] ?? '',
-            name: json['groupName'] ?? '',
-            description: json['groupDescription'] ?? '',
-            tenantId: json['tenantId'] ?? '',
-            isActive: true,
-            createdAt: json['createdAt'] ?? '',
-            updatedAt: '',
-          )).toList();
+        if (response.data['success'] == true) {
+          final List<dynamic> data = response.data['data'];
+          return data
+              .map(
+                (json) => PermissionGroup(
+                  id: json['groupId'] ?? '',
+                  name: json['groupName'] ?? '',
+                  description: json['groupDescription'] ?? '',
+                  tenantId: json['tenantId'] ?? '',
+                  isActive: true,
+                  createdAt: json['createdAt'] ?? '',
+                  updatedAt: '',
+                ),
+              )
+              .toList();
         }
       }
       return [];
@@ -284,46 +308,44 @@ class PermissionService {
     }
   }
 
-  static Future<bool> assignGroupsToUser(String userId, List<String> groupIds) async {
+  static Future<bool> assignGroupsToUser(
+    String userId,
+    List<String> groupIds,
+  ) async {
     try {
-      final headers = await _getHeaders();
-
       final responses = await Future.wait(
-          groupIds.map((groupId) => http.post(
-            Uri.parse('$_baseUrl/permissions/users/$userId/groups'),
-            headers: headers,
-            body: jsonEncode({
-              'groupId': groupId,
-            }),
-          ))
+        groupIds.map(
+          (groupId) => _dio.post(
+            '/permissions/users/$userId/groups',
+            data: {'groupId': groupId},
+          ),
+        ),
       );
 
       return responses.every((response) {
-        final body = jsonDecode(response.body);
-        return response.statusCode == 201 && body['success'] == true;
+        return response.statusCode == 201 && response.data['success'] == true;
       });
     } catch (e) {
       return false;
     }
   }
 
-  static Future<bool> revokeGroupsFromUser(String userId, List<String> groupIds) async {
+  static Future<bool> revokeGroupsFromUser(
+    String userId,
+    List<String> groupIds,
+  ) async {
     try {
-      final headers = await _getHeaders();
-
       final responses = await Future.wait(
-          groupIds.map((groupId) => http.delete(
-            Uri.parse('$_baseUrl/permissions/users/$userId/groups'),
-            headers: headers,
-            body: jsonEncode({
-              'groupId': groupId,
-            }),
-          ))
+        groupIds.map(
+          (groupId) => _dio.delete(
+            '/permissions/users/$userId/groups',
+            data: {'groupId': groupId},
+          ),
+        ),
       );
 
       return responses.every((response) {
-        final body = jsonDecode(response.body);
-        return response.statusCode == 200 && body['success'] == true;
+        return response.statusCode == 200 && response.data['success'] == true;
       });
     } catch (e) {
       return false;

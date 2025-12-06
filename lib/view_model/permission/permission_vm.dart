@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:pbl6mobile/model/entities/doctor_response.dart'; // Đã thêm import này
+import 'package:pbl6mobile/model/entities/doctor_response.dart';
 import 'package:pbl6mobile/model/entities/permission.dart';
 import 'package:pbl6mobile/model/entities/permission_group.dart';
 import 'package:pbl6mobile/model/entities/staff.dart';
@@ -34,12 +34,12 @@ class PermissionVm extends ChangeNotifier {
 
   // --- USER MANAGEMENT (Admin + Doctor + SuperAdmin) ---
   Future<void> fetchUsers() async {
+    debugPrint("PermissionVm: fetchUsers() started");
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      // Gọi song song API lấy Admin và Doctor
       final results = await Future.wait([
         StaffService.getAdmins(),
         DoctorService.getDoctors(limit: 1000),
@@ -47,22 +47,16 @@ class PermissionVm extends ChangeNotifier {
 
       final List<Staff> mergedList = [];
 
-      // 1. Xử lý kết quả Admin (StaffService)
-      // Giả sử StaffService trả về một object có field success và data là List<Staff>
       final adminResult = results[0] as dynamic;
       if (adminResult.success == true) {
         final admins = adminResult.data as List<Staff>;
         mergedList.addAll(admins);
       }
 
-      // 2. Xử lý kết quả Doctor (DoctorService)
-      final doctorResult = results[1] as GetDoctorsResponse; // Đã fix lỗi type cast
+      final doctorResult = results[1] as GetDoctorsResponse;
       if (doctorResult.success) {
         final doctors = doctorResult.data;
-
-        // Map Doctor -> Staff để chung định dạng
         final doctorStaffs = doctors.map((doc) {
-          // Chuyển đổi ngày tháng an toàn
           DateTime? parseDate(dynamic date) {
             if (date is DateTime) return date;
             if (date is String) return DateTime.tryParse(date);
@@ -73,20 +67,17 @@ class PermissionVm extends ChangeNotifier {
             id: doc.id,
             email: doc.email,
             fullName: doc.fullName,
-            role: 'Doctor', // Gán role để phân biệt trên UI
-            phone: doc.phone, // Staff cho phép null
+            role: 'Doctor',
+            phone: doc.phone,
             isMale: doc.isMale,
             dateOfBirth: parseDate(doc.dateOfBirth),
             createdAt: parseDate(doc.createdAt),
             updatedAt: parseDate(doc.updatedAt),
-            // Đã xóa avatar, address, isActive vì Staff không có các trường này
           );
         }).toList();
-
         mergedList.addAll(doctorStaffs);
       }
 
-      // 3. Lọc trùng lặp dựa trên ID
       final ids = <String>{};
       final uniqueList = <Staff>[];
       for (var user in mergedList) {
@@ -96,10 +87,10 @@ class PermissionVm extends ChangeNotifier {
       }
 
       _users = uniqueList;
-
+      debugPrint("PermissionVm: fetchUsers() loaded ${_users.length} users");
     } catch (e) {
       _error = 'Lỗi tải danh sách người dùng: $e';
-      print("Error fetching users: $e");
+      debugPrint("PermissionVm: fetchUsers() error: $e");
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -108,6 +99,7 @@ class PermissionVm extends ChangeNotifier {
 
   // --- PERMISSION GROUP MANAGEMENT ---
   Future<void> getAllGroups() async {
+    debugPrint("PermissionVm: getAllGroups() started");
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -116,11 +108,16 @@ class PermissionVm extends ChangeNotifier {
       final result = await PermissionService.getAllGroups();
       if (result['success'] == true) {
         _groups = result['data'];
+        debugPrint(
+          "PermissionVm: getAllGroups() success, count: ${_groups.length}",
+        );
       } else {
         _error = result['message'];
+        debugPrint("PermissionVm: getAllGroups() failed: $_error");
       }
     } catch (e) {
       _error = 'Lỗi kết nối: $e';
+      debugPrint("PermissionVm: getAllGroups() exception: $e");
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -128,13 +125,18 @@ class PermissionVm extends ChangeNotifier {
   }
 
   Future<bool> createGroup(String name, String description) async {
+    debugPrint("PermissionVm: createGroup($name) started");
     _isLoading = true;
     notifyListeners();
-    final success = await PermissionService.createGroup(name: name, description: description);
+    final success = await PermissionService.createGroup(
+      name: name,
+      description: description,
+    );
     if (success) {
       await getAllGroups();
     } else {
       _error = 'Không thể tạo nhóm quyền';
+      debugPrint("PermissionVm: createGroup() failed");
     }
     _isLoading = false;
     notifyListeners();
@@ -142,13 +144,19 @@ class PermissionVm extends ChangeNotifier {
   }
 
   Future<bool> updateGroup(String id, String name, String description) async {
+    debugPrint("PermissionVm: updateGroup($id, $name) started");
     _isLoading = true;
     notifyListeners();
-    final success = await PermissionService.updateGroup(id: id, name: name, description: description);
+    final success = await PermissionService.updateGroup(
+      id: id,
+      name: name,
+      description: description,
+    );
     if (success) {
       await getAllGroups();
     } else {
       _error = 'Không thể cập nhật nhóm quyền';
+      debugPrint("PermissionVm: updateGroup() failed");
     }
     _isLoading = false;
     notifyListeners();
@@ -156,6 +164,7 @@ class PermissionVm extends ChangeNotifier {
   }
 
   Future<bool> deleteGroup(String id) async {
+    debugPrint("PermissionVm: deleteGroup($id) started");
     _isLoading = true;
     notifyListeners();
     final success = await PermissionService.deleteGroup(id);
@@ -163,6 +172,7 @@ class PermissionVm extends ChangeNotifier {
       await getAllGroups();
     } else {
       _error = 'Không thể xóa nhóm quyền';
+      debugPrint("PermissionVm: deleteGroup() failed");
     }
     _isLoading = false;
     notifyListeners();
@@ -171,6 +181,7 @@ class PermissionVm extends ChangeNotifier {
 
   // --- PERMISSION DATA ---
   Future<void> fetchGroupPermissions(String groupId) async {
+    debugPrint("PermissionVm: fetchGroupPermissions($groupId) started");
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -179,11 +190,16 @@ class PermissionVm extends ChangeNotifier {
       final result = await PermissionService.getGroupPermissions(groupId);
       if (result['success'] == true) {
         _groupPermissionsMap[groupId] = result['data'];
+        debugPrint(
+          "PermissionVm: fetchGroupPermissions success, count: ${result['data'].length}",
+        );
       } else {
         _error = result['message'];
+        debugPrint("PermissionVm: fetchGroupPermissions failed: $_error");
       }
     } catch (e) {
       _error = 'Lỗi kết nối: $e';
+      debugPrint("PermissionVm: fetchGroupPermissions exception: $e");
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -191,7 +207,11 @@ class PermissionVm extends ChangeNotifier {
   }
 
   Future<void> fetchAllPermissions() async {
-    if (_allPermissions.isNotEmpty) return;
+    debugPrint("PermissionVm: fetchAllPermissions() started");
+    if (_allPermissions.isNotEmpty) {
+      debugPrint("PermissionVm: allPermissions already loaded, skipping.");
+      return;
+    }
 
     _isLoading = true;
     _error = null;
@@ -201,11 +221,16 @@ class PermissionVm extends ChangeNotifier {
       final result = await PermissionService.getAllPermissions();
       if (result['success'] == true) {
         _allPermissions = result['data'];
+        debugPrint(
+          "PermissionVm: fetchAllPermissions success, count: ${_allPermissions.length}",
+        );
       } else {
         _error = result['message'];
+        debugPrint("PermissionVm: fetchAllPermissions failed: $_error");
       }
     } catch (e) {
       _error = 'Lỗi kết nối: $e';
+      debugPrint("PermissionVm: fetchAllPermissions exception: $e");
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -217,26 +242,52 @@ class PermissionVm extends ChangeNotifier {
   }
 
   // --- BATCH UPDATE PERMISSIONS (Group) ---
-  Future<bool> updateGroupPermissionsList(String groupId, List<String> newPermissionIds) async {
+  Future<bool> updateGroupPermissionsList(
+    String groupId,
+    List<String> newPermissionIds,
+  ) async {
+    debugPrint("PermissionVm: updateGroupPermissionsList($groupId) started");
+    debugPrint(
+      "PermissionVm: newPermissionIds count: ${newPermissionIds.length}",
+    );
     _isLoading = true;
     notifyListeners();
 
     try {
       final currentPermissions = _groupPermissionsMap[groupId] ?? [];
-      final currentIds = currentPermissions.map((p) => p.id).toSet();
+      // Use permissionId for diffing, assuming newPermissionIds contains valid permission IDs
+      final currentIds = currentPermissions
+          .map((p) => p.permissionId.isNotEmpty ? p.permissionId : p.id)
+          .toSet();
       final newIdsSet = newPermissionIds.toSet();
 
       final toAdd = newIdsSet.difference(currentIds).toList();
       final toRemove = currentIds.difference(newIdsSet).toList();
 
+      debugPrint(
+        "PermissionVm: toAdd: ${toAdd.length}, toRemove: ${toRemove.length}",
+      );
+
       bool successAdd = true;
       if (toAdd.isNotEmpty) {
-        successAdd = await PermissionService.assignPermissionsToGroup(groupId, toAdd);
+        successAdd = await PermissionService.assignPermissionsToGroup(
+          groupId,
+          toAdd,
+        );
+        debugPrint(
+          "PermissionVm: assignPermissionsToGroup result: $successAdd",
+        );
       }
 
       bool successRemove = true;
       if (toRemove.isNotEmpty) {
-        successRemove = await PermissionService.revokePermissionsFromGroup(groupId, toRemove);
+        successRemove = await PermissionService.revokePermissionsFromGroup(
+          groupId,
+          toRemove,
+        );
+        debugPrint(
+          "PermissionVm: revokePermissionsFromGroup result: $successRemove",
+        );
       }
 
       await fetchGroupPermissions(groupId);
@@ -246,6 +297,7 @@ class PermissionVm extends ChangeNotifier {
       return successAdd && successRemove;
     } catch (e) {
       _error = e.toString();
+      debugPrint("PermissionVm: updateGroupPermissionsList exception: $e");
       _isLoading = false;
       notifyListeners();
       return false;
@@ -254,13 +306,20 @@ class PermissionVm extends ChangeNotifier {
 
   // --- USER PERMISSION / GROUP ASSIGNMENT ---
   Future<void> fetchUserPermissions(String userId) async {
+    debugPrint("PermissionVm: fetchUserPermissions($userId) started");
     _isLoading = true;
     _error = null;
     notifyListeners();
     try {
-      _currentUserPermissions = await PermissionService.getUserPermissions(userId);
+      _currentUserPermissions = await PermissionService.getUserPermissions(
+        userId,
+      );
+      debugPrint(
+        "PermissionVm: fetchUserPermissions success, count: ${_currentUserPermissions.length}",
+      );
     } catch (e) {
       _error = 'Lỗi tải quyền người dùng: $e';
+      debugPrint("PermissionVm: fetchUserPermissions exception: $e");
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -268,38 +327,91 @@ class PermissionVm extends ChangeNotifier {
   }
 
   Future<void> fetchUserGroups(String userId) async {
+    debugPrint("PermissionVm: fetchUserGroups($userId) started");
     _isLoading = true;
     _error = null;
     notifyListeners();
     try {
       _currentUserGroups = await PermissionService.getUserGroups(userId);
+      debugPrint(
+        "PermissionVm: fetchUserGroups success, count: ${_currentUserGroups.length}",
+      );
     } catch (e) {
       _error = 'Lỗi tải nhóm quyền người dùng: $e';
+      debugPrint("PermissionVm: fetchUserGroups exception: $e");
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  Future<bool> updateUserPermissionsList(String userId, List<String> newPermissionIds) async {
+  // Helper to map snapshot permissions (resource/action) to system IDs
+  Set<String> getAssignedPermissionIdsForUser() {
+    if (_allPermissions.isEmpty || _currentUserPermissions.isEmpty) {
+      return {};
+    }
+
+    final assignedIds = <String>{};
+    for (final userPerm in _currentUserPermissions) {
+      // Find matching system permission by resource and action
+      try {
+        final systemPerm = _allPermissions.firstWhere(
+          (p) =>
+              p.resource.toLowerCase() == userPerm.resource.toLowerCase() &&
+              p.action.toLowerCase() == userPerm.action.toLowerCase(),
+        );
+
+        final id = systemPerm.permissionId.isNotEmpty
+            ? systemPerm.permissionId
+            : systemPerm.id;
+        assignedIds.add(id);
+      } catch (_) {
+        // No matching system permission found (maybe deprecated or custom)
+      }
+    }
+    return assignedIds;
+  }
+
+  Future<bool> updateUserPermissionsList(
+    String userId,
+    List<String> newPermissionIds,
+  ) async {
+    debugPrint("PermissionVm: updateUserPermissionsList($userId) started");
+    debugPrint(
+      "PermissionVm: newPermissionIds count: ${newPermissionIds.length}",
+    );
     _isLoading = true;
     notifyListeners();
 
     try {
-      final currentIds = _currentUserPermissions.map((p) => p.id).toSet();
+      // Ensure all permissions are loaded to map IDs correctly
+      if (_allPermissions.isEmpty) {
+        await fetchAllPermissions();
+      }
+
+      final currentIds = getAssignedPermissionIdsForUser();
       final newIdsSet = newPermissionIds.toSet();
 
       final toAdd = newIdsSet.difference(currentIds).toList();
       final toRemove = currentIds.difference(newIdsSet).toList();
+      debugPrint(
+        "PermissionVm: toAdd: ${toAdd.length}, toRemove: ${toRemove.length}",
+      );
 
+      // Process additions
       bool successAdd = true;
-      if (toAdd.isNotEmpty) {
-        successAdd = await PermissionService.assignPermissionsToUser(userId, toAdd);
+      for (final id in toAdd) {
+        final result = await PermissionService.assignUserPermission(userId, id);
+        if (!result) successAdd = false;
+        debugPrint("Assign permission $id result: $result");
       }
 
+      // Process removals
       bool successRemove = true;
-      if (toRemove.isNotEmpty) {
-        successRemove = await PermissionService.revokePermissionsFromUser(userId, toRemove);
+      for (final id in toRemove) {
+        final result = await PermissionService.revokeUserPermission(userId, id);
+        if (!result) successRemove = false;
+        debugPrint("Revoke permission $id result: $result");
       }
 
       await fetchUserPermissions(userId);
@@ -308,13 +420,18 @@ class PermissionVm extends ChangeNotifier {
       return successAdd && successRemove;
     } catch (e) {
       _error = e.toString();
+      debugPrint("PermissionVm: updateUserPermissionsList exception: $e");
       _isLoading = false;
       notifyListeners();
       return false;
     }
   }
 
-  Future<bool> updateUserGroupsList(String userId, List<String> newGroupIds) async {
+  Future<bool> updateUserGroupsList(
+    String userId,
+    List<String> newGroupIds,
+  ) async {
+    debugPrint("PermissionVm: updateUserGroupsList($userId) started");
     _isLoading = true;
     notifyListeners();
 
@@ -324,15 +441,23 @@ class PermissionVm extends ChangeNotifier {
 
       final toAdd = newIdsSet.difference(currentIds).toList();
       final toRemove = currentIds.difference(newIdsSet).toList();
+      debugPrint(
+        "PermissionVm: toAdd: ${toAdd.length}, toRemove: ${toRemove.length}",
+      );
 
       bool successAdd = true;
       if (toAdd.isNotEmpty) {
         successAdd = await PermissionService.assignGroupsToUser(userId, toAdd);
+        debugPrint("PermissionVm: assignGroupsToUser result: $successAdd");
       }
 
       bool successRemove = true;
       if (toRemove.isNotEmpty) {
-        successRemove = await PermissionService.revokeGroupsFromUser(userId, toRemove);
+        successRemove = await PermissionService.revokeGroupsFromUser(
+          userId,
+          toRemove,
+        );
+        debugPrint("PermissionVm: revokeGroupsFromUser result: $successRemove");
       }
 
       await fetchUserGroups(userId);
@@ -341,6 +466,7 @@ class PermissionVm extends ChangeNotifier {
       return successAdd && successRemove;
     } catch (e) {
       _error = e.toString();
+      debugPrint("PermissionVm: updateUserGroupsList exception: $e");
       _isLoading = false;
       notifyListeners();
       return false;

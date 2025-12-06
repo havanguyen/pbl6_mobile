@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:pbl6mobile/shared/services/store.dart';
@@ -11,6 +12,7 @@ class AuthService {
   const AuthService._();
 
   static final String? _baseUrl = dotenv.env['API_BASE_URL'];
+  static Completer<bool>? _refreshCompleter;
 
   static final Dio _dio = Dio(
     BaseOptions(
@@ -70,9 +72,35 @@ class AuthService {
               return handler.reject(e);
             }
 
+            // --- Concurrent Refresh Logic ---
+            if (_refreshCompleter != null) {
+              print('Another refresh is in progress. Waiting...');
+              try {
+                final success = await _refreshCompleter!.future;
+                if (success) {
+                  print('Previous refresh successful. Retrying request...');
+                  final newAccessToken = await Store.getAccessToken();
+                  e.requestOptions.headers['Authorization'] =
+                      'Bearer $newAccessToken';
+                  final response = await _secureDio.fetch(e.requestOptions);
+                  return handler.resolve(response);
+                } else {
+                  print('Previous refresh failed. Rejecting.');
+                  return handler.reject(e);
+                }
+              } catch (_) {
+                return handler.reject(e);
+              }
+            }
+
+            _refreshCompleter = Completer<bool>();
             try {
               print('Attempting to refresh token...');
-              if (await refreshToken()) {
+              final success = await refreshToken();
+              _refreshCompleter?.complete(success);
+              _refreshCompleter = null;
+
+              if (success) {
                 print(
                   'Token refreshed successfully. Retrying original request...',
                 );
@@ -88,6 +116,8 @@ class AuthService {
               }
             } catch (err) {
               print('Error during token refresh or retry: $err');
+              _refreshCompleter?.complete(false);
+              _refreshCompleter = null;
               await logout();
               return handler.reject(e);
             }
