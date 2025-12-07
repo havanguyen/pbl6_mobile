@@ -1,4 +1,6 @@
 import 'package:dio/dio.dart';
+import 'package:pbl6mobile/model/entities/my_permission.dart';
+import 'package:pbl6mobile/model/entities/permission_stats.dart';
 import 'package:pbl6mobile/model/entities/permission.dart';
 import 'package:pbl6mobile/model/entities/permission_group.dart';
 import 'package:pbl6mobile/model/services/remote/auth_service.dart';
@@ -349,6 +351,37 @@ class PermissionService {
       });
     } catch (e) {
       return false;
+    }
+  }
+
+  static Future<List<MyPermission>> getMyPermissions() async {
+    try {
+      final response = await _dio.get('/permissions/me');
+      if (response.statusCode == 200) {
+        if (response.data['success'] == true) {
+          final List data = response.data['data'];
+          return data.map((e) => MyPermission.fromJson(e)).toList();
+        }
+      }
+      return [];
+    } catch (e) {
+      print('getMyPermissions error: $e');
+      return [];
+    }
+  }
+
+  static Future<PermissionStats?> getPermissionStats() async {
+    try {
+      final response = await _dio.get('/permissions/stats');
+      if (response.statusCode == 200) {
+        if (response.data['success'] == true) {
+          return PermissionStats.fromJson(response.data['data']);
+        }
+      }
+      return null;
+    } catch (e) {
+      print('getPermissionStats error: $e');
+      return null;
     }
   }
 }

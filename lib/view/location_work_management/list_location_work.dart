@@ -607,14 +607,12 @@ class _LocationWorkListPageState extends State<LocationWorkListPage>
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.arrow_back_ios, size: 16),
-                    SizedBox(width: 4),
-                    Text(
-                      'Trước',
-                    ), // Consider localizing 'Prev'/'Next' if not already
+                    const Icon(Icons.arrow_back_ios, size: 16),
+                    const SizedBox(width: 4),
+                    Text(AppLocalizations.of(context).translate('prev_page')),
                   ],
                 ),
               ),
@@ -626,7 +624,7 @@ class _LocationWorkListPageState extends State<LocationWorkListPage>
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                'Trang ${provider.currentPage} / ${provider.totalPages}', // 'Page'
+                '${AppLocalizations.of(context).translate('page_info')} ${provider.currentPage} / ${provider.totalPages}',
                 style: TextStyle(
                   color: context.theme.textColor,
                   fontWeight: FontWeight.w600,
@@ -664,12 +662,12 @@ class _LocationWorkListPageState extends State<LocationWorkListPage>
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text('Sau'), // 'Next'
-                    SizedBox(width: 4),
-                    Icon(Icons.arrow_forward_ios, size: 16),
+                    Text(AppLocalizations.of(context).translate('next_page')),
+                    const SizedBox(width: 4),
+                    const Icon(Icons.arrow_forward_ios, size: 16),
                   ],
                 ),
               ),
@@ -750,7 +748,7 @@ class _LocationWorkListPageState extends State<LocationWorkListPage>
                       color: context.theme.yellow,
                       padding: const EdgeInsets.all(8.0),
                       child: Text(
-                        provider.error!,
+                        AppLocalizations.of(context).translate(provider.error!),
                         textAlign: TextAlign.center,
                         style: TextStyle(color: context.theme.popover),
                       ),
@@ -798,7 +796,11 @@ class _LocationWorkListPageState extends State<LocationWorkListPage>
                                   ).translate('too_many_requests'),
                                 );
                               } else {
-                                snackbarService.showError(provider.error!);
+                                snackbarService.showError(
+                                  AppLocalizations.of(
+                                    context,
+                                  ).translate(provider.error!),
+                                );
                               }
                               provider.clearError();
                             }

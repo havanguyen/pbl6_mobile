@@ -1,0 +1,682 @@
+﻿Analyzing PBL6...                                               
+
+   info - Don't invoke 'print' in production code - integration_test\utils\test_reporter.dart:51:5 - avoid_print
+   info - Don't invoke 'print' in production code - integration_test\utils\test_reporter.dart:109:9 - avoid_print
+   info - Don't invoke 'print' in production code - integration_test\utils\test_reporter.dart:114:7 - avoid_print
+   info - The imported package 'flutter_localizations' isn't a dependency of the importing package - lib\main.dart:4:8 - depend_on_referenced_packages
+   info - The imported package 'path' isn't a dependency of the importing package - lib\model\services\local\appointment_database_helper.dart:4:8 - depend_on_referenced_packages
+   info - Don't invoke 'print' in production code - lib\model\services\local\appointment_database_helper.dart:84:7 - avoid_print
+   info - The imported package 'path' isn't a dependency of the importing package - lib\model\services\local\doctor_database_helper.dart:4:8 - depend_on_referenced_packages
+   info - Don't invoke 'print' in production code - lib\model\services\local\doctor_database_helper.dart:65:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\local\doctor_database_helper.dart:72:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\local\doctor_database_helper.dart:74:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\local\doctor_database_helper.dart:82:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\local\doctor_database_helper.dart:84:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\local\doctor_database_helper.dart:163:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\local\doctor_database_helper.dart:201:9 - avoid_print
+   info - The imported package 'path' isn't a dependency of the importing package - lib\model\services\local\patient_database_helper.dart:3:8 - depend_on_referenced_packages
+   info - Don't invoke 'print' in production code - lib\model\services\local\patient_database_helper.dart:97:7 - avoid_print
+   info - The imported package 'path' isn't a dependency of the importing package - lib\model\services\local\question_database_helper.dart:3:8 - depend_on_referenced_packages
+   info - The imported package 'path' isn't a dependency of the importing package - lib\model\services\local\specialty_database_helper.dart:3:8 - depend_on_referenced_packages
+   info - The imported package 'path' isn't a dependency of the importing package - lib\model\services\local\staff_database_helper.dart:2:8 - depend_on_referenced_packages
+   info - Don't invoke 'print' in production code - lib\model\services\local\staff_database_helper.dart:66:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\local\staff_database_helper.dart:110:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\local\staff_database_helper.dart:120:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\local\staff_database_helper.dart:128:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\local\staff_database_helper.dart:134:5 - avoid_print
+   info - The imported package 'path' isn't a dependency of the importing package - lib\model\services\local\work_location_database_helper.dart:2:8 - depend_on_referenced_packages
+   info - Don't invoke 'print' in production code - lib\model\services\remote\appointment_service.dart:37:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\appointment_service.dart:38:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\appointment_service.dart:39:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\appointment_service.dart:41:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\appointment_service.dart:43:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\appointment_service.dart:47:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\appointment_service.dart:49:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\appointment_service.dart:56:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\appointment_service.dart:106:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\appointment_service.dart:111:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\appointment_service.dart:114:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\appointment_service.dart:122:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\appointment_service.dart:124:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\appointment_service.dart:128:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:45:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:46:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:48:13 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:53:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:54:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:58:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:59:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:61:13 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:62:13 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:64:13 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:68:13 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:70:15 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:77:15 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:81:19 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:88:19 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:98:15 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:104:17 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:115:19 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:119:21 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:130:17 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:135:15 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:173:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:176:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:180:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:183:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:185:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:195:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:198:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:210:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:213:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:218:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:222:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:224:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:226:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:230:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:237:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:242:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:244:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:247:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:249:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:254:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:274:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:276:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:293:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:296:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:298:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:313:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:316:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:318:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:332:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:334:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:351:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:353:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:371:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\auth_service.dart:373:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\blog_service.dart:135:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\blog_service.dart:182:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:132:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:133:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:134:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:136:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:138:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:184:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:185:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:192:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:207:7 - avoid_print
+   info - Function literals shouldn't be passed to 'forEach' - lib\model\services\remote\doctor_service.dart:224:59 - avoid_function_literals_in_foreach_calls
+   info - Function literals shouldn't be passed to 'forEach' - lib\model\services\remote\doctor_service.dart:232:61 - avoid_function_literals_in_foreach_calls
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:259:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:261:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:277:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:279:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:299:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:301:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:312:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:315:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:322:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:327:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:329:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:334:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:340:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:342:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:370:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:372:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:387:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:388:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:389:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:408:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:446:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:448:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:463:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:470:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:472:9 - avoid_print
+   info - Function literals shouldn't be passed to 'forEach' - lib\model\services\remote\doctor_service.dart:490:59 - avoid_function_literals_in_foreach_calls
+   info - Function literals shouldn't be passed to 'forEach' - lib\model\services\remote\doctor_service.dart:498:61 - avoid_function_literals_in_foreach_calls
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:525:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:527:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:546:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:548:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:561:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:562:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:563:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:574:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:576:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:583:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:588:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\doctor_service.dart:633:13 - avoid_print
+   info - Statements in an if should be enclosed in a block - lib\model\services\remote\office_hour_service.dart:16:9 - curly_braces_in_flow_control_structures
+   info - Don't invoke 'print' in production code - lib\model\services\remote\office_hour_service.dart:42:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\office_hour_service.dart:73:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\office_hour_service.dart:87:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\patient_service.dart:45:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\patient_service.dart:55:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\patient_service.dart:68:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\patient_service.dart:78:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\patient_service.dart:88:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\permission_service.dart:64:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\permission_service.dart:69:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\permission_service.dart:193:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\permission_service.dart:214:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\permission_service.dart:216:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\permission_service.dart:233:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\permission_service.dart:235:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\permission_service.dart:368:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\permission_service.dart:383:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\review_service.dart:93:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\review_service.dart:94:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\review_service.dart:99:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\review_service.dart:102:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\review_service.dart:108:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\review_service.dart:115:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\review_service.dart:121:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\review_service.dart:123:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\review_service.dart:124:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\review_service.dart:131:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\review_service.dart:144:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\review_service.dart:146:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\specialty_service.dart:17:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\specialty_service.dart:18:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\specialty_service.dart:45:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\specialty_service.dart:55:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\specialty_service.dart:130:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\utilities_service.dart:13:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\utilities_service.dart:16:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\utilities_service.dart:19:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\utilities_service.dart:22:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\utilities_service.dart:24:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\utilities_service.dart:35:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\utilities_service.dart:48:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\utilities_service.dart:62:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\utilities_service.dart:65:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\utilities_service.dart:69:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\utilities_service.dart:71:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\work_location_service.dart:16:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\work_location_service.dart:17:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\work_location_service.dart:43:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\work_location_service.dart:53:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\work_location_service.dart:92:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\work_location_service.dart:93:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\work_location_service.dart:94:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\work_location_service.dart:95:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\work_location_service.dart:192:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\work_location_service.dart:193:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\work_location_service.dart:194:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\work_location_service.dart:208:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\work_location_service.dart:209:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\model\services\remote\work_location_service.dart:224:7 - avoid_print
+   info - The file name 'GlobalException.dart' isn't a lower_case_with_underscores identifier - lib\shared\exception\GlobalException.dart:1:1 - file_names
+   info - 'background' is deprecated and shouldn't be used. Use surface instead. This feature was deprecated after v3.18.0-0.1.pre - lib\shared\extensions\custome_theme_extension.dart:15:5 - deprecated_member_use
+   info - 'onBackground' is deprecated and shouldn't be used. Use onSurface instead. This feature was deprecated after v3.18.0-0.1.pre - lib\shared\extensions\custome_theme_extension.dart:16:5 - deprecated_member_use
+   info - 'background' is deprecated and shouldn't be used. Use surface instead. This feature was deprecated after v3.18.0-0.1.pre - lib\shared\extensions\custome_theme_extension.dart:44:5 - deprecated_member_use
+   info - 'onBackground' is deprecated and shouldn't be used. Use onSurface instead. This feature was deprecated after v3.18.0-0.1.pre - lib\shared\extensions\custome_theme_extension.dart:45:5 - deprecated_member_use
+warning - Duplicate import - lib\shared\routes\routes.dart:5:8 - duplicate_import
+   info - The imported package 'equatable' isn't a dependency of the importing package - lib\shared\themes\cubit\language_state.dart:1:8 - depend_on_referenced_packages
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\button\custom_button_blue.dart:26:35 - deprecated_member_use
+   info - The variable name 'CustomCircularButton' isn't a lowerCamelCase identifier - lib\shared\widgets\button\custom_circular_button.dart:4:8 - non_constant_identifier_names
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\button\custom_circular_button.dart:24:37 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\button\custom_circular_button.dart:29:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\language_switcher.dart:28:43 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\language_switcher.dart:30:62 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\language_switcher.dart:52:39 - deprecated_member_use
+   info - The constant name 'DEFAULT_TITLE_FONT_SIZE' isn't a lowerCamelCase identifier - lib\shared\widgets\text\custom_text_style.dart:4:14 - constant_identifier_names
+   info - The constant name 'DEFAULT_HEADLINE_FONT_SIZE' isn't a lowerCamelCase identifier - lib\shared\widgets\text\custom_text_style.dart:5:14 - constant_identifier_names
+   info - The constant name 'DEFAULT_CONTENT_FONT_SIZE' isn't a lowerCamelCase identifier - lib\shared\widgets\text\custom_text_style.dart:6:14 - constant_identifier_names
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\widget\blog_category_delete_dialog.dart:107:48 - deprecated_member_use
+   info - 'MaterialStateProperty' is deprecated and shouldn't be used. Use WidgetStateProperty instead. Moved to the Widgets layer to make code available outside of Material. This feature was deprecated after v3.19.0-0.3.pre - lib\shared\widgets\widget\blog_category_delete_dialog.dart:220:34 - deprecated_member_use
+   info - 'MaterialState' is deprecated and shouldn't be used. Use WidgetState instead. Moved to the Widgets layer to make code available outside of Material. This feature was deprecated after v3.19.0-0.3.pre - lib\shared\widgets\widget\blog_category_delete_dialog.dart:223:39 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\widget\blog_category_delete_dialog.dart:224:46 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\widget\blog_category_form_dialog.dart:216:57 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\widget\blog_delete_confirm.dart:108:56 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\widget\blog_delete_confirm.dart:138:56 - deprecated_member_use
+   info - 'MaterialStateProperty' is deprecated and shouldn't be used. Use WidgetStateProperty instead. Moved to the Widgets layer to make code available outside of Material. This feature was deprecated after v3.19.0-0.3.pre - lib\shared\widgets\widget\blog_delete_confirm.dart:244:34 - deprecated_member_use
+   info - 'MaterialState' is deprecated and shouldn't be used. Use WidgetState instead. Moved to the Widgets layer to make code available outside of Material. This feature was deprecated after v3.19.0-0.3.pre - lib\shared\widgets\widget\blog_delete_confirm.dart:247:39 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\widget\blog_delete_confirm.dart:248:54 - deprecated_member_use
+   info - Don't invoke 'print' in production code - lib\shared\widgets\widget\blog_form.dart:129:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\shared\widgets\widget\blog_form.dart:184:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\shared\widgets\widget\blog_form.dart:302:11 - avoid_print
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\widget\blog_form.dart:345:40 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\widget\blog_form.dart:404:43 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\widget\blog_form.dart:424:62 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\widget\blog_form.dart:446:58 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\widget\blog_form.dart:483:56 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\shared\widgets\widget\blog_form.dart:615:23 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\shared\widgets\widget\blog_form.dart:697:19 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps - lib\shared\widgets\widget\delete_cofirm.dart:104:9 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\shared\widgets\widget\delete_cofirm.dart:111:11 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\shared\widgets\widget\delete_cofirm.dart:116:11 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\shared\widgets\widget\delete_cofirm.dart:121:11 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\shared\widgets\widget\delete_cofirm.dart:125:11 - use_build_context_synchronously
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\widget\delete_cofirm.dart:163:54 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\widget\delete_cofirm.dart:192:50 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\widget\delete_cofirm.dart:195:52 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\widget\doctor_delete_confirm.dart:124:62 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\widget\doctor_delete_confirm.dart:152:50 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\widget\doctor_delete_confirm.dart:155:52 - deprecated_member_use
+   info - Don't invoke 'print' in production code - lib\shared\widgets\widget\doctor_form.dart:184:9 - avoid_print
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\widget\doctor_form.dart:334:58 - deprecated_member_use
+   info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - lib\shared\widgets\widget\doctor_form.dart:524:33 - deprecated_member_use
+   info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre - lib\shared\widgets\widget\doctor_form.dart:526:33 - deprecated_member_use
+   info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - lib\shared\widgets\widget\doctor_form.dart:535:33 - deprecated_member_use
+   info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre - lib\shared\widgets\widget\doctor_form.dart:537:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\widget\dynamic_list_input.dart:63:44 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\widget\dynamic_list_input.dart:67:66 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\widget\info_section_form.dart:196:52 - deprecated_member_use
+   info - The prefix 'tzData' isn't a lower_case_with_underscores identifier - lib\shared\widgets\widget\location_form.dart:7:47 - library_prefixes
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\shared\widgets\widget\location_form.dart:100:24 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\shared\widgets\widget\location_form.dart:103:33 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\shared\widgets\widget\location_form.dart:185:30 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\shared\widgets\widget\location_form.dart:188:35 - use_build_context_synchronously
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\widget\location_form.dart:211:51 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\widget\location_form.dart:276:51 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\widget\location_form.dart:331:51 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\widget\location_form.dart:390:51 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\widget\location_form.dart:465:51 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\widget\location_form.dart:549:52 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\widget\multi_select_chip.dart:159:39 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\widget\multi_select_chip.dart:175:62 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\widget\patient_form.dart:124:56 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\widget\patient_form.dart:127:37 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\shared\widgets\widget\patient_form.dart:253:27 - deprecated_member_use
+   info - Use 'isEmpty' instead of 'length' to test whether the collection is empty - lib\shared\widgets\widget\question_delete_confirm.dart:151:23 - prefer_is_empty
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\widget\quill_edittor.dart:35:45 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\widget\quill_edittor.dart:38:40 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\widget\quill_edittor.dart:89:51 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps - lib\shared\widgets\widget\staff_delete_confirm.dart:106:9 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\shared\widgets\widget\staff_delete_confirm.dart:113:11 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\shared\widgets\widget\staff_delete_confirm.dart:118:11 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\shared\widgets\widget\staff_delete_confirm.dart:123:11 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\shared\widgets\widget\staff_delete_confirm.dart:127:11 - use_build_context_synchronously
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\widget\staff_delete_confirm.dart:166:54 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\widget\staff_delete_confirm.dart:195:50 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\widget\staff_delete_confirm.dart:198:52 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps - lib\shared\widgets\widget\staff_form.dart:242:52 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\shared\widgets\widget\staff_form.dart:242:103 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\shared\widgets\widget\staff_form.dart:242:184 - use_build_context_synchronously
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\widget\staff_form.dart:310:58 - deprecated_member_use
+   info - Statements in an if should be enclosed in a block - lib\shared\widgets\widget\staff_form.dart:353:21 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\shared\widgets\widget\staff_form.dart:373:21 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\shared\widgets\widget\staff_form.dart:465:21 - curly_braces_in_flow_control_structures
+   info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - lib\shared\widgets\widget\staff_form.dart:483:21 - deprecated_member_use
+   info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre - lib\shared\widgets\widget\staff_form.dart:484:21 - deprecated_member_use
+   info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - lib\shared\widgets\widget\staff_form.dart:492:21 - deprecated_member_use
+   info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre - lib\shared\widgets\widget\staff_form.dart:493:21 - deprecated_member_use
+   info - Don't invoke 'print' in production code - lib\view\admin_management\create_admin_page.dart:12:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view\admin_management\create_admin_page.dart:18:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view\admin_management\create_admin_page.dart:25:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view\admin_management\create_admin_page.dart:28:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view\admin_management\create_admin_page.dart:31:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view\admin_management\create_admin_page.dart:35:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view\admin_management\create_admin_page.dart:86:11 - avoid_print
+   info - Don't use 'BuildContext's across async gaps - lib\view\admin_management\list_admin_page.dart:149:29 - use_build_context_synchronously
+   info - 'MaterialStateProperty' is deprecated and shouldn't be used. Use WidgetStateProperty instead. Moved to the Widgets layer to make code available outside of Material. This feature was deprecated after v3.19.0-0.3.pre - lib\view\admin_management\list_admin_page.dart:164:29 - deprecated_member_use
+   info - 'MaterialState' is deprecated and shouldn't be used. Use WidgetState instead. Moved to the Widgets layer to make code available outside of Material. This feature was deprecated after v3.19.0-0.3.pre - lib\view\admin_management\list_admin_page.dart:165:35 - deprecated_member_use
+   info - 'MaterialState' is deprecated and shouldn't be used. Use WidgetState instead. Moved to the Widgets layer to make code available outside of Material. This feature was deprecated after v3.19.0-0.3.pre - lib\view\admin_management\list_admin_page.dart:167:51 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps - lib\view\admin_management\list_admin_page.dart:409:23 - use_build_context_synchronously
+   info - Statements in an if should be enclosed in a block - lib\view\admin_management\list_admin_page.dart:409:23 - curly_braces_in_flow_control_structures
+   info - Don't use 'BuildContext's across async gaps - lib\view\admin_management\list_admin_page.dart:438:21 - use_build_context_synchronously
+   info - Statements in an if should be enclosed in a block - lib\view\admin_management\list_admin_page.dart:438:21 - curly_braces_in_flow_control_structures
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\admin_management\list_admin_page.dart:448:60 - deprecated_member_use
+   info - Don't invoke 'print' in production code - lib\view\admin_management\update_admin_page.dart:14:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view\admin_management\update_admin_page.dart:20:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view\admin_management\update_admin_page.dart:27:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view\admin_management\update_admin_page.dart:30:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view\admin_management\update_admin_page.dart:33:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view\admin_management\update_admin_page.dart:37:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view\admin_management\update_admin_page.dart:91:11 - avoid_print
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\appointment\create_appointment_page.dart:199:33 - deprecated_member_use
+   info - Don't invoke 'print' in production code - lib\view\appointment\create_appointment_page.dart:259:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view\appointment\create_appointment_page.dart:267:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view\appointment\create_appointment_page.dart:276:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view\appointment\create_appointment_page.dart:285:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view\appointment\create_appointment_page.dart:293:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view\appointment\create_appointment_page.dart:297:7 - avoid_print
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\appointment\create_appointment_page.dart:357:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\appointment\create_appointment_page.dart:359:60 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\appointment\create_appointment_page.dart:365:55 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\appointment\create_appointment_page.dart:465:39 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\appointment\create_appointment_page.dart:542:35 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\appointment\create_appointment_page.dart:544:54 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\view\appointment\create_appointment_page.dart:629:17 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\appointment\create_appointment_page.dart:661:36 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\view\appointment\create_appointment_page.dart:776:7 - deprecated_member_use
+   info - Don't invoke 'print' in production code - lib\view\appointment\list_appointment_page.dart:46:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view\appointment\list_appointment_page.dart:48:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view\appointment\list_appointment_page.dart:51:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view\appointment\list_appointment_page.dart:59:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view\appointment\list_appointment_page.dart:66:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view\appointment\list_appointment_page.dart:69:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view\appointment\list_appointment_page.dart:72:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view\appointment\list_appointment_page.dart:162:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view\appointment\list_appointment_page.dart:163:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view\appointment\list_appointment_page.dart:164:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view\appointment\list_appointment_page.dart:165:5 - avoid_print
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\view\appointment\widgets\appointment_action_dialogs.dart:48:19 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\appointment\widgets\appointment_calendar.dart:158:42 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\appointment\widgets\appointment_calendar.dart:228:30 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\appointment\widgets\appointment_calendar.dart:262:42 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\appointment\widgets\appointment_calendar.dart:301:50 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\appointment\widgets\appointment_calendar.dart:367:22 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\appointment\widgets\appointment_details_sheet.dart:135:27 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\view\appointment\widgets\appointment_filter_dialog.dart:157:11 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\view\appointment\widgets\appointment_filter_dialog.dart:198:11 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\view\appointment\widgets\appointment_filter_dialog.dart:239:11 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\appointment\widgets\appointment_scheduler.dart:274:54 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\appointment\widgets\calendar_settings_dialog.dart:44:35 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\appointment\widgets\calendar_settings_dialog.dart:57:43 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\appointment\widgets\calendar_settings_dialog.dart:301:38 - deprecated_member_use
+   info - Don't invoke 'print' in production code - lib\view\appointment\widgets\custom_calendar_header.dart:66:27 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view\appointment\widgets\custom_calendar_header.dart:95:27 - avoid_print
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\appointment\widgets\custom_calendar_header.dart:200:62 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps - lib\view\auth\login_page.dart:100:42 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\view\auth\login_page.dart:105:44 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\view\auth\login_page.dart:108:44 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\view\auth\login_page.dart:111:44 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\view\auth\login_page.dart:115:44 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\view\auth\login_page.dart:120:31 - use_build_context_synchronously
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\auth\login_page.dart:168:36 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\auth\login_page.dart:245:59 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\auth\login_page.dart:333:59 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\blog\list_blog_page.dart:134:56 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\blog\list_blog_page.dart:148:49 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\blog\list_blog_page.dart:314:58 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\blog\list_blog_page.dart:317:60 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\view\blog\list_blog_page.dart:354:23 - deprecated_member_use
+   info - Unnecessary use of 'toList' in a spread - lib\view\blog\list_blog_page.dart:423:28 - unnecessary_to_list_in_spreads
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\blog\list_blog_page.dart:569:38 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\blog\list_blog_page.dart:721:56 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\blog\list_blog_page.dart:774:68 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\blog\list_blog_page.dart:787:56 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\blog\list_blog_page.dart:868:38 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\blog\manage_categories_page.dart:49:38 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\blog\manage_categories_page.dart:168:54 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\blog\manage_categories_page.dart:175:50 - deprecated_member_use
+   info - The 'child' argument should be last in widget constructor invocations - lib\view\blog\manage_categories_page.dart:269:9 - sort_child_properties_last
+   info - Invalid use of a private type in a public API - lib\view\blog\update_blog_page.dart:14:3 - library_private_types_in_public_api
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\doctor_management\doctor_detail_page.dart:360:58 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\doctor_management\doctor_detail_page.dart:469:40 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\doctor_management\doctor_detail_page.dart:470:40 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\doctor_management\doctor_detail_page.dart:503:42 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\doctor_management\doctor_detail_page.dart:518:58 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\doctor_management\doctor_detail_page.dart:651:60 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\doctor_management\doctor_detail_page.dart:831:18 - deprecated_member_use
+warning - A value for optional parameter 'size' isn't ever given - lib\view\doctor_management\doctor_review_page.dart:308:10 - unused_element_parameter
+   info - Don't invoke 'print' in production code - lib\view\doctor_management\edit_doctor_profile_page.dart:125:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view\doctor_management\edit_doctor_profile_page.dart:145:11 - avoid_print
+   info - Statements in an if should be enclosed in a block - lib\view\doctor_management\edit_doctor_profile_page.dart:182:9 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\view\doctor_management\edit_doctor_profile_page.dart:185:9 - curly_braces_in_flow_control_structures
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\doctor_management\edit_doctor_profile_page.dart:262:65 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\doctor_management\edit_doctor_profile_page.dart:437:42 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\doctor_management\edit_doctor_profile_page.dart:468:54 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\doctor_management\edit_doctor_profile_page.dart:483:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\doctor_management\edit_doctor_profile_page.dart:499:60 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\doctor_management\edit_doctor_profile_page.dart:534:64 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\doctor_management\edit_doctor_profile_page.dart:604:58 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\doctor_management\edit_doctor_profile_page.dart:612:44 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\doctor_management\edit_doctor_profile_page.dart:641:47 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\doctor_management\edit_doctor_profile_page.dart:663:38 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\doctor_management\edit_doctor_profile_page.dart:702:36 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\doctor_management\edit_doctor_profile_page.dart:757:35 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\doctor_management\edit_doctor_profile_page.dart:758:35 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\doctor_management\list_doctor_page.dart:113:54 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\doctor_management\list_doctor_page.dart:127:47 - deprecated_member_use
+   info - 'MaterialStateProperty' is deprecated and shouldn't be used. Use WidgetStateProperty instead. Moved to the Widgets layer to make code available outside of Material. This feature was deprecated after v3.19.0-0.3.pre - lib\view\doctor_management\list_doctor_page.dart:186:29 - deprecated_member_use
+   info - 'MaterialState' is deprecated and shouldn't be used. Use WidgetState instead. Moved to the Widgets layer to make code available outside of Material. This feature was deprecated after v3.19.0-0.3.pre - lib\view\doctor_management\list_doctor_page.dart:187:35 - deprecated_member_use
+   info - 'MaterialState' is deprecated and shouldn't be used. Use WidgetState instead. Moved to the Widgets layer to make code available outside of Material. This feature was deprecated after v3.19.0-0.3.pre - lib\view\doctor_management\list_doctor_page.dart:189:51 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\doctor_management\list_doctor_page.dart:471:60 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\location_work_management\list_location_work.dart:142:49 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\location_work_management\list_location_work.dart:156:58 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\location_work_management\list_location_work.dart:171:51 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\location_work_management\list_location_work.dart:210:50 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\location_work_management\list_location_work.dart:266:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\location_work_management\list_location_work.dart:304:47 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\location_work_management\list_location_work.dart:305:53 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\location_work_management\list_location_work.dart:391:53 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\location_work_management\list_location_work.dart:392:59 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\location_work_management\list_location_work.dart:505:56 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\location_work_management\list_location_work.dart:518:54 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\location_work_management\list_location_work.dart:570:43 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\location_work_management\list_location_work.dart:586:56 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\location_work_management\list_location_work.dart:641:56 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\location_work_management\list_location_work.dart:878:54 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\location_work_management\list_location_work.dart:902:58 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\location_work_management\list_location_work.dart:914:54 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\main_page\admin\main_page_admin.dart:25:34 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\view\main_page\doctor\main_page_doctor.dart:31:30 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\view\main_page\doctor\main_page_doctor.dart:35:17 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\view\main_page\doctor\main_page_doctor.dart:45:30 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\view\main_page\doctor\main_page_doctor.dart:49:17 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\view\main_page\doctor\main_page_doctor.dart:58:9 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\view\main_page\doctor\main_page_doctor.dart:67:30 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\view\main_page\doctor\main_page_doctor.dart:70:38 - use_build_context_synchronously
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\main_page\doctor\main_page_doctor.dart:97:34 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\main_page\super_admin\main_page_super_admin.dart:25:34 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\patient_management\list_patient_page.dart:130:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\patient_management\list_patient_page.dart:155:42 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\patient_management\list_patient_page.dart:207:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\patient_management\list_patient_page.dart:347:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\patient_management\list_patient_page.dart:352:39 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\patient_management\list_patient_page.dart:385:38 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\patient_management\list_patient_page.dart:425:57 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\patient_management\list_patient_page.dart:470:54 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\patient_management\list_patient_page.dart:518:48 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\patient_management\list_patient_page.dart:541:37 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\patient_management\list_patient_page.dart:542:42 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\profile\my_permissions_page.dart:89:49 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\profile\my_permissions_page.dart:165:24 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\profile\my_permissions_page.dart:167:43 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\question_management\list_question_page.dart:247:56 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\question_management\list_question_page.dart:261:49 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\question_management\list_question_page.dart:304:49 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\question_management\list_question_page.dart:384:58 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\view\question_management\list_question_page.dart:393:23 - deprecated_member_use
+   info - Unnecessary use of 'toList' in a spread - lib\view\question_management\list_question_page.dart:462:28 - unnecessary_to_list_in_spreads
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\view\question_management\list_question_page.dart:480:17 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\view\question_management\list_question_page.dart:566:23 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\view\question_management\list_question_page.dart:675:23 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\question_management\list_question_page.dart:774:38 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\question_management\list_question_page.dart:903:56 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\question_management\list_question_page.dart:925:62 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\question_management\list_question_page.dart:994:44 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\question_management\list_question_page.dart:996:63 - deprecated_member_use
+   info - Statements in an if should be enclosed in a block - lib\view\question_management\list_question_page.dart:1026:29 - curly_braces_in_flow_control_structures
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\view\question_management\question_detail_page.dart:112:23 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\view\question_management\question_detail_page.dart:119:27 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\view\question_management\question_detail_page.dart:219:27 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\view\question_management\question_detail_page.dart:226:31 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\view\question_management\question_detail_page.dart:303:27 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\view\question_management\question_detail_page.dart:310:31 - use_build_context_synchronously
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\view\question_management\question_detail_page.dart:360:21 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\view\question_management\question_detail_page.dart:411:21 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\view\question_management\question_detail_page.dart:507:35 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\view\question_management\question_detail_page.dart:514:39 - use_build_context_synchronously
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\question_management\question_detail_page.dart:684:54 - deprecated_member_use
+   info - The 'child' argument should be last in widget constructor invocations - lib\view\question_management\question_detail_page.dart:753:19 - sort_child_properties_last
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\question_management\question_detail_page.dart:819:37 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\question_management\question_detail_page.dart:820:38 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\question_management\question_detail_page.dart:834:46 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\question_management\question_detail_page.dart:882:45 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps - lib\view\setting\admin\profile_admin_page.dart:50:11 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\view\setting\admin\profile_admin_page.dart:54:36 - use_build_context_synchronously
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\admin\profile_admin_page.dart:203:53 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\admin\profile_admin_page.dart:246:50 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\doctor\account_doctor_page.dart:208:50 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\doctor\profile_doctor_page.dart:228:53 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\doctor\profile_doctor_page.dart:268:53 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\office_hours\create_office_hour_page.dart:239:39 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\view\setting\office_hours\create_office_hour_page.dart:282:7 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\view\setting\office_hours\create_office_hour_page.dart:309:7 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\view\setting\office_hours\create_office_hour_page.dart:333:7 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\office_hours\office_hours_page.dart:108:53 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\office_hours\office_hours_page.dart:154:62 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\office_hours\office_hours_page.dart:240:37 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\office_hours\office_hours_page.dart:246:39 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\office_hours\office_hours_page.dart:265:33 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\view\setting\office_hours\office_hours_page.dart:455:38 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\view\setting\office_hours\office_hours_page.dart:457:38 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\view\setting\office_hours\office_hours_page.dart:460:25 - use_build_context_synchronously
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\super_admin\permission\permission_group_detail_page.dart:197:45 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\super_admin\permission\permission_group_detail_page.dart:268:46 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\super_admin\permission\permission_group_detail_page.dart:298:42 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\super_admin\permission\permission_group_detail_page.dart:302:44 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\super_admin\permission\permission_group_detail_page.dart:322:48 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\super_admin\permission\permission_group_detail_page.dart:350:50 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\super_admin\permission\permission_groups_page.dart:88:59 - deprecated_member_use
+  error - The getter 'orange' isn't defined for the type 'CustomThemeExtension' - lib\view\setting\super_admin\permission\permission_groups_page.dart:247:29 - undefined_getter
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\super_admin\permission\permission_groups_page.dart:266:42 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\super_admin\permission\permission_groups_page.dart:302:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\super_admin\permission\permission_groups_page.dart:314:35 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\super_admin\permission\permission_groups_page.dart:333:35 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\super_admin\permission\permission_groups_page.dart:407:51 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\super_admin\permission\permission_groups_page.dart:420:42 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\super_admin\permission\permission_groups_page.dart:473:57 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\super_admin\permission\permission_groups_page.dart:492:63 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\super_admin\permission\permission_groups_page.dart:533:61 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\super_admin\permission\permission_groups_page.dart:579:57 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\super_admin\permission\permission_groups_page.dart:600:42 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\super_admin\permission\permission_groups_page.dart:637:52 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\super_admin\permission\permission_groups_page.dart:669:61 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\super_admin\permission\permission_groups_page.dart:695:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\super_admin\permission\permission_groups_page.dart:727:39 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\super_admin\permission\user_permission_detail_page.dart:52:56 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\super_admin\permission\user_permission_detail_page.dart:82:52 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\super_admin\permission\user_permission_detail_page.dart:95:35 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\super_admin\permission\user_permission_detail_page.dart:101:59 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\super_admin\permission\user_permission_detail_page.dart:154:47 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\super_admin\permission\user_permission_detail_page.dart:175:49 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\super_admin\permission\user_permission_detail_page.dart:182:46 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\super_admin\permission\user_permission_detail_page.dart:235:61 - deprecated_member_use
+   info - Statements in an if should be enclosed in a block - lib\view\setting\super_admin\permission\user_permission_detail_page.dart:342:33 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\view\setting\super_admin\permission\user_permission_detail_page.dart:344:33 - curly_braces_in_flow_control_structures
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\super_admin\permission\widgets\permission_tree_widget.dart:76:47 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\super_admin\permission\widgets\permission_tree_widget.dart:128:51 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\super_admin\permission\widgets\permission_tree_widget.dart:200:42 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\super_admin\permission\widgets\permission_tree_widget.dart:207:46 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\super_admin\permission\widgets\permission_tree_widget.dart:213:47 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps - lib\view\setting\super_admin\profile_superadmin_page.dart:50:11 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\view\setting\super_admin\profile_superadmin_page.dart:54:36 - use_build_context_synchronously
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\super_admin\profile_superadmin_page.dart:201:53 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\setting\super_admin\profile_superadmin_page.dart:244:50 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\specialty\list_specialty.dart:199:54 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\specialty\list_specialty.dart:219:47 - deprecated_member_use
+   info - 'MaterialStateProperty' is deprecated and shouldn't be used. Use WidgetStateProperty instead. Moved to the Widgets layer to make code available outside of Material. This feature was deprecated after v3.19.0-0.3.pre - lib\view\specialty\list_specialty.dart:272:36 - deprecated_member_use
+   info - 'MaterialState' is deprecated and shouldn't be used. Use WidgetState instead. Moved to the Widgets layer to make code available outside of Material. This feature was deprecated after v3.19.0-0.3.pre - lib\view\specialty\list_specialty.dart:273:25 - deprecated_member_use
+   info - 'MaterialState' is deprecated and shouldn't be used. Use WidgetState instead. Moved to the Widgets layer to make code available outside of Material. This feature was deprecated after v3.19.0-0.3.pre - lib\view\specialty\list_specialty.dart:275:41 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\view\specialty\list_specialty.dart:365:23 - use_build_context_synchronously
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\specialty\list_specialty.dart:391:35 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\specialty\list_specialty.dart:396:58 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\specialty\list_specialty.dart:419:47 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\specialty\list_specialty.dart:420:47 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\specialty\list_specialty.dart:458:57 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\specialty\list_specialty.dart:475:56 - deprecated_member_use
+warning - Duplicate import - lib\view\specialty\specialty_detail.dart:5:8 - duplicate_import
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\specialty\specialty_detail.dart:114:39 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\view\specialty\specialty_detail.dart:216:19 - use_build_context_synchronously
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\specialty\specialty_detail.dart:260:42 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\specialty\specialty_detail.dart:276:37 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\specialty\specialty_detail.dart:287:44 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\view\splash\splash.dart:29:60 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps - lib\view\splash\splash.dart:46:38 - use_build_context_synchronously
+   info - Don't invoke 'print' in production code - lib\view\splash\splash.dart:50:7 - avoid_print
+   info - Don't use 'BuildContext's across async gaps - lib\view\splash\splash.dart:53:40 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\view\splash\splash.dart:57:40 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\view\splash\splash.dart:61:40 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\view\splash\splash.dart:66:40 - use_build_context_synchronously
+   info - The private field _role could be 'final' - lib\view_model\admin_management\admin_management_vm.dart:20:10 - prefer_final_fields
+   info - Use interpolation to compose strings and values - lib\view_model\admin_management\admin_management_vm.dart:188:22 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\view_model\admin_management\admin_management_vm.dart:190:22 - prefer_interpolation_to_compose_strings
+   info - Don't invoke 'print' in production code - lib\view_model\admin_management\admin_management_vm.dart:244:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\admin_management\admin_management_vm.dart:263:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\admin_management\doctor_management_vm.dart:117:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\admin_management\doctor_management_vm.dart:118:5 - avoid_print
+   info - Use interpolation to compose strings and values - lib\view_model\admin_management\doctor_management_vm.dart:188:22 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\view_model\admin_management\doctor_management_vm.dart:190:22 - prefer_interpolation_to_compose_strings
+   info - Don't invoke 'print' in production code - lib\view_model\admin_management\doctor_management_vm.dart:221:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\admin_management\doctor_management_vm.dart:227:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\admin_management\doctor_management_vm.dart:237:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\admin_management\doctor_management_vm.dart:319:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\admin_management\doctor_management_vm.dart:345:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\admin_management\doctor_management_vm.dart:365:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\admin_management\doctor_management_vm.dart:374:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\admin_management\doctor_management_vm.dart:376:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\admin_management\doctor_management_vm.dart:380:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\admin_management\doctor_management_vm.dart:384:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\admin_management\doctor_management_vm.dart:440:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\admin_management\doctor_management_vm.dart:445:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\admin_management\doctor_management_vm.dart:452:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\admin_management\doctor_management_vm.dart:456:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\admin_management\doctor_management_vm.dart:518:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\admin_management\doctor_management_vm.dart:526:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\admin_management\doctor_management_vm.dart:536:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\admin_management\doctor_management_vm.dart:540:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\admin_management\doctor_management_vm.dart:599:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\admin_management\doctor_management_vm.dart:604:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\admin_management\doctor_management_vm.dart:614:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\admin_management\doctor_management_vm.dart:618:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\admin_management\doctor_management_vm.dart:629:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\admin_management\doctor_management_vm.dart:640:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\admin_management\doctor_management_vm.dart:641:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\admin_management\doctor_management_vm.dart:649:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\admin_management\doctor_management_vm.dart:658:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\admin_management\doctor_management_vm.dart:663:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\admin_management\doctor_management_vm.dart:707:7 - avoid_print
+   info - The private field _dataSource could be 'final' - lib\view_model\appointment\appointment_vm.dart:23:25 - prefer_final_fields
+   info - Don't invoke 'print' in production code - lib\view_model\appointment\appointment_vm.dart:85:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\appointment\appointment_vm.dart:86:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\appointment\appointment_vm.dart:87:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\appointment\appointment_vm.dart:124:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\appointment\appointment_vm.dart:137:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\appointment\appointment_vm.dart:161:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\appointment\appointment_vm.dart:167:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\appointment\appointment_vm.dart:179:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\appointment\appointment_vm.dart:185:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\appointment\appointment_vm.dart:190:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\appointment\appointment_vm.dart:201:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\appointment\appointment_vm.dart:208:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\appointment\appointment_vm.dart:213:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\appointment\appointment_vm.dart:349:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\appointment\appointment_vm.dart:350:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\appointment\appointment_vm.dart:351:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\appointment\create_appointment_vm.dart:99:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\appointment\create_appointment_vm.dart:120:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\appointment\create_appointment_vm.dart:123:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\appointment\create_appointment_vm.dart:126:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\appointment\create_appointment_vm.dart:133:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\appointment\create_appointment_vm.dart:136:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\appointment\create_appointment_vm.dart:139:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\appointment\create_appointment_vm.dart:146:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\appointment\create_appointment_vm.dart:156:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\appointment\create_appointment_vm.dart:189:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\appointment\create_appointment_vm.dart:197:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\appointment\create_appointment_vm.dart:200:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\appointment\create_appointment_vm.dart:209:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\appointment\create_appointment_vm.dart:217:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\appointment\create_appointment_vm.dart:221:15 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\appointment\create_appointment_vm.dart:239:13 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\appointment\create_appointment_vm.dart:263:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\appointment\create_appointment_vm.dart:274:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\appointment\create_appointment_vm.dart:278:7 - avoid_print
+   info - Statements in an if should be enclosed in a block - lib\view_model\appointment\create_appointment_vm.dart:296:7 - curly_braces_in_flow_control_structures
+   info - Don't invoke 'print' in production code - lib\view_model\appointment\create_appointment_vm.dart:311:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\appointment\create_appointment_vm.dart:358:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\appointment\create_appointment_vm.dart:391:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\appointment\create_appointment_vm.dart:392:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\appointment\create_appointment_vm.dart:397:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\appointment\create_appointment_vm.dart:405:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\appointment\create_appointment_vm.dart:408:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\appointment\create_appointment_vm.dart:418:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\location_work_management\location_work_vm.dart:53:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\location_work_management\location_work_vm.dart:54:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\location_work_management\location_work_vm.dart:109:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\location_work_management\location_work_vm.dart:176:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\patient\patient_vm.dart:104:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\patient\patient_vm.dart:108:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\patient\patient_vm.dart:128:9 - avoid_print
+   info - The type of the right operand ('ConnectivityResult') isn't a subtype or a supertype of the left operand ('List<ConnectivityResult>') - lib\view_model\question\question_vm.dart:53:36 - unrelated_type_equality_checks
+   info - The private field _infoSections could be 'final' - lib\view_model\specialty\specialty_vm.dart:25:34 - prefer_final_fields
+   info - Don't invoke 'print' in production code - lib\view_model\specialty\specialty_vm.dart:59:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\specialty\specialty_vm.dart:80:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\specialty\specialty_vm.dart:82:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\view_model\specialty\specialty_vm.dart:190:7 - avoid_print
+

@@ -166,7 +166,9 @@ class _LocationFormState extends State<LocationForm>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            AppLocalizations.of(context).translate('address_required_for_map'),
+            AppLocalizations.of(
+              context,
+            ).translate('address_required_for_map_error'),
           ),
         ),
       );
@@ -183,7 +185,7 @@ class _LocationFormState extends State<LocationForm>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              AppLocalizations.of(context).translate('invalid_url'),
+              AppLocalizations.of(context).translate('invalid_url_error'),
             ),
           ),
         );
@@ -474,7 +476,9 @@ class _LocationFormState extends State<LocationForm>
                     fontSize: 16,
                   ),
                   decoration: InputDecoration(
-                    labelText: "Google Map URL", // Ideally localized
+                    labelText: AppLocalizations.of(
+                      context,
+                    ).translate('google_map_url_label'),
                     prefixIcon: Icon(Icons.map, color: context.theme.primary),
                     suffixIcon: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -482,14 +486,18 @@ class _LocationFormState extends State<LocationForm>
                         if (_addressController.text.isNotEmpty)
                           IconButton(
                             icon: const Icon(Icons.auto_fix_high),
-                            tooltip: 'Generate from Address',
+                            tooltip: AppLocalizations.of(
+                              context,
+                            ).translate('generate_map_url_tooltip'),
                             onPressed: _generateMapUrl,
                             color: context.theme.primary,
                           ),
                         if (_googleMapUrlController.text.isNotEmpty)
                           IconButton(
                             icon: const Icon(Icons.open_in_new),
-                            tooltip: 'Open in Maps',
+                            tooltip: AppLocalizations.of(
+                              context,
+                            ).translate('open_map_tooltip'),
                             onPressed: _openMapUrl,
                             color: context.theme.primary,
                           ),
@@ -517,7 +525,9 @@ class _LocationFormState extends State<LocationForm>
                     if (value != null && value.isNotEmpty) {
                       final uri = Uri.tryParse(value);
                       if (uri == null || !uri.hasAbsolutePath) {
-                        return "Invalid URL"; // Ideally localized
+                        return AppLocalizations.of(
+                          context,
+                        ).translate('invalid_url_error');
                       }
                     }
                     return null;

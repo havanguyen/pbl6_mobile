@@ -37,11 +37,12 @@ class QuestionVm extends ChangeNotifier {
 
   QuestionVm() {
     _checkConnectivity();
-    Connectivity()
-        .onConnectivityChanged
-        .listen((List<ConnectivityResult> results) async {
+    Connectivity().onConnectivityChanged.listen((
+      List<ConnectivityResult> results,
+    ) async {
       await _checkConnectivity();
-      if (!isOffline && (questions.isEmpty || (error ?? '').contains('Lỗi kết nối'))) {
+      if (!isOffline &&
+          (questions.isEmpty || (error ?? '').contains('Lỗi kết nối'))) {
         fetchQuestions(forceRefresh: true);
       }
     });
@@ -50,7 +51,7 @@ class QuestionVm extends ChangeNotifier {
   Future<void> _checkConnectivity() async {
     final connectivityResult = await Connectivity().checkConnectivity();
     final wasOffline = isOffline;
-    isOffline = connectivityResult == ConnectivityResult.none;
+    isOffline = connectivityResult.contains(ConnectivityResult.none);
     if (wasOffline && !isOffline && (error ?? '').contains('offline')) {
       error = null;
     }
@@ -92,7 +93,8 @@ class QuestionVm extends ChangeNotifier {
   }
 
   String _handleDioError(DioException e, String contextMessage) {
-    isOffline = e.type == DioExceptionType.connectionError ||
+    isOffline =
+        e.type == DioExceptionType.connectionError ||
         e.type == DioExceptionType.unknown ||
         (e.message ?? '').contains('Failed host lookup');
 
@@ -121,8 +123,7 @@ class QuestionVm extends ChangeNotifier {
         throw Exception('Bạn đang offline, không thể tải chuyên khoa.');
       }
 
-      final response =
-      await SpecialtyService.getAllSpecialties(limit: 100);
+      final response = await SpecialtyService.getAllSpecialties(limit: 100);
       if (response.success) {
         specialties = response.data;
         specialtyError = null;
@@ -149,7 +150,9 @@ class QuestionVm extends ChangeNotifier {
       _currentPage = 1;
       hasNextPage = true;
       isLoading = true;
-      if (!isOffline || (error ?? '').contains('Lỗi kết nối') || (error ?? '').contains('offline')) {
+      if (!isOffline ||
+          (error ?? '').contains('Lỗi kết nối') ||
+          (error ?? '').contains('offline')) {
         error = null;
       }
     } else {
@@ -206,7 +209,6 @@ class QuestionVm extends ChangeNotifier {
         _currentPage++;
       }
       error = null;
-
     } on DioException catch (e) {
       error = _handleDioError(e, "Lỗi tải danh sách câu hỏi");
       hasNextPage = false;
@@ -221,7 +223,6 @@ class QuestionVm extends ChangeNotifier {
           error = "Lỗi kết nối mạng và lỗi đọc cache: $dbError";
         }
       }
-
     } catch (e) {
       error = 'Lỗi không mong muốn khi tải câu hỏi: $e';
       hasNextPage = false;
@@ -325,8 +326,13 @@ class QuestionVm extends ChangeNotifier {
       if (isOffline) {
         throw Exception('Bạn đang offline, không thể tải câu trả lời.');
       } else {
-        currentAnswers = await QuestionService.getAnswers(questionId, limit: 100);
-        if (error == null || error!.contains('câu trả lời') || error!.contains('offline')) {
+        currentAnswers = await QuestionService.getAnswers(
+          questionId,
+          limit: 100,
+        );
+        if (error == null ||
+            error!.contains('câu trả lời') ||
+            error!.contains('offline')) {
           error = null;
         }
       }
@@ -339,7 +345,6 @@ class QuestionVm extends ChangeNotifier {
       notifyListeners();
     }
   }
-
 
   Future<bool> deleteAnswer(String answerId) async {
     await _checkConnectivity();
@@ -446,7 +451,10 @@ class QuestionVm extends ChangeNotifier {
     }
   }
 
-  Future<bool> updateQuestion(String questionId, Map<String, dynamic> data) async {
+  Future<bool> updateQuestion(
+    String questionId,
+    Map<String, dynamic> data,
+  ) async {
     await _checkConnectivity();
     if (isOffline) {
       error = 'Không thể cập nhật khi offline';
@@ -454,7 +462,10 @@ class QuestionVm extends ChangeNotifier {
       return false;
     }
     try {
-      final updatedQuestion = await QuestionService.updateQuestion(questionId, data);
+      final updatedQuestion = await QuestionService.updateQuestion(
+        questionId,
+        data,
+      );
       currentQuestion = updatedQuestion;
       error = null;
       notifyListeners();

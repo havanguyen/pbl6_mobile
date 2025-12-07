@@ -71,10 +71,10 @@ class LocationWorkVm extends ChangeNotifier {
     _isOffline = !isConnected;
 
     if (!isConnected) {
-      _error = 'Bạn đang offline. Dữ liệu có thể đã cũ.';
+      _error = 'offline_error';
       _locations = await _dbHelper.getLocations();
       if (_locations.isEmpty) {
-        _error = 'Không có dữ liệu offline';
+        _error = 'no_offline_data';
       }
       _isLoading = false;
       notifyListeners();
@@ -99,17 +99,18 @@ class LocationWorkVm extends ChangeNotifier {
         await _dbHelper.clearLocations();
         await _dbHelper.insertLocations(_locations);
       } else {
-        _error = result['message'] ?? 'Failed to load locations from API';
+        _error = result['message'] ?? 'fetch_failed';
         _locations = await _dbHelper.getLocations();
         if (_locations.isEmpty) {
-          _error = 'No offline data available';
+          _error = 'no_offline_data';
         }
       }
     } catch (e) {
-      _error = 'Error: $e';
+      print('Error fetching locations: $e');
+      _error = 'fetch_failed';
       _locations = await _dbHelper.getLocations();
       if (_locations.isEmpty) {
-        _error = 'No offline data available: $e';
+        _error = 'no_offline_data';
       }
     }
 
@@ -154,7 +155,7 @@ class LocationWorkVm extends ChangeNotifier {
         await _dbHelper.insertLocations(_locations);
       }
     } else {
-      _error = 'Failed to update isActive';
+      _error = 'update_status_failed';
     }
 
     _isLoading = false;

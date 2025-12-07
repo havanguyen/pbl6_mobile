@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:pbl6mobile/model/entities/info_section.dart';
+import 'package:pbl6mobile/model/entities/specialty.dart';
 import 'package:pbl6mobile/shared/widgets/widget/info_section_delete_confirm.dart';
 import 'package:pbl6mobile/view_model/location_work_management/snackbar_service.dart';
 import 'package:pbl6mobile/view_model/specialty/specialty_vm.dart';
@@ -13,7 +14,7 @@ import 'package:vsc_quill_delta_to_html/vsc_quill_delta_to_html.dart';
 import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 
 class SpecialtyDetailPage extends StatefulWidget {
-  final Map<String, dynamic> specialty;
+  final Specialty specialty;
 
   const SpecialtyDetailPage({super.key, required this.specialty});
 
@@ -27,7 +28,7 @@ class _SpecialtyDetailPageState extends State<SpecialtyDetailPage> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<SpecialtyVm>().fetchInfoSections(
-        widget.specialty['id'],
+        widget.specialty.id,
         forceRefresh: true,
       );
     });
@@ -43,10 +44,10 @@ class _SpecialtyDetailPageState extends State<SpecialtyDetailPage> {
       barrierDismissible: false,
       builder: (context) => DeleteInfoSectionConfirmationDialog(
         infoSection: infoSection,
-        specialtyId: widget.specialty['id'],
+        specialtyId: widget.specialty.id,
         onDeleteSuccess: () {
           context.read<SpecialtyVm>().fetchInfoSections(
-            widget.specialty['id'],
+            widget.specialty.id,
             forceRefresh: true,
           );
         },
@@ -97,15 +98,34 @@ class _SpecialtyDetailPageState extends State<SpecialtyDetailPage> {
     final isOffline = provider.isOffline;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text(widget.specialty['name']),
+        title: Text(
+          widget.specialty.name,
+          style: TextStyle(color: context.theme.white),
+        ),
+        backgroundColor: Colors.transparent,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                context.theme.primary,
+                context.theme.primary.withOpacity(0.8),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        iconTheme: IconThemeData(color: context.theme.white),
+        elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: Icon(Icons.refresh, color: context.theme.white),
             onPressed: provider.isInfoSectionLoading
                 ? null
                 : () => provider.fetchInfoSections(
-                    widget.specialty['id'],
+                    widget.specialty.id,
                     forceRefresh: true,
                   ),
           ),
@@ -129,13 +149,11 @@ class _SpecialtyDetailPageState extends State<SpecialtyDetailPage> {
             child: Consumer<SpecialtyVm>(
               builder: (context, provider, child) {
                 if (provider.isInfoSectionLoading &&
-                    provider
-                        .getInfoSectionsFor(widget.specialty['id'])
-                        .isEmpty) {
+                    provider.getInfoSectionsFor(widget.specialty.id).isEmpty) {
                   return const Center(child: CircularProgressIndicator());
                 }
                 final infoSections = provider.getInfoSectionsFor(
-                  widget.specialty['id'],
+                  widget.specialty.id,
                 );
                 if (infoSections.isEmpty) {
                   return _buildEmptyState();
@@ -162,12 +180,12 @@ class _SpecialtyDetailPageState extends State<SpecialtyDetailPage> {
                                   Routes.updateInfoSection,
                                   arguments: {
                                     'infoSection': info.toJson(),
-                                    'specialtyId': widget.specialty['id'],
+                                    'specialtyId': widget.specialty.id,
                                   },
                                 );
                                 if (result == true && mounted) {
                                   provider.fetchInfoSections(
-                                    widget.specialty['id'],
+                                    widget.specialty.id,
                                     forceRefresh: true,
                                   );
                                 }
@@ -191,11 +209,11 @@ class _SpecialtyDetailPageState extends State<SpecialtyDetailPage> {
                 final result = await Navigator.pushNamed(
                   context,
                   Routes.createInfoSection,
-                  arguments: widget.specialty['id'],
+                  arguments: widget.specialty.id,
                 );
                 if (result == true && mounted) {
                   context.read<SpecialtyVm>().fetchInfoSections(
-                    widget.specialty['id'],
+                    widget.specialty.id,
                     forceRefresh: true,
                   );
                 }
@@ -253,16 +271,28 @@ class _InfoSectionTileState extends State<_InfoSectionTile> {
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    color: _isExpanded ? theme.border : Colors.transparent,
-                  ),
+                color: _isExpanded
+                    ? theme.primary.withOpacity(0.05)
+                    : Colors.transparent,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(12),
                 ),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.article_outlined, color: theme.primary, size: 28),
-                  const SizedBox(width: 12),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: theme.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      Icons.article_rounded,
+                      color: theme.primary,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: Text(
                       widget.info.name.toUpperCase(),
@@ -273,11 +303,13 @@ class _InfoSectionTileState extends State<_InfoSectionTile> {
                       ),
                     ),
                   ),
-                  Icon(
-                    _isExpanded
-                        ? Icons.remove_circle_outline
-                        : Icons.add_circle_outline,
-                    color: theme.primary,
+                  AnimatedRotation(
+                    turns: _isExpanded ? 0.5 : 0,
+                    duration: const Duration(milliseconds: 200),
+                    child: Icon(
+                      Icons.keyboard_arrow_down,
+                      color: theme.mutedForeground,
+                    ),
                   ),
                 ],
               ),

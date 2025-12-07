@@ -3,6 +3,7 @@ import 'package:page_transition/page_transition.dart';
 import 'package:pbl6mobile/model/entities/doctor_detail.dart';
 import 'package:pbl6mobile/model/entities/patient.dart';
 import 'package:pbl6mobile/model/entities/profile.dart';
+import 'package:pbl6mobile/model/entities/specialty.dart';
 import 'package:pbl6mobile/view/appointment/list_appointment_page.dart';
 import 'package:pbl6mobile/view/change_password/change_password.dart';
 import 'package:pbl6mobile/view/doctor_management/doctor_detail_page.dart';
@@ -200,11 +201,11 @@ class Routes {
           child: UpdateSpecialtyPage(specialty: specialty!),
         );
       case specialtyDetail:
-        final specialty = settings.arguments as Map<String, dynamic>?;
+        final specialty = settings.arguments as Specialty;
         return PageTransition(
           type: PageTransitionType.leftToRight,
           settings: settings,
-          child: SpecialtyDetailPage(specialty: specialty!),
+          child: SpecialtyDetailPage(specialty: specialty),
         );
       case listLocationWork:
         return PageTransition(

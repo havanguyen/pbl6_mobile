@@ -137,7 +137,23 @@ class _PermissionGroupDetailPageState extends State<PermissionGroupDetailPage> {
           return Scaffold(
             backgroundColor: context.theme.bg,
             appBar: AppBar(
-              backgroundColor: context.theme.blue,
+              flexibleSpace: Container(
+                decoration: _isEditing
+                    ? BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.orange.shade700,
+                            Colors.orange.shade500,
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                      )
+                    : null,
+              ),
+              backgroundColor: _isEditing
+                  ? Colors.transparent
+                  : context.theme.blue,
               elevation: 0,
               leading: IconButton(
                 icon: Icon(Icons.arrow_back, color: context.theme.white),
@@ -167,15 +183,6 @@ class _PermissionGroupDetailPageState extends State<PermissionGroupDetailPage> {
                     icon: Icon(Icons.check, color: context.theme.white),
                     onPressed: () => _saveChanges(context, vm),
                     tooltip: AppLocalizations.of(context).translate('save'),
-                  ),
-                if (!_isEditing)
-                  IconButton(
-                    icon: Icon(
-                      Icons.delete_outline,
-                      color: context.theme.destructive,
-                    ),
-                    onPressed: () => _confirmDelete(context, vm),
-                    tooltip: AppLocalizations.of(context).translate('delete'),
                   ),
               ],
             ),
@@ -265,6 +272,11 @@ class _PermissionGroupDetailPageState extends State<PermissionGroupDetailPage> {
                                           horizontal: 16,
                                           vertical: 8,
                                         ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   ],
@@ -276,6 +288,72 @@ class _PermissionGroupDetailPageState extends State<PermissionGroupDetailPage> {
                                 onToggle: (_, __) {}, // Read-only signature fix
                                 readOnly: true,
                               ),
+                              const SizedBox(height: 32),
+                              if (!_isEditing)
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: context.theme.destructive
+                                        .withOpacity(0.05),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: context.theme.destructive
+                                          .withOpacity(0.2),
+                                    ),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Danger Zone', // Localization needed ideally
+                                        style: TextStyle(
+                                          color: context.theme.destructive,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'Deleting this group will remove it permanently and revoke permissions from all assigned users.',
+                                        style: TextStyle(
+                                          color: context.theme.destructive
+                                              .withOpacity(0.8),
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      Align(
+                                        alignment: Alignment.centerRight,
+                                        child: TextButton.icon(
+                                          onPressed: () =>
+                                              _confirmDelete(context, vm),
+                                          icon: Icon(
+                                            Icons.delete_forever,
+                                            size: 16,
+                                            color: context.theme.destructive,
+                                          ),
+                                          label: Text(
+                                            AppLocalizations.of(
+                                              context,
+                                            ).translate('delete'),
+                                            style: TextStyle(
+                                              color: context.theme.destructive,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          style: TextButton.styleFrom(
+                                            backgroundColor: context
+                                                .theme
+                                                .destructive
+                                                .withOpacity(0.1),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               const SizedBox(height: 32),
                             ],
                           ),

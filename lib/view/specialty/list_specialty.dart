@@ -203,28 +203,28 @@ class _ListSpecialtyPageState extends State<ListSpecialtyPage> {
                 color: context.theme.primary,
                 size: 20,
               ),
+              filled: true,
+              fillColor: context.theme.card,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
+              ),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide.none,
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide(
-                  color: context.theme.border.withOpacity(0.5),
+                  color: context.theme.border.withOpacity(0.3),
                 ),
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide(
                   color: context.theme.primary,
                   width: 1.5,
                 ),
-              ),
-              filled: true,
-              fillColor: context.theme.input,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 12,
               ),
               suffixIcon: _searchController.text.isNotEmpty
                   ? IconButton(
@@ -381,31 +381,51 @@ class _ListSpecialtyPageState extends State<ListSpecialtyPage> {
                 ),
               ],
             ),
-      child: Card(
-        elevation: 2,
+      child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        decoration: BoxDecoration(
+          color: context.theme.card,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+          border: Border.all(color: context.theme.border.withOpacity(0.5)),
+        ),
         child: InkWell(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           onTap: () async {
             final result = await Navigator.pushNamed(
               context,
               Routes.specialtyDetail,
-              arguments: specialty.toJson(),
+              arguments: specialty,
             );
             if (result == true && mounted) {
               context.read<SpecialtyVm>().fetchSpecialties(forceRefresh: true);
             }
           },
           child: Padding(
-            padding: const EdgeInsets.all(12.0),
+            padding: const EdgeInsets.all(16.0),
             child: Row(
               children: [
-                CircleAvatar(
-                  radius: 28,
-                  backgroundColor: context.theme.primary.withOpacity(0.1),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        context.theme.primary.withOpacity(0.1),
+                        context.theme.primary.withOpacity(0.2),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   child: Icon(
-                    Icons.medical_services_outlined,
+                    Icons.medical_services_rounded,
                     color: context.theme.primary,
                     size: 28,
                   ),
@@ -425,20 +445,34 @@ class _ListSpecialtyPageState extends State<ListSpecialtyPage> {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${AppLocalizations.of(context).translate('info_section_count')}${specialty.infoSectionsCount}',
-                        style: TextStyle(
-                          color: context.theme.mutedForeground,
-                          fontSize: 14,
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: context.theme.bg,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: context.theme.border.withOpacity(0.5),
+                          ),
+                        ),
+                        child: Text(
+                          '${AppLocalizations.of(context).translate('info_section_count')}: ${specialty.infoSectionsCount}',
+                          style: TextStyle(
+                            color: context.theme.mutedForeground,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
                 Icon(
-                  Icons.arrow_forward_ios,
-                  color: context.theme.mutedForeground,
+                  Icons.arrow_forward_ios_rounded,
+                  color: context.theme.mutedForeground.withOpacity(0.5),
                   size: 16,
                 ),
               ],

@@ -14,6 +14,7 @@ import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 import 'package:pbl6mobile/shared/routes/routes.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:vsc_quill_delta_to_html/vsc_quill_delta_to_html.dart';
+import 'package:pbl6mobile/view/profile/my_permissions_page.dart';
 
 class ProfileDoctorPage extends StatefulWidget {
   const ProfileDoctorPage({super.key});
@@ -213,6 +214,86 @@ class _ProfileDoctorPageState extends State<ProfileDoctorPage> {
                   ),
                   const SizedBox(height: 8),
                   _buildAccountInfoCard(doctor),
+                  const SizedBox(height: 24),
+                  Card(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    color: context.theme.card,
+                    child: ListTile(
+                      leading: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: context.theme.blue.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(Icons.security, color: context.theme.blue),
+                      ),
+                      title: Text(
+                        AppLocalizations.of(
+                          context,
+                        ).translate('my_permissions_title'),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: context.theme.textColor,
+                        ),
+                      ),
+                      trailing: Icon(
+                        Icons.arrow_forward_ios,
+                        size: 16,
+                        color: context.theme.grey,
+                      ),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const MyPermissionsPage(),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Card(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    color: context.theme.card,
+                    child: ListTile(
+                      leading: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: context.theme.blue.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(Icons.security, color: context.theme.blue),
+                      ),
+                      title: Text(
+                        AppLocalizations.of(
+                              context,
+                            ).translate('my_permissions_title'),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: context.theme.textColor,
+                        ),
+                      ),
+                      trailing: Icon(
+                        Icons.arrow_forward_ios,
+                        size: 16,
+                        color: context.theme.grey,
+                      ),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const MyPermissionsPage(),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                   const SizedBox(height: 24),
                   _buildSectionHeader(
                     context,

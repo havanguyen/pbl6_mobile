@@ -6,6 +6,7 @@ import 'package:pbl6mobile/model/entities/staff.dart';
 import 'package:pbl6mobile/model/services/remote/doctor_service.dart';
 import 'package:pbl6mobile/model/services/remote/permission_service.dart';
 import 'package:pbl6mobile/model/services/remote/staff_service.dart';
+import 'package:pbl6mobile/model/entities/permission_stats.dart';
 
 class PermissionVm extends ChangeNotifier {
   List<PermissionGroup> _groups = [];
@@ -21,6 +22,9 @@ class PermissionVm extends ChangeNotifier {
 
   List<PermissionGroup> _currentUserGroups = [];
   List<PermissionGroup> get currentUserGroups => _currentUserGroups;
+
+  PermissionStats? _stats;
+  PermissionStats? get stats => _stats;
 
   // Danh sách user bao gồm cả Admin, Doctor, SuperAdmin (được quy về Staff)
   List<Staff> _users = [];
@@ -470,6 +474,23 @@ class PermissionVm extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
       return false;
+    }
+  }
+
+  Future<void> fetchStats() async {
+    debugPrint("PermissionVm: fetchStats() started");
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+    try {
+      _stats = await PermissionService.getPermissionStats();
+      debugPrint("PermissionVm: fetchStats success");
+    } catch (e) {
+      _error = 'Error loading stats: $e';
+      debugPrint("PermissionVm: fetchStats exception: $e");
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 

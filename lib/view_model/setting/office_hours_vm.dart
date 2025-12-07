@@ -30,7 +30,7 @@ class OfficeHoursVm extends ChangeNotifier {
       if (result != null) {
         _officeHours = result;
       } else {
-        _error = "Không thể tải dữ liệu giờ làm việc";
+        _error = 'fetch_office_hours_failed';
       }
     } catch (e) {
       _error = e.toString();
@@ -65,7 +65,7 @@ class OfficeHoursVm extends ChangeNotifier {
         await fetchOfficeHours(); // Refresh list
         return true;
       } else {
-        _error = "Không thể tạo giờ làm việc";
+        _error = 'create_office_hour_failed';
         return false;
       }
     } catch (e) {
@@ -88,7 +88,7 @@ class OfficeHoursVm extends ChangeNotifier {
         await fetchOfficeHours(); // Refresh list
         return true;
       } else {
-        _error = "Không thể xóa giờ làm việc";
+        _error = 'delete_office_hour_failed';
         return false;
       }
     } catch (e) {

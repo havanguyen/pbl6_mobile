@@ -109,6 +109,7 @@ class _PermissionTreeWidgetState extends State<PermissionTreeWidget> {
     final totalActions = PermissionConstants.actions.length;
     final isAllGranted = grantedCount == totalActions;
     final isNoneGranted = grantedCount == 0;
+    final progress = totalActions > 0 ? grantedCount / totalActions : 0.0;
 
     final resourceKey = 'resource_${resource.toLowerCase()}';
     final localizedResource = AppLocalizations.of(
@@ -118,28 +119,26 @@ class _PermissionTreeWidgetState extends State<PermissionTreeWidget> {
     return Theme(
       data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
       child: ExpansionTile(
-        tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        leading: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: isAllGranted
-                ? Colors.green.withOpacity(0.1)
-                : (isNoneGranted
-                      ? context.theme.grey.withOpacity(0.1)
-                      : Colors.orange.withOpacity(0.1)),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(
-            isAllGranted
-                ? Icons.check_circle
-                : (isNoneGranted
-                      ? Icons.security
-                      : Icons.remove_circle_outline),
-            color: isAllGranted
-                ? Colors.green
-                : (isNoneGranted ? context.theme.grey : Colors.orange),
-            size: 20,
-          ),
+        tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        leading: Stack(
+          alignment: Alignment.center,
+          children: [
+            CircularProgressIndicator(
+              value: progress,
+              backgroundColor: context.theme.grey.withOpacity(0.1),
+              color: isAllGranted ? Colors.green : Colors.orange,
+              strokeWidth: 3,
+            ),
+            Icon(
+              isAllGranted
+                  ? Icons.check
+                  : (isNoneGranted ? Icons.security : Icons.shield),
+              color: isAllGranted
+                  ? Colors.green
+                  : (isNoneGranted ? context.theme.grey : Colors.orange),
+              size: 16,
+            ),
+          ],
         ),
         title: Text(
           localizedResource,
@@ -149,16 +148,19 @@ class _PermissionTreeWidgetState extends State<PermissionTreeWidget> {
             fontSize: 15,
           ),
         ),
-        subtitle: Text(
-          '$grantedCount / $totalActions ${AppLocalizations.of(context).translate('allow').toLowerCase()}',
-          style: TextStyle(color: context.theme.grey, fontSize: 13),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Text(
+            '$grantedCount / $totalActions ${AppLocalizations.of(context).translate('allow').toLowerCase()}',
+            style: TextStyle(color: context.theme.grey, fontSize: 13),
+          ),
         ),
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: Wrap(
-              spacing: 8,
-              runSpacing: 8,
+              spacing: 12,
+              runSpacing: 12,
               children: PermissionConstants.actions.map((action) {
                 return _buildActionChip(resource, action);
               }).toList(),
@@ -177,40 +179,40 @@ class _PermissionTreeWidgetState extends State<PermissionTreeWidget> {
     final actionKey = 'action_${action.toLowerCase()}';
     final localizedAction = AppLocalizations.of(context).translate(actionKey);
 
-    // If permission doesn't exist in system, we disable the chip
     return InkWell(
       onTap: (widget.readOnly || !exists)
           ? null
           : () {
-              // Use the actual permission ID
               final permId = permission.permissionId.isNotEmpty
                   ? permission.permissionId
                   : permission.id;
               widget.onToggle(permId, !isGranted);
             },
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(20),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           color: isGranted
               ? context.theme.blue
               : (exists
                     ? context.theme.bg
-                    : context.theme.grey.withOpacity(0.1)),
-          borderRadius: BorderRadius.circular(8),
+                    : context.theme.grey.withOpacity(0.05)),
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isGranted
                 ? context.theme.blue
-                : (exists ? context.theme.border : Colors.transparent),
-            width: 1.5,
+                : (exists
+                      ? context.theme.border
+                      : context.theme.border.withOpacity(0.5)),
+            width: 1,
           ),
           boxShadow: isGranted
               ? [
                   BoxShadow(
                     color: context.theme.blue.withOpacity(0.3),
-                    spreadRadius: 1,
-                    blurRadius: 4,
+                    spreadRadius: 0,
+                    blurRadius: 6,
                     offset: const Offset(0, 2),
                   ),
                 ]
@@ -229,7 +231,7 @@ class _PermissionTreeWidgetState extends State<PermissionTreeWidget> {
                 color: isGranted
                     ? Colors.white
                     : (exists ? context.theme.textColor : context.theme.grey),
-                fontWeight: isGranted ? FontWeight.bold : FontWeight.normal,
+                fontWeight: isGranted ? FontWeight.w600 : FontWeight.normal,
                 fontSize: 13,
                 decoration: !exists ? TextDecoration.lineThrough : null,
               ),

@@ -45,17 +45,24 @@ class _UserPermissionDetailPageState extends State<UserPermissionDetailPage>
           ),
           title: Row(
             children: [
-              CircleAvatar(
-                radius: 16,
-                backgroundColor: context.theme.white.withOpacity(0.2),
-                child: Text(
-                  widget.user.fullName.isNotEmpty
-                      ? widget.user.fullName[0].toUpperCase()
-                      : 'U',
-                  style: TextStyle(color: context.theme.white, fontSize: 14),
+              Hero(
+                tag: 'user_avatar_${widget.user.id}',
+                child: CircleAvatar(
+                  radius: 18,
+                  backgroundColor: context.theme.white.withOpacity(0.2),
+                  child: Text(
+                    widget.user.fullName.isNotEmpty
+                        ? widget.user.fullName[0].toUpperCase()
+                        : '?',
+                    style: TextStyle(
+                      color: context.theme.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -82,19 +89,31 @@ class _UserPermissionDetailPageState extends State<UserPermissionDetailPage>
               ),
             ],
           ),
-          bottom: TabBar(
-            controller: _tabController,
-            indicatorColor: context.theme.white,
-            labelColor: context.theme.white,
-            unselectedLabelColor: context.theme.white.withOpacity(0.6),
-            tabs: [
-              Tab(text: AppLocalizations.of(context).translate('roles_groups')),
-              Tab(
-                text: AppLocalizations.of(
-                  context,
-                ).translate('direct_permissions'),
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(48),
+            child: Container(
+              color: Colors.black.withOpacity(0.05),
+              child: TabBar(
+                controller: _tabController,
+                indicatorColor: context.theme.white,
+                indicatorWeight: 3,
+                labelColor: context.theme.white,
+                unselectedLabelColor: context.theme.white.withOpacity(0.6),
+                labelStyle: const TextStyle(fontWeight: FontWeight.bold),
+                tabs: [
+                  Tab(
+                    text: AppLocalizations.of(
+                      context,
+                    ).translate('roles_groups'),
+                  ),
+                  Tab(
+                    text: AppLocalizations.of(
+                      context,
+                    ).translate('direct_permissions'),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
         body: Consumer<PermissionVm>(

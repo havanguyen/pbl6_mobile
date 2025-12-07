@@ -6,6 +6,7 @@ import 'package:pbl6mobile/model/services/remote/auth_service.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/shared/routes/routes.dart';
 import 'package:pbl6mobile/shared/localization/app_localizations.dart';
+import 'package:pbl6mobile/view/profile/my_permissions_page.dart';
 
 class ProfileAdminPage extends StatefulWidget {
   const ProfileAdminPage({super.key});
@@ -188,6 +189,46 @@ class _ProfileAdminPageState extends State<ProfileAdminPage> {
                   _buildProfileHeader(context),
                   const SizedBox(height: 24),
                   _buildInfoCard(context),
+                  const SizedBox(height: 16),
+                  Card(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    color: context.theme.card,
+                    child: ListTile(
+                      leading: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: context.theme.blue.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(Icons.security, color: context.theme.blue),
+                      ),
+                      title: Text(
+                        AppLocalizations.of(
+                          context,
+                        ).translate('my_permissions_title'),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: context.theme.textColor,
+                        ),
+                      ),
+                      trailing: Icon(
+                        Icons.arrow_forward_ios,
+                        size: 16,
+                        color: context.theme.grey,
+                      ),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const MyPermissionsPage(),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -204,7 +245,7 @@ class _ProfileAdminPageState extends State<ProfileAdminPage> {
           radius: 50,
           backgroundColor: context.theme.primary.withOpacity(0.1),
           child: Text(
-            _currentProfile!.fullName.isNotEmpty
+            (_currentProfile!.fullName.isNotEmpty)
                 ? _currentProfile!.fullName[0].toUpperCase()
                 : 'A',
             style: TextStyle(

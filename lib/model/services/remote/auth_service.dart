@@ -108,16 +108,38 @@ class AuthService {
                 e.requestOptions.headers['Authorization'] =
                     'Bearer $newAccessToken';
 
-                final response = await _secureDio.fetch(e.requestOptions);
-                return handler.resolve(response);
+                try {
+                  final response = await _secureDio.fetch(e.requestOptions);
+                  return handler.resolve(response);
+                } catch (retryError) {
+                  print('Retry request failed: $retryError');
+                  // If retry fails with 401, it means the new token is also bad/rejected
+                  if (retryError is DioException &&
+                      retryError.response?.statusCode == 401) {
+                    print('Retry failed with 401. Logging out.');
+                    await logout();
+                  }
+                  // For other errors (404, 500, timeout), just reject with the error
+                  // and DO NOT logout.
+                  if (retryError is DioException) {
+                    return handler.reject(retryError);
+                  }
+                  return handler.reject(e);
+                }
               } else {
                 print('Refresh token failed, logging out.');
                 await logout();
+                return handler.reject(e);
               }
             } catch (err) {
-              print('Error during token refresh or retry: $err');
-              _refreshCompleter?.complete(false);
+              print('Error during token refresh mechanism: $err');
+              // Ensure completer is cleaned up if it wasn't already
+              if (_refreshCompleter != null &&
+                  !_refreshCompleter!.isCompleted) {
+                _refreshCompleter!.complete(false);
+              }
               _refreshCompleter = null;
+              // Only here do we assume the refresh process itself crashed catastrophically
               await logout();
               return handler.reject(e);
             }

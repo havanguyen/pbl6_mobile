@@ -5,6 +5,8 @@ import 'package:pbl6mobile/view/setting/office_hours/create_office_hour_page.dar
 import 'package:pbl6mobile/view_model/setting/office_hours_vm.dart';
 import 'package:provider/provider.dart';
 import 'package:pbl6mobile/shared/localization/app_localizations.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:pbl6mobile/shared/extensions/office_hour_extensions.dart';
 
 class OfficeHoursPage extends StatefulWidget {
   const OfficeHoursPage({super.key});
@@ -30,46 +32,6 @@ class _OfficeHoursPageState extends State<OfficeHoursPage>
   void dispose() {
     _tabController.dispose();
     super.dispose();
-  }
-
-  String _getDayName(BuildContext context, int day) {
-    switch (day) {
-      case 0:
-        return AppLocalizations.of(context).translate('sunday');
-      case 1:
-        return AppLocalizations.of(context).translate('monday');
-      case 2:
-        return AppLocalizations.of(context).translate('tuesday');
-      case 3:
-        return AppLocalizations.of(context).translate('wednesday');
-      case 4:
-        return AppLocalizations.of(context).translate('thursday');
-      case 5:
-        return AppLocalizations.of(context).translate('friday');
-      case 6:
-        return AppLocalizations.of(context).translate('saturday');
-      default:
-        return 'Unknown';
-    }
-  }
-
-  String _formatTime(String time) {
-    try {
-      final parts = time.split(':');
-      final hour = int.parse(parts[0]);
-      final minute = int.parse(parts[1]);
-      final date = DateTime(2024, 1, 1, hour, minute);
-      final hour12 = date.hour > 12
-          ? date.hour - 12
-          : (date.hour == 0 ? 12 : date.hour);
-      final period = date.hour >= 12
-          ? AppLocalizations.of(context).translate('pm')
-          : AppLocalizations.of(context).translate('am');
-      final minuteStr = date.minute.toString().padLeft(2, '0');
-      return '$hour12:$minuteStr $period';
-    } catch (e) {
-      return time;
-    }
   }
 
   List<OfficeHour> _filterOfficeHours(List<OfficeHour> allHours, int tabIndex) {
@@ -169,7 +131,7 @@ class _OfficeHoursPageState extends State<OfficeHoursPage>
           : vm.error != null
           ? Center(
               child: Text(
-                vm.error!,
+                AppLocalizations.of(context).translate(vm.error!),
                 style: TextStyle(color: context.theme.destructive),
               ),
             )
@@ -186,33 +148,64 @@ class _OfficeHoursPageState extends State<OfficeHoursPage>
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(
-                                Icons.calendar_today_outlined,
-                                size: 48,
-                                color: context.theme.mutedForeground,
+                              Container(
+                                padding: const EdgeInsets.all(24),
+                                decoration: BoxDecoration(
+                                  color: context.theme.muted.withOpacity(0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.calendar_today_outlined,
+                                  size: 64,
+                                  color: context.theme.mutedForeground,
+                                ),
                               ),
-                              const SizedBox(height: 16),
+                              const SizedBox(height: 24),
                               Text(
                                 AppLocalizations.of(
                                   context,
                                 ).translate('no_office_hours_found'),
                                 style: TextStyle(
-                                  color: context.theme.mutedForeground,
+                                  color: context.theme.foreground,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
                                 ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                AppLocalizations.of(
+                                  context,
+                                ).translate('add_new_office_hour_hint'),
+                                style: TextStyle(
+                                  color: context.theme.mutedForeground,
+                                  fontSize: 14,
+                                ),
+                                textAlign: TextAlign.center,
                               ),
                             ],
                           ),
                         )
-                      : ListView.builder(
-                          padding: const EdgeInsets.all(16),
-                          itemCount: filteredHours.length,
-                          itemBuilder: (context, i) {
-                            return _buildOfficeHourCard(
-                              context,
-                              filteredHours[i],
-                              vm,
-                            );
-                          },
+                      : AnimationLimiter(
+                          child: ListView.builder(
+                            padding: const EdgeInsets.all(16),
+                            itemCount: filteredHours.length,
+                            itemBuilder: (context, i) {
+                              return AnimationConfiguration.staggeredList(
+                                position: i,
+                                duration: const Duration(milliseconds: 375),
+                                child: SlideAnimation(
+                                  verticalOffset: 50.0,
+                                  child: FadeInAnimation(
+                                    child: _buildOfficeHourCard(
+                                      context,
+                                      filteredHours[i],
+                                      vm,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
                         ),
                 );
               }),
@@ -340,7 +333,7 @@ class _OfficeHoursPageState extends State<OfficeHoursPage>
                     ),
                     const SizedBox(width: 12),
                     Text(
-                      _getDayName(context, item.dayOfWeek),
+                      item.dayOfWeek.getDayName(context),
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -360,7 +353,7 @@ class _OfficeHoursPageState extends State<OfficeHoursPage>
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      '${_formatTime(item.startTime)} - ${_formatTime(item.endTime)}',
+                      '${item.startTime.formatTime(context)} - ${item.endTime.formatTime(context)}',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,

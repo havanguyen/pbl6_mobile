@@ -300,13 +300,8 @@ class _DeleteReviewButtonState extends State<_DeleteReviewButton> {
 class _StarRating extends StatelessWidget {
   final int rating;
   final Color color;
-  final double size;
 
-  const _StarRating({
-    required this.rating,
-    this.color = Colors.amber,
-    this.size = 18,
-  });
+  const _StarRating({required this.rating, this.color = Colors.amber});
 
   @override
   Widget build(BuildContext context) {
@@ -316,7 +311,7 @@ class _StarRating extends StatelessWidget {
         return Icon(
           index < rating ? Icons.star : Icons.star_border,
           color: color,
-          size: size,
+          size: 18,
         );
       }),
     );

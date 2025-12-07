@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
-import 'package:intl/intl.dart';
 import 'package:pbl6mobile/model/entities/patient.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/shared/routes/routes.dart';
@@ -21,28 +20,22 @@ class PatientListPage extends StatefulWidget {
 class _PatientListPageState extends State<PatientListPage> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
-  String _searchText = "";
 
   @override
   void initState() {
     super.initState();
-    final patientVm = Provider.of<PatientVm>(context, listen: false);
+    // Reset search on init
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<PatientVm>(
-        context,
-        listen: false,
-      ).loadPatients(isRefresh: true);
+      Provider.of<PatientVm>(context, listen: false)
+        ..setSearch('')
+        ..loadPatients(isRefresh: true);
     });
+
     _scrollController.addListener(() {
-      if (_scrollController.position.pixels ==
-          _scrollController.position.maxScrollExtent) {
-        patientVm.loadPatients();
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 200) {
+        context.read<PatientVm>().loadPatients();
       }
-    });
-    _searchController.addListener(() {
-      setState(() {
-        _searchText = _searchController.text;
-      });
     });
   }
 
@@ -65,7 +58,7 @@ class _PatientListPageState extends State<PatientListPage> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: context.theme.appBar,
+        backgroundColor: context.theme.primary,
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: context.theme.white),
@@ -79,6 +72,9 @@ class _PatientListPageState extends State<PatientListPage> {
                   : Icons.history_toggle_off,
               color: context.theme.white,
             ),
+            tooltip: patientVm.includeDeleted
+                ? 'Hide deleted'
+                : 'Show deleted history',
             onPressed: () {
               patientVm.toggleIncludeDeleted();
             },
@@ -88,7 +84,7 @@ class _PatientListPageState extends State<PatientListPage> {
       backgroundColor: context.theme.bg,
       body: Column(
         children: [
-          _buildSearchBar(),
+          _buildSearchBar(patientVm),
           if (patientVm.isOffline) _buildOfflineBanner(context),
           Expanded(
             child: RefreshIndicator(
@@ -118,50 +114,58 @@ class _PatientListPageState extends State<PatientListPage> {
         },
         backgroundColor: patientVm.isOffline
             ? context.theme.grey
-            : context.theme.blue,
-        child: const Icon(Icons.add),
+            : context.theme.primary,
+        child: const Icon(Icons.add_outlined),
       ),
     );
   }
 
-  Widget _buildSearchBar() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
+  Widget _buildSearchBar(PatientVm vm) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+      decoration: BoxDecoration(
+        color: context.theme.card,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: TextField(
         controller: _searchController,
+        onChanged: (value) => vm.setSearch(value),
         style: TextStyle(color: context.theme.textColor),
         decoration: InputDecoration(
           hintText: AppLocalizations.of(
             context,
           ).translate('search_patient_hint'),
-          hintStyle: TextStyle(
-            color: context.theme.mutedForeground.withOpacity(0.7),
-          ),
+          hintStyle: TextStyle(color: context.theme.mutedForeground),
           prefixIcon: Icon(
-            Icons.search,
+            Icons.search_rounded,
             color: context.theme.primary,
-            size: 20,
+            size: 24,
           ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide.none,
           ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(
-              color: context.theme.border.withOpacity(0.5),
-            ),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: context.theme.primary, width: 1.5),
-          ),
           filled: true,
-          fillColor: context.theme.input,
+          fillColor: context.theme.input.withOpacity(0.5),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,
-            vertical: 12,
+            vertical: 14,
           ),
+          suffixIcon: _searchController.text.isNotEmpty
+              ? IconButton(
+                  icon: Icon(Icons.clear, color: context.theme.grey),
+                  onPressed: () {
+                    _searchController.clear();
+                    vm.setSearch('');
+                  },
+                )
+              : null,
         ),
       ),
     );
@@ -170,39 +174,69 @@ class _PatientListPageState extends State<PatientListPage> {
   Widget _buildOfflineBanner(BuildContext context) {
     return Container(
       width: double.infinity,
-      color: context.theme.grey.withOpacity(0.3),
-      padding: const EdgeInsets.all(8),
-      child: Text(
-        AppLocalizations.of(context).translate('offline_banner'),
-        textAlign: TextAlign.center,
-        style: TextStyle(color: context.theme.bg, fontWeight: FontWeight.w500),
+      color: Colors.amber.shade100,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.wifi_off_rounded, size: 16, color: Colors.amber.shade900),
+          const SizedBox(width: 8),
+          Text(
+            AppLocalizations.of(context).translate('offline_banner'),
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.amber.shade900,
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildPatientList(PatientVm patientVm) {
-    final displayedPatients = patientVm.patients.where((patient) {
-      final query = _searchText.toLowerCase();
-      return patient.fullName.toLowerCase().contains(query) ||
-          (patient.email?.toLowerCase().contains(query) ?? false) ||
-          (patient.phone?.contains(query) ?? false);
-    }).toList();
-
-    if (displayedPatients.isEmpty && !patientVm.isLoading) {
+    if (patientVm.patients.isEmpty && !patientVm.isLoading) {
       return Center(
-        child: Text(
-          AppLocalizations.of(context).translate('no_patients_found'),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.person_search_rounded,
+              size: 64,
+              color: context.theme.grey.withOpacity(0.5),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              AppLocalizations.of(context).translate('no_patients_found'),
+              style: TextStyle(
+                color: context.theme.mutedForeground,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ),
       );
     }
     return ListView.builder(
       controller: _scrollController,
-      itemCount: displayedPatients.length + (patientVm.isLoadingMore ? 1 : 0),
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      itemCount: patientVm.patients.length + (patientVm.isLoadingMore ? 1 : 0),
       itemBuilder: (context, index) {
-        if (index == displayedPatients.length) {
-          return const Center(child: CircularProgressIndicator());
+        if (index == patientVm.patients.length) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(16.0),
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2.5),
+              ),
+            ),
+          );
         }
-        final patient = displayedPatients[index];
+        final patient = patientVm.patients[index];
         bool isDeleted = patient.deletedAt != null;
         return AnimationConfiguration.staggeredList(
           position: index,
@@ -210,72 +244,67 @@ class _PatientListPageState extends State<PatientListPage> {
           child: SlideAnimation(
             verticalOffset: 50.0,
             child: FadeInAnimation(
-              child: Slidable(
-                key: ValueKey(patient.id),
-                endActionPane: ActionPane(
-                  motion: const ScrollMotion(),
-                  children: [
-                    SlidableAction(
-                      onPressed: (context) {
-                        if (patientVm.isOffline) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                AppLocalizations.of(
-                                  context,
-                                ).translate('offline_edit_error'),
-                              ),
-                            ),
-                          );
-                          return;
-                        }
-                        Navigator.pushNamed(
-                          context,
-                          Routes.updatePatient,
-                          arguments: patient,
-                        );
-                      },
-                      backgroundColor: context.theme.green,
-                      foregroundColor: Colors.white,
-                      icon: Icons.edit,
-                      label: AppLocalizations.of(context).translate('edit'),
-                    ),
-                    SlidableAction(
-                      onPressed: (context) {
-                        if (patientVm.isOffline) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                AppLocalizations.of(
-                                  context,
-                                ).translate('offline_delete_error'),
-                              ),
-                            ),
-                          );
-                          return;
-                        }
-                        if (isDeleted) {
-                          patientVm.restorePatient(patient.id);
-                        } else {
-                          showDialog(
-                            context: context,
-                            builder: (_) =>
-                                PatientDeleteConfirmDialog(patient: patient),
-                          );
-                        }
-                      },
-                      backgroundColor: isDeleted
-                          ? context.theme.blue
-                          : context.theme.red,
-                      foregroundColor: Colors.white,
-                      icon: isDeleted ? Icons.restore : Icons.delete,
-                      label: isDeleted
-                          ? AppLocalizations.of(context).translate('restore')
-                          : AppLocalizations.of(context).translate('delete'),
-                    ),
-                  ],
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 6,
                 ),
-                child: _buildPatientTile(patient, isDeleted, patientVm),
+                child: Slidable(
+                  key: ValueKey(patient.id),
+                  enabled: !patientVm.isOffline,
+                  endActionPane: ActionPane(
+                    motion: const ScrollMotion(),
+                    extentRatio: isDeleted ? 0.25 : 0.5,
+                    children: [
+                      if (!isDeleted)
+                        SlidableAction(
+                          onPressed: (context) {
+                            Navigator.pushNamed(
+                              context,
+                              Routes.updatePatient,
+                              arguments: patient,
+                            );
+                          },
+                          backgroundColor: context.theme.blue,
+                          foregroundColor: Colors.white,
+                          icon: Icons.edit_rounded,
+                          label: AppLocalizations.of(context).translate('edit'),
+                          borderRadius: const BorderRadius.horizontal(
+                            left: Radius.circular(12),
+                          ),
+                        ),
+                      SlidableAction(
+                        onPressed: (context) {
+                          if (isDeleted) {
+                            patientVm.restorePatient(patient.id);
+                          } else {
+                            showDialog(
+                              context: context,
+                              builder: (_) =>
+                                  PatientDeleteConfirmDialog(patient: patient),
+                            );
+                          }
+                        },
+                        backgroundColor: isDeleted
+                            ? context.theme.green
+                            : context.theme.red,
+                        foregroundColor: Colors.white,
+                        icon: isDeleted
+                            ? Icons.restore_from_trash_rounded
+                            : Icons.delete_outline_rounded,
+                        label: isDeleted
+                            ? AppLocalizations.of(context).translate('restore')
+                            : AppLocalizations.of(context).translate('delete'),
+                        borderRadius: isDeleted
+                            ? BorderRadius.circular(12)
+                            : const BorderRadius.horizontal(
+                                right: Radius.circular(12),
+                              ),
+                      ),
+                    ],
+                  ),
+                  child: _buildPatientTile(patient, isDeleted, patientVm),
+                ),
               ),
             ),
           ),
@@ -289,101 +318,184 @@ class _PatientListPageState extends State<PatientListPage> {
     bool isDeleted,
     PatientVm patientVm,
   ) {
-    final titleStyle = TextStyle(
-      fontWeight: FontWeight.bold,
-      fontSize: 16,
-      color: isDeleted ? context.theme.grey : null,
-      decoration: isDeleted ? TextDecoration.lineThrough : TextDecoration.none,
-    );
+    Color genderColor;
+    IconData genderIcon;
 
-    IconData genderIcon = Icons.person;
-    Color genderColor = context.theme.grey;
-    if (patient.isMale != null) {
-      if (patient.isMale!) {
-        genderIcon = Icons.male;
-        genderColor = context.theme.blue;
-      } else {
-        genderIcon = Icons.female;
-        genderColor = Colors.pink;
-      }
+    // Male: true, Female: false, Other/Null: null
+    if (patient.isMale == true) {
+      genderColor = Colors.blue.shade600;
+      genderIcon = Icons.male;
+    } else if (patient.isMale == false) {
+      genderColor = Colors.pink.shade400;
+      genderIcon = Icons.female;
+    } else {
+      genderColor = Colors.grey.shade600;
+      genderIcon = Icons.person_outline;
     }
 
-    return GestureDetector(
-      onTap: () {
-        if (patientVm.isOffline) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                AppLocalizations.of(context).translate('offline_edit_error'),
+    // Calculate Age
+    String ageText = '';
+    if (patient.dateOfBirth != null) {
+      final age = DateTime.now().year - patient.dateOfBirth!.year;
+      ageText = '$age';
+    }
+
+    return Card(
+      margin: EdgeInsets.zero,
+      elevation: 0,
+      color: isDeleted
+          ? context.theme.muted.withOpacity(0.05)
+          : context.theme.card,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: context.theme.border.withOpacity(0.4),
+          width: 1,
+        ),
+      ),
+      child: InkWell(
+        onTap: () {
+          if (patientVm.isOffline) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  AppLocalizations.of(context).translate('offline_edit_error'),
+                ),
               ),
-            ),
+            );
+            return;
+          }
+          Navigator.pushNamed(
+            context,
+            Routes.updatePatient,
+            arguments: patient,
           );
-          return;
-        }
-        Navigator.pushNamed(context, Routes.updatePatient, arguments: patient);
-      },
-      child: Card(
-        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        elevation: 2,
-        shadowColor: context.theme.border.withOpacity(0.1),
-        color: isDeleted
-            ? context.theme.muted.withOpacity(0.1)
-            : context.theme.card,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        child: ListTile(
-          contentPadding: const EdgeInsets.symmetric(
-            vertical: 10,
-            horizontal: 16,
-          ),
-          leading: CircleAvatar(
-            backgroundColor: genderColor.withOpacity(0.1),
-            child: Icon(genderIcon, color: genderColor),
-          ),
-          title: Text(patient.fullName, style: titleStyle),
-          subtitle: Column(
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 4),
-              if (patient.email != null)
-                _buildInfoRow(
-                  context,
-                  Icons.email_outlined,
-                  patient.email!,
-                  isDeleted,
+              // Avatar Section
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: genderColor.withOpacity(0.1),
+                  shape: BoxShape.circle,
                 ),
-              if (patient.phone != null)
-                _buildInfoRow(
-                  context,
-                  Icons.phone_outlined,
-                  patient.phone!,
-                  isDeleted,
+                child: Center(
+                  child: Icon(genderIcon, color: genderColor, size: 28),
                 ),
-              if (patient.dateOfBirth != null)
-                _buildInfoRow(
-                  context,
-                  Icons.cake_outlined,
-                  DateFormat('dd/MM/yyyy').format(patient.dateOfBirth!),
-                  isDeleted,
-                ),
-              if (isDeleted)
-                Padding(
-                  padding: const EdgeInsets.only(top: 4.0),
-                  child: Chip(
-                    label: Text(
-                      AppLocalizations.of(context).translate('deleted'),
+              ),
+              const SizedBox(width: 16),
+
+              // Info Section
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            patient.fullName,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: isDeleted
+                                  ? context.theme.mutedForeground
+                                  : context.theme.textColor,
+                              decoration: isDeleted
+                                  ? TextDecoration.lineThrough
+                                  : null,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (ageText.isNotEmpty)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: context.theme.grey.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              "$ageText ${AppLocalizations.of(context).translate('years_old_suffix')}", // Fallback if trans missing
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: context.theme.grey,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
-                    backgroundColor: context.theme.grey.withOpacity(0.2),
-                    labelStyle: TextStyle(
-                      fontSize: 10,
-                      color: context.theme.grey,
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 4,
-                      vertical: 0,
-                    ),
-                    visualDensity: VisualDensity.compact,
-                  ),
+                    const SizedBox(height: 6),
+
+                    if (patient.phone != null && patient.phone!.isNotEmpty)
+                      _buildInfoRow(
+                        context,
+                        Icons.phone_rounded,
+                        patient.phone!,
+                        isDeleted,
+                      ),
+                    const SizedBox(height: 4),
+                    if (patient.addressLine != null || patient.district != null)
+                      _buildInfoRow(
+                        context,
+                        Icons.location_on_rounded,
+                        [
+                          patient.addressLine,
+                          patient.district,
+                          patient.province,
+                        ].where((e) => e != null && e.isNotEmpty).join(', '),
+                        isDeleted,
+                      ),
+
+                    if (isDeleted)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: context.theme.red.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.delete_forever,
+                                size: 12,
+                                color: context.theme.red,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                AppLocalizations.of(
+                                  context,
+                                ).translate('deleted'),
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: context.theme.red,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
+              ),
             ],
           ),
         ),
@@ -397,63 +509,48 @@ class _PatientListPageState extends State<PatientListPage> {
     String text,
     bool isDeleted,
   ) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 2.0),
-      child: Row(
-        children: [
-          Icon(icon, size: 14, color: context.theme.grey),
-          const SizedBox(width: 6),
-          Expanded(
-            child: Text(
-              text,
-              style: TextStyle(
-                color: context.theme.grey,
-                fontSize: 12,
-                decoration: isDeleted
-                    ? TextDecoration.lineThrough
-                    : TextDecoration.none,
-              ),
-              overflow: TextOverflow.ellipsis,
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Icon(
+          icon,
+          size: 14,
+          color: context.theme.mutedForeground.withOpacity(0.7),
+        ),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              color: context.theme.mutedForeground,
+              fontSize: 13,
+              decoration: isDeleted
+                  ? TextDecoration.lineThrough
+                  : TextDecoration.none,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   Widget _buildShimmerLoading() {
     return Shimmer.fromColors(
-      baseColor: context.theme.grey.withOpacity(0.3),
-      highlightColor: context.theme.grey.withOpacity(0.1),
+      baseColor: context.theme.grey.withOpacity(0.1),
+      highlightColor: context.theme.grey.withOpacity(0.05),
       child: ListView.builder(
-        itemCount: 8,
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        itemCount: 6,
         itemBuilder: (context, index) {
-          return Card(
-            margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: ListTile(
-              contentPadding: const EdgeInsets.symmetric(
-                vertical: 10,
-                horizontal: 16,
-              ),
-              leading: const CircleAvatar(backgroundColor: Colors.white),
-              title: Container(width: 150, height: 16, color: Colors.white),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 8),
-                  Container(
-                    width: double.infinity,
-                    height: 12,
-                    color: Colors.white,
-                  ),
-                  const SizedBox(height: 4),
-                  Container(width: 200, height: 12, color: Colors.white),
-                  const SizedBox(height: 4),
-                  Container(width: 100, height: 12, color: Colors.white),
-                ],
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            child: Container(
+              height: 90,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
               ),
             ),
           );

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -26,6 +27,25 @@ class PatientVm extends ChangeNotifier {
   bool _includeDeleted = false;
   bool get includeDeleted => _includeDeleted;
 
+  String _searchQuery = '';
+  Timer? _debounce;
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  void setSearch(String query) {
+    if (_searchQuery == query) return;
+    _searchQuery = query;
+
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      loadPatients(isRefresh: true);
+    });
+  }
+
   Future<void> loadPatients({bool isRefresh = false}) async {
     if (isLoading || (_isLoadingMore && !isRefresh)) return;
 
@@ -52,6 +72,7 @@ class PatientVm extends ChangeNotifier {
         page: _page,
         limit: _limit,
         includedDeleted: _includeDeleted,
+        search: _searchQuery,
       );
 
       if (_isOffline) {
@@ -72,18 +93,35 @@ class PatientVm extends ChangeNotifier {
       patients.addAll(fetchedPatients);
       _page++;
 
-      if (!_includeDeleted && patients.isNotEmpty) {
+      // Only cache if we are not searching and not including deleted items
+      // to avoid overwriting the full list cache with partial search results
+      if (!_includeDeleted && _searchQuery.isEmpty && patients.isNotEmpty) {
         await _dbHelper.cachePatients(patients);
       }
     } catch (e) {
       if (e is DioException && e.error is SocketException) {
         _isOffline = true;
         print("Network error: Host lookup failed. App is offline.");
-        if ((isFirstLoad || isRefresh) && patients.isEmpty && !_includeDeleted) {
+        if ((isFirstLoad || isRefresh) &&
+            patients.isEmpty &&
+            !_includeDeleted) {
           print("Loading from cache due to offline status...");
           final cachedPatients = await _dbHelper.getCachedPatients();
           if (cachedPatients.isNotEmpty) {
-            patients = cachedPatients;
+            // If offline, we can attempt client-side filtering on cached data
+            if (_searchQuery.isNotEmpty) {
+              final query = _searchQuery.toLowerCase();
+              patients = cachedPatients
+                  .where(
+                    (p) =>
+                        p.fullName.toLowerCase().contains(query) ||
+                        (p.email?.toLowerCase().contains(query) ?? false) ||
+                        (p.phone?.contains(query) ?? false),
+                  )
+                  .toList();
+            } else {
+              patients = cachedPatients;
+            }
           }
         }
       } else {
@@ -110,16 +148,18 @@ class PatientVm extends ChangeNotifier {
     if (_isOffline) return false;
     final success = await _patientService.updatePatient(id, data);
     if (success) {
+      // If we are searching, reloading might lose the context if the edit changes the search match
+      // But generally safest to reload or update locally.
+      // For backend search, update local list is tricky if sort order changes.
+      // Re-fetching the single patient is safest.
       final updatedPatient = await _patientService.getPatientById(id);
       if (updatedPatient != null) {
         final index = patients.indexWhere((p) => p.id == id);
         if (index != -1) {
           patients[index] = updatedPatient;
-          if (!_includeDeleted) {
-            await _dbHelper.cachePatients(patients);
-          }
           notifyListeners();
         } else {
+          // If not in list (maybe newly matches search?), reload
           await loadPatients(isRefresh: true);
         }
       } else {
@@ -143,12 +183,13 @@ class PatientVm extends ChangeNotifier {
           } else {
             await loadPatients(isRefresh: true);
           }
-        } else {
-          await loadPatients(isRefresh: true);
         }
       } else {
         patients.removeWhere((p) => p.id == id);
-        await _dbHelper.cachePatients(patients);
+        // Only update cache if we are in 'default' view
+        if (_searchQuery.isEmpty && !_includeDeleted) {
+          await _dbHelper.cachePatients(patients);
+        }
         notifyListeners();
       }
     }
@@ -165,11 +206,12 @@ class PatientVm extends ChangeNotifier {
         if (updatedPatient != null) {
           patients[index] = updatedPatient;
           notifyListeners();
-        } else {
-          await loadPatients(isRefresh: true);
         }
-      } else {
-        await loadPatients(isRefresh: true);
+      }
+      // Reload to ensure list state is correct (e.g. if we are only showing deleted)
+      if (!_includeDeleted) {
+        patients.removeWhere((p) => p.id == id);
+        notifyListeners();
       }
     }
     return success;
@@ -178,7 +220,7 @@ class PatientVm extends ChangeNotifier {
   void toggleIncludeDeleted() {
     _includeDeleted = !_includeDeleted;
     if (_includeDeleted) {
-      _dbHelper.clearPatients();
+      _dbHelper.clearPatients(); // Don't cache deleted view
     }
     loadPatients(isRefresh: true);
   }
