@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pbl6mobile/model/entities/doctor.dart';
 import 'package:pbl6mobile/model/entities/specialty.dart';
 import 'package:pbl6mobile/model/entities/work_location.dart';
+import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/view_model/admin_management/doctor_management_vm.dart';
 import 'package:pbl6mobile/view_model/location_work_management/location_work_vm.dart';
 import 'package:pbl6mobile/view_model/specialty/specialty_vm.dart';
@@ -50,19 +51,23 @@ class _AppointmentFilterDialogState extends State<AppointmentFilterDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.theme;
     return AlertDialog(
+      backgroundColor: theme.card,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Text(
         AppLocalizations.of(context).translate('appointment_filter_title'),
+        style: TextStyle(color: theme.textColor, fontWeight: FontWeight.bold),
       ),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _buildDoctorDropdown(),
+            _buildDoctorDropdown(theme),
             const SizedBox(height: 16),
-            _buildLocationDropdown(),
+            _buildLocationDropdown(theme),
             const SizedBox(height: 16),
-            _buildSpecialtyDropdown(),
+            _buildSpecialtyDropdown(theme),
           ],
         ),
       ),
@@ -77,13 +82,26 @@ class _AppointmentFilterDialogState extends State<AppointmentFilterDialog> {
               _selectedSpecialtyId = null;
             });
           },
-          child: Text(AppLocalizations.of(context).translate('reset')),
+          child: Text(
+            AppLocalizations.of(context).translate('reset'),
+            style: TextStyle(color: theme.mutedForeground),
+          ),
         ),
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text(AppLocalizations.of(context).translate('cancel')),
+          child: Text(
+            AppLocalizations.of(context).translate('cancel'),
+            style: TextStyle(color: theme.mutedForeground),
+          ),
         ),
         FilledButton(
+          style: FilledButton.styleFrom(
+            backgroundColor: theme.primary,
+            foregroundColor: theme.primaryForeground,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
           onPressed: () {
             Navigator.pop(context, {
               'doctorId': _selectedDoctorId,
@@ -97,7 +115,7 @@ class _AppointmentFilterDialogState extends State<AppointmentFilterDialog> {
     );
   }
 
-  Widget _buildDoctorDropdown() {
+  Widget _buildDoctorDropdown(CustomThemeExtension theme) {
     if (widget.isDoctor) {
       if (_selectedDoctorId == null) {
         // If it's a doctor but no ID is selected (shouldn't happen if initialized correctly), show loading
@@ -138,7 +156,7 @@ class _AppointmentFilterDialogState extends State<AppointmentFilterDialog> {
                   ),
                   child: Text(
                     snapshot.data ?? 'Loading...',
-                    style: TextStyle(color: Theme.of(context).disabledColor),
+                    style: TextStyle(color: theme.mutedForeground),
                   ),
                 ),
               );
@@ -188,7 +206,7 @@ class _AppointmentFilterDialogState extends State<AppointmentFilterDialog> {
     );
   }
 
-  Widget _buildLocationDropdown() {
+  Widget _buildLocationDropdown(CustomThemeExtension theme) {
     return Consumer<LocationWorkVm>(
       builder: (context, vm, child) {
         if (vm.activeLocations.isEmpty) {
@@ -229,7 +247,7 @@ class _AppointmentFilterDialogState extends State<AppointmentFilterDialog> {
     );
   }
 
-  Widget _buildSpecialtyDropdown() {
+  Widget _buildSpecialtyDropdown(CustomThemeExtension theme) {
     return Consumer<SpecialtyVm>(
       builder: (context, vm, child) {
         if (vm.isLoading && vm.specialties.isEmpty) {

@@ -125,212 +125,225 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
               slivers: [
                 _buildSliverAppBar(doctor, isOffline, context),
                 SliverToBoxAdapter(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildHeaderSection(doctor, isOffline, context),
-                      _buildInfoSection(
-                        context,
-                        title: AppLocalizations.of(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildHeaderSection(doctor, isOffline, context),
+                        const SizedBox(height: 16),
+                        _buildInfoSection(
                           context,
-                        ).translate('account_info'),
-                        icon: Icons.person_pin_rounded,
-                        onEdit: () => _editAccount(doctor),
-                        isOffline: isOffline,
-                        editKey: const ValueKey('profile_doctor_edit_button'),
-                        children: [
-                          _buildInfoRow(
-                            Icons.email,
-                            AppLocalizations.of(
-                              context,
-                            ).translate('email_label'),
-                            doctor.email,
+                          title: AppLocalizations.of(
                             context,
-                          ),
-                          _buildInfoRow(
-                            Icons.phone,
-                            AppLocalizations.of(
-                              context,
-                            ).translate('phone_label'),
-                            doctor.phone ??
-                                AppLocalizations.of(
-                                  context,
-                                ).translate('not_updated'),
-                            context,
-                          ),
-                          _buildInfoRow(
-                            Icons.cake,
-                            AppLocalizations.of(context).translate('dob_label'),
-                            doctor.dateOfBirth != null
-                                ? DateFormat(
-                                    'dd/MM/yyyy',
-                                  ).format(doctor.dateOfBirth!)
-                                : AppLocalizations.of(
-                                    context,
-                                  ).translate('not_updated'),
-                            context,
-                          ),
-                          _buildInfoRow(
-                            Icons.person,
-                            AppLocalizations.of(
-                              context,
-                            ).translate('gender_label'),
-                            (doctor.isMale
-                                ? AppLocalizations.of(context).translate('male')
-                                : AppLocalizations.of(
-                                    context,
-                                  ).translate('female')),
-                            context,
-                          ),
-                        ],
-                      ),
-                      _buildInfoSection(
-                        context,
-                        title: AppLocalizations.of(
-                          context,
-                        ).translate('professional_profile'),
-                        icon: Icons.medical_information,
-                        onEdit: () => _editProfile(doctor),
-                        isOffline: isOffline,
-                        children: [
-                          if (doctor.specialties.isNotEmpty)
-                            _buildTitledChipList(
+                          ).translate('account_info'),
+                          icon: Icons.person_pin_rounded,
+                          onEdit: () => _editAccount(doctor),
+                          isOffline: isOffline,
+                          editKey: const ValueKey('profile_doctor_edit_button'),
+                          children: [
+                            _buildInfoRow(
+                              Icons.email,
                               AppLocalizations.of(
                                 context,
-                              ).translate('specialty_label'),
-                              doctor.specialties.map((e) => e.name).toList(),
+                              ).translate('email_label'),
+                              doctor.email,
                               context,
                             ),
-                          if (doctor.workLocations.isNotEmpty)
-                            _buildTitledChipList(
+                            _buildInfoRow(
+                              Icons.phone,
                               AppLocalizations.of(
                                 context,
-                              ).translate('work_location_label'),
-                              doctor.workLocations.map((e) => e.name).toList(),
-                              context,
-                            ),
-                          _buildExpansionListSection(
-                            AppLocalizations.of(
-                              context,
-                            ).translate('position_label'),
-                            doctor.position,
-                            context,
-                          ),
-                          _buildExpansionListSection(
-                            AppLocalizations.of(
-                              context,
-                            ).translate('experience_label'),
-                            doctor.experience,
-                            context,
-                          ),
-                          _buildExpansionListSection(
-                            AppLocalizations.of(
-                              context,
-                            ).translate('training_label'),
-                            doctor.trainingProcess,
-                            context,
-                          ),
-                          _buildExpansionListSection(
-                            AppLocalizations.of(
-                              context,
-                            ).translate('awards_label'),
-                            doctor.awards,
-                            context,
-                          ),
-                          _buildExpansionListSection(
-                            AppLocalizations.of(
-                              context,
-                            ).translate('membership_label'),
-                            doctor.memberships,
-                            context,
-                          ),
-                          if (doctor.introduction != null &&
-                              doctor.introduction!.isNotEmpty)
-                            _buildExpansionHtmlSection(
-                              AppLocalizations.of(
-                                context,
-                              ).translate('introduction_label'),
-                              doctor.introduction!,
-                              context,
-                            ),
-                          if (doctor.research != null &&
-                              doctor.research!.isNotEmpty)
-                            _buildExpansionHtmlSection(
-                              AppLocalizations.of(
-                                context,
-                              ).translate('research_label'),
-                              doctor.research!,
-                              context,
-                            ),
-                        ],
-                      ),
-                      _buildInfoSection(
-                        context,
-                        title: AppLocalizations.of(
-                          context,
-                        ).translate('patient_reviews'),
-                        icon: Icons.reviews_outlined,
-                        isOffline: isOffline,
-                        children: [
-                          if (isLoadingReviews && reviews.isEmpty)
-                            const Center(
-                              child: Padding(
-                                padding: EdgeInsets.all(16.0),
-                                child: CircularProgressIndicator(),
-                              ),
-                            )
-                          else if (reviews.isEmpty)
-                            Center(
-                              child: Padding(
-                                padding: const EdgeInsets.all(16.0),
-                                child: Text(
+                              ).translate('phone_label'),
+                              doctor.phone ??
                                   AppLocalizations.of(
                                     context,
-                                  ).translate('no_reviews_yet'),
-                                ),
+                                  ).translate('not_updated'),
+                              context,
+                            ),
+                            _buildInfoRow(
+                              Icons.cake,
+                              AppLocalizations.of(
+                                context,
+                              ).translate('dob_label'),
+                              doctor.dateOfBirth != null
+                                  ? DateFormat(
+                                      'dd/MM/yyyy',
+                                    ).format(doctor.dateOfBirth!)
+                                  : AppLocalizations.of(
+                                      context,
+                                    ).translate('not_updated'),
+                              context,
+                            ),
+                            _buildInfoRow(
+                              Icons.person,
+                              AppLocalizations.of(
+                                context,
+                              ).translate('gender_label'),
+                              (doctor.isMale
+                                  ? AppLocalizations.of(
+                                      context,
+                                    ).translate('male')
+                                  : AppLocalizations.of(
+                                      context,
+                                    ).translate('female')),
+                              context,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        _buildInfoSection(
+                          context,
+                          title: AppLocalizations.of(
+                            context,
+                          ).translate('professional_profile'),
+                          icon: Icons.medical_information,
+                          onEdit: () => _editProfile(doctor),
+                          isOffline: isOffline,
+                          children: [
+                            if (doctor.specialties.isNotEmpty)
+                              _buildTitledChipList(
+                                AppLocalizations.of(
+                                  context,
+                                ).translate('specialty_label'),
+                                doctor.specialties.map((e) => e.name).toList(),
+                                context,
                               ),
-                            )
-                          else
-                            Column(
-                              children: [
-                                ListView.builder(
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  itemCount: reviews.length,
-                                  itemBuilder: (ctx, index) {
-                                    final review = reviews[index];
-                                    return _buildReviewCard(context, review);
-                                  },
+                            if (doctor.workLocations.isNotEmpty)
+                              _buildTitledChipList(
+                                AppLocalizations.of(
+                                  context,
+                                ).translate('work_location_label'),
+                                doctor.workLocations
+                                    .map((e) => e.name)
+                                    .toList(),
+                                context,
+                              ),
+                            _buildExpansionListSection(
+                              AppLocalizations.of(
+                                context,
+                              ).translate('position_label'),
+                              doctor.position,
+                              context,
+                            ),
+                            _buildExpansionListSection(
+                              AppLocalizations.of(
+                                context,
+                              ).translate('experience_label'),
+                              doctor.experience,
+                              context,
+                            ),
+                            _buildExpansionListSection(
+                              AppLocalizations.of(
+                                context,
+                              ).translate('training_label'),
+                              doctor.trainingProcess,
+                              context,
+                            ),
+                            _buildExpansionListSection(
+                              AppLocalizations.of(
+                                context,
+                              ).translate('awards_label'),
+                              doctor.awards,
+                              context,
+                            ),
+                            _buildExpansionListSection(
+                              AppLocalizations.of(
+                                context,
+                              ).translate('membership_label'),
+                              doctor.memberships,
+                              context,
+                            ),
+                            if (doctor.introduction != null &&
+                                doctor.introduction!.isNotEmpty)
+                              _buildExpansionHtmlSection(
+                                AppLocalizations.of(
+                                  context,
+                                ).translate('introduction_label'),
+                                doctor.introduction!,
+                                context,
+                              ),
+                            if (doctor.research != null &&
+                                doctor.research!.isNotEmpty)
+                              _buildExpansionHtmlSection(
+                                AppLocalizations.of(
+                                  context,
+                                ).translate('research_label'),
+                                doctor.research!,
+                                context,
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        _buildInfoSection(
+                          context,
+                          title: AppLocalizations.of(
+                            context,
+                          ).translate('patient_reviews'),
+                          icon: Icons.reviews_outlined,
+                          isOffline: isOffline,
+                          children: [
+                            if (isLoadingReviews && reviews.isEmpty)
+                              const Center(
+                                child: Padding(
+                                  padding: EdgeInsets.all(16.0),
+                                  child: CircularProgressIndicator(),
                                 ),
-                                const Divider(height: 1),
-                                Center(
-                                  child: TextButton(
-                                    child: Text(
-                                      AppLocalizations.of(
-                                        context,
-                                      ).translate('view_all_reviews'),
-                                      style: TextStyle(
-                                        color: context.theme.primary,
-                                      ),
-                                    ),
-                                    onPressed: () {
-                                      Navigator.pushNamed(
-                                        context,
-                                        Routes.doctorReviewPage,
-                                        arguments: {
-                                          'doctorId': doctor.profileId,
-                                          'doctorName': doctor.fullName,
-                                        },
-                                      );
-                                    },
+                              )
+                            else if (reviews.isEmpty)
+                              Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: Text(
+                                    AppLocalizations.of(
+                                      context,
+                                    ).translate('no_reviews_yet'),
                                   ),
                                 ),
-                              ],
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 80),
-                    ],
+                              )
+                            else
+                              Column(
+                                children: [
+                                  ListView.builder(
+                                    shrinkWrap: true,
+                                    physics:
+                                        const NeverScrollableScrollPhysics(),
+                                    itemCount: reviews.length,
+                                    itemBuilder: (ctx, index) {
+                                      final review = reviews[index];
+                                      return _buildReviewCard(context, review);
+                                    },
+                                  ),
+                                  const Divider(height: 1),
+                                  Center(
+                                    child: TextButton(
+                                      child: Text(
+                                        AppLocalizations.of(
+                                          context,
+                                        ).translate('view_all_reviews'),
+                                        style: TextStyle(
+                                          color: context.theme.primary,
+                                        ),
+                                      ),
+                                      onPressed: () {
+                                        Navigator.pushNamed(
+                                          context,
+                                          Routes.doctorReviewPage,
+                                          arguments: {
+                                            'doctorId': doctor.id,
+                                            'doctorName': doctor.fullName,
+                                          },
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 80),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -339,79 +352,78 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
   }
 
   Widget _buildReviewCard(BuildContext context, Review review) {
-    return Card(
-      elevation: 0,
-      color: context.theme.bg,
+    return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-        side: BorderSide(color: context.theme.border),
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: context.theme.bg,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: context.theme.border),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                CircleAvatar(
-                  radius: 16,
-                  backgroundColor: context.theme.primary.withOpacity(0.1),
-                  child: Text(
-                    review.authorName.isNotEmpty
-                        ? review.authorName[0].toUpperCase()
-                        : 'P',
-                    style: TextStyle(
-                      color: context.theme.primary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        review.authorName,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      _StarRating(
-                        rating: review.rating,
-                        color: context.theme.yellow,
-                        size: 18,
-                      ),
-                    ],
-                  ),
-                ),
-                Text(
-                  DateFormat('dd/MM/yyyy').format(review.createdAt.toLocal()),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              CircleAvatar(
+                radius: 18,
+                backgroundColor: context.theme.primary.withOpacity(0.1),
+                child: Text(
+                  review.authorName.isNotEmpty
+                      ? review.authorName[0].toUpperCase()
+                      : 'P',
                   style: TextStyle(
-                    color: context.theme.mutedForeground,
-                    fontSize: 12,
+                    color: context.theme.primary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              review.title,
-              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              review.body,
-              style: TextStyle(
-                color: context.theme.mutedForeground,
-                fontSize: 14,
               ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      review.authorName,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    _StarRating(
+                      rating: review.rating,
+                      color: context.theme.yellow,
+                      size: 16,
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                DateFormat('dd/MM/yyyy').format(review.createdAt.toLocal()),
+                style: TextStyle(
+                  color: context.theme.mutedForeground,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            review.title,
+            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            review.body,
+            style: TextStyle(
+              color: context.theme.mutedForeground,
+              fontSize: 14,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -491,18 +503,16 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
         Uri.tryParse(url)?.hasAbsolutePath == true;
 
     return Container(
-      padding: const EdgeInsets.all(16.0),
+      width: double.infinity,
+      padding: const EdgeInsets.all(24.0),
       decoration: BoxDecoration(
         color: context.theme.card,
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(20),
-          bottomRight: Radius.circular(20),
-        ),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: context.theme.popover.withOpacity(0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
-            offset: const Offset(0, 5),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -513,12 +523,25 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
             children: [
               Hero(
                 tag: 'avatar_${doctor.id}',
-                child: CircleAvatar(
-                  radius: 40,
-                  backgroundColor: context.theme.primary.withOpacity(0.1),
-                  backgroundImage: isValidUrl(doctor.avatarUrl)
-                      ? CachedNetworkImageProvider(doctor.avatarUrl!)
-                      : null,
+                child: Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: context.theme.primary.withOpacity(0.2),
+                      width: 3,
+                    ),
+                    image: isValidUrl(doctor.avatarUrl)
+                        ? DecorationImage(
+                            image: CachedNetworkImageProvider(
+                              doctor.avatarUrl!,
+                            ),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
+                  ),
+                  alignment: Alignment.center,
                   child: !isValidUrl(doctor.avatarUrl)
                       ? Text(
                           doctor.fullName.isNotEmpty
@@ -533,7 +556,7 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                       : null,
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 20),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -552,16 +575,26 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      doctor.degree ??
-                          AppLocalizations.of(
-                            context,
-                          ).translate('no_degree_info'),
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: context.theme.primary,
-                        fontWeight: FontWeight.w500,
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: context.theme.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        doctor.degree ??
+                            AppLocalizations.of(
+                              context,
+                            ).translate('no_degree_info'),
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: context.theme.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -586,14 +619,32 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
     bool isOffline = false,
     ValueKey? editKey,
   }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: context.theme.card,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, color: context.theme.primary, size: 22),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: context.theme.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, color: context.theme.primary, size: 20),
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
@@ -605,21 +656,23 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                 ),
               ),
               if (!isOffline && onEdit != null)
-                IconButton(
+                InkWell(
                   key: editKey,
-                  icon: Icon(
-                    Icons.edit_outlined,
-                    color: context.theme.primary,
-                    size: 20,
+                  onTap: onEdit,
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    child: Icon(
+                      Icons.edit_outlined,
+                      color: context.theme.primary,
+                      size: 20,
+                    ),
                   ),
-                  onPressed: onEdit,
-                  tooltip: AppLocalizations.of(context).translate('edit'),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
                 ),
             ],
           ),
-          const Divider(height: 24),
+          const SizedBox(height: 16),
+          // const Divider(height: 24), // Removed divider for cleaner look
           ...children,
         ],
       ),

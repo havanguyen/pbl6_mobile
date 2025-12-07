@@ -180,9 +180,30 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
               decoration: InputDecoration(
                 hintText: AppLocalizations.of(context).translate('answer_hint'),
                 hintStyle: TextStyle(color: context.theme.mutedForeground),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: context.theme.input),
                 ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: context.theme.primary,
+                    width: 1.5,
+                  ),
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: context.theme.destructive),
+                ),
+                focusedErrorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: context.theme.destructive,
+                    width: 1.5,
+                  ),
+                ),
+                filled: true,
+                fillColor: context.theme.bg,
               ),
               style: TextStyle(color: context.theme.textColor),
               maxLines: 5,
@@ -196,7 +217,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
               onPressed: () => Navigator.pop(context),
               child: Text(
                 AppLocalizations.of(context).translate('cancel'),
-                style: TextStyle(color: context.theme.grey),
+                style: TextStyle(color: context.theme.mutedForeground),
               ),
             ),
             ElevatedButton(
@@ -265,9 +286,30 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
               decoration: InputDecoration(
                 hintText: AppLocalizations.of(context).translate('answer_hint'),
                 hintStyle: TextStyle(color: context.theme.mutedForeground),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: context.theme.input),
                 ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: context.theme.primary,
+                    width: 1.5,
+                  ),
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: context.theme.destructive),
+                ),
+                focusedErrorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: context.theme.destructive,
+                    width: 1.5,
+                  ),
+                ),
+                filled: true,
+                fillColor: context.theme.bg,
               ),
               style: TextStyle(color: context.theme.textColor),
               maxLines: 5,
@@ -281,7 +323,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
               onPressed: () => Navigator.pop(context),
               child: Text(
                 AppLocalizations.of(context).translate('cancel'),
-                style: TextStyle(color: context.theme.grey),
+                style: TextStyle(color: context.theme.mutedForeground),
               ),
             ),
             ElevatedButton(
@@ -338,6 +380,19 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
+            // Get unique specialties to avoid duplicate dropdown items
+            final uniqueSpecialties = <String, Specialty>{};
+            for (final specialty in vm.specialties) {
+              uniqueSpecialties[specialty.id] = specialty;
+            }
+            final specialtyList = uniqueSpecialties.values.toList();
+
+            // Validate selected specialty exists in items
+            final validSelectedSpecialtyId =
+                specialtyList.any((s) => s.id == selectedSpecialtyId)
+                ? selectedSpecialtyId
+                : null;
+
             return AlertDialog(
               backgroundColor: context.theme.card,
               title: Text(
@@ -357,7 +412,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                   ),
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
-                    value: selectedSpecialtyId,
+                    value: validSelectedSpecialtyId,
                     hint: Text(
                       AppLocalizations.of(
                         context,
@@ -381,7 +436,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                       ),
                     ),
                     dropdownColor: context.theme.popover,
-                    items: vm.specialties.map((Specialty specialty) {
+                    items: specialtyList.map((Specialty specialty) {
                       return DropdownMenuItem<String>(
                         value: specialty.id,
                         child: Text(
@@ -602,100 +657,143 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    question.title,
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: context.theme.textColor,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(top: 1.5),
-                        child: Icon(
-                          Icons.person_outline,
-                          size: 16,
-                          color: context.theme.mutedForeground,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          '${question.authorName} (${question.authorEmail})',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: context.theme.mutedForeground,
-                          ),
-                          softWrap: true,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.calendar_today_outlined,
-                        size: 16,
-                        color: context.theme.mutedForeground,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        DateFormat(
-                          'dd/MM/yyyy HH:mm',
-                        ).format(question.createdAt.toLocal()),
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: context.theme.mutedForeground,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 4,
-                    ),
+                    width: double.infinity,
                     decoration: BoxDecoration(
-                      color: context.theme.input,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: context.theme.border),
-                    ),
-                    child: Text(
-                      '${AppLocalizations.of(context).translate('status')}: ${_getLocalizedStatus(question.status)}',
-                      style: TextStyle(
-                        color: context.theme.primary,
-                        fontWeight: FontWeight.w500,
+                      color: context.theme.card,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: context.theme.input.withOpacity(0.5),
                       ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              width: 44,
+                              height: 44,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    context.theme.primary.withOpacity(0.2),
+                                    context.theme.primary.withOpacity(0.05),
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Text(
+                                question.authorName.isNotEmpty
+                                    ? question.authorName[0].toUpperCase()
+                                    : '?',
+                                style: TextStyle(
+                                  color: context.theme.primary,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    question.authorName,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: context.theme.textColor,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '${question.authorEmail} • ${DateFormat('dd/MM/yyyy HH:mm').format(question.createdAt.toLocal())}',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: context.theme.mutedForeground,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: context.theme.input,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: context.theme.border),
+                              ),
+                              child: Text(
+                                _getLocalizedStatus(question.status),
+                                style: TextStyle(
+                                  color: context.theme.primary,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          question.title,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: context.theme.textColor,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          question.body,
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: context.theme.textColor.withOpacity(0.9),
+                            height: 1.6,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    question.body,
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: context.theme.textColor.withOpacity(0.9),
-                      height: 1.5,
-                    ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Container(
+                        width: 4,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: context.theme.primary,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        '${AppLocalizations.of(context).translate('answers_title')} (${vm.currentAnswers.length})',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: context.theme.textColor,
+                        ),
+                      ),
+                    ],
                   ),
-                  const Divider(height: 32, thickness: 0.5),
-
-                  Text(
-                    '${AppLocalizations.of(context).translate('answers_title')} (${vm.currentAnswers.length})',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: context.theme.textColor,
-                    ),
-                  ),
-
                   if (vm.error != null && vm.error!.contains('câu trả lời'))
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 16.0),
@@ -704,8 +802,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                         style: TextStyle(color: context.theme.destructive),
                       ),
                     ),
-                  const SizedBox(height: 12),
-
+                  const SizedBox(height: 16),
                   _buildAnswersList(vm),
                 ],
               ),
@@ -808,141 +905,170 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
     final bool isDoctorRole = (_userRole == 'DOCTOR');
     final bool isOwner = (isDoctorRole && answer.authorId == _currentUserId);
 
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 6),
-      elevation: 1,
-      color: context.theme.card,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: context.theme.card,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
           color: isAccepted
-              ? context.theme.green.withOpacity(0.7)
-              : context.theme.border.withOpacity(0.5),
+              ? context.theme.green.withOpacity(0.5)
+              : context.theme.input.withOpacity(0.5),
           width: isAccepted ? 1.5 : 1,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: isAccepted
+                ? context.theme.green.withOpacity(0.1)
+                : Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (isAccepted)
-              Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: context.theme.green.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.check_circle,
-                      size: 14,
-                      color: context.theme.green,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      AppLocalizations.of(
-                        context,
-                      ).translate('status_approved').toUpperCase(),
-                      style: TextStyle(
-                        color: context.theme.green,
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-            Text(
-              answer.body,
-              style: TextStyle(
-                color: context.theme.textColor,
-                fontSize: 15,
-                height: 1.4,
-              ),
-            ),
-            const SizedBox(height: 8),
-
-            Text(
-              '${AppLocalizations.of(context).translate('doctor_id')}: ${answer.authorId}',
-              style: TextStyle(
-                color: context.theme.mutedForeground,
-                fontSize: 12,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
-              child: Divider(
-                height: 1,
-                color: context.theme.border.withOpacity(0.5),
-              ),
-            ),
-
             Row(
-              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                if (isAdminRole && !isAccepted)
-                  _buildAdminButton(
-                    icon: Icons.check_circle_outline,
-                    label: AppLocalizations.of(context).translate('approve'),
+                CircleAvatar(
+                  radius: 16,
+                  backgroundColor: isAccepted
+                      ? context.theme.green.withOpacity(0.1)
+                      : context.theme.primary.withOpacity(0.1),
+                  child: Icon(
+                    Icons.medical_services_outlined,
+                    size: 16,
+                    color: isAccepted
+                        ? context.theme.green
+                        : context.theme.primary,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${AppLocalizations.of(context).translate('doctor_id')}: ${answer.authorId}',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: context.theme.textColor,
+                        ),
+                      ),
+                      if (isAccepted)
+                        Text(
+                          AppLocalizations.of(
+                            context,
+                          ).translate('status_approved'),
+                          style: TextStyle(
+                            color: context.theme.green,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                if (isAccepted)
+                  Icon(
+                    Icons.check_circle_rounded,
                     color: context.theme.green,
-                    onPressed: () => _acceptAnswer(answer),
-                  ),
-                if (isAdminRole) const SizedBox(width: 8),
-
-                if (isAdminRole)
-                  _buildAdminButton(
-                    icon: Icons.delete_outline,
-                    label: AppLocalizations.of(context).translate('delete'),
-                    color: context.theme.destructive,
-                    onPressed: () => _showDeleteAnswerDialog(answer),
-                  ),
-
-                if (isOwner)
-                  _buildAdminButton(
-                    icon: Icons.edit_outlined,
-                    label: AppLocalizations.of(context).translate('edit'),
-                    color: context.theme.primary,
-                    onPressed: () => _showEditAnswerDialog(answer),
-                  ),
-
-                if (isOwner) const SizedBox(width: 8),
-
-                if (isOwner)
-                  _buildAdminButton(
-                    icon: Icons.delete_outline,
-                    label: AppLocalizations.of(context).translate('delete'),
-                    color: context.theme.destructive,
-                    onPressed: () => _showDeleteAnswerDialog(answer),
+                    size: 24,
                   ),
               ],
             ),
+            const SizedBox(height: 12),
+            Text(
+              answer.body,
+              style: TextStyle(
+                color: context.theme.textColor.withOpacity(0.9),
+                fontSize: 15,
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 16),
+            if (isAdminRole || isOwner)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  if (isAdminRole && !isAccepted)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: _buildActionButton(
+                        icon: Icons.check_circle_outline,
+                        label: AppLocalizations.of(
+                          context,
+                        ).translate('approve'),
+                        color: context.theme.white,
+                        backgroundColor: context.theme.green,
+                        onPressed: () => _acceptAnswer(answer),
+                      ),
+                    ),
+                  if (isOwner)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: _buildActionButton(
+                        icon: Icons.edit_outlined,
+                        label: AppLocalizations.of(context).translate('edit'),
+                        color: context.theme.white,
+                        backgroundColor: context.theme.primary,
+                        onPressed: () => _showEditAnswerDialog(answer),
+                      ),
+                    ),
+                  if (isAdminRole || isOwner)
+                    _buildActionButton(
+                      icon: Icons.delete_outline,
+                      label: AppLocalizations.of(context).translate('delete'),
+                      color: context.theme.destructive,
+                      backgroundColor: context.theme.destructive.withOpacity(
+                        0.1,
+                      ),
+                      onPressed: () => _showDeleteAnswerDialog(answer),
+                    ),
+                ],
+              ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildAdminButton({
+  Widget _buildActionButton({
     required IconData icon,
     required String label,
     required Color color,
+    required Color backgroundColor,
     required VoidCallback onPressed,
   }) {
-    return TextButton.icon(
-      style: TextButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        minimumSize: Size.zero,
+    return Material(
+      color: backgroundColor,
+      borderRadius: BorderRadius.circular(8),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 16, color: color),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  color: color,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
-      icon: Icon(icon, size: 18, color: color),
-      label: Text(label, style: TextStyle(color: color, fontSize: 13)),
-      onPressed: onPressed,
     );
   }
 }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pbl6mobile/model/entities/appointment_data.dart';
+import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 import 'package:pbl6mobile/view/appointment/widgets/appointment_action_dialogs.dart';
 import 'package:pbl6mobile/view_model/appointment/appointment_vm.dart';
 import 'package:provider/provider.dart';
@@ -17,77 +19,124 @@ class AppointmentDetailsSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final theme = context.theme;
     final DateFormat timeFormatter = DateFormat('HH:mm');
     final DateFormat dateFormatter = DateFormat('dd/MM/yyyy');
 
     return Container(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(20.0),
+      decoration: BoxDecoration(
+        color: theme.card,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Drag Handle
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 16),
+              decoration: BoxDecoration(
+                color: theme.muted,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
                 child: Text(
-                  'BN: ${appointment.patient.fullName}',
-                  style: theme.textTheme.headlineSmall?.copyWith(
+                  '${AppLocalizations.of(context).translate('patient')}: ${appointment.patient.fullName}',
+                  style: TextStyle(
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
+                    color: theme.textColor,
                   ),
                 ),
               ),
-              _buildStatusBadge(theme),
+              _buildStatusBadge(context, theme),
             ],
           ),
-          const Divider(height: 24),
+          Divider(height: 24, color: theme.border),
           _buildDetailRow(
+            context,
+            theme,
             Icons.person_outline,
-            'Bác sĩ:',
+            AppLocalizations.of(context).translate('doctor'),
             appointment.doctor.name ?? 'N/A',
           ),
           _buildDetailRow(
+            context,
+            theme,
             Icons.calendar_today_outlined,
-            'Ngày:',
+            AppLocalizations.of(context).translate('date_label'),
             dateFormatter.format(appointment.appointmentStartTime),
           ),
           _buildDetailRow(
+            context,
+            theme,
             Icons.access_time_outlined,
-            'Giờ:',
+            AppLocalizations.of(context).translate('time'),
             '${timeFormatter.format(appointment.appointmentStartTime)} - ${timeFormatter.format(appointment.appointmentEndTime)}',
           ),
           if (appointment.priceAmount != null)
             _buildDetailRow(
+              context,
+              theme,
               Icons.attach_money,
-              'Giá:',
+              AppLocalizations.of(context).translate('price'),
               '${NumberFormat('#,###').format(appointment.priceAmount)} ${appointment.currency ?? 'VND'}',
             ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Text(
-            'Lý do khám:',
-            style: theme.textTheme.titleMedium?.copyWith(
+            '${AppLocalizations.of(context).translate('reason')}:',
+            style: TextStyle(
               fontWeight: FontWeight.bold,
+              color: theme.textColor,
+              fontSize: 15,
             ),
           ),
-          Text(appointment.reason ?? 'Không có'),
+          const SizedBox(height: 4),
+          Text(
+            appointment.reason ??
+                AppLocalizations.of(context).translate('none'),
+            style: TextStyle(color: theme.mutedForeground),
+          ),
           if (appointment.notes != null && appointment.notes!.isNotEmpty) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             Text(
-              'Ghi chú:',
-              style: theme.textTheme.titleMedium?.copyWith(
+              '${AppLocalizations.of(context).translate('notes')}:',
+              style: TextStyle(
                 fontWeight: FontWeight.bold,
+                color: theme.textColor,
+                fontSize: 15,
               ),
             ),
-            Text(appointment.notes!),
+            const SizedBox(height: 4),
+            Text(
+              appointment.notes!,
+              style: TextStyle(color: theme.mutedForeground),
+            ),
           ],
           const SizedBox(height: 24),
-          _buildActionButtons(context),
+          _buildActionButtons(context, theme),
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
             child: OutlinedButton(
-              child: const Text('Đóng'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: theme.mutedForeground,
+                side: BorderSide(color: theme.border),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Text(AppLocalizations.of(context).translate('close')),
               onPressed: () => Navigator.pop(context),
             ),
           ),
@@ -97,35 +146,37 @@ class AppointmentDetailsSheet extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusBadge(ThemeData theme) {
+  Widget _buildStatusBadge(BuildContext context, CustomThemeExtension theme) {
     Color badgeColor;
     String statusText;
 
     switch (appointment.status) {
       case 'BOOKED':
-        badgeColor = Colors.blue;
-        statusText = 'Đã đặt';
+        badgeColor = theme.blue;
+        statusText = AppLocalizations.of(context).translate('status_booked');
         break;
       case 'CONFIRMED':
-        badgeColor = Colors.green;
-        statusText = 'Đã xác nhận';
+        badgeColor = theme.green;
+        statusText = AppLocalizations.of(context).translate('status_confirmed');
         break;
       case 'COMPLETED':
-        badgeColor = Colors.teal;
-        statusText = 'Hoàn thành';
+        badgeColor = theme.green;
+        statusText = AppLocalizations.of(context).translate('status_completed');
         break;
       case 'CANCELLED':
       case 'CANCELLED_BY_STAFF':
       case 'CANCELLED_BY_PATIENT':
-        badgeColor = Colors.red;
-        statusText = 'Đã hủy';
+        badgeColor = theme.destructive;
+        statusText = AppLocalizations.of(context).translate('status_cancelled');
         break;
       case 'RESCHEDULED':
-        badgeColor = Colors.orange;
-        statusText = 'Đã dời';
+        badgeColor = theme.yellow;
+        statusText = AppLocalizations.of(
+          context,
+        ).translate('status_rescheduled');
         break;
       default:
-        badgeColor = Colors.grey;
+        badgeColor = theme.mutedForeground;
         statusText = appointment.status;
     }
 
@@ -147,7 +198,7 @@ class AppointmentDetailsSheet extends StatelessWidget {
     );
   }
 
-  Widget _buildActionButtons(BuildContext context) {
+  Widget _buildActionButtons(BuildContext context, CustomThemeExtension theme) {
     final vm = context.watch<AppointmentVm>();
     final isLoading = vm.isActionLoading(appointment.id);
 
@@ -173,10 +224,13 @@ class AppointmentDetailsSheet extends StatelessWidget {
                     appointment,
                   ),
             icon: const Icon(Icons.check, size: 18),
-            label: const Text('Xác nhận'),
+            label: Text(AppLocalizations.of(context).translate('confirm')),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
-              foregroundColor: Colors.white,
+              backgroundColor: theme.green,
+              foregroundColor: theme.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
           ),
 
@@ -188,10 +242,13 @@ class AppointmentDetailsSheet extends StatelessWidget {
                   appointment,
                 ),
           icon: const Icon(Icons.edit, size: 18),
-          label: const Text('Cập nhật'),
+          label: Text(AppLocalizations.of(context).translate('update')),
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.blue,
-            foregroundColor: Colors.white,
+            backgroundColor: theme.blue,
+            foregroundColor: theme.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
           ),
         ),
 
@@ -203,10 +260,13 @@ class AppointmentDetailsSheet extends StatelessWidget {
                   appointment,
                 ),
           icon: const Icon(Icons.schedule, size: 18),
-          label: const Text('Dời lịch'),
+          label: Text(AppLocalizations.of(context).translate('reschedule')),
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.orange,
-            foregroundColor: Colors.white,
+            backgroundColor: theme.yellow,
+            foregroundColor: theme.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
           ),
         ),
 
@@ -218,10 +278,13 @@ class AppointmentDetailsSheet extends StatelessWidget {
                   appointment,
                 ),
           icon: const Icon(Icons.cancel_outlined, size: 18),
-          label: const Text('Hủy'),
+          label: Text(AppLocalizations.of(context).translate('cancel')),
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.red,
-            foregroundColor: Colors.white,
+            backgroundColor: theme.destructive,
+            foregroundColor: theme.destructiveForeground,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
           ),
         ),
       ],
@@ -229,6 +292,8 @@ class AppointmentDetailsSheet extends StatelessWidget {
   }
 
   Widget _buildDetailRow(
+    BuildContext context,
+    CustomThemeExtension theme,
     IconData icon,
     String title,
     String value, {
@@ -239,15 +304,15 @@ class AppointmentDetailsSheet extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 20, color: Colors.grey[600]),
+          Icon(icon, size: 20, color: theme.mutedForeground),
           const SizedBox(width: 12),
           SizedBox(
             width: 80,
             child: Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.w500,
-                color: Colors.black87,
+                color: theme.mutedForeground,
               ),
             ),
           ),
@@ -255,7 +320,7 @@ class AppointmentDetailsSheet extends StatelessWidget {
             child: Text(
               value,
               style: TextStyle(
-                color: highlightColor ?? Colors.black,
+                color: highlightColor ?? theme.textColor,
                 fontWeight: highlightColor != null
                     ? FontWeight.bold
                     : FontWeight.normal,

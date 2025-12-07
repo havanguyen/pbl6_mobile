@@ -30,6 +30,7 @@ class _CreatePatientPageState extends State<CreatePatientPage> {
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
+            backgroundColor: context.theme.green,
             content: Text(
               AppLocalizations.of(context).translate('create_patient_success'),
             ),
@@ -39,6 +40,7 @@ class _CreatePatientPageState extends State<CreatePatientPage> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
+            backgroundColor: context.theme.destructive,
             content: Text(
               AppLocalizations.of(context).translate('create_patient_failed'),
             ),

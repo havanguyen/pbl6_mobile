@@ -232,76 +232,74 @@ class _ListQuestionPageState extends State<ListQuestionPage> {
 
   Widget _buildSearchSection() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
       child: Row(
         children: [
           Expanded(
-            child: TextField(
-              controller: _searchController,
-              style: TextStyle(color: context.theme.textColor),
-              decoration: InputDecoration(
-                hintText: AppLocalizations.of(
-                  context,
-                ).translate('search_question_hint'),
-                hintStyle: TextStyle(
-                  color: context.theme.mutedForeground.withOpacity(0.7),
-                ),
-                prefixIcon: Icon(
-                  Icons.search,
-                  color: context.theme.primary,
-                  size: 20,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: context.theme.border.withOpacity(0.5),
+            child: Container(
+              height: 50,
+              decoration: BoxDecoration(
+                color: context.theme.bg,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: context.theme.input, width: 1),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
                   ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
+                ],
+              ),
+              child: TextField(
+                controller: _searchController,
+                style: TextStyle(color: context.theme.textColor),
+                decoration: InputDecoration(
+                  hintText: AppLocalizations.of(
+                    context,
+                  ).translate('search_question_hint'),
+                  hintStyle: TextStyle(
+                    color: context.theme.mutedForeground.withOpacity(0.7),
+                  ),
+                  prefixIcon: Icon(
+                    Icons.search,
                     color: context.theme.primary,
-                    width: 1.5,
+                    size: 20,
                   ),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: Icon(
+                            Icons.clear,
+                            color: context.theme.mutedForeground,
+                            size: 20,
+                          ),
+                          onPressed: () {
+                            _searchController.clear();
+                          },
+                        )
+                      : null,
                 ),
-                filled: true,
-                fillColor: context.theme.input,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: Icon(
-                          Icons.clear,
-                          color: context.theme.mutedForeground,
-                          size: 20,
-                        ),
-                        onPressed: () {
-                          _searchController.clear();
-                        },
-                      )
-                    : null,
               ),
             ),
           ),
           const SizedBox(width: 12),
           Material(
-            color: context.theme.input,
-            borderRadius: BorderRadius.circular(12),
+            color: Colors.transparent,
             child: InkWell(
-              borderRadius: BorderRadius.circular(12),
               onTap: _showFilterSheet,
+              borderRadius: BorderRadius.circular(16),
               child: Container(
-                padding: const EdgeInsets.all(12),
+                height: 50,
+                width: 50,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
+                  color: context.theme.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: context.theme.border.withOpacity(0.5),
+                    color: context.theme.primary.withOpacity(0.2),
                   ),
                 ),
                 child: Icon(
@@ -326,6 +324,17 @@ class _ListQuestionPageState extends State<ListQuestionPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                    color: context.theme.muted,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -878,7 +887,7 @@ class _ListQuestionPageState extends State<ListQuestionPage> {
       endActionPane: (isOffline || !_canDelete)
           ? null
           : ActionPane(
-              motion: const BehindMotion(),
+              motion: const StretchMotion(),
               extentRatio: 0.25,
               children: [
                 SlidableAction(
@@ -888,23 +897,29 @@ class _ListQuestionPageState extends State<ListQuestionPage> {
                   icon: Icons.delete_outline_rounded,
                   label: AppLocalizations.of(context).translate('delete'),
                   borderRadius: const BorderRadius.only(
-                    topRight: Radius.circular(12),
-                    bottomRight: Radius.circular(12),
+                    topRight: Radius.circular(16),
+                    bottomRight: Radius.circular(16),
                   ),
                   padding: EdgeInsets.zero,
                 ),
               ],
             ),
-      child: Card(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-        elevation: 1,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: context.theme.border.withOpacity(0.5)),
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: context.theme.card,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: context.theme.input.withOpacity(0.5)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
-        clipBehavior: Clip.antiAlias,
-        color: context.theme.card,
         child: InkWell(
+          borderRadius: BorderRadius.circular(16),
           onTap: () {
             // Navigate to detail
             Navigator.pushNamed(
@@ -919,10 +934,23 @@ class _ListQuestionPageState extends State<ListQuestionPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CircleAvatar(
-                      radius: 20,
-                      backgroundColor: context.theme.primary.withOpacity(0.1),
+                    Container(
+                      height: 40,
+                      width: 40,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            context.theme.primary.withOpacity(0.2),
+                            context.theme.primary.withOpacity(0.05),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        shape: BoxShape.circle,
+                      ),
                       child: Text(
                         question.authorName.isNotEmpty == true
                             ? question.authorName[0].toUpperCase()
@@ -930,6 +958,7 @@ class _ListQuestionPageState extends State<ListQuestionPage> {
                         style: TextStyle(
                           color: context.theme.primary,
                           fontWeight: FontWeight.bold,
+                          fontSize: 16,
                         ),
                       ),
                     ),
@@ -945,67 +974,26 @@ class _ListQuestionPageState extends State<ListQuestionPage> {
                               fontSize: 14,
                               color: context.theme.textColor,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 2),
-                          Text(
-                            formattedDate,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: context.theme.mutedForeground,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  question.title,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: context.theme.textColor,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  question.body,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: context.theme.mutedForeground,
-                    height: 1.4,
-                  ),
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: statusColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: statusColor.withOpacity(0.3)),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(statusIcon, size: 14, color: statusColor),
-                          const SizedBox(width: 4),
-                          Text(
-                            statusText,
-                            style: TextStyle(
-                              color: statusColor,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.access_time_rounded,
+                                size: 12,
+                                color: context.theme.mutedForeground,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                formattedDate,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: context.theme.mutedForeground,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -1026,24 +1014,75 @@ class _ListQuestionPageState extends State<ListQuestionPage> {
                             return const SizedBox.shrink();
                           return Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
+                              horizontal: 8,
+                              vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: context.theme.muted,
-                              borderRadius: BorderRadius.circular(20),
+                              color: context.theme.bg,
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: context.theme.input),
                             ),
                             child: Text(
                               specialty.name,
                               style: TextStyle(
                                 color: context.theme.mutedForeground,
-                                fontSize: 12,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           );
                         },
                       ),
                   ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  question.title,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                    color: context.theme.textColor,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  question.body,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: context.theme.mutedForeground,
+                    height: 1.4,
+                  ),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: statusColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: statusColor.withOpacity(0.3)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(statusIcon, size: 14, color: statusColor),
+                      const SizedBox(width: 6),
+                      Text(
+                        statusText,
+                        style: TextStyle(
+                          color: statusColor,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),

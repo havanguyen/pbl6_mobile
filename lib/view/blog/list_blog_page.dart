@@ -429,9 +429,9 @@ class _ListBlogPageState extends State<ListBlogPage> {
                         if (blogVm.categories.isEmpty &&
                             !blogVm.isLoadingCategories &&
                             blogVm.categoryError != null) {
-                          return AppLocalizations.of(context).translate(
-                            'error_load_specialty_profile',
-                          ); // Reusing generic load error
+                          return AppLocalizations.of(
+                            context,
+                          ).translate('error_load_specialty_profile');
                         }
                         return null;
                       },
@@ -701,6 +701,7 @@ class _ListBlogPageState extends State<ListBlogPage> {
                   label: AppLocalizations.of(context).translate('edit'),
                   borderRadius: BorderRadius.circular(12),
                   padding: EdgeInsets.zero,
+                  autoClose: true,
                 ),
                 SlidableAction(
                   onPressed: (context) => _showDeleteDialog(blog),
@@ -710,6 +711,7 @@ class _ListBlogPageState extends State<ListBlogPage> {
                   label: AppLocalizations.of(context).translate('delete'),
                   borderRadius: BorderRadius.circular(12),
                   padding: EdgeInsets.zero,
+                  autoClose: true,
                 ),
               ],
             ),
@@ -798,7 +800,6 @@ class _ListBlogPageState extends State<ListBlogPage> {
                   child: SizedBox(
                     height: 80,
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Column(

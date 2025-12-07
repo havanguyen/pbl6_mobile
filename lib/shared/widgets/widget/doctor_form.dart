@@ -1,7 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
-
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 
 enum ButtonState { idle, loading, success, error }
 
@@ -64,14 +64,15 @@ class _AnimatedSubmitButtonState extends State<AnimatedSubmitButton> {
           key: const ValueKey('loading'),
           height: 52,
           child: Center(
-              child: SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  color: context.theme.primaryForeground,
-                  strokeWidth: 2,
-                ),
-              )),
+            child: SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                color: context.theme.primaryForeground,
+                strokeWidth: 2,
+              ),
+            ),
+          ),
         );
       case ButtonState.success:
         return SizedBox(
@@ -115,20 +116,20 @@ class _AnimatedSubmitButtonState extends State<AnimatedSubmitButton> {
   }
 }
 
-
 class DoctorForm extends StatefulWidget {
   final bool isUpdate;
   final Map<String, dynamic>? initialData;
   final String role;
   final Future<bool> Function({
-  required String email,
-  required String password,
-  required String fullName,
-  String? phone,
-  required String dateOfBirth,
-  required bool isMale,
-  String? id,
-  }) onSubmit;
+    required String email,
+    required String password,
+    required String fullName,
+    String? phone,
+    required String dateOfBirth,
+    required bool isMale,
+    String? id,
+  })
+  onSubmit;
   final VoidCallback? onSuccess;
 
   const DoctorForm({
@@ -158,13 +159,16 @@ class _DoctorFormState extends State<DoctorForm>
   @override
   void initState() {
     super.initState();
-    _emailController =
-        TextEditingController(text: widget.initialData?['email'] ?? '');
+    _emailController = TextEditingController(
+      text: widget.initialData?['email'] ?? '',
+    );
     _passwordController = TextEditingController();
-    _fullNameController =
-        TextEditingController(text: widget.initialData?['fullName'] ?? '');
-    _phoneController =
-        TextEditingController(text: widget.initialData?['phone'] ?? '');
+    _fullNameController = TextEditingController(
+      text: widget.initialData?['fullName'] ?? '',
+    );
+    _phoneController = TextEditingController(
+      text: widget.initialData?['phone'] ?? '',
+    );
     _dateOfBirthController = TextEditingController();
     _isMale = widget.initialData?['isMale'] ?? true;
 
@@ -178,13 +182,12 @@ class _DoctorFormState extends State<DoctorForm>
       try {
         final date = DateTime.parse(dob).toLocal();
         _dateOfBirthController.text =
-        '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+            '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
       } catch (e) {
         _dateOfBirthController.text = dob.toString();
         print("Could not parse dateOfBirth as ISO string: $dob. Error: $e");
       }
     }
-
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _animationController.forward();
@@ -207,18 +210,25 @@ class _DoctorFormState extends State<DoctorForm>
     try {
       if (_dateOfBirthController.text.contains('/')) {
         final parts = _dateOfBirthController.text.split('/');
-        initial = DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
+        initial = DateTime(
+          int.parse(parts[2]),
+          int.parse(parts[1]),
+          int.parse(parts[0]),
+        );
       } else {
-        initial = DateTime.tryParse(_dateOfBirthController.text) ?? DateTime.now();
+        initial =
+            DateTime.tryParse(_dateOfBirthController.text) ?? DateTime.now();
       }
     } catch (e) {
       initial = DateTime.now();
     }
 
-
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: initial.isAfter(DateTime(1900)) && initial.isBefore(DateTime.now()) ? initial : DateTime.now(),
+      initialDate:
+          initial.isAfter(DateTime(1900)) && initial.isBefore(DateTime.now())
+          ? initial
+          : DateTime.now(),
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
       builder: (context, child) => Theme(
@@ -230,9 +240,7 @@ class _DoctorFormState extends State<DoctorForm>
             onSurface: context.theme.popoverForeground,
           ),
           textButtonTheme: TextButtonThemeData(
-            style: TextButton.styleFrom(
-              foregroundColor: context.theme.primary,
-            ),
+            style: TextButton.styleFrom(foregroundColor: context.theme.primary),
           ),
         ),
         child: child!,
@@ -264,7 +272,8 @@ class _DoctorFormState extends State<DoctorForm>
 
       if (!success && mounted) {
         _showErrorDialog(
-            '${widget.isUpdate ? 'Cập nhật' : 'Tạo'} ${widget.role.toLowerCase()} thất bại.');
+          '${widget.isUpdate ? AppLocalizations.of(context).translate('update') : AppLocalizations.of(context).translate('create')} ${widget.role.toLowerCase()} ${AppLocalizations.of(context).translate('failed')}.',
+        );
       }
       return success;
     }
@@ -277,41 +286,42 @@ class _DoctorFormState extends State<DoctorForm>
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: context.theme.popover,
-        title:
-        Text('Lỗi', style: TextStyle(color: context.theme.popoverForeground)),
-        content: Text(message,
-            style: TextStyle(color: context.theme.popoverForeground)),
+        title: Text(
+          AppLocalizations.of(context).translate('error'),
+          style: TextStyle(color: context.theme.popoverForeground),
+        ),
+        content: Text(
+          message,
+          style: TextStyle(color: context.theme.popoverForeground),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child:
-            Text('OK', style: TextStyle(color: context.theme.destructive)),
+            child: Text(
+              AppLocalizations.of(context).translate('ok'),
+              style: TextStyle(color: context.theme.destructive),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildAnimatedFormField({
-    required int index,
-    required Widget child,
-  }) {
+  Widget _buildAnimatedFormField({required int index, required Widget child}) {
     final delay = index * 100;
     final animation = Tween<double>(begin: 0.0, end: 1.0).animate(
-        CurvedAnimation(
-          parent: _animationController,
-          curve: Interval(delay / 800, 1.0, curve: Curves.easeOutCubic),
-        ));
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Interval(delay / 800, 1.0, curve: Curves.easeOutCubic),
+      ),
+    );
 
     return AnimatedBuilder(
       animation: animation,
       builder: (context, child) {
         return Transform.translate(
           offset: Offset(0, (1 - animation.value) * 20),
-          child: Opacity(
-            opacity: animation.value,
-            child: child,
-          ),
+          child: Opacity(opacity: animation.value, child: child),
         );
       },
       child: child,
@@ -332,21 +342,26 @@ class _DoctorFormState extends State<DoctorForm>
                 child: CircleAvatar(
                   radius: 50,
                   backgroundColor: context.theme.primary.withOpacity(0.1),
-                  backgroundImage: (widget.initialData?['avatarUrl'] != null &&
-                      widget.initialData!['avatarUrl']!.isNotEmpty)
-                      ? CachedNetworkImageProvider(widget.initialData!['avatarUrl']!)
+                  backgroundImage:
+                      (widget.initialData?['avatarUrl'] != null &&
+                          widget.initialData!['avatarUrl']!.isNotEmpty)
+                      ? CachedNetworkImageProvider(
+                          widget.initialData!['avatarUrl']!,
+                        )
                       : null,
-                  child: (widget.initialData?['avatarUrl'] == null ||
-                      widget.initialData!['avatarUrl']!.isEmpty)
+                  child:
+                      (widget.initialData?['avatarUrl'] == null ||
+                          widget.initialData!['avatarUrl']!.isEmpty)
                       ? Text(
-                    widget.initialData?['fullName']?.isNotEmpty == true
-                        ? widget.initialData!['fullName'][0].toUpperCase()
-                        : 'D',
-                    style: TextStyle(
-                        fontSize: 40,
-                        color: context.theme.primary,
-                        fontWeight: FontWeight.bold),
-                  )
+                          widget.initialData?['fullName']?.isNotEmpty == true
+                              ? widget.initialData!['fullName'][0].toUpperCase()
+                              : 'D',
+                          style: TextStyle(
+                            fontSize: 40,
+                            color: context.theme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        )
                       : null,
                 ),
               ),
@@ -358,9 +373,10 @@ class _DoctorFormState extends State<DoctorForm>
                   child: Text(
                     widget.initialData?['fullName'] ?? '',
                     style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: context.theme.textColor),
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: context.theme.textColor,
+                    ),
                   ),
                 ),
               ),
@@ -372,15 +388,41 @@ class _DoctorFormState extends State<DoctorForm>
                 key: const ValueKey('edit_profile_name_field'),
                 controller: _fullNameController,
                 decoration: InputDecoration(
-                  labelText: 'Họ và tên',
+                  labelText: AppLocalizations.of(
+                    context,
+                  ).translate('full_name'),
+                  labelStyle: TextStyle(color: context.theme.mutedForeground),
                   prefixIcon: Icon(Icons.person, color: context.theme.primary),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: context.theme.border),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: context.theme.primary,
+                      width: 1.5,
+                    ),
+                  ),
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: context.theme.destructive),
+                  ),
+                  focusedErrorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: context.theme.destructive,
+                      width: 1.5,
+                    ),
+                  ),
                   filled: true,
-                  fillColor: context.theme.input,
+                  fillColor: context.theme.bg,
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Vui lòng nhập họ và tên';
+                    return AppLocalizations.of(
+                      context,
+                    ).translate('error_enter_full_name');
                   }
                   return null;
                 },
@@ -391,19 +433,58 @@ class _DoctorFormState extends State<DoctorForm>
               index: 1,
               child: TextFormField(
                 controller: _emailController,
-                decoration: InputDecoration(
-                  labelText: 'Email',
-                  prefixIcon: Icon(Icons.email, color: context.theme.primary),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  filled: true,
-                  fillColor: context.theme.input,
+                style: TextStyle(
+                  color: widget.isUpdate
+                      ? context.theme.mutedForeground
+                      : context.theme.textColor,
                 ),
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context).translate('email'),
+                  labelStyle: TextStyle(color: context.theme.mutedForeground),
+                  prefixIcon: Icon(Icons.email, color: context.theme.primary),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: context.theme.border),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: context.theme.primary,
+                      width: 1.5,
+                    ),
+                  ),
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: context.theme.destructive,
+                      width: 1.5,
+                    ),
+                  ),
+                  focusedErrorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: context.theme.destructive,
+                      width: 1.5,
+                    ),
+                  ),
+                  filled: true,
+                  fillColor: widget.isUpdate
+                      ? context.theme.input.withOpacity(0.5)
+                      : context.theme.bg,
+                ),
+                readOnly: widget.isUpdate,
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) {
-                  if (value == null || value.isEmpty) return 'Vui lòng nhập email';
-                  if (!RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
-                      .hasMatch(value)) {
-                    return 'Email không đúng định dạng';
+                  if (value == null || value.isEmpty)
+                    return AppLocalizations.of(
+                      context,
+                    ).translate('email_required');
+                  if (!RegExp(
+                    r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+                  ).hasMatch(value)) {
+                    return AppLocalizations.of(
+                      context,
+                    ).translate('email_invalid');
                   }
                   return null;
                 },
@@ -416,32 +497,67 @@ class _DoctorFormState extends State<DoctorForm>
                 controller: _passwordController,
                 decoration: InputDecoration(
                   labelText: widget.isUpdate
-                      ? 'Mật khẩu mới (để trống nếu không đổi)'
-                      : 'Mật khẩu',
+                      ? AppLocalizations.of(
+                          context,
+                        ).translate('new_password_optional')
+                      : AppLocalizations.of(context).translate('password'),
+                  labelStyle: TextStyle(color: context.theme.mutedForeground),
                   prefixIcon: Icon(Icons.lock, color: context.theme.primary),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: context.theme.border),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: context.theme.primary,
+                      width: 1.5,
+                    ),
+                  ),
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: context.theme.destructive,
+                      width: 1.5,
+                    ),
+                  ),
+                  focusedErrorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: context.theme.destructive,
+                      width: 1.5,
+                    ),
+                  ),
                   filled: true,
-                  fillColor: context.theme.input,
+                  fillColor: context.theme.bg,
                 ),
                 obscureText: true,
                 validator: (value) {
                   if (!widget.isUpdate && (value == null || value.isEmpty)) {
-                    return 'Vui lòng nhập mật khẩu';
+                    return AppLocalizations.of(
+                      context,
+                    ).translate('password_required');
                   }
                   if (widget.isUpdate && value != null && value.isNotEmpty) {
                     if (value.length < 8 ||
                         !value.contains(RegExp(r'[a-zA-Z]')) ||
                         !value.contains(RegExp(r'[0-9]'))) {
-                      return 'Mật khẩu tối thiểu 8 ký tự, có chữ và số';
+                      return AppLocalizations.of(
+                        context,
+                      ).translate('password_invalid');
                     }
                   } else if (!widget.isUpdate) {
                     if (value == null || value.isEmpty) {
-                      return 'Vui lòng nhập mật khẩu';
+                      return AppLocalizations.of(
+                        context,
+                      ).translate('password_required');
                     }
                     if (value.length < 8 ||
                         !value.contains(RegExp(r'[a-zA-Z]')) ||
                         !value.contains(RegExp(r'[0-9]'))) {
-                      return 'Mật khẩu tối thiểu 8 ký tự, có chữ và số';
+                      return AppLocalizations.of(
+                        context,
+                      ).translate('password_invalid');
                     }
                   }
                   return null;
@@ -455,17 +571,46 @@ class _DoctorFormState extends State<DoctorForm>
                 key: const ValueKey('edit_profile_phone_field'),
                 controller: _phoneController,
                 decoration: InputDecoration(
-                  labelText: 'Số điện thoại (tùy chọn)',
+                  labelText: AppLocalizations.of(
+                    context,
+                  ).translate('phone_number'),
+                  labelStyle: TextStyle(color: context.theme.mutedForeground),
                   prefixIcon: Icon(Icons.phone, color: context.theme.primary),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: context.theme.border),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: context.theme.primary,
+                      width: 1.5,
+                    ),
+                  ),
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: context.theme.destructive,
+                      width: 1.5,
+                    ),
+                  ),
+                  focusedErrorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: context.theme.destructive,
+                      width: 1.5,
+                    ),
+                  ),
                   filled: true,
-                  fillColor: context.theme.input,
+                  fillColor: context.theme.bg,
                 ),
                 keyboardType: TextInputType.phone,
                 validator: (value) {
                   if (value != null && value.isNotEmpty) {
                     if (!RegExp(r'^(?:\+84|0)\d{9}$').hasMatch(value)) {
-                      return 'Số điện thoại không hợp lệ (VD: 0xxxxxxxxx hoặc +84xxxxxxxxx)';
+                      return AppLocalizations.of(
+                        context,
+                      ).translate('phone_number_invalid');
                     }
                   }
                   return null;
@@ -478,25 +623,60 @@ class _DoctorFormState extends State<DoctorForm>
               child: TextFormField(
                 controller: _dateOfBirthController,
                 decoration: InputDecoration(
-                  labelText: 'Ngày sinh (dd/mm/yyyy)',
-                  prefixIcon:
-                  Icon(Icons.calendar_today, color: context.theme.primary),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  labelText: AppLocalizations.of(
+                    context,
+                  ).translate('date_of_birth_format'),
+                  labelStyle: TextStyle(color: context.theme.mutedForeground),
+                  prefixIcon: Icon(
+                    Icons.calendar_today,
+                    color: context.theme.primary,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: context.theme.border),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: context.theme.primary,
+                      width: 1.5,
+                    ),
+                  ),
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: context.theme.destructive,
+                      width: 1.5,
+                    ),
+                  ),
+                  focusedErrorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: context.theme.destructive,
+                      width: 1.5,
+                    ),
+                  ),
                   filled: true,
-                  fillColor: context.theme.input,
+                  fillColor: context.theme.bg,
                 ),
                 readOnly: true,
                 onTap: _selectDate,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Vui lòng chọn ngày sinh';
+                    return AppLocalizations.of(
+                      context,
+                    ).translate('date_of_birth_required');
                   }
                   try {
                     final parts = value.split('/');
                     if (parts.length != 3) throw FormatException();
-                    DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
+                    DateTime(
+                      int.parse(parts[2]),
+                      int.parse(parts[1]),
+                      int.parse(parts[0]),
+                    );
                   } catch (e) {
-                    return 'Định dạng ngày không hợp lệ (dd/mm/yyyy)';
+                    return 'DD/MM/YYYY';
                   }
                   return null;
                 },
@@ -504,42 +684,107 @@ class _DoctorFormState extends State<DoctorForm>
             ),
             const SizedBox(height: 20),
             _buildAnimatedFormField(
-                index: 5,
-                child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    decoration: BoxDecoration(
-                      color: context.theme.input,
-                      borderRadius: BorderRadius.circular(12),
+              index: 5,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 8.0,
+                  horizontal: 16,
+                ),
+                decoration: BoxDecoration(
+                  color: context.theme.bg,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: context.theme.border),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      AppLocalizations.of(context).translate('gender_label'),
+                      style: TextStyle(
+                        color: context.theme.mutedForeground,
+                        fontSize: 12,
+                      ),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    const SizedBox(height: 8),
+                    Row(
                       children: [
-                        Text('Giới tính:',
-                            style: TextStyle(color: context.theme.textColor, fontSize: 16)),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Radio<bool>(
-                                value: true,
-                                groupValue: _isMale,
-                                activeColor: context.theme.primary,
-                                onChanged: (value) => setState(() => _isMale = true)),
-                            Text('Nam', style: TextStyle(color: context.theme.textColor, fontSize: 16)),
-                          ],
+                        Expanded(
+                          child: InkWell(
+                            onTap: () => setState(() => _isMale = true),
+                            borderRadius: BorderRadius.circular(8),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              decoration: BoxDecoration(
+                                color: _isMale
+                                    ? context.theme.primary.withOpacity(0.1)
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: _isMale
+                                      ? context.theme.primary
+                                      : context.theme.border,
+                                ),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  AppLocalizations.of(
+                                    context,
+                                  ).translate('male'),
+                                  style: TextStyle(
+                                    color: _isMale
+                                        ? context.theme.primary
+                                        : context.theme.textColor,
+                                    fontWeight: _isMale
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
                         ),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Radio<bool>(
-                                value: false,
-                                groupValue: _isMale,
-                                activeColor: context.theme.primary,
-                                onChanged: (value) => setState(() => _isMale = false)),
-                            Text('Nữ', style: TextStyle(color: context.theme.textColor, fontSize: 16)),
-                          ],
-                        )
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: InkWell(
+                            onTap: () => setState(() => _isMale = false),
+                            borderRadius: BorderRadius.circular(8),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              decoration: BoxDecoration(
+                                color: !_isMale
+                                    ? context.theme.primary.withOpacity(0.1)
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: !_isMale
+                                      ? context.theme.primary
+                                      : context.theme.border,
+                                ),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  AppLocalizations.of(
+                                    context,
+                                  ).translate('female'),
+                                  style: TextStyle(
+                                    color: !_isMale
+                                        ? context.theme.primary
+                                        : context.theme.textColor,
+                                    fontWeight: !_isMale
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
                       ],
-                    ))),
+                    ),
+                  ],
+                ),
+              ),
+            ),
             const SizedBox(height: 32),
             _buildAnimatedFormField(
               index: 6,
@@ -547,8 +792,10 @@ class _DoctorFormState extends State<DoctorForm>
                 key: const ValueKey('edit_profile_save_button'),
                 onSubmit: _submitForm,
                 idleText:
-                '${widget.isUpdate ? 'Cập nhật' : 'Tạo'} ${widget.role.toLowerCase()}',
-                loadingText: 'Đang xử lý...',
+                    '${widget.isUpdate ? AppLocalizations.of(context).translate('update') : AppLocalizations.of(context).translate('create')} ${widget.role}',
+                loadingText: AppLocalizations.of(
+                  context,
+                ).translate('processing'),
                 onSuccess: widget.onSuccess,
               ),
             ),

@@ -32,6 +32,7 @@ class _UpdatePatientPageState extends State<UpdatePatientPage> {
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
+            backgroundColor: context.theme.green,
             content: Text(
               AppLocalizations.of(context).translate('update_patient_success'),
             ),
@@ -41,6 +42,7 @@ class _UpdatePatientPageState extends State<UpdatePatientPage> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
+            backgroundColor: context.theme.destructive,
             content: Text(
               AppLocalizations.of(context).translate('update_patient_failed'),
             ),

@@ -342,11 +342,40 @@ class _StaffFormState extends State<StaffForm>
               child: TextFormField(
                 key: const Key('field_staff_name'),
                 controller: _fullNameController,
+                style: TextStyle(color: context.theme.textColor),
                 decoration: InputDecoration(
                   labelText: AppLocalizations.of(
                     context,
                   ).translate('full_name'),
-                  prefixIcon: Icon(Icons.person, color: context.theme.primary),
+                  labelStyle: TextStyle(color: context.theme.mutedForeground),
+                  prefixIcon: Icon(
+                    Icons.person_outline,
+                    color: context.theme.primary,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: context.theme.input),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: context.theme.primary,
+                      width: 2,
+                    ),
+                  ),
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: context.theme.destructive),
+                  ),
+                  focusedErrorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: context.theme.destructive,
+                      width: 2,
+                    ),
+                  ),
+                  filled: true,
+                  fillColor: context.theme.bg,
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty)
@@ -363,9 +392,38 @@ class _StaffFormState extends State<StaffForm>
               child: TextFormField(
                 key: const Key('field_staff_email'),
                 controller: _emailController,
+                style: TextStyle(color: context.theme.textColor),
                 decoration: InputDecoration(
                   labelText: AppLocalizations.of(context).translate('email'),
-                  prefixIcon: Icon(Icons.email, color: context.theme.primary),
+                  labelStyle: TextStyle(color: context.theme.mutedForeground),
+                  prefixIcon: Icon(
+                    Icons.email_outlined,
+                    color: context.theme.primary,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: context.theme.input),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: context.theme.primary,
+                      width: 2,
+                    ),
+                  ),
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: context.theme.destructive),
+                  ),
+                  focusedErrorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: context.theme.destructive,
+                      width: 2,
+                    ),
+                  ),
+                  filled: true,
+                  fillColor: context.theme.bg,
                 ),
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) {
@@ -390,13 +448,42 @@ class _StaffFormState extends State<StaffForm>
               child: TextFormField(
                 key: const Key('field_staff_password'),
                 controller: _passwordController,
+                style: TextStyle(color: context.theme.textColor),
                 decoration: InputDecoration(
                   labelText: widget.isUpdate
                       ? AppLocalizations.of(
                           context,
                         ).translate('new_password_optional')
                       : AppLocalizations.of(context).translate('password'),
-                  prefixIcon: Icon(Icons.lock, color: context.theme.primary),
+                  labelStyle: TextStyle(color: context.theme.mutedForeground),
+                  prefixIcon: Icon(
+                    Icons.lock_outline,
+                    color: context.theme.primary,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: context.theme.input),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: context.theme.primary,
+                      width: 2,
+                    ),
+                  ),
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: context.theme.destructive),
+                  ),
+                  focusedErrorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: context.theme.destructive,
+                      width: 2,
+                    ),
+                  ),
+                  filled: true,
+                  fillColor: context.theme.bg,
                 ),
                 obscureText: true,
                 validator: (value) {
@@ -424,11 +511,40 @@ class _StaffFormState extends State<StaffForm>
               child: TextFormField(
                 key: const Key('field_staff_phone'),
                 controller: _phoneController,
+                style: TextStyle(color: context.theme.textColor),
                 decoration: InputDecoration(
                   labelText: AppLocalizations.of(
                     context,
                   ).translate('phone_number'),
-                  prefixIcon: Icon(Icons.phone, color: context.theme.primary),
+                  labelStyle: TextStyle(color: context.theme.mutedForeground),
+                  prefixIcon: Icon(
+                    Icons.phone_outlined,
+                    color: context.theme.primary,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: context.theme.input),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: context.theme.primary,
+                      width: 2,
+                    ),
+                  ),
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: context.theme.destructive),
+                  ),
+                  focusedErrorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: context.theme.destructive,
+                      width: 2,
+                    ),
+                  ),
+                  filled: true,
+                  fillColor: context.theme.bg,
                 ),
                 keyboardType: TextInputType.phone,
                 validator: (value) {
@@ -449,14 +565,40 @@ class _StaffFormState extends State<StaffForm>
               child: TextFormField(
                 key: const Key('field_staff_dob'),
                 controller: _dateOfBirthController,
+                style: TextStyle(color: context.theme.textColor),
                 decoration: InputDecoration(
                   labelText: AppLocalizations.of(
                     context,
                   ).translate('date_of_birth_format'),
+                  labelStyle: TextStyle(color: context.theme.mutedForeground),
                   prefixIcon: Icon(
-                    Icons.calendar_today,
+                    Icons.calendar_today_outlined,
                     color: context.theme.primary,
                   ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: context.theme.input),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: context.theme.primary,
+                      width: 2,
+                    ),
+                  ),
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: context.theme.destructive),
+                  ),
+                  focusedErrorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: context.theme.destructive,
+                      width: 2,
+                    ),
+                  ),
+                  filled: true,
+                  fillColor: context.theme.bg,
                 ),
                 readOnly: true,
                 onTap: _selectDate,
@@ -472,29 +614,93 @@ class _StaffFormState extends State<StaffForm>
             const SizedBox(height: 20),
             _buildAnimatedFormField(
               index: 5,
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '${AppLocalizations.of(context).translate('gender')}:',
-                    style: TextStyle(color: context.theme.textColor),
+                    AppLocalizations.of(context).translate('gender'),
+                    style: TextStyle(
+                      color: context.theme.textColor,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                  Radio<bool>(
-                    value: true,
-                    groupValue: _isMale,
-                    onChanged: (value) => setState(() => _isMale = true),
-                  ),
-                  Text(
-                    AppLocalizations.of(context).translate('male'),
-                    style: TextStyle(color: context.theme.textColor),
-                  ),
-                  Radio<bool>(
-                    value: false,
-                    groupValue: _isMale,
-                    onChanged: (value) => setState(() => _isMale = false),
-                  ),
-                  Text(
-                    AppLocalizations.of(context).translate('female'),
-                    style: TextStyle(color: context.theme.textColor),
+                  const SizedBox(height: 8),
+                  Container(
+                    width: double.infinity,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: context.theme.bg,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: context.theme.input),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: InkWell(
+                            onTap: () => setState(() => _isMale = true),
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(11),
+                              bottomLeft: Radius.circular(11),
+                            ),
+                            child: Container(
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: _isMale
+                                    ? context.theme.primary
+                                    : Colors.transparent,
+                                borderRadius: const BorderRadius.only(
+                                  topLeft: Radius.circular(11),
+                                  bottomLeft: Radius.circular(11),
+                                ),
+                              ),
+                              child: Text(
+                                AppLocalizations.of(context).translate('male'),
+                                style: TextStyle(
+                                  color: _isMale
+                                      ? context.theme.primaryForeground
+                                      : context.theme.textColor,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Container(width: 1, color: context.theme.input),
+                        Expanded(
+                          child: InkWell(
+                            onTap: () => setState(() => _isMale = false),
+                            borderRadius: const BorderRadius.only(
+                              topRight: Radius.circular(11),
+                              bottomRight: Radius.circular(11),
+                            ),
+                            child: Container(
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: !_isMale
+                                    ? context.theme.primary
+                                    : Colors.transparent,
+                                borderRadius: const BorderRadius.only(
+                                  topRight: Radius.circular(11),
+                                  bottomRight: Radius.circular(11),
+                                ),
+                              ),
+                              child: Text(
+                                AppLocalizations.of(
+                                  context,
+                                ).translate('female'),
+                                style: TextStyle(
+                                  color: !_isMale
+                                      ? context.theme.primaryForeground
+                                      : context.theme.textColor,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
