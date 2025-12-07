@@ -88,7 +88,7 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage>
       Provider.of<LocationWorkVm>(
         context,
         listen: false,
-      ).fetchLocations(forceRefresh: true, limit: 1000);
+      ).fetchActiveLocations();
       _initialDataFetched = true;
     }
   }
@@ -836,7 +836,7 @@ class _EditDoctorProfilePageState extends State<EditDoctorProfilePage>
 
         return MultiSelectChipField<WorkLocation>(
           label: AppLocalizations.of(context).translate('work_location_label'),
-          allItems: locationVm.locations,
+          allItems: locationVm.activeLocations,
           initialSelectedItems: _selectedWorkLocations,
           itemName: (location) => location.name,
           onSelectionChanged: (selectedItems) {

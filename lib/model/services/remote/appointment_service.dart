@@ -103,12 +103,15 @@ class AppointmentService {
         '/appointments/hold',
         data: request.toJson(),
       );
+      print('--- [DEBUG] holdSlot Status: ${response.statusCode} ---');
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         return response.data['data']['eventId'];
       }
+      print('--- [ERROR] holdSlot Response: ${response.data} ---');
       return null;
     } catch (e) {
+      print('--- [ERROR] holdSlot Exception: $e ---');
       return null;
     }
   }
@@ -116,9 +119,13 @@ class AppointmentService {
   Future<bool> createAppointment(CreateAppointmentRequest request) async {
     try {
       final response = await _dio.post('/appointments', data: request.toJson());
-
+      print('--- [DEBUG] createAppointment Status: ${response.statusCode} ---');
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        print('--- [ERROR] createAppointment Response: ${response.data} ---');
+      }
       return response.statusCode == 201 || response.statusCode == 200;
     } catch (e) {
+      print('--- [ERROR] createAppointment Exception: $e ---');
       return false;
     }
   }

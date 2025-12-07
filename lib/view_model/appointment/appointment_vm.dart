@@ -102,61 +102,88 @@ class AppointmentVm extends ChangeNotifier {
     _error = null;
     notifyListeners();
 
-    try {
-      final response = await _appointmentService.getAppointments(
-        fromDate: fromDate,
-        toDate: toDate,
-        doctorId: doctorId,
-        workLocationId: workLocationId,
-        specialtyId: specialtyId,
-        patientId: patientId,
-        limit: 100,
-      );
-      print(
-        '--- [DEBUG] AppointmentVm: Service returned. Response is null? ${response == null} ---',
-      );
-      if (response != null && response.success) {
-        print(
-          '--- [DEBUG] AppointmentVm: Response success. Updating DataSource... ---',
-        );
-        _appointments = response.data;
+    // New Logic: API (Sync) -> Local DB -> Memory/UI
+    // 1. Load from cache immediately
+    await _loadFromCache(fromDate, toDate);
 
-        // Cache the appointments
-        try {
-          await AppointmentDatabaseHelper.instance.insertAppointments(
-            _appointments,
-          );
-          print(
-            '--- [DEBUG] AppointmentVm: Cached ${_appointments.length} appointments ---',
-          );
-        } catch (e) {
-          print(
-            '--- [ERROR] AppointmentVm: Failed to cache appointments: $e ---',
-          );
-        }
-
-        // Update persistent data source
-        _dataSource.appointments = List.from(_appointments);
-        _dataSource.notifyListeners(
-          CalendarDataSourceAction.reset,
-          _dataSource.appointments!,
-        );
-        print(
-          '--- [DEBUG] DataSource updated. Count: ${_dataSource.appointments?.length}',
-        );
-      } else {
-        print('--- [ERROR] AppointmentVm: Response is null or success=false');
-        _error = "Không thể tải dữ liệu lịch hẹn";
-        await _loadFromCache(fromDate, toDate);
-      }
-    } catch (e) {
-      print('--- [ERROR] AppointmentVm.fetchAppointments: $e');
-      _error = e.toString();
-      await _loadFromCache(fromDate, toDate);
+    // 2. If not synced or forced (we can add a force flag later, for now relying on user pull-to-refresh calling this), sync data
+    // Ideally we sync a wider range to "Get All" as requested
+    // 2. If not synced or forced
+    if (!_isSynced) {
+      // Run sync in background, don't await to block UI
+      _syncAppointments();
     }
 
     _isLoading = false;
     notifyListeners();
+  }
+
+  bool _isSynced = false;
+
+  Future<void> _syncAppointments() async {
+    print(
+      '--- [DEBUG] AppointmentVm: Starting background sync of ALL pages (2 years range) ---',
+    );
+    final now = DateTime.now();
+    final syncFrom = DateTime(now.year - 2, now.month, now.day);
+    final syncTo = DateTime(now.year + 2, now.month, now.day);
+
+    int currentPage = 1;
+    bool hasNext = true;
+    List<AppointmentData> allSyncedAppointments = [];
+
+    try {
+      while (hasNext) {
+        print('--- [DEBUG] Fetching page $currentPage ---');
+        final response = await _appointmentService.getAppointments(
+          fromDate: syncFrom,
+          toDate: syncTo,
+          doctorId: _lastDoctorId,
+          workLocationId: _lastWorkLocationId,
+          specialtyId: _lastSpecialtyId,
+          patientId: _lastPatientId,
+          limit: 100,
+          page: currentPage,
+        );
+
+        if (response != null && response.success) {
+          if (response.data.isNotEmpty) {
+            allSyncedAppointments.addAll(response.data);
+          }
+
+          final meta = response.meta;
+          if (meta != null && meta['hasNext'] == true) {
+            currentPage++;
+          } else {
+            hasNext = false;
+          }
+        } else {
+          print('--- [ERROR] Sync failed at page $currentPage. Stopping. ---');
+          hasNext = false;
+        }
+      }
+
+      if (allSyncedAppointments.isNotEmpty) {
+        print(
+          '--- [DEBUG] AppointmentVm: Sync complete. Total fetched: ${allSyncedAppointments.length} ---',
+        );
+        await AppointmentDatabaseHelper.instance.insertAppointments(
+          allSyncedAppointments,
+        );
+        _isSynced = true;
+
+        if (_lastFromDate != null && _lastToDate != null) {
+          await _loadFromCache(_lastFromDate!, _lastToDate!);
+        }
+      } else {
+        print(
+          '--- [DEBUG] AppointmentVm: Sync complete. No appointments found. ---',
+        );
+        _isSynced = true;
+      }
+    } catch (e) {
+      print('--- [ERROR] AppointmentVm: Sync error: $e ---');
+    }
   }
 
   Future<void> _loadFromCache(DateTime fromDate, DateTime toDate) async {
@@ -188,16 +215,9 @@ class AppointmentVm extends ChangeNotifier {
   }
 
   Future<void> refresh() async {
-    if (_lastFromDate != null && _lastToDate != null) {
-      await fetchAppointments(
-        _lastFromDate!,
-        _lastToDate!,
-        doctorId: _lastDoctorId,
-        workLocationId: _lastWorkLocationId,
-        specialtyId: _lastSpecialtyId,
-        patientId: _lastPatientId,
-      );
-    }
+    // Force sync on refresh
+    _isSynced = false;
+    await _syncAppointments();
   }
 
   Future<bool> cancelAppointment(String id, String reason) async {

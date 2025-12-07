@@ -105,6 +105,7 @@ class DoctorService {
     String? specialtyId,
     String? workLocationId,
   }) async {
+    // ... existing implementation ...
     try {
       final params = {
         'page': page,
@@ -127,6 +128,7 @@ class DoctorService {
         queryParameters: params,
       );
 
+      // ... existing logs ...
       print('--- [DEBUG] DoctorService.getDoctors ---');
       print('Params: $params');
       print('Response Status: ${response.statusCode}');
@@ -160,6 +162,50 @@ class DoctorService {
         success: false,
         message: 'Đã xảy ra lỗi không mong muốn.',
       );
+    }
+  }
+
+  static Future<List<Doctor>> getPublicDoctors({
+    int page = 1,
+    int limit = 20,
+    String? specialtyId,
+    String? workLocationId,
+  }) async {
+    try {
+      final params = {
+        'page': page,
+        'limit': limit,
+        'sortBy': 'createdAt',
+        'sortOrder': 'desc',
+        if (specialtyId != null) 'specialtyIds': specialtyId,
+        if (workLocationId != null) 'workLocationIds': workLocationId,
+      };
+
+      print('--- [DEBUG] DoctorService.getPublicDoctors ---');
+      print('Params: $params');
+
+      final response = await _secureDio.get(
+        '/doctors/profile/public',
+        queryParameters: params,
+      );
+
+      print('Response Status: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        if (response.data is List) {
+          return (response.data as List)
+              .map((e) => Doctor.fromJson(e as Map<String, dynamic>))
+              .toList();
+        } else if (response.data is Map && response.data['data'] is List) {
+          return (response.data['data'] as List)
+              .map((e) => Doctor.fromJson(e as Map<String, dynamic>))
+              .toList();
+        }
+      }
+      return [];
+    } catch (e) {
+      print('Error fetching public doctors: $e');
+      return [];
     }
   }
 
@@ -512,6 +558,10 @@ class DoctorService {
     bool allowPast = false,
   }) async {
     try {
+      print('--- [DEBUG] getDoctorAvailableSlots ---');
+      print('URL: /doctors/profile/$profileId/slots');
+      print('Params: locationId=$locationId, date=$serviceDate');
+
       final response = await _secureDio.get(
         '/doctors/profile/$profileId/slots',
         queryParameters: {
@@ -521,10 +571,17 @@ class DoctorService {
         },
       );
 
+      print('Response Status: ${response.statusCode}');
+      if (response.statusCode != 200) {
+        print('Response Body: ${response.data}');
+      }
+
       if (response.statusCode == 200 && response.data != null) {
-        return (response.data as List)
+        final list = (response.data as List)
             .map((e) => DoctorSlot.fromJson(e as Map<String, dynamic>))
             .toList();
+        print('Found ${list.length} slots for $serviceDate');
+        return list;
       }
       return [];
     } catch (e) {

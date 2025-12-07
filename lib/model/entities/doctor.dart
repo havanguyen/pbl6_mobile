@@ -10,6 +10,7 @@ class Doctor {
   @JsonKey(includeIfNull: false)
   final String? phone;
   final String role;
+  final String? profileId;
   @JsonKey(defaultValue: null, fromJson: _boolFromJson)
   final bool? isMale;
   @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
@@ -23,22 +24,52 @@ class Doctor {
   @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   final DateTime? deletedAt;
 
+  @JsonKey(defaultValue: 30)
+  final int appointmentDuration; // Added field
+
   Doctor({
     required this.id,
     required this.email,
     required this.fullName,
     this.phone,
     required this.role,
+    this.profileId,
     this.isMale,
     this.dateOfBirth,
     this.avatarUrl,
     required this.createdAt,
     required this.updatedAt,
     this.deletedAt,
+    this.appointmentDuration = 30,
   });
 
-  factory Doctor.fromJson(Map<String, dynamic> json) => _$DoctorFromJson(json);
-  Map<String, dynamic> toJson() => _$DoctorToJson(this);
+  factory Doctor.fromJson(Map<String, dynamic> json) {
+    // Manually extend the generated parser or just parse manually since we can't regen .g.dart
+    // existing: => _$DoctorFromJson(json);
+    // We will do:
+    final doctor = _$DoctorFromJson(json);
+    return Doctor(
+      id: doctor.id,
+      email: doctor.email,
+      fullName: doctor.fullName,
+      role: doctor.role,
+      createdAt: doctor.createdAt,
+      updatedAt: doctor.updatedAt,
+      phone: doctor.phone,
+      profileId: doctor.profileId,
+      isMale: doctor.isMale,
+      dateOfBirth: doctor.dateOfBirth,
+      avatarUrl: doctor.avatarUrl,
+      deletedAt: doctor.deletedAt,
+      appointmentDuration: json['appointmentDuration'] as int? ?? 30,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    final val = _$DoctorToJson(this);
+    val['appointmentDuration'] = appointmentDuration;
+    return val;
+  }
 
   static bool? _boolFromJson(dynamic value) {
     if (value == null) return null;

@@ -256,10 +256,15 @@ class _BodyState extends State<_Body> {
 
   void _onNext() {
     final vm = context.read<CreateAppointmentVm>();
+    print(
+      '--- [DEBUG] _onNext Clicked. Step: $_currentStep. isLoading: ${vm.isLoading} ---',
+    );
+
     if (_currentStep < 4) {
       // Validation logic
       bool isValid = true;
       if (_currentStep == 0 && vm.selectedPatient == null) {
+        print('--- [DEBUG] Step 0 Validation Failed: No Patient Selected ---');
         isValid = false;
         _showError(
           AppLocalizations.of(context).translate('error_select_patient'),
@@ -268,12 +273,16 @@ class _BodyState extends State<_Body> {
         if (vm.selectedLocation == null ||
             vm.selectedSpecialty == null ||
             vm.selectedDoctor == null) {
+          print(
+            '--- [DEBUG] Step 1 Validation Failed: Missing Service Info ---',
+          );
           isValid = false;
           _showError(
             AppLocalizations.of(context).translate('error_select_service_info'),
           );
         }
       } else if (_currentStep == 2 && vm.selectedSlot == null) {
+        print('--- [DEBUG] Step 2 Validation Failed: No Slot Selected ---');
         isValid = false;
         _showError(
           AppLocalizations.of(context).translate('error_select_datetime'),
@@ -281,9 +290,11 @@ class _BodyState extends State<_Body> {
       }
 
       if (isValid) {
+        print('--- [DEBUG] Moving to Step ${_currentStep + 1} ---');
         setState(() => _currentStep++);
       }
     } else {
+      print('--- [DEBUG] Submitting form ... ---');
       _submit(vm);
     }
   }

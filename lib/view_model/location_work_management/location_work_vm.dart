@@ -167,13 +167,10 @@ class LocationWorkVm extends ChangeNotifier {
 
   Future<void> fetchActiveLocations() async {
     try {
-      final result = await LocationWorkService.getAllActiveLocations();
-      if (result['success'] == true) {
-        _activeLocations = (result['data'] as List<dynamic>)
-            .map((json) => WorkLocation.fromJson(json))
-            .toList();
-        notifyListeners();
-      }
+      // Use public endpoint to get all active locations without admin caching issues
+      final locations = await LocationWorkService.getPublicLocations();
+      _activeLocations = locations;
+      notifyListeners();
     } catch (e) {
       print('Error fetching active locations: $e');
     }

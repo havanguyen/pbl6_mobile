@@ -318,7 +318,7 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                                         context,
                                         Routes.doctorReviewPage,
                                         arguments: {
-                                          'doctorId': doctor.id,
+                                          'doctorId': doctor.profileId,
                                           'doctorName': doctor.fullName,
                                         },
                                       );

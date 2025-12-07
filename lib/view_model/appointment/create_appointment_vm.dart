@@ -117,41 +117,26 @@ class CreateAppointmentVm extends ChangeNotifier {
   List<Specialty> get allSpecialties => _allSpecialties;
 
   Future<void> _fetchLocations() async {
+    print('--- [DEBUG] _fetchLocations Called (Public) ---');
     try {
-      final result = await LocationWorkService.getAllLocations(
-        limit: 100,
-        sortBy: 'name',
-        sortOrder: 'asc',
-      );
-      // LocationWorkService returns Map<String, dynamic>
-      if (result['data'] != null) {
-        _locations = (result['data'] as List)
-            .map((e) => WorkLocation.fromJson(e as Map<String, dynamic>))
-            .toList();
-      } else {
-        _locations = [];
-      }
+      final locations = await LocationWorkService.getPublicLocations();
+      print('--- [DEBUG] Public Locations count: ${locations.length} ---');
+      _locations = locations;
     } catch (e) {
-      print('Fetch locations error: $e');
+      print('--- [ERROR] Fetch locations error: $e ---');
       _locations = [];
     }
     notifyListeners();
   }
 
   Future<void> _fetchSpecialties() async {
+    print('--- [DEBUG] _fetchSpecialties Called (Public) ---');
     try {
-      final result = await SpecialtyService.getAllSpecialties(
-        limit: 100,
-        sortBy: 'name',
-        sortOrder: 'asc',
-      );
-      if (result.success) {
-        _allSpecialties = result.data;
-      } else {
-        _allSpecialties = [];
-      }
+      final specialties = await SpecialtyService.getPublicSpecialties();
+      print('--- [DEBUG] Public Specialties count: ${specialties.length} ---');
+      _allSpecialties = specialties;
     } catch (e) {
-      print('Fetch specialties error: $e');
+      print('--- [ERROR] Fetch specialties error: $e ---');
       _allSpecialties = [];
     }
     notifyListeners();
@@ -200,16 +185,17 @@ class CreateAppointmentVm extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final result = await DoctorService.getDoctors(
+      // Use public endpoint to get doctors by location and specialty
+      print(
+        '--- [DEBUG] Fetching Doctors (Public)... Location: ${_selectedLocation!.id}, Specialty: ${_selectedSpecialty!.id} ---',
+      );
+      final doctors = await DoctorService.getPublicDoctors(
         limit: 100,
         specialtyId: _selectedSpecialty!.id,
         workLocationId: _selectedLocation!.id,
       );
-      if (result.success) {
-        _doctors = result.data;
-      } else {
-        _doctors = [];
-      }
+      print('--- [DEBUG] Public Doctors Found: ${doctors.length} ---');
+      _doctors = doctors;
     } catch (e) {
       print('Fetch doctors error: $e');
       _doctors = [];
@@ -219,13 +205,41 @@ class CreateAppointmentVm extends ChangeNotifier {
     notifyListeners();
   }
 
-  void selectDoctor(Doctor? doctor) {
+  Future<void> selectDoctor(Doctor? doctor) async {
     print('--- [DEBUG] selectDoctor: ${doctor?.fullName} ---');
     if (_selectedDoctor != doctor) {
       _selectedDoctor = doctor;
       _resetDateAndTime();
+
       if (doctor != null) {
-        fetchAvailableDates();
+        // Fallback: If profileId is missing, fetch detail to get it
+        if (doctor.profileId == null || doctor.profileId!.isEmpty) {
+          print('--- [DEBUG] Doctor profileId is null. Fetching detail... ---');
+          try {
+            final detail = await DoctorService.getDoctorWithProfile(doctor.id);
+            if (detail != null) {
+              print(
+                '--- [DEBUG] Fetched profileId: ${detail.id} (from detail.id) ---',
+              );
+              _selectedDoctor = Doctor(
+                id: doctor.id,
+                email: doctor.email,
+                fullName: doctor.fullName,
+                role: doctor.role,
+                createdAt: doctor.createdAt,
+                updatedAt: doctor.updatedAt,
+                profileId: detail.id, // Use detail.id as Profile ID
+                phone: doctor.phone,
+                isMale: doctor.isMale,
+                dateOfBirth: doctor.dateOfBirth,
+                avatarUrl: doctor.avatarUrl,
+              );
+            }
+          } catch (e) {
+            print('Error fetching doctor detail: $e');
+          }
+        }
+        await fetchAvailableDates();
       }
     }
     notifyListeners();
@@ -238,7 +252,6 @@ class CreateAppointmentVm extends ChangeNotifier {
     _selectedSlot = null;
   }
 
-  // Step 4: Date & Time
   Future<void> fetchAvailableDates() async {
     if (_selectedDoctor == null || _selectedLocation == null) return;
 
@@ -247,9 +260,19 @@ class CreateAppointmentVm extends ChangeNotifier {
     notifyListeners();
 
     try {
+      print(
+        '--- [DEBUG] Fetching dates for Doctor Profile: ${_selectedDoctor!.profileId} ---',
+      );
+
+      // Use profileId if available, otherwise fallback to id (which might be the profileId in some contexts, or we fetched detail to fix it)
+      final String targetId = _selectedDoctor!.profileId ?? _selectedDoctor!.id;
+
       _availableDates = await DoctorService.getDoctorAvailableDates(
-        _selectedDoctor!.id,
+        targetId,
         _selectedLocation!.id,
+      );
+      print(
+        '--- [DEBUG] Available Dates Fetched: ${_availableDates.length} ---',
       );
     } catch (e) {
       print('Fetch available dates error: $e');
@@ -332,8 +355,12 @@ class CreateAppointmentVm extends ChangeNotifier {
     notifyListeners();
 
     try {
+      print(
+        '--- [DEBUG] Holding slot for Doctor Profile: ${_selectedDoctor!.profileId ?? _selectedDoctor!.id} ---',
+      );
       final req = HoldAppointmentRequest(
-        doctorId: _selectedDoctor!.id,
+        doctorId:
+            _selectedDoctor!.profileId ?? _selectedDoctor!.id, // USe Profile ID
         locationId: _selectedLocation!.id,
         serviceDate: DateFormat('yyyy-MM-dd').format(_selectedDate!),
         timeStart: _selectedSlot!.timeStart,
@@ -361,7 +388,13 @@ class CreateAppointmentVm extends ChangeNotifier {
   }
 
   Future<bool> confirmBooking() async {
+    print('--- [DEBUG] CreateAppointmentVm.confirmBooking CALLED ---');
+    print(
+      'State: Patient=${_selectedPatient?.id}, Specialty=${_selectedSpecialty?.id}, Date=$_selectedDate, Slot=$_selectedSlot',
+    );
+
     if (_selectedPatient == null || _selectedSpecialty == null) {
+      print('--- [DEBUG] Validation Failed: Missing Patient or Specialty ---');
       _error = "Thiếu thông tin bắt buộc";
       notifyListeners();
       return false;
@@ -369,8 +402,12 @@ class CreateAppointmentVm extends ChangeNotifier {
 
     // Must hold slot first if not already held (though flow usually enforces it)
     if (_eventId == null) {
+      print('--- [DEBUG] EventId is null, attempting to hold slot... ---');
       final held = await holdSlot();
-      if (!held) return false;
+      if (!held) {
+        print('--- [DEBUG] Failed to hold slot ---');
+        return false;
+      }
     }
 
     _isLoading = true;
@@ -378,6 +415,9 @@ class CreateAppointmentVm extends ChangeNotifier {
     notifyListeners();
 
     try {
+      print(
+        '--- [DEBUG] Confirming booking for Doctor Profile: ${_selectedDoctor!.profileId ?? _selectedDoctor!.id} ---',
+      );
       final req = CreateAppointmentRequest(
         eventId: _eventId,
         patientId: _selectedPatient!.id,
@@ -386,7 +426,8 @@ class CreateAppointmentVm extends ChangeNotifier {
         notes: _notes,
         priceAmount: _priceAmount,
         currency: _currency,
-        doctorId: _selectedDoctor?.id,
+        doctorId:
+            _selectedDoctor?.profileId ?? _selectedDoctor?.id, // Use Profile ID
         locationId: _selectedLocation?.id,
         serviceDate: DateFormat('yyyy-MM-dd').format(_selectedDate!),
         timeStart: _selectedSlot?.timeStart,

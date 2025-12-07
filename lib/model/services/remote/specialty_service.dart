@@ -14,6 +14,8 @@ class SpecialtyService {
   static final Dio _dio = _initializeDio();
 
   static Dio _initializeDio() {
+    print('--- [DEBUG] SpecialtyService initializing Dio ---');
+    print('--- [DEBUG] Base URL: $_baseUrl ---');
     final dio = Dio(
       BaseOptions(
         baseUrl: _baseUrl!,
@@ -26,6 +28,7 @@ class SpecialtyService {
       RetryInterceptor(
         dio: dio,
         logPrint: print,
+        // ...
         retries: 3,
         retryDelays: const [
           Duration(seconds: 1),
@@ -39,6 +42,9 @@ class SpecialtyService {
     dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
+          print(
+            '--- [DEBUG] SpecialtyService Request: ${options.method} ${options.path} ---',
+          );
           final accessToken = await Store.getAccessToken();
           if (accessToken != null) {
             options.headers['Authorization'] = 'Bearer $accessToken';
@@ -46,6 +52,9 @@ class SpecialtyService {
           return handler.next(options);
         },
         onError: (DioException e, handler) async {
+          print(
+            '--- [ERROR] SpecialtyService DioError: ${e.message}, Status: ${e.response?.statusCode} ---',
+          );
           if (e.response?.statusCode == 401) {
             try {
               if (await AuthService.refreshToken()) {

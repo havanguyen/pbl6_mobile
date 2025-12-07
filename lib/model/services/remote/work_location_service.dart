@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
 
+import 'package:pbl6mobile/model/entities/work_location.dart';
 import 'package:pbl6mobile/model/services/remote/auth_service.dart';
 import 'package:pbl6mobile/shared/services/store.dart';
 
@@ -12,6 +13,8 @@ class LocationWorkService {
   static final Dio _dio = _initializeDio();
 
   static Dio _initializeDio() {
+    print('--- [DEBUG] LocationWorkService initializing Dio ---');
+    print('--- [DEBUG] Base URL: $_baseUrl ---');
     final dio = Dio(
       BaseOptions(
         baseUrl: _baseUrl!,
@@ -37,6 +40,9 @@ class LocationWorkService {
     dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
+          print(
+            '--- [DEBUG] LocationWorkService Request: ${options.method} ${options.path} ---',
+          );
           final accessToken = await Store.getAccessToken();
           if (accessToken != null) {
             options.headers['Authorization'] = 'Bearer $accessToken';
@@ -44,6 +50,9 @@ class LocationWorkService {
           return handler.next(options);
         },
         onError: (DioException e, handler) async {
+          print(
+            '--- [ERROR] LocationWorkService DioError: ${e.message}, Status: ${e.response?.statusCode} ---',
+          );
           if (e.response?.statusCode == 401) {
             try {
               if (await AuthService.refreshToken()) {
@@ -187,6 +196,33 @@ class LocationWorkService {
       return response.data;
     } catch (e) {
       return {'success': false, 'data': [], 'message': e.toString()};
+    }
+  }
+
+  static Future<List<WorkLocation>> getPublicLocations() async {
+    try {
+      final response = await _dio.get(
+        '/work-locations/public',
+        queryParameters: {'sortBy': 'createdAt', 'sortOrder': 'DESC'},
+      );
+      print('--- [DEBUG] LocationWorkService.getPublicLocations ---');
+      print('Response Status: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        if (response.data is List) {
+          return (response.data as List)
+              .map((e) => WorkLocation.fromJson(e as Map<String, dynamic>))
+              .toList();
+        } else if (response.data is Map && response.data['data'] is List) {
+          return (response.data['data'] as List)
+              .map((e) => WorkLocation.fromJson(e as Map<String, dynamic>))
+              .toList();
+        }
+      }
+      return [];
+    } catch (e) {
+      print('Error fetching public locations: $e');
+      return [];
     }
   }
 }

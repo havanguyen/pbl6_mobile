@@ -51,7 +51,7 @@ class ReviewService {
               if (refreshSuccess) {
                 final newAccessToken = await Store.getAccessToken();
                 e.requestOptions.headers['Authorization'] =
-                'Bearer $newAccessToken';
+                    'Bearer $newAccessToken';
                 final options = Options(
                   method: e.requestOptions.method,
                   headers: e.requestOptions.headers,
@@ -68,11 +68,13 @@ class ReviewService {
               }
             } catch (err) {
               await AuthService.logout();
-              return handler.reject(DioException(
-                requestOptions: e.requestOptions,
-                error: err,
-                response: e.response,
-              ));
+              return handler.reject(
+                DioException(
+                  requestOptions: e.requestOptions,
+                  error: err,
+                  response: e.response,
+                ),
+              );
             }
           }
           return handler.next(e);
@@ -88,29 +90,49 @@ class ReviewService {
     int page = 1,
     int limit = 5,
   }) async {
+    print('--- [DEBUG] Fetching Reviews ---');
+    print('DoctorID (ProfileID): $doctorId');
     try {
       final params = {'page': page, 'limit': limit};
-      final response = await _secureDio.get('/reviews/doctor/$doctorId',
-          queryParameters: params);
+      // Use singular 'doctor' endpoint as confirmed by user success response
+      final endpoint = '/reviews/doctor/$doctorId';
+      print('Endpoint: $endpoint');
+
+      final response = await _secureDio.get(endpoint, queryParameters: params);
+      print('Response Status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final reviewList = (response.data['data'] as List)
             .map((json) => Review.fromJson(json as Map<String, dynamic>))
             .toList();
+        print('Reviews found: ${reviewList.length}');
         return GetReviewsResponse(
           success: true,
           data: reviewList,
           meta: response.data['meta'] ?? {},
         );
       }
+      print('Response Message: ${response.data['message']}');
       return GetReviewsResponse(
-          success: false, message: response.data['message'] ?? 'API call failed');
+        success: false,
+        message: response.data['message'] ?? 'API call failed',
+      );
     } on DioException catch (e) {
+      print('DioException: ${e.message}');
+      if (e.response != null) {
+        print('DioException Data: ${e.response?.data}');
+        print('DioException Status: ${e.response?.statusCode}');
+      }
       return GetReviewsResponse(
-          success: false, message: 'Lỗi kết nối: ${e.message}');
+        success: false,
+        message: 'Lỗi kết nối: ${e.message}',
+      );
     } catch (e) {
+      print('Unknown Error: $e');
       return GetReviewsResponse(
-          success: false, message: 'Đã xảy ra lỗi không mong muốn.');
+        success: false,
+        message: 'Đã xảy ra lỗi không mong muốn.',
+      );
     }
   }
 

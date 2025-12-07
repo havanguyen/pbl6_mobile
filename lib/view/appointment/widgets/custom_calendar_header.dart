@@ -60,7 +60,11 @@ class CustomCalendarHeader extends StatelessWidget {
                         color: context.theme.textColor,
                       ),
                       onPressed: () {
-                        controller.backward!();
+                        try {
+                          controller.backward?.call();
+                        } catch (e) {
+                          print('Error navigating calendar backward: $e');
+                        }
                       },
                       splashRadius: 20,
                       padding: EdgeInsets.zero,
@@ -85,7 +89,11 @@ class CustomCalendarHeader extends StatelessWidget {
                         color: context.theme.textColor,
                       ),
                       onPressed: () {
-                        controller.forward!();
+                        try {
+                          controller.forward?.call();
+                        } catch (e) {
+                          print('Error navigating calendar forward: $e');
+                        }
                       },
                       splashRadius: 20,
                       padding: EdgeInsets.zero,

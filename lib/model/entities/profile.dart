@@ -19,8 +19,6 @@ abstract class Profile with _$Profile {
     required DateTime updatedAt,
   }) = _Profile;
 
-  const Profile._();
-
   factory Profile.fromJson(Map<String, dynamic> json) =>
       _$ProfileFromJson(json);
 }

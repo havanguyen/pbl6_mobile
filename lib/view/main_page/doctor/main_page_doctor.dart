@@ -58,7 +58,7 @@ class _MainPageDoctorState extends State<MainPageDoctor> {
         context,
         Routes.doctorReviewPage,
         arguments: {
-          'doctorId': doctorDetail.id,
+          'doctorId': doctorDetail.profileId,
           'doctorName': profile.fullName,
         },
       );
