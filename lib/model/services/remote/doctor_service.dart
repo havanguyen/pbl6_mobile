@@ -577,7 +577,14 @@ class DoctorService {
       }
 
       if (response.statusCode == 200 && response.data != null) {
-        final list = (response.data as List)
+        List<dynamic> dataList = [];
+        if (response.data is List) {
+          dataList = response.data as List;
+        } else if (response.data is Map && response.data['data'] is List) {
+          dataList = response.data['data'] as List;
+        }
+
+        final list = dataList
             .map((e) => DoctorSlot.fromJson(e as Map<String, dynamic>))
             .toList();
         print('Found ${list.length} slots for $serviceDate');

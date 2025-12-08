@@ -44,10 +44,12 @@ class Doctor {
   });
 
   factory Doctor.fromJson(Map<String, dynamic> json) {
-    // Manually extend the generated parser or just parse manually since we can't regen .g.dart
-    // existing: => _$DoctorFromJson(json);
-    // We will do:
-    final doctor = _$DoctorFromJson(json);
+    // Modify json to handle missing fields for Public Profile response
+    final Map<String, dynamic> data = Map<String, dynamic>.from(json);
+    data['email'] ??= ''; // Public profile doesn't return email
+    data['role'] ??= 'doctor'; // Default role for public profile
+
+    final doctor = _$DoctorFromJson(data);
     return Doctor(
       id: doctor.id,
       email: doctor.email,
