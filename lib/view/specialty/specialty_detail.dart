@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
@@ -57,36 +58,39 @@ class _SpecialtyDetailPageState extends State<SpecialtyDetailPage> {
   }
 
   Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.article_outlined,
-            size: 80,
-            color: context.theme.mutedForeground,
-          ),
-          const SizedBox(height: 20),
-          Text(
-            AppLocalizations.of(context).translate('no_info_sections_yet'),
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: context.theme.textColor,
+    return SliverFillRemaining(
+      hasScrollBody: false,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.article_outlined,
+              size: 80,
+              color: context.theme.mutedForeground,
             ),
-          ),
-          const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: Text(
-              AppLocalizations.of(
-                context,
-              ).translate('add_new_info_section_hint'),
-              style: TextStyle(color: context.theme.mutedForeground),
-              textAlign: TextAlign.center,
+            const SizedBox(height: 20),
+            Text(
+              AppLocalizations.of(context).translate('no_info_sections_yet'),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: context.theme.textColor,
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Text(
+                AppLocalizations.of(
+                  context,
+                ).translate('add_new_info_section_hint'),
+                style: TextStyle(color: context.theme.mutedForeground),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -98,78 +102,109 @@ class _SpecialtyDetailPageState extends State<SpecialtyDetailPage> {
     final isOffline = provider.isOffline;
 
     return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        title: Text(
-          widget.specialty.name,
-          style: TextStyle(color: context.theme.white),
-        ),
-        backgroundColor: Colors.transparent,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                context.theme.primary,
-                context.theme.primary.withOpacity(0.8),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
-        iconTheme: IconThemeData(color: context.theme.white),
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.refresh, color: context.theme.white),
-            onPressed: provider.isInfoSectionLoading
-                ? null
-                : () => provider.fetchInfoSections(
-                    widget.specialty.id,
-                    forceRefresh: true,
-                  ),
-          ),
-        ],
-      ),
       backgroundColor: theme.bg,
-      body: Column(
-        children: [
-          if (isOffline)
-            Container(
-              width: double.infinity,
-              color: context.theme.yellow,
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                AppLocalizations.of(context).translate('offline_banner'),
-                textAlign: TextAlign.center,
-                style: TextStyle(color: context.theme.popover),
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            pinned: true,
+            backgroundColor: theme.primary,
+            iconTheme: IconThemeData(color: theme.white),
+            title: Text(
+              AppLocalizations.of(context).translate('specialty'),
+              style: TextStyle(
+                color: theme.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
               ),
             ),
-          Expanded(
-            child: Consumer<SpecialtyVm>(
-              builder: (context, provider, child) {
-                if (provider.isInfoSectionLoading &&
-                    provider.getInfoSectionsFor(widget.specialty.id).isEmpty) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                final infoSections = provider.getInfoSectionsFor(
-                  widget.specialty.id,
+            centerTitle: true,
+            actions: [
+              IconButton(
+                icon: Icon(Icons.refresh, color: theme.white),
+                onPressed: provider.isInfoSectionLoading
+                    ? null
+                    : () => provider.fetchInfoSections(
+                        widget.specialty.id,
+                        forceRefresh: true,
+                      ),
+              ),
+            ],
+          ),
+
+          SliverToBoxAdapter(
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              color: theme.card,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.specialty.name,
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: theme.primary,
+                      height: 1.2,
+                    ),
+                  ),
+                  if (widget.specialty.description != null &&
+                      widget.specialty.description!.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      widget.specialty.description!,
+                      style: TextStyle(
+                        fontSize: 15,
+                        height: 1.5,
+                        color: theme.mutedForeground,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          if (isOffline)
+            SliverToBoxAdapter(
+              child: Container(
+                width: double.infinity,
+                color: theme.yellow,
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  AppLocalizations.of(context).translate('offline_banner'),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: theme.popover),
+                ),
+              ),
+            ),
+          Consumer<SpecialtyVm>(
+            builder: (context, provider, child) {
+              if (provider.isInfoSectionLoading &&
+                  provider.getInfoSectionsFor(widget.specialty.id).isEmpty) {
+                return const SliverFillRemaining(
+                  child: Center(child: CircularProgressIndicator()),
                 );
-                if (infoSections.isEmpty) {
-                  return _buildEmptyState();
-                }
-                return AnimationLimiter(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: infoSections.length,
-                    itemBuilder: (context, index) {
-                      final info = infoSections[index];
-                      return AnimationConfiguration.staggeredList(
-                        position: index,
-                        duration: const Duration(milliseconds: 375),
-                        child: SlideAnimation(
-                          verticalOffset: 50.0,
-                          child: FadeInAnimation(
+              }
+              final infoSections = provider.getInfoSectionsFor(
+                widget.specialty.id,
+              );
+              if (infoSections.isEmpty) {
+                return _buildEmptyState();
+              }
+              return AnimationLimiter(
+                child: SliverList(
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    final info = infoSections[index];
+                    return AnimationConfiguration.staggeredList(
+                      position: index,
+                      duration: const Duration(milliseconds: 375),
+                      child: SlideAnimation(
+                        verticalOffset: 50.0,
+                        child: FadeInAnimation(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8, // Added padding between items
+                            ),
                             child: _InfoSectionTile(
                               info: info,
                               isOffline: isOffline,
@@ -193,13 +228,14 @@ class _SpecialtyDetailPageState extends State<SpecialtyDetailPage> {
                             ),
                           ),
                         ),
-                      );
-                    },
-                  ),
-                );
-              },
-            ),
+                      ),
+                    );
+                  }, childCount: infoSections.length),
+                ),
+              );
+            },
           ),
+          const SliverPadding(padding: EdgeInsets.only(bottom: 80)),
         ],
       ),
       floatingActionButton: isOffline
@@ -219,7 +255,7 @@ class _SpecialtyDetailPageState extends State<SpecialtyDetailPage> {
                 }
               },
               backgroundColor: theme.primary,
-              child: Icon(Icons.add, color: context.theme.white),
+              child: Icon(Icons.add, color: theme.white),
             ),
     );
   }
@@ -395,24 +431,61 @@ class _ExpandableHtmlContent extends StatefulWidget {
 
 class __ExpandableHtmlContentState extends State<_ExpandableHtmlContent> {
   bool _isShowingFull = false;
-  late final String htmlContent;
-  late final bool isLongContent;
+  String? htmlContent;
+  bool isLongContent = false;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    try {
-      final deltaJson = jsonDecode(widget.content);
-      final converter = QuillDeltaToHtmlConverter(List.castFrom(deltaJson));
-      htmlContent = converter.convert();
-    } catch (e) {
-      htmlContent = widget.content.replaceAll('\n', '<br>');
+    _loadHtml();
+  }
+
+  @override
+  void didUpdateWidget(_ExpandableHtmlContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.content != oldWidget.content) {
+      _loadHtml();
     }
-    isLongContent = htmlContent.length > 400;
+  }
+
+  Future<void> _loadHtml() async {
+    if (!mounted) return;
+    setState(() => _isLoading = true);
+
+    // Offload JSON parsing to a separate isolate to prevent UI jank
+    final parsedHtml = await compute(_parseHtmlString, widget.content);
+
+    if (mounted) {
+      setState(() {
+        htmlContent = parsedHtml;
+        isLongContent = parsedHtml.length > 400;
+        _isLoading = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: SizedBox(
+          height: 100,
+          child: Center(
+            child: SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: widget.theme.primary.withOpacity(0.5),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     final styles = {
       "body": Style(margin: Margins.zero, padding: HtmlPaddings.zero),
       "p": Style(
@@ -449,7 +522,7 @@ class __ExpandableHtmlContentState extends State<_ExpandableHtmlContent> {
                   context.theme.popover,
                   Colors.transparent,
                 ],
-                stops: [0.0, 0.7, 1.0],
+                stops: const [0.0, 0.7, 1.0],
               ).createShader(Rect.fromLTRB(0, 0, rect.width, rect.height));
             },
             blendMode: BlendMode.dstIn,
@@ -478,5 +551,18 @@ class __ExpandableHtmlContentState extends State<_ExpandableHtmlContent> {
           ),
       ],
     );
+  }
+}
+
+String _parseHtmlString(String content) {
+  try {
+    final deltaJson = jsonDecode(content);
+    if (deltaJson is List) {
+      final converter = QuillDeltaToHtmlConverter(List.castFrom(deltaJson));
+      return converter.convert();
+    }
+    return content.replaceAll('\n', '<br>');
+  } catch (e) {
+    return content.replaceAll('\n', '<br>');
   }
 }

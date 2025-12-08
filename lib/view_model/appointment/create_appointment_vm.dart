@@ -45,7 +45,6 @@ class CreateAppointmentVm extends ChangeNotifier {
   String _notes = '';
   double? _priceAmount;
   String _currency = 'VND';
-  String? _eventId; // From hold slot
 
   // --- Getters ---
   int get currentStep => _currentStep;
@@ -213,6 +212,11 @@ class CreateAppointmentVm extends ChangeNotifier {
 
       if (doctor != null) {
         // Fallback: If profileId is missing, fetch detail to get it
+        // Fallback: If profileId is missing, fetch detail to get it
+        // COMMENTED OUT: The getPublicDoctors endpoint returns a Profile object where `id` IS the Profile ID.
+        // Attempting to fetch detail using this ID at /doctors/$id/complete fails (404) because that endpoint likely expects a User ID.
+        // Since we already have the Profile ID (in doctor.id), and subsequent calls use `profileId ?? id`, we don't need this fetch.
+        /*
         if (doctor.profileId == null || doctor.profileId!.isEmpty) {
           print('--- [DEBUG] Doctor profileId is null. Fetching detail... ---');
           try {
@@ -239,6 +243,7 @@ class CreateAppointmentVm extends ChangeNotifier {
             print('Error fetching doctor detail: $e');
           }
         }
+        */
         await fetchAvailableDates();
       }
     }
@@ -342,51 +347,6 @@ class CreateAppointmentVm extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> holdSlot() async {
-    if (_selectedDoctor == null ||
-        _selectedSlot == null ||
-        _selectedLocation == null ||
-        _selectedDate == null) {
-      return false;
-    }
-
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-
-    try {
-      print(
-        '--- [DEBUG] Holding slot for Doctor Profile: ${_selectedDoctor!.profileId ?? _selectedDoctor!.id} ---',
-      );
-      final req = HoldAppointmentRequest(
-        doctorId:
-            _selectedDoctor!.profileId ?? _selectedDoctor!.id, // USe Profile ID
-        locationId: _selectedLocation!.id,
-        serviceDate: DateFormat('yyyy-MM-dd').format(_selectedDate!),
-        timeStart: _selectedSlot!.timeStart,
-        timeEnd: _selectedSlot!.timeEnd,
-      );
-
-      final id = await _appointmentService.holdSlot(req);
-
-      _isLoading = false;
-      if (id != null) {
-        _eventId = id;
-        notifyListeners();
-        return true;
-      } else {
-        _error = "Không thể giữ chỗ. Vui lòng thử lại.";
-        notifyListeners();
-        return false;
-      }
-    } catch (e) {
-      _isLoading = false;
-      _error = e.toString();
-      notifyListeners();
-      return false;
-    }
-  }
-
   Future<bool> confirmBooking() async {
     print('--- [DEBUG] CreateAppointmentVm.confirmBooking CALLED ---');
     print(
@@ -400,16 +360,6 @@ class CreateAppointmentVm extends ChangeNotifier {
       return false;
     }
 
-    // Must hold slot first if not already held (though flow usually enforces it)
-    if (_eventId == null) {
-      print('--- [DEBUG] EventId is null, attempting to hold slot... ---');
-      final held = await holdSlot();
-      if (!held) {
-        print('--- [DEBUG] Failed to hold slot ---');
-        return false;
-      }
-    }
-
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -419,7 +369,6 @@ class CreateAppointmentVm extends ChangeNotifier {
         '--- [DEBUG] Confirming booking for Doctor Profile: ${_selectedDoctor!.profileId ?? _selectedDoctor!.id} ---',
       );
       final req = CreateAppointmentRequest(
-        eventId: _eventId,
         patientId: _selectedPatient!.id,
         specialtyId: _selectedSpecialty!.id,
         reason: _reason,

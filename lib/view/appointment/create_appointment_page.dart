@@ -763,6 +763,7 @@ class _BodyState extends State<_Body> {
     String? hint,
   }) {
     return DropdownButtonFormField<T>(
+      isExpanded: true,
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon),

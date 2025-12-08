@@ -67,9 +67,38 @@ class AuthService {
           if (e.response?.statusCode == 401) {
             print('--- Handling 401 Unauthorized ---');
             if (e.requestOptions.path == '/auth/refresh') {
-              print('Refresh token failed with 401, logging out.');
-              await logout();
+              print(
+                'Refresh token failed with 401, logging out. Reason: Refresh endpoint 401',
+              );
+              await logout('Refresh endpoint failed with 401');
               return handler.reject(e);
+            }
+
+            // --- Check if token was already updated by another request ---
+            final currentToken = await Store.getAccessToken();
+            final requestToken = e.requestOptions.headers['Authorization']
+                ?.toString()
+                .replaceAll('Bearer ', '');
+
+            if (currentToken != null &&
+                requestToken != null &&
+                currentToken != requestToken) {
+              print('Token already refreshed by another request. Retrying...');
+              e.requestOptions.headers['Authorization'] =
+                  'Bearer $currentToken';
+              try {
+                final response = await _secureDio.fetch(e.requestOptions);
+                return handler.resolve(response);
+              } catch (retryError) {
+                // If this retry fails, we might need to refresh AGAIN or just fail.
+                // For now, let's fall through to refresh logic if this fails with 401
+                // OR just reject.
+                // Safest is to let it fall through if it's 401, but that risks loops.
+                // Let's just reject for now to avoid complexity, as this is an optimization.
+                if (retryError is DioException) {
+                  return handler.reject(retryError);
+                }
+              }
             }
 
             // --- Concurrent Refresh Logic ---
@@ -116,8 +145,10 @@ class AuthService {
                   // If retry fails with 401, it means the new token is also bad/rejected
                   if (retryError is DioException &&
                       retryError.response?.statusCode == 401) {
-                    print('Retry failed with 401. Logging out.');
-                    await logout();
+                    print(
+                      'Retry failed with 401. Logging out. Reason: Retry 401',
+                    );
+                    await logout('Retry failed with 401');
                   }
                   // For other errors (404, 500, timeout), just reject with the error
                   // and DO NOT logout.
@@ -127,8 +158,10 @@ class AuthService {
                   return handler.reject(e);
                 }
               } else {
-                print('Refresh token failed, logging out.');
-                await logout();
+                print(
+                  'Refresh token failed, logging out. Reason: Refresh logic returned false',
+                );
+                await logout('Refresh logic returned false');
                 return handler.reject(e);
               }
             } catch (err) {
@@ -140,7 +173,7 @@ class AuthService {
               }
               _refreshCompleter = null;
               // Only here do we assume the refresh process itself crashed catastrophically
-              await logout();
+              await logout('Refresh mechanism crashed: $err');
               return handler.reject(e);
             }
           }
@@ -211,20 +244,22 @@ class AuthService {
           return true;
         } else {
           print('Refresh token response missing data: ${response.data}');
-          await logout();
+          await logout('Refresh response missing data');
           return false;
         }
       }
       print('Refresh token failed with status: ${response.statusCode}');
-      await logout();
+      await logout('Refresh request failed with status ${response.statusCode}');
       return false;
     } catch (e) {
       print("Refresh token error: $e");
       if (e is DioException) {
         print("DioException Response: ${e.response?.data}");
         if (e.response?.statusCode == 401 || e.response?.statusCode == 403) {
-          print('Refresh token invalid, logging out.');
-          await logout();
+          print(
+            'Refresh token invalid, logging out. Reason: Refresh API 401/403',
+          );
+          await logout('Refresh API 401/403');
         }
       } else {
         print('Non-Dio error during refresh: $e');
@@ -233,8 +268,8 @@ class AuthService {
     }
   }
 
-  static Future<bool> logout() async {
-    print('Logging out...');
+  static Future<bool> logout([String reason = 'Unknown']) async {
+    print('Logging out... Reason: $reason');
     try {
       final refreshToken = await Store.getRefreshToken();
       if (refreshToken != null) {

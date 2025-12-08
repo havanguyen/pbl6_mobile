@@ -8,7 +8,13 @@ import 'package:pbl6mobile/view_model/setting/office_hours_vm.dart';
 import 'package:provider/provider.dart';
 import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 
-enum OfficeHourRuleType { specific, doctorDefault, locationDefault }
+// Enhanced types matching React logic
+enum OfficeHourRuleType {
+  specific, // Doctor + Location (Highest)
+  doctorDefault, // Doctor only (Medium)
+  locationHours, // Location only (Low)
+  global, // System default (Lowest)
+}
 
 class CreateOfficeHourPage extends StatefulWidget {
   const CreateOfficeHourPage({super.key});
@@ -148,6 +154,8 @@ class _CreateOfficeHourPageState extends State<CreateOfficeHourPage> {
                     ),
                     const SizedBox(height: 12),
                     _buildRuleTypeSelector(),
+                    const SizedBox(height: 16),
+                    _buildPriorityInfoCard(),
                     const SizedBox(height: 24),
                     _buildSectionTitle('Configuration'),
                     const SizedBox(height: 12),
@@ -155,7 +163,7 @@ class _CreateOfficeHourPageState extends State<CreateOfficeHourPage> {
                         _ruleType == OfficeHourRuleType.doctorDefault)
                       _buildDoctorDropdown(),
                     if (_ruleType == OfficeHourRuleType.specific ||
-                        _ruleType == OfficeHourRuleType.locationDefault) ...[
+                        _ruleType == OfficeHourRuleType.locationHours) ...[
                       if (_ruleType == OfficeHourRuleType.specific)
                         const SizedBox(height: 16),
                       _buildLocationDropdown(),
@@ -184,6 +192,88 @@ class _CreateOfficeHourPageState extends State<CreateOfficeHourPage> {
     );
   }
 
+  // Helper for priority info (ported from React)
+  Widget _buildPriorityInfoCard() {
+    String title = '';
+    String description = '';
+    String priority = '';
+
+    switch (_ruleType) {
+      case OfficeHourRuleType.specific:
+        title = 'Doctor at Specific Location';
+        description = 'Applies to a specific doctor at a specific location.';
+        priority = 'Highest';
+        break;
+      case OfficeHourRuleType.doctorDefault:
+        title = 'Doctor (All Locations)';
+        description = 'Applies to a specific doctor across all locations.';
+        priority = 'Medium';
+        break;
+      case OfficeHourRuleType.locationHours:
+        title = 'Work Location Hours';
+        description =
+            'Applies to a specific location for all doctors working there.';
+        priority = 'Low';
+        break;
+      case OfficeHourRuleType.global:
+        title = 'Global Hours';
+        description =
+            'Applies to all locations as fallback when no specific hours are defined.';
+        priority = 'Lowest';
+        break;
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: context.theme.muted.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: context.theme.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: context.theme.foreground,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: context.theme.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  'Priority: $priority',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: context.theme.primary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            description,
+            style: TextStyle(
+              fontSize: 12,
+              color: context.theme.mutedForeground,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildRuleTypeSelector() {
     return Column(
       children: [
@@ -202,11 +292,17 @@ class _CreateOfficeHourPageState extends State<CreateOfficeHourPage> {
         ),
         const SizedBox(height: 8),
         _buildRadioTile(
-          value: OfficeHourRuleType.locationDefault,
+          value: OfficeHourRuleType.locationHours,
           label: AppLocalizations.of(
             context,
           ).translate('rule_type_location_default'),
           icon: Icons.location_city_outlined,
+        ),
+        const SizedBox(height: 8),
+        _buildRadioTile(
+          value: OfficeHourRuleType.global,
+          label: 'Global System Default',
+          icon: Icons.public,
         ),
       ],
     );
@@ -222,11 +318,13 @@ class _CreateOfficeHourPageState extends State<CreateOfficeHourPage> {
       onTap: () {
         setState(() {
           _ruleType = value;
-          // Reset fields not relevant to the new type
-          if (_ruleType == OfficeHourRuleType.doctorDefault) {
+          // Reset fields when switching types
+          if (_ruleType == OfficeHourRuleType.global) {
+            _selectedDoctorId = null;
             _selectedWorkLocationId = null;
-          }
-          if (_ruleType == OfficeHourRuleType.locationDefault) {
+          } else if (_ruleType == OfficeHourRuleType.doctorDefault) {
+            _selectedWorkLocationId = null;
+          } else if (_ruleType == OfficeHourRuleType.locationHours) {
             _selectedDoctorId = null;
           }
         });
@@ -276,6 +374,7 @@ class _CreateOfficeHourPageState extends State<CreateOfficeHourPage> {
 
   Widget _buildDoctorDropdown() {
     return DropdownButtonFormField<String>(
+      isExpanded: true,
       decoration: _inputDecoration(
         AppLocalizations.of(context).translate('doctor'),
       ),
@@ -289,20 +388,20 @@ class _CreateOfficeHourPageState extends State<CreateOfficeHourPage> {
         });
       },
       validator: (value) {
-        if (_ruleType != OfficeHourRuleType.locationDefault && value == null) {
-          return AppLocalizations.of(context).translate(
-            'error_select_doctor',
-          ); // Utilize existing generic error if specific missing, or default validation text
+        if ((_ruleType == OfficeHourRuleType.specific ||
+                _ruleType == OfficeHourRuleType.doctorDefault) &&
+            value == null) {
+          return AppLocalizations.of(context).translate('error_select_doctor');
         }
         return null;
       },
-      // Ensure icon color follows theme
       icon: Icon(Icons.arrow_drop_down, color: context.theme.mutedForeground),
     );
   }
 
   Widget _buildLocationDropdown() {
     return DropdownButtonFormField<String>(
+      isExpanded: true,
       decoration: _inputDecoration(
         AppLocalizations.of(context).translate('location'),
       ),
@@ -316,8 +415,10 @@ class _CreateOfficeHourPageState extends State<CreateOfficeHourPage> {
         });
       },
       validator: (value) {
-        if (_ruleType != OfficeHourRuleType.doctorDefault && value == null) {
-          return 'Please select a location'; // Fallback if key missing
+        if ((_ruleType == OfficeHourRuleType.specific ||
+                _ruleType == OfficeHourRuleType.locationHours) &&
+            value == null) {
+          return 'Please select a location';
         }
         return null;
       },
@@ -465,23 +566,36 @@ class _CreateOfficeHourPageState extends State<CreateOfficeHourPage> {
 
   Future<void> _handleSubmit() async {
     if (_formKey.currentState!.validate()) {
-      // Logic from API Spec:
-      // 1. Doctor-specific at location: doctorId not null, workLocationId not null
-      // 2. Doctor-specific (all locations): doctorId not null, workLocationId null
-      // 3. Global location hours: workLocationId not null, doctorId null, isGlobal true
-
+      // Logic adjusted to match React Implementation
       String? doctorId = _selectedDoctorId;
       String? workLocationId = _selectedWorkLocationId;
       bool isGlobal = false;
 
-      if (_ruleType == OfficeHourRuleType.doctorDefault) {
-        workLocationId = null;
-      } else if (_ruleType == OfficeHourRuleType.locationDefault) {
-        doctorId = null;
-        isGlobal = true;
+      switch (_ruleType) {
+        case OfficeHourRuleType.specific:
+          // Use both doctorId and workLocationId
+          isGlobal = false;
+          break;
+        case OfficeHourRuleType.doctorDefault:
+          workLocationId = null;
+          isGlobal = false;
+          break;
+        case OfficeHourRuleType.locationHours:
+          doctorId = null;
+          isGlobal = false; // React logic: isGlobal = false for location hours
+          break;
+        case OfficeHourRuleType.global:
+          doctorId = null;
+          workLocationId = null;
+          isGlobal = true;
+          break;
       }
 
       final vm = context.read<OfficeHoursVm>();
+      final successMsg = AppLocalizations.of(
+        context,
+      ).translate('create_office_hour_success');
+
       final success = await vm.createOfficeHour(
         doctorId: doctorId,
         workLocationId: workLocationId,
@@ -497,9 +611,7 @@ class _CreateOfficeHourPageState extends State<CreateOfficeHourPage> {
           SnackBar(
             backgroundColor: context.theme.green,
             content: Text(
-              AppLocalizations.of(
-                context,
-              ).translate('create_office_hour_success'),
+              successMsg,
               style: TextStyle(color: context.theme.white),
             ),
           ),

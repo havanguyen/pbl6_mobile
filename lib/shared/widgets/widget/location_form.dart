@@ -60,7 +60,19 @@ class _LocationFormState extends State<LocationForm>
     _selectedTimezone = widget.initialData?.timezone;
 
     tzData.initializeTimeZones();
-    _timezones = tz.timeZoneDatabase.locations.keys.toList();
+    // Ensure unique and sorted
+    final zones = tz.timeZoneDatabase.locations.keys.toSet().toList()..sort();
+    _timezones = zones;
+
+    // Ensure selected timezone is in the list to avoid DropdownButton error
+    if (_selectedTimezone != null &&
+        _selectedTimezone!.isNotEmpty &&
+        !_timezones.contains(_selectedTimezone)) {
+      print(
+        '--- [WARN] Selected timezone "$_selectedTimezone" not found in database. Adding explicitly. ---',
+      );
+      _timezones.insert(0, _selectedTimezone!);
+    }
 
     _animationController = AnimationController(
       vsync: this,

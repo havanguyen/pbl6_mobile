@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:pbl6mobile/model/entities/appointment_data.dart';
 import 'package:pbl6mobile/model/services/remote/appointment_service.dart';
 import 'package:pbl6mobile/model/services/local/appointment_database_helper.dart';
@@ -81,11 +82,12 @@ class AppointmentVm extends ChangeNotifier {
     String? workLocationId,
     String? specialtyId,
     String? patientId,
+    bool forceRefresh = false,
   }) async {
     print('--- [DEBUG] AppointmentVm.fetchAppointments ---');
     print('fromDate: $fromDate, toDate: $toDate');
     print(
-      'Filters: doctorId=$doctorId, locationId=$workLocationId, specialtyId=$specialtyId',
+      'Filters: doctorId=$doctorId, locationId=$workLocationId, specialtyId=$specialtyId, forceRefresh=$forceRefresh',
     );
     await Future.delayed(Duration.zero);
 
@@ -106,10 +108,14 @@ class AppointmentVm extends ChangeNotifier {
     // 1. Load from cache immediately
     await _loadFromCache(fromDate, toDate);
 
-    // 2. If not synced or forced (we can add a force flag later, for now relying on user pull-to-refresh calling this), sync data
-    // Ideally we sync a wider range to "Get All" as requested
-    // 2. If not synced or forced
-    if (!_isSynced) {
+    // 2. If forced or not synced, sync data
+    if (forceRefresh || !_isSynced) {
+      if (forceRefresh) {
+        print(
+          '--- [DEBUG] Force refresh requested. Resetting sync status. ---',
+        );
+        _isSynced = false;
+      }
       // Run sync in background, don't await to block UI
       _syncAppointments();
     }
@@ -163,23 +169,27 @@ class AppointmentVm extends ChangeNotifier {
         }
       }
 
+      print(
+        '--- [DEBUG] AppointmentVm: Sync complete. Total fetched: ${allSyncedAppointments.length} ---',
+      );
+
+      // CLEAR cache for the synced range first
+      await AppointmentDatabaseHelper.instance.deleteAppointmentsInRange(
+        fromDate: syncFrom,
+        toDate: syncTo,
+      );
+
+      // THEN insert new data
       if (allSyncedAppointments.isNotEmpty) {
-        print(
-          '--- [DEBUG] AppointmentVm: Sync complete. Total fetched: ${allSyncedAppointments.length} ---',
-        );
         await AppointmentDatabaseHelper.instance.insertAppointments(
           allSyncedAppointments,
         );
-        _isSynced = true;
+      }
 
-        if (_lastFromDate != null && _lastToDate != null) {
-          await _loadFromCache(_lastFromDate!, _lastToDate!);
-        }
-      } else {
-        print(
-          '--- [DEBUG] AppointmentVm: Sync complete. No appointments found. ---',
-        );
-        _isSynced = true;
+      _isSynced = true;
+
+      if (_lastFromDate != null && _lastToDate != null) {
+        await _loadFromCache(_lastFromDate!, _lastToDate!);
       }
     } catch (e) {
       print('--- [ERROR] AppointmentVm: Sync error: $e ---');
@@ -192,7 +202,10 @@ class AppointmentVm extends ChangeNotifier {
       final cachedAppointments = await AppointmentDatabaseHelper.instance
           .getAppointments(fromDate: fromDate, toDate: toDate);
       if (cachedAppointments.isNotEmpty) {
-        _appointments = cachedAppointments;
+        _appointments = cachedAppointments.toSet().toList();
+        print(
+          '--- [DEBUG] Loaded ${_appointments.length} unique appointments (original: ${cachedAppointments.length}) ---',
+        );
         _dataSource.appointments = List.from(_appointments);
         _dataSource.notifyListeners(
           CalendarDataSourceAction.reset,
@@ -241,30 +254,41 @@ class AppointmentVm extends ChangeNotifier {
   }
 
   Future<bool> rescheduleAppointment(
-    String id,
+    String appointmentId,
     String timeStart,
     String timeEnd,
-  ) async {
-    _setActionLoading(id, true);
+    DateTime serviceDate, {
+    String? doctorId,
+    String? locationId,
+  }) async {
+    _setActionLoading(appointmentId, true);
     _actionError = null;
+    notifyListeners();
+
     try {
+      final formattedDate = DateFormat('yyyy-MM-dd').format(serviceDate);
       final success = await _appointmentService.rescheduleAppointment(
-        id,
+        appointmentId,
         timeStart,
         timeEnd,
+        formattedDate,
+        doctorId: doctorId,
+        locationId: locationId,
       );
+
       if (success) {
         await refresh();
         return true;
       } else {
-        _actionError = "Không thể dời lịch hẹn";
+        _actionError = 'Failed to reschedule';
         return false;
       }
     } catch (e) {
       _actionError = e.toString();
       return false;
     } finally {
-      _setActionLoading(id, false);
+      _setActionLoading(appointmentId, false);
+      notifyListeners();
     }
   }
 

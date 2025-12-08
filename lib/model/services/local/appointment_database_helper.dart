@@ -86,6 +86,26 @@ class AppointmentDatabaseHelper {
     }
   }
 
+  Future<void> deleteAppointmentsInRange({
+    required DateTime fromDate,
+    required DateTime toDate,
+  }) async {
+    final db = await database;
+    try {
+      final startStr = fromDate.toIso8601String();
+      final endStr = toDate.toIso8601String();
+
+      // Delete appointments that overlap with the range
+      await db.delete(
+        _table,
+        where: 'startTime <= ? AND endTime >= ?',
+        whereArgs: [endStr, startStr],
+      );
+    } catch (e) {
+      print("Error deleting appointments from database: $e");
+    }
+  }
+
   Future<void> clearAll() async {
     final db = await database;
     await db.delete(_table);

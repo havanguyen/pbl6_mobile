@@ -203,7 +203,7 @@ class AppointmentData {
 
   DateTime get appointmentStartTime {
     if (event.serviceDate == null || event.timeStart == null) {
-      return DateTime.now();
+      return DateTime(1970, 1, 1);
     }
     return DateTime(
       event.serviceDate!.year,
@@ -216,7 +216,7 @@ class AppointmentData {
 
   DateTime get appointmentEndTime {
     if (event.serviceDate == null || event.timeEnd == null) {
-      return DateTime.now().add(const Duration(minutes: 30));
+      return DateTime(1970, 1, 1).add(const Duration(minutes: 30));
     }
     return DateTime(
       event.serviceDate!.year,

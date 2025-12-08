@@ -227,26 +227,36 @@ class _OfficeHoursPageState extends State<OfficeHoursPage>
     String labelText;
     IconData badgeIcon;
 
-    if (isGlobal || (!isDoctorSpecific && isLocationSpecific)) {
-      // Global Location Default -> Accent/Secondary (Blue-ish or Grey-ish)
-      // Using generic Accent
+    String priorityLabel = '';
+
+    if (isGlobal) {
+      // Global System Default
+      badgeBg = context.theme.muted;
+      badgeText = context.theme.mutedForeground;
+      labelText = 'Global Default';
+      badgeIcon = Icons.public;
+      priorityLabel = 'Lowest';
+    } else if (!isDoctorSpecific && isLocationSpecific) {
+      // Location Only
       badgeBg = context.theme.accent;
       badgeText = context.theme.accentForeground;
       labelText = AppLocalizations.of(context).translate('location_badge');
       badgeIcon = Icons.location_city;
-    } else if (isDoctorSpecific && isLocationSpecific) {
-      // Specific -> Green
-      // Use green with opacity for BG to ensure text legibility
-      badgeBg = context.theme.green.withOpacity(0.15);
-      badgeText = context.theme.green;
-      labelText = AppLocalizations.of(context).translate('doctor_loc_badge');
-      badgeIcon = Icons.person_pin_circle;
-    } else if (isDoctorSpecific) {
-      // Doctor Default -> Primary (Blue)
+      priorityLabel = 'Low';
+    } else if (isDoctorSpecific && !isLocationSpecific) {
+      // Doctor Only
       badgeBg = context.theme.primary.withOpacity(0.15);
       badgeText = context.theme.primary;
       labelText = AppLocalizations.of(context).translate('doctor_badge');
       badgeIcon = Icons.person;
+      priorityLabel = 'Medium';
+    } else if (isDoctorSpecific && isLocationSpecific) {
+      // Specific
+      badgeBg = context.theme.green.withOpacity(0.15);
+      badgeText = context.theme.green;
+      labelText = AppLocalizations.of(context).translate('doctor_loc_badge');
+      badgeIcon = Icons.person_pin_circle;
+      priorityLabel = 'Highest';
     } else {
       // Fallback
       badgeBg = context.theme.muted;
@@ -285,28 +295,63 @@ class _OfficeHoursPageState extends State<OfficeHoursPage>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: badgeBg,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
+                    Expanded(
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 4,
+                        crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
-                          Icon(badgeIcon, size: 14, color: badgeText),
-                          const SizedBox(width: 6),
-                          Text(
-                            labelText,
-                            style: TextStyle(
-                              color: badgeText,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: badgeBg,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(badgeIcon, size: 14, color: badgeText),
+                                const SizedBox(width: 6),
+                                Flexible(
+                                  child: Text(
+                                    labelText,
+                                    style: TextStyle(
+                                      color: badgeText,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
+                          if (priorityLabel.isNotEmpty)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: context.theme.muted.withOpacity(0.3),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: context.theme.mutedForeground
+                                      .withOpacity(0.3),
+                                ),
+                              ),
+                              child: Text(
+                                'Priority: $priorityLabel',
+                                style: TextStyle(
+                                  color: context.theme.mutedForeground,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                     ),
@@ -450,15 +495,16 @@ class _OfficeHoursPageState extends State<OfficeHoursPage>
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
+              final successMsg = AppLocalizations.of(
+                context,
+              ).translate('delete_office_hour_success');
               final success = await vm.deleteOfficeHour(item.id);
               if (success && mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     backgroundColor: context.theme.green,
                     content: Text(
-                      AppLocalizations.of(
-                        context,
-                      ).translate('delete_office_hour_success'),
+                      successMsg,
                       style: const TextStyle(color: Colors.white),
                     ),
                   ),

@@ -21,13 +21,20 @@ class AppointmentDetailsSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = context.theme;
     final DateFormat timeFormatter = DateFormat('HH:mm');
-    final DateFormat dateFormatter = DateFormat('dd/MM/yyyy');
+    final DateFormat dateFormatter = DateFormat('EEEE, dd/MM/yyyy');
 
     return Container(
-      padding: const EdgeInsets.all(20.0),
+      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
       decoration: BoxDecoration(
         color: theme.card,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(0, -5),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -36,46 +43,73 @@ class AppointmentDetailsSheet extends StatelessWidget {
           // Drag Handle
           Center(
             child: Container(
-              width: 40,
-              height: 4,
-              margin: const EdgeInsets.only(bottom: 16),
+              width: 50,
+              height: 5,
+              margin: const EdgeInsets.only(bottom: 24),
               decoration: BoxDecoration(
-                color: theme.muted,
-                borderRadius: BorderRadius.circular(2),
+                color: theme.muted.withOpacity(0.5),
+                borderRadius: BorderRadius.circular(2.5),
               ),
             ),
           ),
+
+          // Header Row
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
-                child: Text(
-                  '${AppLocalizations.of(context).translate('patient')}: ${appointment.patient.fullName}',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: theme.textColor,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      appointment.patient.fullName,
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                        color: theme.textColor,
+                        height: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      AppLocalizations.of(context).translate('patient'),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: theme.mutedForeground,
+                      ),
+                    ),
+                  ],
                 ),
               ),
+              const SizedBox(width: 16),
               _buildStatusBadge(context, theme),
             ],
           ),
-          Divider(height: 24, color: theme.border),
+
+          const SizedBox(height: 24),
+          Divider(height: 1, color: theme.border.withOpacity(0.5)),
+          const SizedBox(height: 24),
+
+          // Details Section
           _buildDetailRow(
             context,
             theme,
-            Icons.person_outline,
+            Icons.medical_services_outlined,
             AppLocalizations.of(context).translate('doctor'),
-            appointment.doctor.name ?? 'N/A',
+            appointment.doctor.name ?? 'Unassigned',
+            highlight: true,
           ),
+          const SizedBox(height: 16),
           _buildDetailRow(
             context,
             theme,
-            Icons.calendar_today_outlined,
+            Icons.calendar_month_outlined,
             AppLocalizations.of(context).translate('date_label'),
             dateFormatter.format(appointment.appointmentStartTime),
           ),
+          const SizedBox(height: 16),
           _buildDetailRow(
             context,
             theme,
@@ -83,60 +117,97 @@ class AppointmentDetailsSheet extends StatelessWidget {
             AppLocalizations.of(context).translate('time'),
             '${timeFormatter.format(appointment.appointmentStartTime)} - ${timeFormatter.format(appointment.appointmentEndTime)}',
           ),
-          if (appointment.priceAmount != null)
+          if (appointment.priceAmount != null) ...[
+            const SizedBox(height: 16),
             _buildDetailRow(
               context,
               theme,
               Icons.attach_money,
               AppLocalizations.of(context).translate('price'),
               '${NumberFormat('#,###').format(appointment.priceAmount)} ${appointment.currency ?? 'VND'}',
-            ),
-          const SizedBox(height: 12),
-          Text(
-            '${AppLocalizations.of(context).translate('reason')}:',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: theme.textColor,
-              fontSize: 15,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            appointment.reason ??
-                AppLocalizations.of(context).translate('none'),
-            style: TextStyle(color: theme.mutedForeground),
-          ),
-          if (appointment.notes != null && appointment.notes!.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            Text(
-              '${AppLocalizations.of(context).translate('notes')}:',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: theme.textColor,
-                fontSize: 15,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              appointment.notes!,
-              style: TextStyle(color: theme.mutedForeground),
+              valueColor: theme.primary,
             ),
           ],
+
           const SizedBox(height: 24),
+
+          // Additional Info Check
+          if ((appointment.reason != null && appointment.reason!.isNotEmpty) ||
+              (appointment.notes != null && appointment.notes!.isNotEmpty))
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: theme.muted.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (appointment.reason != null &&
+                      appointment.reason!.isNotEmpty) ...[
+                    Text(
+                      '${AppLocalizations.of(context).translate('reason')}:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: theme.textColor,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      appointment.reason!,
+                      style: TextStyle(
+                        color: theme.textColor.withOpacity(0.8),
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                  if (appointment.notes != null &&
+                      appointment.notes!.isNotEmpty) ...[
+                    if (appointment.reason != null &&
+                        appointment.reason!.isNotEmpty)
+                      const SizedBox(height: 12),
+                    Text(
+                      '${AppLocalizations.of(context).translate('notes')}:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: theme.textColor,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      appointment.notes!,
+                      style: TextStyle(
+                        color: theme.textColor.withOpacity(0.8),
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+
+          const SizedBox(height: 32),
           _buildActionButtons(context, theme),
           const SizedBox(height: 16),
+
           SizedBox(
             width: double.infinity,
+            height: 50,
             child: OutlinedButton(
               style: OutlinedButton.styleFrom(
                 foregroundColor: theme.mutedForeground,
                 side: BorderSide(color: theme.border),
-                padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
+                elevation: 0,
               ),
-              child: Text(AppLocalizations.of(context).translate('close')),
+              child: Text(
+                AppLocalizations.of(context).translate('close'),
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
               onPressed: () => Navigator.pop(context),
             ),
           ),
@@ -152,25 +223,25 @@ class AppointmentDetailsSheet extends StatelessWidget {
 
     switch (appointment.status) {
       case 'BOOKED':
-        badgeColor = theme.blue;
+        badgeColor = const Color(0xFF3B82F6);
         statusText = AppLocalizations.of(context).translate('status_booked');
         break;
       case 'CONFIRMED':
-        badgeColor = theme.green;
+        badgeColor = const Color(0xFF10B981);
         statusText = AppLocalizations.of(context).translate('status_confirmed');
         break;
       case 'COMPLETED':
-        badgeColor = theme.green;
+        badgeColor = const Color(0xFF059669);
         statusText = AppLocalizations.of(context).translate('status_completed');
         break;
       case 'CANCELLED':
       case 'CANCELLED_BY_STAFF':
       case 'CANCELLED_BY_PATIENT':
-        badgeColor = theme.destructive;
+        badgeColor = const Color(0xFFEF4444);
         statusText = AppLocalizations.of(context).translate('status_cancelled');
         break;
       case 'RESCHEDULED':
-        badgeColor = theme.yellow;
+        badgeColor = const Color(0xFFF59E0B);
         statusText = AppLocalizations.of(
           context,
         ).translate('status_rescheduled');
@@ -181,18 +252,19 @@ class AppointmentDetailsSheet extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         color: badgeColor.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: badgeColor),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: badgeColor.withOpacity(0.2)),
       ),
       child: Text(
-        statusText,
+        statusText.toUpperCase(),
         style: TextStyle(
           color: badgeColor,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w700,
           fontSize: 12,
+          letterSpacing: 0.5,
         ),
       ),
     );
@@ -210,84 +282,86 @@ class AppointmentDetailsSheet extends StatelessWidget {
     }
 
     return Wrap(
-      spacing: 8,
-      runSpacing: 8,
+      spacing: 12,
+      runSpacing: 12,
       alignment: WrapAlignment.center,
       children: [
         if (appointment.status == 'BOOKED' ||
             appointment.status == 'RESCHEDULED')
-          ElevatedButton.icon(
+          _buildActionButton(
+            context: context,
+            label: AppLocalizations.of(context).translate('confirm'),
+            icon: Icons.check_circle_outline,
+            color: const Color(0xFF10B981),
             onPressed: isLoading
                 ? null
                 : () => AppointmentActionDialogs.showConfirmDialog(
                     context,
                     appointment,
                   ),
-            icon: const Icon(Icons.check, size: 18),
-            label: Text(AppLocalizations.of(context).translate('confirm')),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: theme.green,
-              foregroundColor: theme.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
           ),
 
-        ElevatedButton.icon(
+        _buildActionButton(
+          context: context,
+          label: AppLocalizations.of(context).translate('update'),
+          icon: Icons.edit_outlined,
+          color: const Color(0xFF3B82F6),
           onPressed: isLoading
               ? null
               : () => AppointmentActionDialogs.showEditDialog(
                   context,
                   appointment,
                 ),
-          icon: const Icon(Icons.edit, size: 18),
-          label: Text(AppLocalizations.of(context).translate('update')),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: theme.blue,
-            foregroundColor: theme.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
         ),
 
-        ElevatedButton.icon(
+        _buildActionButton(
+          context: context,
+          label: AppLocalizations.of(context).translate('reschedule'),
+          icon: Icons.access_time, // Use generic time icon
+          color: const Color(0xFFF59E0B),
           onPressed: isLoading
               ? null
               : () => AppointmentActionDialogs.showRescheduleDialog(
                   context,
                   appointment,
                 ),
-          icon: const Icon(Icons.schedule, size: 18),
-          label: Text(AppLocalizations.of(context).translate('reschedule')),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: theme.yellow,
-            foregroundColor: theme.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
         ),
 
-        ElevatedButton.icon(
+        _buildActionButton(
+          context: context,
+          label: AppLocalizations.of(context).translate('cancel'),
+          icon: Icons.cancel_outlined,
+          color: const Color(0xFFEF4444),
           onPressed: isLoading
               ? null
               : () => AppointmentActionDialogs.showCancelDialog(
                   context,
                   appointment,
                 ),
-          icon: const Icon(Icons.cancel_outlined, size: 18),
-          label: Text(AppLocalizations.of(context).translate('cancel')),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: theme.destructive,
-            foregroundColor: theme.destructiveForeground,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
         ),
       ],
+    );
+  }
+
+  Widget _buildActionButton({
+    required BuildContext context,
+    required String label,
+    required IconData icon,
+    required Color color,
+    required VoidCallback? onPressed,
+  }) {
+    return ElevatedButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 20),
+      label: Text(label),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        elevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        textStyle: const TextStyle(fontWeight: FontWeight.w600),
+      ),
     );
   }
 
@@ -297,38 +371,47 @@ class AppointmentDetailsSheet extends StatelessWidget {
     IconData icon,
     String title,
     String value, {
-    Color? highlightColor,
+    Color? valueColor,
+    bool highlight = false,
   }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 20, color: theme.mutedForeground),
-          const SizedBox(width: 12),
-          SizedBox(
-            width: 80,
-            child: Text(
-              title,
-              style: TextStyle(
-                fontWeight: FontWeight.w500,
-                color: theme.mutedForeground,
-              ),
-            ),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: theme.muted.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10),
           ),
-          Expanded(
-            child: Text(
-              value,
-              style: TextStyle(
-                color: highlightColor ?? theme.textColor,
-                fontWeight: highlightColor != null
-                    ? FontWeight.bold
-                    : FontWeight.normal,
+          child: Icon(icon, size: 22, color: theme.primary),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: theme.mutedForeground,
+                ),
               ),
-            ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: valueColor ?? theme.textColor,
+                  fontWeight: highlight ? FontWeight.bold : FontWeight.w600,
+                  height: 1.3,
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

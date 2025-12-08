@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter_quill/flutter_quill.dart' as quill;
+import 'package:html_editor_enhanced/html_editor.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
-import 'doctor_form.dart';
 import 'package:pbl6mobile/shared/localization/app_localizations.dart';
+import 'package:vsc_quill_delta_to_html/vsc_quill_delta_to_html.dart';
+import 'doctor_form.dart';
 
 class InfoSectionForm extends StatefulWidget {
   final bool isUpdate;
@@ -34,10 +35,9 @@ class _InfoSectionFormState extends State<InfoSectionForm>
     with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
-  late quill.QuillController _contentController;
-  final FocusNode _focusNode = FocusNode();
-  final ScrollController _scrollController = ScrollController();
+  final HtmlEditorController _controller = HtmlEditorController();
   late AnimationController _animationController;
+  String _initialContent = '';
 
   @override
   void initState() {
@@ -45,21 +45,21 @@ class _InfoSectionFormState extends State<InfoSectionForm>
     _nameController = TextEditingController(
       text: widget.initialData?['name'] ?? '',
     );
-    _contentController = quill.QuillController.basic();
+
     final initialContent = widget.initialData?['content'];
     if (initialContent != null && initialContent.isNotEmpty) {
       try {
-        final doc = quill.Document.fromJson(jsonDecode(initialContent));
-        _contentController = quill.QuillController(
-          document: doc,
-          selection: const TextSelection.collapsed(offset: 0),
-        );
+        final json = jsonDecode(initialContent);
+        // If it decodes as JSON list, assume it's a Quill Delta
+        if (json is List) {
+          final converter = QuillDeltaToHtmlConverter(List.castFrom(json));
+          _initialContent = converter.convert();
+        } else {
+          _initialContent = initialContent;
+        }
       } catch (e) {
-        final doc = quill.Document()..insert(0, initialContent);
-        _contentController = quill.QuillController(
-          document: doc,
-          selection: const TextSelection.collapsed(offset: 0),
-        );
+        // Not JSON, assume HTML/Text
+        _initialContent = initialContent;
       }
     }
 
@@ -73,35 +73,33 @@ class _InfoSectionFormState extends State<InfoSectionForm>
   @override
   void dispose() {
     _nameController.dispose();
-    _contentController.dispose();
-    _focusNode.dispose();
-    _scrollController.dispose();
     _animationController.dispose();
     super.dispose();
   }
 
   Future<bool> _submitForm() async {
     if (_formKey.currentState!.validate()) {
-      final plainTextContent = _contentController.document.toPlainText().trim();
-      if (plainTextContent.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              AppLocalizations.of(
-                context,
-              ).translate('info_section_content_required'),
+      final finalContent = await _controller.getText();
+
+      if (finalContent.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(
+                  context,
+                ).translate('info_section_content_required'),
+              ),
             ),
-          ),
-        );
+          );
+        }
         return false;
       }
-      final jsonContent = jsonEncode(
-        _contentController.document.toDelta().toJson(),
-      );
+
       final success = await widget.onSubmit(
         id: widget.initialData?['id'],
         name: _nameController.text,
-        content: jsonContent,
+        content: finalContent,
       );
       if (success) {
         widget.onSuccess?.call();
@@ -114,7 +112,6 @@ class _InfoSectionFormState extends State<InfoSectionForm>
     return false;
   }
 
-  // Helper widget để tạo hiệu ứng động
   Widget _buildAnimatedWrapper({required Widget child, required int index}) {
     return FadeTransition(
       opacity: CurvedAnimation(
@@ -188,6 +185,7 @@ class _InfoSectionFormState extends State<InfoSectionForm>
             _buildAnimatedWrapper(
               index: 2,
               child: Container(
+                clipBehavior: Clip.antiAlias,
                 decoration: BoxDecoration(
                   border: Border.all(color: theme.border),
                   borderRadius: BorderRadius.circular(12),
@@ -199,42 +197,41 @@ class _InfoSectionFormState extends State<InfoSectionForm>
                     ),
                   ],
                 ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Column(
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          color: theme.input,
-                          borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(12),
-                          ),
-                        ),
-                        padding: const EdgeInsets.all(8.0),
-                        child: quill.QuillSimpleToolbar(
-                          controller: _contentController,
-                          config: const quill.QuillSimpleToolbarConfig(
-                            toolbarSize: 20,
-                            toolbarSectionSpacing: 2,
-                            showAlignmentButtons: true,
-                            showFontSize: false,
-                            showDividers: false,
-                            multiRowsDisplay: false,
-                          ),
-                        ),
-                      ),
-                      const Divider(height: 1),
-                      Container(
-                        height: 300,
-                        color: theme.input,
-                        padding: const EdgeInsets.all(5),
-                        child: quill.QuillEditor(
-                          controller: _contentController,
-                          focusNode: _focusNode,
-                          scrollController: _scrollController,
-                        ),
+                child: HtmlEditor(
+                  controller: _controller,
+                  htmlEditorOptions: HtmlEditorOptions(
+                    hint: AppLocalizations.of(
+                      context,
+                    ).translate('info_section_content_hint'),
+                    initialText: _initialContent,
+                  ),
+                  htmlToolbarOptions: HtmlToolbarOptions(
+                    toolbarPosition: ToolbarPosition.aboveEditor,
+                    toolbarType: ToolbarType.nativeScrollable,
+                    defaultToolbarButtons: [
+                      const StyleButtons(),
+                      const FontSettingButtons(),
+                      const FontButtons(),
+                      const ColorButtons(),
+                      const ListButtons(),
+                      const ParagraphButtons(),
+                      const InsertButtons(),
+                      const OtherButtons(
+                        codeview: false,
+                        fullscreen: false,
+                        help: false,
                       ),
                     ],
+                    customToolbarButtons: [
+                      _CodeViewToggleButton(controller: _controller),
+                    ],
+                  ),
+                  otherOptions: OtherOptions(
+                    height: 400,
+                    decoration: BoxDecoration(
+                      color: theme.input,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
               ),
@@ -257,6 +254,57 @@ class _InfoSectionFormState extends State<InfoSectionForm>
           ],
         ),
       ),
+    );
+  }
+}
+
+class _CodeViewToggleButton extends StatefulWidget {
+  final HtmlEditorController controller;
+
+  const _CodeViewToggleButton({required this.controller});
+
+  @override
+  State<_CodeViewToggleButton> createState() => _CodeViewToggleButtonState();
+}
+
+class _CodeViewToggleButtonState extends State<_CodeViewToggleButton> {
+  bool _isLoading = false;
+  bool _isCodeView = false;
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Padding(
+        padding: EdgeInsets.all(8.0),
+        child: SizedBox(
+          width: 20,
+          height: 20,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      );
+    }
+
+    return IconButton(
+      icon: Icon(
+        _isCodeView ? Icons.visibility_outlined : Icons.code,
+        color: Colors.black87,
+      ),
+      onPressed: () async {
+        setState(() => _isLoading = true);
+        try {
+          await Future.delayed(const Duration(milliseconds: 100));
+          widget.controller.toggleCodeView();
+          await Future.delayed(const Duration(milliseconds: 700));
+          setState(() => _isCodeView = !_isCodeView);
+        } catch (e) {
+          debugPrint('Error toggling code view: $e');
+        } finally {
+          if (mounted) {
+            setState(() => _isLoading = false);
+          }
+        }
+      },
+      tooltip: 'Switch to ${_isCodeView ? 'Visual' : 'HTML'} View',
     );
   }
 }

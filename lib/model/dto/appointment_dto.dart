@@ -26,32 +26,6 @@ class DoctorSlot {
   }
 }
 
-class HoldAppointmentRequest {
-  final String doctorId;
-  final String locationId;
-  final String serviceDate;
-  final String timeStart;
-  final String timeEnd;
-
-  HoldAppointmentRequest({
-    required this.doctorId,
-    required this.locationId,
-    required this.serviceDate,
-    required this.timeStart,
-    required this.timeEnd,
-  });
-
-  Map<String, dynamic> toJson() {
-    return {
-      'doctorId': doctorId,
-      'locationId': locationId,
-      'serviceDate': serviceDate,
-      'timeStart': timeStart,
-      'timeEnd': timeEnd,
-    };
-  }
-}
-
 class CreateAppointmentRequest {
   final String? eventId;
   final String? serviceDate;

@@ -468,27 +468,13 @@ class _RescheduleDialogState extends State<RescheduleDialog> {
     if (confirmed == true && mounted) {
       final vm = context.read<AppointmentVm>();
 
-      final _ = DateFormat('yyyy-MM-dd').format(_selectedDate!);
-
-      // Helper to combine date and time string
-      DateTime combine(DateTime date, String time) {
-        final parts = time.split(':');
-        return DateTime(
-          date.year,
-          date.month,
-          date.day,
-          int.parse(parts[0]),
-          int.parse(parts[1]),
-        );
-      }
-
-      final startDt = combine(_selectedDate!, _selectedSlot!.timeStart);
-      final endDt = combine(_selectedDate!, _selectedSlot!.timeEnd);
-
       final success = await vm.rescheduleAppointment(
         widget.appointment.id,
-        startDt.toIso8601String(),
-        endDt.toIso8601String(),
+        _selectedSlot!.timeStart,
+        _selectedSlot!.timeEnd,
+        _selectedDate!,
+        doctorId: widget.appointment.doctorId,
+        locationId: widget.appointment.locationId,
       );
 
       if (mounted) {

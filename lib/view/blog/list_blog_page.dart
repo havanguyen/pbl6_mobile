@@ -582,8 +582,8 @@ class _ListBlogPageState extends State<ListBlogPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Container(
-                width: 80.0,
-                height: 80.0,
+                width: 90.0,
+                height: 90.0,
                 decoration: BoxDecoration(
                   color: context.theme.muted,
                   borderRadius: BorderRadius.circular(8),
@@ -747,32 +747,41 @@ class _ListBlogPageState extends State<ListBlogPage> {
                     child:
                         (blog.thumbnailUrl != null &&
                             blog.thumbnailUrl!.isNotEmpty)
-                        ? (blog.thumbnailUrl!.toLowerCase().endsWith('.svg'))
-                              ? SvgPicture.network(
-                                  blog.thumbnailUrl!,
-                                  width: 80,
-                                  height: 80,
+                        ? Builder(
+                            builder: (context) {
+                              String imageUrl = blog.thumbnailUrl!;
+                              if (imageUrl.contains('placehold.co') &&
+                                  imageUrl.contains('.svg')) {
+                                imageUrl = imageUrl.replaceAll('.svg', '.png');
+                              }
+
+                              if (imageUrl.toLowerCase().contains('.svg')) {
+                                return SvgPicture.network(
+                                  imageUrl,
+                                  width: 90,
+                                  height: 90,
                                   fit: BoxFit.cover,
                                   placeholderBuilder: (context) => Container(
-                                    width: 80,
-                                    height: 80,
+                                    width: 90,
+                                    height: 90,
                                     color: context.theme.muted,
                                   ),
-                                )
-                              : CachedNetworkImage(
-                                  imageUrl: blog.thumbnailUrl!,
-                                  width: 80,
-                                  height: 80,
+                                );
+                              } else {
+                                return CachedNetworkImage(
+                                  imageUrl: imageUrl,
+                                  width: 90,
+                                  height: 90,
                                   fit: BoxFit.cover,
                                   placeholder: (context, url) => Container(
-                                    width: 80,
-                                    height: 80,
+                                    width: 90,
+                                    height: 90,
                                     color: context.theme.muted,
                                   ),
                                   errorWidget: (context, url, error) =>
                                       Container(
-                                        width: 80,
-                                        height: 80,
+                                        width: 90,
+                                        height: 90,
                                         color: context.theme.muted.withOpacity(
                                           0.5,
                                         ),
@@ -782,10 +791,13 @@ class _ListBlogPageState extends State<ListBlogPage> {
                                           size: 30,
                                         ),
                                       ),
-                                )
+                                );
+                              }
+                            },
+                          )
                         : Container(
-                            width: 80,
-                            height: 80,
+                            width: 90,
+                            height: 90,
                             color: context.theme.muted.withOpacity(0.5),
                             child: Icon(
                               Icons.image_not_supported_outlined,
@@ -798,7 +810,7 @@ class _ListBlogPageState extends State<ListBlogPage> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: SizedBox(
-                    height: 80,
+                    height: 90,
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [

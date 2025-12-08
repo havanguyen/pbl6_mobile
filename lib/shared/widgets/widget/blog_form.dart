@@ -1,12 +1,10 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_quill/flutter_quill.dart' as quill;
+import 'package:html_editor_enhanced/html_editor.dart';
 import 'package:pbl6mobile/model/entities/blog.dart';
 import 'package:pbl6mobile/model/entities/blog_category.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
-import 'package:pbl6mobile/shared/widgets/widget/quill_edittor.dart';
 import 'package:pbl6mobile/view_model/blog/blog_vm.dart';
 import 'package:provider/provider.dart';
 import 'package:pbl6mobile/shared/localization/app_localizations.dart';
@@ -32,7 +30,7 @@ class _BlogFormState extends State<BlogForm>
     with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _titleController;
-  late quill.QuillController _contentController;
+  late HtmlEditorController _contentController;
   BlogCategory? _selectedCategory;
   String? _selectedStatus;
   String? _initialThumbnailUrl;
@@ -47,6 +45,8 @@ class _BlogFormState extends State<BlogForm>
     _titleController = TextEditingController(
       text: widget.initialData?.title ?? '',
     );
+    _contentController = HtmlEditorController();
+
     _selectedCategory = context.read<BlogVm>().categories.firstWhere(
       (cat) => cat.id == widget.initialData?.category.id,
       orElse: () => context.read<BlogVm>().categories.isNotEmpty
@@ -65,10 +65,6 @@ class _BlogFormState extends State<BlogForm>
         ? (widget.initialData?.status ?? 'DRAFT')
         : null;
     _initialThumbnailUrl = widget.initialData?.thumbnailUrl;
-
-    _contentController = _initializeQuillController(
-      widget.initialData?.content,
-    );
 
     _animationController = AnimationController(
       vsync: this,
@@ -106,40 +102,9 @@ class _BlogFormState extends State<BlogForm>
     });
   }
 
-  quill.QuillController _initializeQuillController(String? content) {
-    if (content != null && content.isNotEmpty) {
-      try {
-        final deltaJson = jsonDecode(content);
-        final doc = quill.Document.fromJson(deltaJson);
-        return quill.QuillController(
-          document: doc,
-          selection: const TextSelection.collapsed(offset: 0),
-        );
-      } catch (e) {
-        try {
-          final plainText = content
-              .replaceAll('<br>', '\n')
-              .replaceAll(RegExp(r'<[^>]*>'), '');
-          final doc = quill.Document()..insert(0, plainText);
-          return quill.QuillController(
-            document: doc,
-            selection: const TextSelection.collapsed(offset: 0),
-          );
-        } catch (plainTextError) {
-          print(
-            "Error initializing Quill with non-JSON content: $plainTextError",
-          );
-          return quill.QuillController.basic();
-        }
-      }
-    }
-    return quill.QuillController.basic();
-  }
-
   @override
   void dispose() {
     _titleController.dispose();
-    _contentController.dispose();
     _animationController.dispose();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -173,21 +138,10 @@ class _BlogFormState extends State<BlogForm>
         );
         return false;
       }
-      String? getQuillJsonOrNull(quill.QuillController controller) {
-        if (controller.document.isEmpty() ||
-            controller.document.toPlainText().trim().isEmpty) {
-          return null;
-        }
-        try {
-          return jsonEncode(controller.document.toDelta().toJson());
-        } catch (e) {
-          print("Error encoding Quill JSON: $e");
-          return controller.document.toPlainText().trim();
-        }
-      }
 
-      final jsonContent = getQuillJsonOrNull(_contentController);
-      if (jsonContent == null) {
+      final content = await _contentController.getText();
+
+      if (content.isEmpty || content.trim() == '<p><br></p>') {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -208,7 +162,7 @@ class _BlogFormState extends State<BlogForm>
         success = await blogVm.updateBlog(
           widget.blogId!,
           title: _titleController.text.trim(),
-          content: jsonContent,
+          content: content,
           categoryId: _selectedCategory!.id,
           status: _selectedStatus,
           thumbnailUrl: currentThumbnailUrl,
@@ -216,7 +170,7 @@ class _BlogFormState extends State<BlogForm>
       } else {
         success = await blogVm.createBlog(
           title: _titleController.text.trim(),
-          content: jsonContent,
+          content: content,
           categoryId: _selectedCategory!.id,
           thumbnailUrl: currentThumbnailUrl,
         );
@@ -789,20 +743,63 @@ class _BlogFormState extends State<BlogForm>
             const SizedBox(height: 24),
             _buildAnimatedFormField(
               index: animationIndex++,
-              child: Card(
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: BorderSide(color: theme.border, width: 0.5),
-                ),
-                clipBehavior: Clip.antiAlias,
-                child: QuillEditor(
-                  label: AppLocalizations.of(
-                    context,
-                  ).translate('blog_content_label'),
-                  controller: _contentController,
-                  isReadOnly: false,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    AppLocalizations.of(
+                      context,
+                    ).translate('blog_content_label'),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: theme.textColor,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    height: 500,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: theme.border),
+                      borderRadius: BorderRadius.circular(12),
+                      color: theme.card,
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: HtmlEditor(
+                      controller: _contentController,
+                      htmlEditorOptions: HtmlEditorOptions(
+                        hint: "Start typing...",
+                        initialText: widget.initialData?.content ?? '',
+                        darkMode:
+                            Theme.of(context).brightness == Brightness.dark,
+                        shouldEnsureVisible: true,
+                        //adjustHeightForKeyboard: false,
+                      ),
+                      htmlToolbarOptions: HtmlToolbarOptions(
+                        toolbarPosition: ToolbarPosition.aboveEditor,
+                        toolbarType: ToolbarType.nativeScrollable,
+                        dropdownBackgroundColor: theme.popover,
+                        dropdownBoxDecoration: BoxDecoration(
+                          color: theme.popover,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        buttonColor: theme.textColor,
+                        buttonFillColor: theme.card,
+                        textStyle: TextStyle(
+                          color: theme.textColor,
+                          fontSize: 16,
+                        ),
+                      ),
+                      otherOptions: OtherOptions(
+                        height: 400,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          color: theme.input,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 32),

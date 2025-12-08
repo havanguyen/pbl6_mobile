@@ -445,28 +445,17 @@ class _ListSpecialtyPageState extends State<ListSpecialtyPage> {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: context.theme.bg,
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(
-                            color: context.theme.border.withOpacity(0.5),
-                          ),
-                        ),
-                        child: Text(
-                          '${AppLocalizations.of(context).translate('info_section_count')}: ${specialty.infoSectionsCount}',
+                      if (specialty.description != null &&
+                          specialty.description!.isNotEmpty)
+                        Text(
+                          specialty.description!,
                           style: TextStyle(
+                            fontSize: 13,
                             color: context.theme.mutedForeground,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
                           ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
                     ],
                   ),
                 ),

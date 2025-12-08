@@ -91,7 +91,7 @@ class ReviewService {
     int limit = 5,
   }) async {
     print('--- [DEBUG] Fetching Reviews ---');
-    print('DoctorID (ProfileID): $doctorId');
+    print('DoctorID: $doctorId');
     try {
       final params = {'page': page, 'limit': limit};
       // Use singular 'doctor' endpoint as confirmed by user success response

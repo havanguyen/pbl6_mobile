@@ -97,25 +97,6 @@ class AppointmentService {
     }
   }
 
-  Future<String?> holdSlot(HoldAppointmentRequest request) async {
-    try {
-      final response = await _dio.post(
-        '/appointments/hold',
-        data: request.toJson(),
-      );
-      print('--- [DEBUG] holdSlot Status: ${response.statusCode} ---');
-
-      if (response.statusCode == 201 || response.statusCode == 200) {
-        return response.data['data']['eventId'];
-      }
-      print('--- [ERROR] holdSlot Response: ${response.data} ---');
-      return null;
-    } catch (e) {
-      print('--- [ERROR] holdSlot Exception: $e ---');
-      return null;
-    }
-  }
-
   Future<bool> createAppointment(CreateAppointmentRequest request) async {
     try {
       final response = await _dio.post('/appointments', data: request.toJson());
@@ -143,17 +124,34 @@ class AppointmentService {
   }
 
   Future<bool> rescheduleAppointment(
-    String id,
+    String appointmentId,
     String timeStart,
     String timeEnd,
-  ) async {
+    String serviceDate, {
+    String? doctorId,
+    String? locationId,
+  }) async {
     try {
+      final body = {
+        'serviceDate': serviceDate,
+        'timeStart': timeStart,
+        'timeEnd': timeEnd,
+        if (doctorId != null) 'doctorId': doctorId,
+        if (locationId != null) 'locationId': locationId,
+      };
+
+      print('--- [DEBUG] Reschedule Payload: $body ---');
+
       final response = await _dio.patch(
-        '/appointments/$id/reschedule',
-        data: {'timeStart': timeStart, 'timeEnd': timeEnd},
+        '/appointments/$appointmentId/reschedule',
+        data: body,
       );
       return response.statusCode == 200;
     } catch (e) {
+      print('Error rescheduling appointment: $e');
+      if (e is DioException) {
+        print('DioError Response: ${e.response?.data}');
+      }
       return false;
     }
   }

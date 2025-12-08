@@ -72,7 +72,7 @@ class _ListAppointmentPageState extends State<ListAppointmentPage>
       print('User is NOT DOCTOR (or role is null)');
     }
 
-    _fetchDataForVisibleDates(details: null);
+    _fetchDataForVisibleDates(details: null, forceRefresh: true);
   }
 
   @override
@@ -128,7 +128,10 @@ class _ListAppointmentPageState extends State<ListAppointmentPage>
     }
   }
 
-  void _fetchDataForVisibleDates({required ViewChangedDetails? details}) {
+  void _fetchDataForVisibleDates({
+    required ViewChangedDetails? details,
+    bool forceRefresh = false,
+  }) {
     final vm = context.read<AppointmentVm>();
     DateTime fromDate;
     DateTime toDate;
@@ -170,6 +173,7 @@ class _ListAppointmentPageState extends State<ListAppointmentPage>
       doctorId: _selectedDoctorId,
       workLocationId: _selectedWorkLocationId,
       specialtyId: _selectedSpecialtyId,
+      forceRefresh: forceRefresh,
     );
   }
 
@@ -214,7 +218,7 @@ class _ListAppointmentPageState extends State<ListAppointmentPage>
         _selectedWorkLocationId = result['workLocationId'];
         _selectedSpecialtyId = result['specialtyId'];
       });
-      _fetchDataForVisibleDates(details: null);
+      _fetchDataForVisibleDates(details: null, forceRefresh: true);
     }
   }
 
@@ -226,7 +230,7 @@ class _ListAppointmentPageState extends State<ListAppointmentPage>
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: () async {
-            _fetchDataForVisibleDates(details: null);
+            _fetchDataForVisibleDates(details: null, forceRefresh: true);
           },
           child: Column(
             children: [
@@ -237,27 +241,32 @@ class _ListAppointmentPageState extends State<ListAppointmentPage>
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        IconButton(
-                          icon: Icon(
-                            Icons.arrow_back,
-                            color: context.theme.textColor,
+                    Expanded(
+                      child: Row(
+                        children: [
+                          IconButton(
+                            icon: Icon(
+                              Icons.arrow_back,
+                              color: context.theme.textColor,
+                            ),
+                            onPressed: () => Navigator.of(context).pop(),
                           ),
-                          onPressed: () => Navigator.of(context).pop(),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          AppLocalizations.of(
-                            context,
-                          ).translate('appointments_title'),
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: context.theme.textColor,
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              AppLocalizations.of(
+                                context,
+                              ).translate('appointments_title'),
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: context.theme.textColor,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                     Row(
                       children: [
@@ -276,7 +285,10 @@ class _ListAppointmentPageState extends State<ListAppointmentPage>
                             color: context.theme.textColor,
                           ),
                           onPressed: () {
-                            _fetchDataForVisibleDates(details: null);
+                            _fetchDataForVisibleDates(
+                              details: null,
+                              forceRefresh: true,
+                            );
                           },
                         ),
                         IconButton(
@@ -329,7 +341,10 @@ class _ListAppointmentPageState extends State<ListAppointmentPage>
                       builder: (_) => const CreateAppointmentPage(),
                     ),
                   ).then((_) {
-                    _fetchDataForVisibleDates(details: null);
+                    _fetchDataForVisibleDates(
+                      details: null,
+                      forceRefresh: true,
+                    );
                   });
                 },
               ),
