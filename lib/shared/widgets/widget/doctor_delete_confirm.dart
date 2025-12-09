@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/model/services/remote/doctor_service.dart';
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 
 import '../../../view_model/location_work_management/snackbar_service.dart';
 
@@ -38,15 +39,21 @@ class _DeleteDoctorConfirmationDialogState
 
   bool _validatePassword(String password) {
     if (password.isEmpty) {
-      _errorMessage = 'Vui lòng nhập mật khẩu';
+      _errorMessage = AppLocalizations.of(
+        context,
+      ).translate('enter_pass_prompt');
       return false;
     }
     if (password.length < 6) {
-      _errorMessage = 'Mật khẩu phải có ít nhất 6 ký tự';
+      _errorMessage = AppLocalizations.of(
+        context,
+      ).translate('password_min_len');
       return false;
     }
     if (password.length > 50) {
-      _errorMessage = 'Mật khẩu không được vượt quá 50 ký tự';
+      _errorMessage = AppLocalizations.of(
+        context,
+      ).translate('password_max_len');
       return false;
     }
     _errorMessage = null;
@@ -78,11 +85,16 @@ class _DeleteDoctorConfirmationDialogState
         if (success) {
           Navigator.of(context).pop();
           widget.onDeleteSuccess();
-          widget.snackbarService
-              .showSuccess('Xóa ${widget.role.toLowerCase()} thành công!');
+          widget.snackbarService.showSuccess(
+            AppLocalizations.of(context)
+                .translate('delete_role_success')
+                .replaceAll('{role}', widget.role.toLowerCase()),
+          );
         } else {
           setState(() {
-            _apiErrorMessage = 'Xóa thất bại. Kiểm tra mật khẩu hoặc thử lại.';
+            _apiErrorMessage = AppLocalizations.of(
+              context,
+            ).translate('delete_failed_retry');
           });
         }
       }
@@ -90,7 +102,9 @@ class _DeleteDoctorConfirmationDialogState
       if (mounted) {
         setState(() => _isDeleting = false);
         setState(() {
-          _apiErrorMessage = 'Có lỗi xảy ra. Vui lòng thử lại.';
+          _apiErrorMessage = AppLocalizations.of(
+            context,
+          ).translate('error_occurred_retry_msg');
         });
       }
     }
@@ -101,14 +115,14 @@ class _DeleteDoctorConfirmationDialogState
     return AlertDialog(
       backgroundColor: context.theme.popover,
       title: Text(
-        'Xác nhận xóa',
+        AppLocalizations.of(context).translate('confirm_delete_title'),
         style: TextStyle(color: context.theme.popoverForeground),
       ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'Bạn có chắc chắn muốn xóa ${widget.role.toLowerCase()}: ${widget.doctor['fullName']}?',
+            '${AppLocalizations.of(context).translate('confirm_delete_role_message')}${widget.role.toLowerCase()}: ${widget.doctor['fullName']}?',
             style: TextStyle(color: context.theme.popoverForeground),
           ),
           const SizedBox(height: 16),
@@ -117,11 +131,16 @@ class _DeleteDoctorConfirmationDialogState
             obscureText: true,
             style: TextStyle(color: context.theme.textColor),
             decoration: InputDecoration(
-              labelText: 'Nhập mật khẩu Super Admin',
+              labelText: AppLocalizations.of(
+                context,
+              ).translate('enter_super_admin_pass'),
               labelStyle: TextStyle(color: context.theme.mutedForeground),
-              hintText: 'Mật khẩu từ 6-50 ký tự',
-              hintStyle:
-              TextStyle(color: context.theme.mutedForeground.withOpacity(0.7)),
+              hintText: AppLocalizations.of(
+                context,
+              ).translate('password_hint_range'),
+              hintStyle: TextStyle(
+                color: context.theme.mutedForeground.withOpacity(0.7),
+              ),
               border: OutlineInputBorder(
                 borderSide: BorderSide(color: context.theme.border),
               ),
@@ -181,20 +200,24 @@ class _DeleteDoctorConfirmationDialogState
       actions: [
         TextButton(
           onPressed: _isDeleting ? null : () => Navigator.pop(context),
-          child:
-          Text('Hủy', style: TextStyle(color: context.theme.mutedForeground)),
+          child: Text(
+            AppLocalizations.of(context).translate('cancel'),
+            style: TextStyle(color: context.theme.mutedForeground),
+          ),
         ),
         _isDeleting
             ? const SizedBox(
-          width: 24,
-          height: 24,
-          child: CircularProgressIndicator(strokeWidth: 2),
-        )
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
             : TextButton(
-          onPressed: _confirmDelete,
-          child: Text('Xóa',
-              style: TextStyle(color: context.theme.destructive)),
-        ),
+                onPressed: _confirmDelete,
+                child: Text(
+                  AppLocalizations.of(context).translate('delete'),
+                  style: TextStyle(color: context.theme.destructive),
+                ),
+              ),
       ],
     );
   }

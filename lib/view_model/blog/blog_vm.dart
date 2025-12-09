@@ -207,6 +207,7 @@ class BlogVm extends ChangeNotifier {
     }
   }
 
+  // Fetches blogs with filters
   Future<void> fetchBlogs({bool forceRefresh = false}) async {
     if (forceRefresh) {
       if (!await _checkConnectivity()) {

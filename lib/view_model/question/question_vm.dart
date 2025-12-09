@@ -123,13 +123,9 @@ class QuestionVm extends ChangeNotifier {
         throw Exception('Bạn đang offline, không thể tải chuyên khoa.');
       }
 
-      final response = await SpecialtyService.getAllSpecialties(limit: 100);
-      if (response.success) {
-        specialties = response.data;
-        specialtyError = null;
-      } else {
-        throw Exception(response.message);
-      }
+      final specialtiesList = await SpecialtyService.getPublicSpecialties();
+      specialties = specialtiesList;
+      specialtyError = null;
     } on DioException catch (e) {
       specialtyError = _handleDioError(e, "Lỗi tải chuyên khoa");
     } catch (e) {

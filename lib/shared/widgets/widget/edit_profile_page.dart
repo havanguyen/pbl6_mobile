@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pbl6mobile/model/entities/profile.dart';
 import 'package:pbl6mobile/model/services/remote/staff_service.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 import 'package:pbl6mobile/shared/widgets/widget/staff_form.dart';
 
 class EditProfilePage extends StatelessWidget {
@@ -61,7 +62,7 @@ class EditProfilePage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: context.theme.blue,
         title: Text(
-          'Chỉnh sửa thông tin',
+          AppLocalizations.of(context).translate('edit_info_title'),
           style: TextStyle(color: context.theme.primaryForeground),
         ),
         leading: IconButton(
@@ -77,8 +78,10 @@ class EditProfilePage extends StatelessWidget {
         onSubmit: _onSubmit,
         onSuccess: () {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Cập nhật thông tin thành công!'),
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context).translate('update_profile_succ'),
+              ),
               backgroundColor: Colors.green,
             ),
           );

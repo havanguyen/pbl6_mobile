@@ -5,7 +5,9 @@ import 'package:pbl6mobile/model/entities/profile.dart';
 import 'package:pbl6mobile/model/services/local/profile_cache_service.dart';
 import 'package:pbl6mobile/model/services/remote/auth_service.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 import 'package:pbl6mobile/shared/routes/routes.dart';
+import 'package:pbl6mobile/view/profile/my_permissions_page.dart';
 
 class AccountDoctorPage extends StatefulWidget {
   const AccountDoctorPage({super.key});
@@ -23,7 +25,9 @@ class _AccountDoctorPageState extends State<AccountDoctorPage> {
   @override
   void initState() {
     super.initState();
-    _loadProfile();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadProfile();
+    });
   }
 
   Future<void> _loadProfile() async {
@@ -41,28 +45,37 @@ class _AccountDoctorPageState extends State<AccountDoctorPage> {
       updatedProfile = await AuthService.getProfile();
     } catch (e) {
       if (!isConnected) {
-        _error = "Lỗi kết nối. Đang thử tải dữ liệu cache...";
+        if (mounted) {
+          _error = AppLocalizations.of(
+            context,
+          ).translate('connection_error_loading_cache');
+        }
       } else {
-        _error = "Lỗi khi tải hồ sơ: $e";
+        if (mounted) {
+          _error =
+              "${AppLocalizations.of(context).translate('load_profile_error')}$e";
+        }
       }
     }
 
+    if (!mounted) return;
+
     if (updatedProfile != null) {
-      if (mounted) {
-        if (updatedProfile.role == 'DOCTOR') {
-          setState(() {
-            _currentProfile = updatedProfile;
-            _isLoading = false;
-          });
-        } else {
-          setState(() {
-            _isLoading = false;
-            _error = "Lỗi: Tài khoản không phải là Bác sĩ.";
-          });
-        }
+      if (updatedProfile.role == 'DOCTOR') {
+        setState(() {
+          _currentProfile = updatedProfile;
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _isLoading = false;
+          _error = AppLocalizations.of(
+            context,
+          ).translate('error_not_doctor_account');
+        });
       }
     } else {
-      if (!isConnected && mounted) {
+      if (!isConnected) {
         final cachedProfileMap = await ProfileCacheService.instance
             .getProfile();
         if (cachedProfileMap != null) {
@@ -71,24 +84,28 @@ class _AccountDoctorPageState extends State<AccountDoctorPage> {
               _currentProfile = Profile.fromJson(cachedProfileMap);
               _isLoading = false;
               _isOffline = true;
-              _error = "Bạn đang offline. Dữ liệu có thể đã cũ.";
+              _error = AppLocalizations.of(context).translate('offline_banner');
             });
           } else {
             setState(() {
               _isLoading = false;
-              _error = "Lỗi cache: Tài khoản không phải là Bác sĩ.";
+              _error = AppLocalizations.of(
+                context,
+              ).translate('cache_error_not_doctor');
             });
           }
         } else {
           setState(() {
             _isLoading = false;
-            _error = "Bạn đang offline và không có dữ liệu cache.";
+            _error = AppLocalizations.of(context).translate('offline_no_cache');
           });
         }
-      } else if (mounted) {
+      } else {
         setState(() {
           _isLoading = false;
-          _error ??= "Không thể tải hồ sơ cá nhân.";
+          _error ??= AppLocalizations.of(
+            context,
+          ).translate('cannot_load_profile');
         });
       }
     }
@@ -103,14 +120,14 @@ class _AccountDoctorPageState extends State<AccountDoctorPage> {
     return Scaffold(
       backgroundColor: context.theme.bg,
       appBar: AppBar(
-        backgroundColor: context.theme.blue,
+        backgroundColor: context.theme.primary,
         elevation: 0.5,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: context.theme.white, size: 28),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Thông tin tài khoản',
+          AppLocalizations.of(context).translate('account_info_title'),
           style: TextStyle(
             color: context.theme.white,
             fontWeight: FontWeight.bold,
@@ -145,7 +162,9 @@ class _AccountDoctorPageState extends State<AccountDoctorPage> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(
+        child: CircularProgressIndicator(color: context.theme.primary),
+      );
     }
 
     if (_error != null && _currentProfile == null) {
@@ -162,7 +181,12 @@ class _AccountDoctorPageState extends State<AccountDoctorPage> {
     }
 
     if (_currentProfile == null) {
-      return const Center(child: Text("Không có dữ liệu tài khoản."));
+      return Center(
+        child: Text(
+          AppLocalizations.of(context).translate('no_profile_data'),
+          style: TextStyle(color: context.theme.mutedForeground),
+        ),
+      );
     }
 
     return Column(
@@ -170,12 +194,15 @@ class _AccountDoctorPageState extends State<AccountDoctorPage> {
         if (_isOffline && _error != null)
           Container(
             width: double.infinity,
-            color: context.theme.yellow,
+            color: Colors.amber.shade100, // Keep warning yellow
             padding: const EdgeInsets.all(8.0),
             child: Text(
               _error!,
               textAlign: TextAlign.center,
-              style: TextStyle(color: context.theme.popover),
+              style: TextStyle(
+                color: Colors.amber.shade900,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         Expanded(
@@ -241,43 +268,98 @@ class _AccountDoctorPageState extends State<AccountDoctorPage> {
   }
 
   Widget _buildInfoCard(BuildContext context) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      color: context.theme.card,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            _buildInfoItem(
-              context,
-              icon: Icons.transgender_outlined,
-              label: 'Giới tính',
-              value: _currentProfile!.isMale != null
-                  ? (_currentProfile!.isMale! ? 'Nam' : 'Nữ')
-                  : 'Chưa cập nhật',
+    final genderText = _currentProfile!.isMale != null
+        ? (_currentProfile!.isMale!
+              ? AppLocalizations.of(context).translate('male')
+              : AppLocalizations.of(context).translate('female'))
+        : AppLocalizations.of(context).translate('not_updated');
+
+    final dobText = _currentProfile!.dateOfBirth != null
+        ? _currentProfile!.dateOfBirth!.toLocal().toIso8601String().split(
+            'T',
+          )[0]
+        : AppLocalizations.of(context).translate('not_updated');
+
+    final phoneText =
+        _currentProfile!.phone ??
+        AppLocalizations.of(context).translate('not_updated');
+
+    return Column(
+      children: [
+        Card(
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          color: context.theme.card,
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                _buildInfoItem(
+                  context,
+                  icon: Icons.transgender_outlined,
+                  label: AppLocalizations.of(context).translate('gender'),
+                  value: genderText,
+                ),
+                _buildInfoItem(
+                  context,
+                  icon: Icons.cake_outlined,
+                  label: AppLocalizations.of(
+                    context,
+                  ).translate('date_of_birth'),
+                  value: dobText,
+                ),
+                _buildInfoItem(
+                  context,
+                  icon: Icons.phone_outlined,
+                  label: AppLocalizations.of(context).translate('phone_label'),
+                  value: phoneText,
+                  isLast: true,
+                ),
+              ],
             ),
-            _buildInfoItem(
-              context,
-              icon: Icons.cake_outlined,
-              label: 'Ngày sinh',
-              value:
-                  _currentProfile!.dateOfBirth
-                      ?.toLocal()
-                      .toIso8601String()
-                      .split('T')[0] ??
-                  'Chưa cập nhật',
-            ),
-            _buildInfoItem(
-              context,
-              icon: Icons.phone_outlined,
-              label: 'Số điện thoại',
-              value: _currentProfile!.phone ?? 'Chưa cập nhật',
-              isLast: true,
-            ),
-          ],
+          ),
         ),
-      ),
+        const SizedBox(height: 16),
+        Card(
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          color: context.theme.card,
+          child: ListTile(
+            leading: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: context.theme.blue.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(Icons.security, color: context.theme.blue),
+            ),
+            title: Text(
+              AppLocalizations.of(context).translate('my_permissions_title'),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: context.theme.textColor,
+              ),
+            ),
+            trailing: Icon(
+              Icons.arrow_forward_ios,
+              size: 16,
+              color: context.theme.grey,
+            ),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const MyPermissionsPage(),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 

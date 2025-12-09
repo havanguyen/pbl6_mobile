@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pbl6mobile/model/services/remote/auth_service.dart';
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 import 'package:pbl6mobile/shared/routes/routes.dart';
 import 'package:pbl6mobile/shared/widgets/button/custom_button_blue.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
@@ -43,8 +44,10 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
       );
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Password reset successfully. Please log in.'),
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context).translate('reset_password_success'),
+            ),
           ),
         );
         Navigator.pushNamedAndRemoveUntil(
@@ -54,16 +57,22 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
         );
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to reset password. Please try again.'),
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context).translate('reset_password_failed'),
+            ),
           ),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '${AppLocalizations.of(context).translate("error_occurred")}$e',
+            ),
+          ),
+        );
       }
     } finally {
       if (mounted) {
@@ -76,7 +85,9 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Reset Password'),
+        title: Text(
+          AppLocalizations.of(context).translate('reset_password_page_title'),
+        ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
@@ -92,7 +103,9 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
               TextFormField(
                 controller: _passwordController,
                 decoration: InputDecoration(
-                  labelText: 'New Password',
+                  labelText: AppLocalizations.of(
+                    context,
+                  ).translate('new_password'),
                   prefixIcon: Icon(Icons.lock, color: context.theme.blue),
                   suffixIcon: IconButton(
                     icon: Icon(
@@ -110,12 +123,16 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                 obscureText: _obscurePassword,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter a new password';
+                    return AppLocalizations.of(
+                      context,
+                    ).translate('password_required_error');
                   }
                   if (value.length < 8 ||
                       !value.contains(RegExp(r'[a-zA-Z]')) ||
                       !value.contains(RegExp(r'[0-9]'))) {
-                    return 'Password must be at least 8 characters with letters and numbers';
+                    return AppLocalizations.of(
+                      context,
+                    ).translate('password_invalid');
                   }
                   return null;
                 },
@@ -124,7 +141,9 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
               TextFormField(
                 controller: _confirmPasswordController,
                 decoration: InputDecoration(
-                  labelText: 'Confirm Password',
+                  labelText: AppLocalizations.of(
+                    context,
+                  ).translate('confirm_new_password'),
                   prefixIcon: Icon(Icons.lock, color: context.theme.blue),
                   suffixIcon: IconButton(
                     icon: Icon(
@@ -145,10 +164,14 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                 obscureText: _obscureConfirmPassword,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please confirm your password';
+                    return AppLocalizations.of(
+                      context,
+                    ).translate('confirm_password_required_error');
                   }
                   if (value != _passwordController.text) {
-                    return 'Passwords do not match';
+                    return AppLocalizations.of(
+                      context,
+                    ).translate('password_mismatch');
                   }
                   return null;
                 },
@@ -156,7 +179,11 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
               const SizedBox(height: 24),
               CustomButtonBlue(
                 onTap: _onSubmit,
-                text: _isLoading ? 'Reset Password' : 'Reset Password',
+                text: _isLoading
+                    ? AppLocalizations.of(context).translate('processing')
+                    : AppLocalizations.of(
+                        context,
+                      ).translate('reset_password_page_title'),
               ),
             ],
           ),

@@ -68,7 +68,9 @@ class _SpecialtyFormState extends State<SpecialtyForm> {
     if (vm.isUploadingIcon) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Uploading icon, please wait..."),
+          content: Text(
+            AppLocalizations.of(context).translate('uploading_icon_wait'),
+          ),
           backgroundColor: Colors.orange,
         ),
       );

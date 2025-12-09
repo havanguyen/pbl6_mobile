@@ -4,6 +4,7 @@ import 'package:pbl6mobile/model/entities/doctor_detail.dart';
 import 'package:pbl6mobile/model/entities/patient.dart';
 import 'package:pbl6mobile/model/entities/profile.dart';
 import 'package:pbl6mobile/model/entities/specialty.dart';
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 import 'package:pbl6mobile/view/appointment/list_appointment_page.dart';
 import 'package:pbl6mobile/view/change_password/change_password.dart';
 import 'package:pbl6mobile/view/doctor_management/doctor_detail_page.dart';
@@ -420,8 +421,12 @@ class Routes {
         );
       default:
         return MaterialPageRoute(
-          builder: (context) => const Scaffold(
-            body: Center(child: Text('No page route provided')),
+          builder: (context) => Scaffold(
+            body: Center(
+              child: Text(
+                AppLocalizations.of(context).translate('no_page_route'),
+              ),
+            ),
           ),
         );
     }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pbl6mobile/model/services/remote/auth_service.dart';
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 import 'package:pbl6mobile/shared/routes/routes.dart';
 import 'package:pbl6mobile/shared/widgets/button/custom_button_blue.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
@@ -37,7 +38,11 @@ class _OtpPageState extends State<OtpPage> {
       );
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Code verified successfully.')),
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context).translate('verify_code_success'),
+            ),
+          ),
         );
         Navigator.pushNamed(
           context,
@@ -46,14 +51,22 @@ class _OtpPageState extends State<OtpPage> {
         );
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid or expired code.')),
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context).translate('verify_code_invalid'),
+            ),
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '${AppLocalizations.of(context).translate("error_occurred")}$e',
+            ),
+          ),
+        );
       }
     } finally {
       if (mounted) {
@@ -66,7 +79,9 @@ class _OtpPageState extends State<OtpPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Verify Code'),
+        title: Text(
+          AppLocalizations.of(context).translate('verify_code_title'),
+        ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
@@ -80,14 +95,16 @@ class _OtpPageState extends State<OtpPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                'Enter the 6-digit code sent to ${widget.email}',
+                '${AppLocalizations.of(context).translate('verify_code_instruction')}${widget.email}',
                 style: const TextStyle(fontSize: 16),
               ),
               const SizedBox(height: 24),
               TextFormField(
                 controller: _otpController,
                 decoration: InputDecoration(
-                  labelText: 'OTP Code',
+                  labelText: AppLocalizations.of(
+                    context,
+                  ).translate('otp_code_label'),
                   prefixIcon: Icon(Icons.lock_clock, color: context.theme.blue),
                   border: const OutlineInputBorder(),
                   counterText: "",
@@ -96,10 +113,14 @@ class _OtpPageState extends State<OtpPage> {
                 maxLength: 6,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter the code';
+                    return AppLocalizations.of(
+                      context,
+                    ).translate('otp_required_error');
                   }
                   if (value.length != 6) {
-                    return 'Code must be 6 digits';
+                    return AppLocalizations.of(
+                      context,
+                    ).translate('otp_length_error');
                   }
                   return null;
                 },
@@ -107,7 +128,9 @@ class _OtpPageState extends State<OtpPage> {
               const SizedBox(height: 24),
               CustomButtonBlue(
                 onTap: _onSubmit,
-                text: _isLoading ? 'Verifying...' : 'Verify',
+                text: _isLoading
+                    ? AppLocalizations.of(context).translate('verifying')
+                    : AppLocalizations.of(context).translate('verify'),
               ),
             ],
           ),

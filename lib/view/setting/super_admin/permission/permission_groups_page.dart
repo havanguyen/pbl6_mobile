@@ -339,7 +339,7 @@ class _PermissionGroupsPageState extends State<PermissionGroupsPage>
     if (data.isEmpty) {
       return Center(
         child: Text(
-          'No data',
+          AppLocalizations.of(context).translate('no_data'),
           style: TextStyle(color: context.theme.mutedForeground),
         ),
       );

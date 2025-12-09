@@ -1,6 +1,6 @@
-
 import 'package:flutter/material.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
+import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 
 class DynamicListInput extends StatefulWidget {
   final String label;
@@ -8,10 +8,13 @@ class DynamicListInput extends StatefulWidget {
   final ValueChanged<List<String>> onChanged;
   final bool isReadOnly;
 
-  const DynamicListInput(
-      {super.key, required this.label,
-        required this.items,
-        required this.onChanged, required this.isReadOnly});
+  const DynamicListInput({
+    super.key,
+    required this.label,
+    required this.items,
+    required this.onChanged,
+    required this.isReadOnly,
+  });
 
   @override
   DynamicListInputState createState() => DynamicListInputState();
@@ -63,19 +66,33 @@ class DynamicListInputState extends State<DynamicListInput> {
                 color: context.theme.input.withOpacity(0.7),
                 margin: const EdgeInsets.only(bottom: 8),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    side: BorderSide(color: context.theme.border.withOpacity(0.5))
+                  borderRadius: BorderRadius.circular(8),
+                  side: BorderSide(
+                    color: context.theme.border.withOpacity(0.5),
+                  ),
                 ),
                 child: ListTile(
                   dense: true,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-                  title: Text(widget.items[index], style: TextStyle(color: context.theme.textColor)),
-                  trailing: widget.isReadOnly ? null : IconButton(
-                    icon: Icon(Icons.close, color: context.theme.destructive, size: 18,),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    onPressed: () => _removeItem(index),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 0,
                   ),
+                  title: Text(
+                    widget.items[index],
+                    style: TextStyle(color: context.theme.textColor),
+                  ),
+                  trailing: widget.isReadOnly
+                      ? null
+                      : IconButton(
+                          icon: Icon(
+                            Icons.close,
+                            color: context.theme.destructive,
+                            size: 18,
+                          ),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          onPressed: () => _removeItem(index),
+                        ),
                 ),
               );
             },
@@ -85,7 +102,9 @@ class DynamicListInputState extends State<DynamicListInput> {
             controller: _textController,
             style: TextStyle(color: context.theme.textColor),
             decoration: InputDecoration(
-              hintText: 'Thêm ${widget.label.toLowerCase()}...',
+              hintText: AppLocalizations.of(context)
+                  .translate('add_item_hint')
+                  .replaceAll('{item}', widget.label.toLowerCase()),
               hintStyle: TextStyle(color: context.theme.mutedForeground),
               filled: true,
               fillColor: context.theme.input,
@@ -98,12 +117,20 @@ class DynamicListInputState extends State<DynamicListInput> {
                 borderSide: BorderSide.none,
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: context.theme.primary, width: 1.5),
+                borderSide: BorderSide(
+                  color: context.theme.primary,
+                  width: 1.5,
+                ),
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
               suffixIcon: IconButton(
-                icon: Icon(Icons.add_circle_outline, color: context.theme.primary),
+                icon: Icon(
+                  Icons.add_circle_outline,
+                  color: context.theme.primary,
+                ),
                 onPressed: _addItem,
               ),
             ),

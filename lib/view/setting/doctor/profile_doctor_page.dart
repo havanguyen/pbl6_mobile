@@ -14,7 +14,6 @@ import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 import 'package:pbl6mobile/shared/routes/routes.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:vsc_quill_delta_to_html/vsc_quill_delta_to_html.dart';
-import 'package:pbl6mobile/view/profile/my_permissions_page.dart';
 
 class ProfileDoctorPage extends StatefulWidget {
   const ProfileDoctorPage({super.key});
@@ -60,7 +59,9 @@ class _ProfileDoctorPageState extends State<ProfileDoctorPage> {
         } else {
           if (mounted) {
             setState(() {
-              _error = 'Unable to load doctor profile details.';
+              _error = AppLocalizations.of(
+                context,
+              ).translate('unable_load_doctor_details');
               _isLoading = false;
             });
           }
@@ -68,7 +69,9 @@ class _ProfileDoctorPageState extends State<ProfileDoctorPage> {
       } else {
         if (mounted) {
           setState(() {
-            _error = 'User profile not found.';
+            _error = AppLocalizations.of(
+              context,
+            ).translate('user_profile_not_found');
             _isLoading = false;
           });
         }
@@ -76,7 +79,8 @@ class _ProfileDoctorPageState extends State<ProfileDoctorPage> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _error = 'Error loading profile: $e';
+          _error =
+              "${AppLocalizations.of(context).translate('load_profile_error')}$e";
           _isLoading = false;
         });
       }
@@ -164,18 +168,25 @@ class _ProfileDoctorPageState extends State<ProfileDoctorPage> {
   Widget _buildError() {
     return Scaffold(
       backgroundColor: context.theme.bg,
-      appBar: AppBar(title: const Text('Profile Error')),
+      appBar: AppBar(
+        title: Text(AppLocalizations.of(context).translate('profile_error')),
+      ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.error_outline, size: 48, color: context.theme.red),
             const SizedBox(height: 16),
-            Text(_error ?? 'Unknown error occurred'),
+            Text(
+              _error ??
+                  AppLocalizations.of(
+                    context,
+                  ).translate('unknown_error_occurred'),
+            ),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: _fetchDoctorDetail,
-              child: const Text('Retry'),
+              child: Text(AppLocalizations.of(context).translate('retry')),
             ),
           ],
         ),
@@ -215,85 +226,7 @@ class _ProfileDoctorPageState extends State<ProfileDoctorPage> {
                   const SizedBox(height: 8),
                   _buildAccountInfoCard(doctor),
                   const SizedBox(height: 24),
-                  Card(
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    color: context.theme.card,
-                    child: ListTile(
-                      leading: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: context.theme.blue.withOpacity(0.1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(Icons.security, color: context.theme.blue),
-                      ),
-                      title: Text(
-                        AppLocalizations.of(
-                          context,
-                        ).translate('my_permissions_title'),
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: context.theme.textColor,
-                        ),
-                      ),
-                      trailing: Icon(
-                        Icons.arrow_forward_ios,
-                        size: 16,
-                        color: context.theme.grey,
-                      ),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const MyPermissionsPage(),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Card(
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    color: context.theme.card,
-                    child: ListTile(
-                      leading: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: context.theme.blue.withOpacity(0.1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(Icons.security, color: context.theme.blue),
-                      ),
-                      title: Text(
-                        AppLocalizations.of(
-                              context,
-                            ).translate('my_permissions_title'),
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: context.theme.textColor,
-                        ),
-                      ),
-                      trailing: Icon(
-                        Icons.arrow_forward_ios,
-                        size: 16,
-                        color: context.theme.grey,
-                      ),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const MyPermissionsPage(),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
+
                   const SizedBox(height: 24),
                   _buildSectionHeader(
                     context,
