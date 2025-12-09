@@ -27,11 +27,15 @@ class CreateSpecialtyPage extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: SpecialtyForm(
           isUpdate: false,
-          onSubmit: ({required name, description, id}) async {
+          onSubmit: ({required name, description, id, iconUrl}) async {
             return await Provider.of<SpecialtyVm>(
               context,
               listen: false,
-            ).createSpecialty(name: name, description: description);
+            ).createSpecialty(
+              name: name,
+              description: description,
+              iconUrl: iconUrl,
+            );
           },
         ),
       ),

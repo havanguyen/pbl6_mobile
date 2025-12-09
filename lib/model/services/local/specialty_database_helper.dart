@@ -5,13 +5,13 @@ import 'package:pbl6mobile/model/entities/specialty.dart';
 
 class SpecialtyDatabaseHelper {
   static const _databaseName = "specialties.db";
-  static const _databaseVersion = 2;
+  static const _databaseVersion = 3;
   static const _specialtiesTable = "specialties";
   static const _infoSectionsTable = "info_sections";
 
   SpecialtyDatabaseHelper._privateConstructor();
   static final SpecialtyDatabaseHelper instance =
-  SpecialtyDatabaseHelper._privateConstructor();
+      SpecialtyDatabaseHelper._privateConstructor();
 
   static Database? _database;
 
@@ -48,6 +48,20 @@ class SpecialtyDatabaseHelper {
         )
       ''');
     }
+    if (oldVersion < 3) {
+      // Check if column exists before adding (optional but safe) or just add
+      // SQLite 'ADD COLUMN' is safe if check not strictly needed in simple upgrade path,
+      // but sqflite doesn't support 'IF NOT EXISTS' for columns directly in all versions.
+      // Simply executing add column.
+      try {
+        await db.execute(
+          'ALTER TABLE $_specialtiesTable ADD COLUMN iconUrl TEXT',
+        );
+      } catch (e) {
+        // Column might already exist if dev re-ran code
+        print("Error adding column iconUrl: $e");
+      }
+    }
   }
 
   Future<void> _createTables(Database db) async {
@@ -56,6 +70,7 @@ class SpecialtyDatabaseHelper {
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         description TEXT,
+        iconUrl TEXT,
         infoSectionsCount INTEGER NOT NULL,
         createdAt TEXT,
         updatedAt TEXT,
@@ -139,7 +154,11 @@ class SpecialtyDatabaseHelper {
   Future<void> deleteSpecialty(String id) async {
     final db = await database;
     await db.delete(_specialtiesTable, where: 'id = ?', whereArgs: [id]);
-    await db.delete(_infoSectionsTable, where: 'specialtyId = ?', whereArgs: [id]);
+    await db.delete(
+      _infoSectionsTable,
+      where: 'specialtyId = ?',
+      whereArgs: [id],
+    );
   }
 
   // --- InfoSection Methods ---
@@ -175,6 +194,10 @@ class SpecialtyDatabaseHelper {
 
   Future<void> clearInfoSections(String specialtyId) async {
     final db = await database;
-    await db.delete(_infoSectionsTable, where: 'specialtyId = ?', whereArgs: [specialtyId]);
+    await db.delete(
+      _infoSectionsTable,
+      where: 'specialtyId = ?',
+      whereArgs: [specialtyId],
+    );
   }
 }

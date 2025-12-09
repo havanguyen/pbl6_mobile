@@ -4,6 +4,9 @@ import 'package:pbl6mobile/model/entities/info_section.dart';
 import 'package:pbl6mobile/model/entities/specialty.dart';
 import 'package:pbl6mobile/model/services/local/specialty_database_helper.dart';
 import 'package:pbl6mobile/model/services/remote/specialty_service.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+import 'package:pbl6mobile/model/services/remote/utilities_service.dart';
 
 class SpecialtyVm extends ChangeNotifier {
   List<Specialty> _specialties = [];
@@ -20,10 +23,22 @@ class SpecialtyVm extends ChangeNotifier {
   bool _isOffline = false;
   String _searchQuery = '';
   String? _sortBy = 'createdAt';
+
   String? _sortOrder = 'DESC';
+  bool? _isActive;
 
   Map<String, List<InfoSection>> _infoSections = {};
   bool _isInfoSectionLoading = false;
+
+  File? _selectedIconFile;
+  String? _uploadedIconUrl;
+  bool _isUploadingIcon = false;
+  String? _iconUploadError;
+
+  File? get selectedIconFile => _selectedIconFile;
+  String? get uploadedIconUrl => _uploadedIconUrl;
+  bool get isUploadingIcon => _isUploadingIcon;
+  String? get iconUploadError => _iconUploadError;
 
   List<Specialty> get specialties => _specialties;
   bool get isLoading => _isLoading;
@@ -146,9 +161,11 @@ class SpecialtyVm extends ChangeNotifier {
       final result = await SpecialtyService.getAllSpecialties(
         search: _searchQuery,
         page: _currentPage,
+
         limit: _limit,
         sortBy: _sortBy!,
         sortOrder: _sortOrder!,
+        isActive: _isActive,
       );
 
       if (result.success) {
@@ -223,6 +240,86 @@ class SpecialtyVm extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> pickIconImage() async {
+    _selectedIconFile = null;
+    _iconUploadError = null;
+    _uploadedIconUrl = null;
+    notifyListeners();
+    try {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 80,
+        maxWidth: 512, // Icons don't need to be huge
+        maxHeight: 512,
+      );
+      if (pickedFile != null) {
+        _selectedIconFile = File(pickedFile.path);
+        notifyListeners();
+        await uploadIconImage();
+      }
+    } catch (e) {
+      _iconUploadError = "Error selecting image: $e";
+      notifyListeners();
+    }
+  }
+
+  Future<String?> uploadIconImage() async {
+    if (_selectedIconFile == null) return null;
+    if (!await _checkConnectivity()) {
+      _iconUploadError = 'You are offline. Cannot upload image.';
+      notifyListeners();
+      return null;
+    }
+
+    _isUploadingIcon = true;
+    _iconUploadError = null;
+    notifyListeners();
+
+    String? imageUrl;
+    Map<String, dynamic>? signatureData;
+
+    try {
+      signatureData = await UtilitiesService.getUploadSignature();
+      if (signatureData == null) {
+        _iconUploadError = "Cannot get upload signature.";
+        _isUploadingIcon = false;
+        notifyListeners();
+        return null;
+      }
+
+      imageUrl = await UtilitiesService.uploadImageToCloudinary(
+        _selectedIconFile!.path,
+        signatureData,
+      );
+
+      if (imageUrl != null) {
+        _uploadedIconUrl = imageUrl;
+      } else {
+        _iconUploadError = "Failed to upload image to Cloudinary.";
+      }
+    } catch (e) {
+      _iconUploadError = "Upload failed: $e";
+    } finally {
+      _isUploadingIcon = false;
+      notifyListeners();
+    }
+    return imageUrl;
+  }
+
+  void resetIconState() {
+    _selectedIconFile = null;
+    _uploadedIconUrl = null;
+    _iconUploadError = null;
+    _isUploadingIcon = false;
+    notifyListeners();
+  }
+
+  Future<bool> _checkConnectivity() async {
+    var connectivityResult = await Connectivity().checkConnectivity();
+    return !connectivityResult.contains(ConnectivityResult.none);
+  }
+
   List<InfoSection> getInfoSectionsFor(String specialtyId) {
     return _infoSections[specialtyId] ?? [];
   }
@@ -230,10 +327,12 @@ class SpecialtyVm extends ChangeNotifier {
   Future<bool> createSpecialty({
     required String name,
     String? description,
+    String? iconUrl,
   }) async {
     final success = await SpecialtyService.createSpecialty(
       name: name,
       description: description,
+      iconUrl: iconUrl,
     );
     if (success) {
       fetchSpecialties(forceRefresh: true);
@@ -245,11 +344,13 @@ class SpecialtyVm extends ChangeNotifier {
     required String id,
     String? name,
     String? description,
+    String? iconUrl,
   }) async {
     final success = await SpecialtyService.updateSpecialty(
       id: id,
       name: name,
       description: description,
+      iconUrl: iconUrl,
     );
     if (success) {
       fetchSpecialties(forceRefresh: true);

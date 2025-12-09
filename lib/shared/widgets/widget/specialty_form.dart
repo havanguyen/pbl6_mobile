@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/shared/localization/app_localizations.dart';
+import 'package:provider/provider.dart';
+import 'package:pbl6mobile/view_model/specialty/specialty_vm.dart';
+import 'dart:io';
+import '../common/image_display.dart';
 
 import 'doctor_form.dart';
 
@@ -10,6 +14,7 @@ class SpecialtyForm extends StatefulWidget {
   final Future<bool> Function({
     required String name,
     String? description,
+    String? iconUrl,
     String? id,
   })
   onSubmit;
@@ -31,6 +36,7 @@ class _SpecialtyFormState extends State<SpecialtyForm> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _descriptionController;
+  String? _initialIconUrl;
 
   @override
   void initState() {
@@ -41,6 +47,12 @@ class _SpecialtyFormState extends State<SpecialtyForm> {
     _descriptionController = TextEditingController(
       text: widget.initialData?['description'] ?? '',
     );
+    _initialIconUrl = widget.initialData?['iconUrl'];
+
+    // Reset VM upload state on init
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<SpecialtyVm>().resetIconState();
+    });
   }
 
   @override
@@ -51,6 +63,23 @@ class _SpecialtyFormState extends State<SpecialtyForm> {
   }
 
   Future<bool> _submitForm() async {
+    final vm = context.read<SpecialtyVm>();
+
+    if (vm.isUploadingIcon) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Uploading icon, please wait..."),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return false;
+    }
+
+    String? finalIconUrl = _initialIconUrl;
+    if (vm.uploadedIconUrl != null) {
+      finalIconUrl = vm.uploadedIconUrl;
+    }
+
     if (_formKey.currentState!.validate()) {
       final success = await widget.onSubmit(
         id: widget.initialData?['id'],
@@ -58,6 +87,7 @@ class _SpecialtyFormState extends State<SpecialtyForm> {
         description: _descriptionController.text.isEmpty
             ? null
             : _descriptionController.text,
+        iconUrl: finalIconUrl,
       );
       if (success) {
         widget.onSuccess?.call();
@@ -80,6 +110,8 @@ class _SpecialtyFormState extends State<SpecialtyForm> {
         padding: const EdgeInsets.symmetric(vertical: 16),
         child: Column(
           children: [
+            _buildIconPicker(context),
+            const SizedBox(height: 20),
             TextFormField(
               controller: _nameController,
               decoration: InputDecoration(
@@ -140,6 +172,83 @@ class _SpecialtyFormState extends State<SpecialtyForm> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildIconPicker(BuildContext context) {
+    final theme = context.theme;
+    final vm = context.watch<SpecialtyVm>();
+
+    File? selectedFile = vm.selectedIconFile;
+    String? displayUrl = vm.uploadedIconUrl ?? _initialIconUrl;
+    bool isUploading = vm.isUploadingIcon;
+
+    Widget imageWidget;
+    if (selectedFile != null) {
+      imageWidget = Image.file(
+        selectedFile,
+        width: 100,
+        height: 100,
+        fit: BoxFit.cover,
+      );
+    } else if (displayUrl != null && displayUrl.isNotEmpty) {
+      imageWidget = CommonImage(
+        imageUrl: displayUrl,
+        width: 100,
+        height: 100,
+        fit: BoxFit.cover,
+      );
+    } else {
+      imageWidget = Icon(
+        Icons.add_a_photo,
+        size: 40,
+        color: theme.mutedForeground,
+      );
+    }
+
+    return Column(
+      children: [
+        GestureDetector(
+          onTap: isUploading ? null : () => vm.pickIconImage(),
+          child: Container(
+            width: 100,
+            height: 100,
+            decoration: BoxDecoration(
+              color: theme.input,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: theme.border),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                imageWidget,
+                if (isUploading)
+                  Container(
+                    color: Colors.black45,
+                    child: const Center(
+                      child: CircularProgressIndicator(color: Colors.white),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+        if (vm.iconUploadError != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0),
+            child: Text(
+              vm.iconUploadError!,
+              style: TextStyle(color: theme.destructive, fontSize: 12),
+            ),
+          ),
+        const SizedBox(height: 8),
+        Text(
+          AppLocalizations.of(context).translate('specialty_icon_label') ??
+              "Specialty Icon",
+          style: TextStyle(color: theme.mutedForeground, fontSize: 12),
+        ),
+      ],
     );
   }
 }

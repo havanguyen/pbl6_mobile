@@ -30,11 +30,16 @@ class UpdateSpecialtyPage extends StatelessWidget {
         child: SpecialtyForm(
           isUpdate: true,
           initialData: specialty,
-          onSubmit: ({required name, description, id}) async {
+          onSubmit: ({required name, description, id, iconUrl}) async {
             return await Provider.of<SpecialtyVm>(
               context,
               listen: false,
-            ).updateSpecialty(id: id!, name: name, description: description);
+            ).updateSpecialty(
+              id: id!,
+              name: name,
+              description: description,
+              iconUrl: iconUrl,
+            );
           },
         ),
       ),

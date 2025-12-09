@@ -79,6 +79,7 @@ class SpecialtyService {
     String? search,
     String sortBy = 'createdAt',
     String sortOrder = 'DESC',
+    bool? isActive,
   }) async {
     try {
       final params = {
@@ -87,6 +88,7 @@ class SpecialtyService {
         'sortBy': sortBy,
         'sortOrder': sortOrder,
         if (search != null && search.isNotEmpty) 'search': search,
+        if (isActive != null) 'isActive': isActive,
       };
 
       final response = await _dio.get('/specialties', queryParameters: params);
@@ -135,13 +137,17 @@ class SpecialtyService {
   static Future<bool> createSpecialty({
     required String name,
     String? description,
+    String? iconUrl,
   }) async {
     try {
       final requestBody = {
         'name': name,
-        if (description != null && description.isNotEmpty)
-          'description': description,
+        'description': description,
+        'iconUrl': iconUrl,
       };
+      // Remove null values
+      requestBody.removeWhere((key, value) => value == null || value == '');
+
       final response = await _dio.post('/specialties', data: requestBody);
       return response.statusCode == 201;
     } catch (e) {
@@ -153,12 +159,13 @@ class SpecialtyService {
     required String id,
     String? name,
     String? description,
+    String? iconUrl,
   }) async {
     try {
       final requestBody = {
         if (name != null && name.isNotEmpty) 'name': name,
-        if (description != null && description.isNotEmpty)
-          'description': description,
+        if (description != null) 'description': description,
+        if (iconUrl != null) 'iconUrl': iconUrl,
       };
       if (requestBody.isEmpty) return false;
       final response = await _dio.patch('/specialties/$id', data: requestBody);

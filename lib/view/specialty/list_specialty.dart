@@ -11,6 +11,7 @@ import 'package:pbl6mobile/view_model/specialty/specialty_vm.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../shared/widgets/widget/specialty_delete_confirm.dart';
+import '../../shared/widgets/common/image_display.dart';
 import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 
 class ListSpecialtyPage extends StatefulWidget {
@@ -180,6 +181,25 @@ class _ListSpecialtyPageState extends State<ListSpecialtyPage> {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: specialtyVm.isOffline
+            ? null
+            : () async {
+                final result = await Navigator.pushNamed(
+                  context,
+                  Routes.createSpecialty,
+                );
+                if (result == true && mounted) {
+                  context.read<SpecialtyVm>().fetchSpecialties(
+                    forceRefresh: true,
+                  );
+                }
+              },
+        backgroundColor: specialtyVm.isOffline
+            ? context.theme.grey
+            : context.theme.primary,
+        child: Icon(Icons.add, color: context.theme.primaryForeground),
+      ),
     );
   }
 
@@ -240,44 +260,6 @@ class _ListSpecialtyPageState extends State<ListSpecialtyPage> {
                     )
                   : null,
             ),
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton.icon(
-            onPressed: isOffline
-                ? null
-                : () async {
-                    final result = await Navigator.pushNamed(
-                      context,
-                      Routes.createSpecialty,
-                    );
-                    if (result == true && mounted) {
-                      context.read<SpecialtyVm>().fetchSpecialties(
-                        forceRefresh: true,
-                      );
-                    }
-                  },
-            icon: const Icon(Icons.add),
-            label: Text(
-              AppLocalizations.of(context).translate('create_specialty_title'),
-            ),
-            style:
-                ElevatedButton.styleFrom(
-                  backgroundColor: context.theme.primary,
-                  foregroundColor: context.theme.primaryForeground,
-                  minimumSize: const Size(double.infinity, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ).copyWith(
-                  backgroundColor: MaterialStateProperty.resolveWith<Color?>((
-                    Set<MaterialState> states,
-                  ) {
-                    if (states.contains(MaterialState.disabled)) {
-                      return context.theme.grey;
-                    }
-                    return context.theme.primary;
-                  }),
-                ),
           ),
         ],
       ),
@@ -412,7 +394,9 @@ class _ListSpecialtyPageState extends State<ListSpecialtyPage> {
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(
+                    8,
+                  ), // Reduced padding slightly for image
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
@@ -424,11 +408,23 @@ class _ListSpecialtyPageState extends State<ListSpecialtyPage> {
                     ),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(
-                    Icons.medical_services_rounded,
-                    color: context.theme.primary,
-                    size: 28,
-                  ),
+                  child:
+                      (specialty.iconUrl != null &&
+                          specialty.iconUrl!.isNotEmpty)
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: CommonImage(
+                            imageUrl: specialty.iconUrl,
+                            width: 36,
+                            height: 36,
+                            fit: BoxFit.cover,
+                          ),
+                        )
+                      : Icon(
+                          Icons.medical_services_rounded,
+                          color: context.theme.primary,
+                          size: 28,
+                        ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
