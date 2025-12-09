@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:cached_network_image/cached_network_image.dart';
+
 import 'package:flutter/material.dart';
 import 'package:html_editor_enhanced/html_editor.dart';
 import 'package:pbl6mobile/model/entities/blog.dart';
@@ -8,7 +8,7 @@ import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/view_model/blog/blog_vm.dart';
 import 'package:provider/provider.dart';
 import 'package:pbl6mobile/shared/localization/app_localizations.dart';
-import 'doctor_form.dart';
+import 'package:pbl6mobile/shared/widgets/common/image_display.dart'; // Add CommonImage import
 
 class BlogForm extends StatefulWidget {
   final bool isUpdate;
@@ -23,10 +23,10 @@ class BlogForm extends StatefulWidget {
   });
 
   @override
-  State<BlogForm> createState() => _BlogFormState();
+  State<BlogForm> createState() => BlogFormState();
 }
 
-class _BlogFormState extends State<BlogForm>
+class BlogFormState extends State<BlogForm>
     with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _titleController;
@@ -47,17 +47,21 @@ class _BlogFormState extends State<BlogForm>
     );
     _contentController = HtmlEditorController();
 
-    _selectedCategory = context.read<BlogVm>().categories.firstWhere(
-      (cat) => cat.id == widget.initialData?.category.id,
-      orElse: () => context.read<BlogVm>().categories.isNotEmpty
-          ? context.read<BlogVm>().categories.first
-          : BlogCategory(id: '', name: 'Loading...', slug: ''),
-    );
-
-    if (widget.initialData != null &&
-        !context.read<BlogVm>().categories.any(
-          (c) => c.id == _selectedCategory?.id,
-        )) {
+    // Initial category selection logic
+    final blogVm = context.read<BlogVm>();
+    if (blogVm.categories.isNotEmpty) {
+      if (widget.initialData != null) {
+        try {
+          _selectedCategory = blogVm.categories.firstWhere(
+            (cat) => cat.id == widget.initialData!.category.id,
+          );
+        } catch (_) {
+          _selectedCategory = blogVm.categories.first;
+        }
+      } else {
+        _selectedCategory = blogVm.categories.first;
+      }
+    } else {
       _selectedCategory = null;
     }
 
@@ -78,22 +82,31 @@ class _BlogFormState extends State<BlogForm>
         final blogVm = context.read<BlogVm>();
         if (blogVm.categories.isEmpty && !blogVm.isLoadingCategories) {
           blogVm.fetchBlogCategories().then((_) {
-            if (mounted &&
-                widget.initialData != null &&
-                (_selectedCategory == null || _selectedCategory!.id.isEmpty)) {
-              BlogCategory? newSelectedCategory;
-              try {
-                newSelectedCategory = blogVm.categories.firstWhere(
-                  (cat) => cat.id == widget.initialData!.category.id,
-                );
-              } catch (e) {
-                newSelectedCategory = blogVm.categories.isNotEmpty
-                    ? blogVm.categories.first
-                    : null;
+            if (mounted) {
+              // Update category after fetch if currently null or empty
+              if (_selectedCategory == null || _selectedCategory!.id.isEmpty) {
+                BlogCategory? newSelectedCategory;
+                if (widget.initialData != null) {
+                  try {
+                    newSelectedCategory = blogVm.categories.firstWhere(
+                      (cat) => cat.id == widget.initialData!.category.id,
+                    );
+                  } catch (_) {
+                    if (blogVm.categories.isNotEmpty)
+                      newSelectedCategory = blogVm.categories.first;
+                  }
+                } else {
+                  // For Create Mode, default to first category
+                  if (blogVm.categories.isNotEmpty)
+                    newSelectedCategory = blogVm.categories.first;
+                }
+
+                if (newSelectedCategory != null) {
+                  setState(() {
+                    _selectedCategory = newSelectedCategory;
+                  });
+                }
               }
-              setState(() {
-                _selectedCategory = newSelectedCategory;
-              });
             }
           });
         }
@@ -108,16 +121,47 @@ class _BlogFormState extends State<BlogForm>
     _animationController.dispose();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        Provider.of<BlogVm>(
-          context,
-          listen: false,
-        ).resetThumbnailState(notify: false);
+        // Check if context is still valid
+        try {
+          Provider.of<BlogVm>(
+            context,
+            listen: false,
+          ).resetThumbnailState(notify: false);
+        } catch (_) {}
       }
     });
     super.dispose();
   }
 
-  Future<bool> _submitForm() async {
+  Widget _buildAnimatedFormField({required Widget child, required int index}) {
+    if (!mounted) return child;
+    return FadeTransition(
+      opacity: CurvedAnimation(
+        parent: _animationController,
+        curve: Interval(
+          (0.1 * index).clamp(0.0, 1.0),
+          1.0,
+          curve: Curves.easeOutCubic,
+        ),
+      ),
+      child: SlideTransition(
+        position: Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero)
+            .animate(
+              CurvedAnimation(
+                parent: _animationController,
+                curve: Interval(
+                  (0.1 * index).clamp(0.0, 1.0),
+                  1.0,
+                  curve: Curves.easeOutCubic,
+                ),
+              ),
+            ),
+        child: child,
+      ),
+    );
+  }
+
+  Future<bool> submitForm() async {
     setState(() {
       _imageFileError = null;
     });
@@ -155,7 +199,6 @@ class _BlogFormState extends State<BlogForm>
 
       bool success;
       final messenger = ScaffoldMessenger.of(context);
-
       final currentThumbnailUrl = _initialThumbnailUrl;
 
       if (widget.isUpdate) {
@@ -220,25 +263,6 @@ class _BlogFormState extends State<BlogForm>
     return false;
   }
 
-  Widget _buildAnimatedFormField({required Widget child, required int index}) {
-    return FadeTransition(
-      opacity: CurvedAnimation(
-        parent: _animationController,
-        curve: Interval(0.2 * index, 1.0, curve: Curves.easeOutCubic),
-      ),
-      child: SlideTransition(
-        position: Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero)
-            .animate(
-              CurvedAnimation(
-                parent: _animationController,
-                curve: Interval(0.2 * index, 1.0, curve: Curves.easeOutCubic),
-              ),
-            ),
-        child: child,
-      ),
-    );
-  }
-
   Widget _buildThumbnailPicker(BlogVm blogVm, CustomThemeExtension theme) {
     File? selectedFile = blogVm.selectedThumbnailFile;
     String? displayUrl = blogVm.uploadedThumbnailUrl ?? _initialThumbnailUrl;
@@ -250,10 +274,9 @@ class _BlogFormState extends State<BlogForm>
         selectedFile,
         key: ValueKey(selectedFile.path),
         width: double.infinity,
-        height: 180,
+        height: 200,
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) {
-          print("Error loading selected file image: $error");
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) {
               setState(() {
@@ -274,188 +297,140 @@ class _BlogFormState extends State<BlogForm>
         },
       );
     } else if (displayUrl != null && displayUrl.isNotEmpty) {
-      imageWidget = CachedNetworkImage(
+      imageWidget = CommonImage(
         imageUrl: displayUrl,
-        key: ValueKey(displayUrl),
         width: double.infinity,
-        height: 180,
+        height: 200,
         fit: BoxFit.cover,
-        placeholder: (context, url) =>
-            const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-        errorWidget: (context, url, error) => Center(
-          child: Icon(
-            Icons.broken_image_outlined,
-            color: theme.mutedForeground,
-            size: 40,
-          ),
-        ),
       );
     } else {
-      imageWidget = Center(
-        child: Icon(
-          Icons.image_search_rounded,
-          key: const ValueKey('placeholder'),
-          size: 50,
-          color: theme.mutedForeground.withOpacity(0.5),
-        ),
+      imageWidget = Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.add_photo_alternate_outlined,
+            size: 48,
+            color: theme.primary.withOpacity(0.5),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            AppLocalizations.of(context).translate('select_thumbnail'),
+            style: TextStyle(
+              color: theme.mutedForeground,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
       );
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          AppLocalizations.of(context).translate('blog_thumbnail_label'),
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: theme.textColor,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Card(
-          elevation: 0,
-          margin: EdgeInsets.zero,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(
-              color:
-                  _imageFileError != null || blogVm.thumbnailUploadError != null
-                  ? theme.destructive
-                  : theme.border,
-              width: 0.5,
+        Row(
+          children: [
+            Icon(Icons.image_outlined, size: 20, color: theme.primary),
+            const SizedBox(width: 8),
+            Text(
+              AppLocalizations.of(context).translate('blog_thumbnail_label'),
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: theme.textColor,
+              ),
             ),
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: AspectRatio(
-            aspectRatio: 16 / 9,
+          ],
+        ),
+        const SizedBox(height: 12),
+        InkWell(
+          onTap: isUploading
+              ? null
+              : () {
+                  setState(() {
+                    _imageFileError = null;
+                  });
+                  blogVm.pickThumbnailImage();
+                },
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            width: double.infinity,
+            height: 200,
+            decoration: BoxDecoration(
+              color: theme.card,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color:
+                    _imageFileError != null ||
+                        blogVm.thumbnailUploadError != null
+                    ? theme.destructive
+                    : ((displayUrl == null && selectedFile == null)
+                          ? theme.primary.withOpacity(0.5)
+                          : theme.border),
+                width: (displayUrl == null && selectedFile == null) ? 1.5 : 1,
+                style: BorderStyle.solid,
+              ),
+              boxShadow: (displayUrl != null || selectedFile != null)
+                  ? [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05), // Fixed shadow
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ]
+                  : null,
+            ),
+            clipBehavior: Clip.antiAlias,
             child: Stack(
               alignment: Alignment.center,
               children: [
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  child: imageWidget,
-                ),
-                Positioned.fill(
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(12),
-                      onTap: isUploading
-                          ? null
-                          : () {
-                              setState(() {
-                                _imageFileError = null;
-                              });
-                              blogVm.pickThumbnailImage();
-                            },
-                    ),
-                  ),
-                ),
+                imageWidget,
                 if (isUploading)
                   Container(
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.5),
-                    ),
+                    color: Colors.black45,
                     child: const Center(
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      ),
+                      child: CircularProgressIndicator(color: Colors.white),
                     ),
                   ),
                 if (!isUploading &&
                     (selectedFile != null ||
                         (displayUrl != null && displayUrl.isNotEmpty)))
                   Positioned(
-                    bottom: 8,
-                    right: 8,
+                    top: 12,
+                    right: 12,
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        CircleAvatar(
-                          radius: 18,
-                          backgroundColor: theme.destructive.withOpacity(0.8),
-                          child: IconButton(
-                            icon: Icon(
-                              Icons.delete_outline,
-                              color: theme.destructiveForeground,
-                              size: 18,
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                _initialThumbnailUrl = null;
-                                _imageFileError = null;
-                              });
-                              context.read<BlogVm>().resetThumbnailState();
-                            },
-                            tooltip: AppLocalizations.of(
-                              context,
-                            ).translate('remove_thumbnail'),
-                          ),
+                        _buildActionButton(
+                          theme,
+                          icon: Icons.edit,
+                          color: theme.primary,
+                          onTap: () => blogVm.pickThumbnailImage(),
                         ),
                         const SizedBox(width: 8),
-                        CircleAvatar(
-                          radius: 18,
-                          backgroundColor: theme.primary.withOpacity(0.8),
-                          child: IconButton(
-                            icon: Icon(
-                              Icons.edit,
-                              color: theme.primaryForeground,
-                              size: 18,
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                _imageFileError = null;
-                              });
-                              blogVm.pickThumbnailImage();
-                            },
-                            tooltip: AppLocalizations.of(
-                              context,
-                            ).translate('change_thumbnail'),
-                          ),
+                        _buildActionButton(
+                          theme,
+                          icon: Icons.delete_outline,
+                          color: theme.destructive,
+                          onTap: () {
+                            setState(() {
+                              _initialThumbnailUrl = null;
+                              _imageFileError = null;
+                            });
+                            context.read<BlogVm>().resetThumbnailState();
+                          },
                         ),
                       ],
-                    ),
-                  ),
-                if (!isUploading &&
-                    selectedFile == null &&
-                    (displayUrl == null || displayUrl.isEmpty))
-                  Center(
-                    child: ElevatedButton.icon(
-                      icon: const Icon(
-                        Icons.add_photo_alternate_outlined,
-                        size: 20,
-                      ),
-                      label: Text(
-                        AppLocalizations.of(
-                          context,
-                        ).translate('select_thumbnail'),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: theme.primaryForeground,
-                        backgroundColor: theme.primary.withOpacity(0.8),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 10,
-                        ),
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _imageFileError = null;
-                        });
-                        blogVm.pickThumbnailImage();
-                      },
                     ),
                   ),
               ],
             ),
           ),
         ),
+
         if (_imageFileError != null) ...[
           const SizedBox(height: 8),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4.0),
+            padding: const EdgeInsets.only(left: 4),
             child: Text(
               _imageFileError!,
               style: TextStyle(color: theme.destructive, fontSize: 13),
@@ -464,7 +439,7 @@ class _BlogFormState extends State<BlogForm>
         ] else if (blogVm.thumbnailUploadError != null) ...[
           const SizedBox(height: 8),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4.0),
+            padding: const EdgeInsets.only(left: 4),
             child: Text(
               blogVm.thumbnailUploadError!,
               style: TextStyle(color: theme.destructive, fontSize: 13),
@@ -472,6 +447,32 @@ class _BlogFormState extends State<BlogForm>
           ),
         ],
       ],
+    );
+  }
+
+  Widget _buildActionButton(
+    CustomThemeExtension theme, {
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: theme.card.withOpacity(0.9),
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Icon(icon, size: 18, color: color),
+      ),
     );
   }
 
@@ -800,20 +801,6 @@ class _BlogFormState extends State<BlogForm>
                     ),
                   ),
                 ],
-              ),
-            ),
-            const SizedBox(height: 32),
-            _buildAnimatedFormField(
-              index: animationIndex++,
-              child: Center(
-                child: AnimatedSubmitButton(
-                  onSubmit: _submitForm,
-                  idleText: widget.isUpdate
-                      ? AppLocalizations.of(context).translate('save')
-                      : AppLocalizations.of(context).translate('create'),
-                  loadingText:
-                      '${AppLocalizations.of(context).translate('processing')}...',
-                ),
               ),
             ),
             const SizedBox(height: 20),

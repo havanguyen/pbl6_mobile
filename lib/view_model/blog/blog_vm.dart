@@ -67,10 +67,12 @@ class BlogVm extends ChangeNotifier {
 
   Future<bool> _checkConnectivity() async {
     var connectivityResult = await Connectivity().checkConnectivity();
-    bool isConnected = connectivityResult.any((result) =>
-    result == ConnectivityResult.wifi ||
-        result == ConnectivityResult.mobile ||
-        result == ConnectivityResult.ethernet);
+    bool isConnected = connectivityResult.any(
+      (result) =>
+          result == ConnectivityResult.wifi ||
+          result == ConnectivityResult.mobile ||
+          result == ConnectivityResult.ethernet,
+    );
     _isOffline = !isConnected;
     return isConnected;
   }
@@ -78,20 +80,22 @@ class BlogVm extends ChangeNotifier {
   BlogVm() {
     _checkConnectivity().then((_) => notifyListeners());
 
-    Connectivity()
-        .onConnectivityChanged
-        .listen((List<ConnectivityResult> results) {
-      bool isConnected = results.any((result) =>
-      result == ConnectivityResult.wifi ||
-          result == ConnectivityResult.mobile ||
-          result == ConnectivityResult.ethernet);
+    Connectivity().onConnectivityChanged.listen((
+      List<ConnectivityResult> results,
+    ) {
+      bool isConnected = results.any(
+        (result) =>
+            result == ConnectivityResult.wifi ||
+            result == ConnectivityResult.mobile ||
+            result == ConnectivityResult.ethernet,
+      );
       bool wasOffline = _isOffline || _isCategoryOffline;
       _isOffline = !isConnected;
       _isCategoryOffline = !isConnected;
 
       if (!isConnected) {
-        _error = 'Bạn đang offline. Dữ liệu có thể đã cũ.';
-        _categoryError = 'Bạn đang offline, không thể tải danh mục.';
+        _error = 'You are offline. Data might be outdated.';
+        _categoryError = 'You are offline. Cannot load categories.';
       } else if (isConnected && wasOffline) {
         _error = null;
         _categoryError = null;
@@ -151,9 +155,18 @@ class BlogVm extends ChangeNotifier {
   void _handleError(dynamic e, {bool isCategoryError = false}) {
     String message;
     if (e is DioException) {
-      message = 'Lỗi máy chủ: ${e.response?.data['message'] ?? e.message}';
+      // Prioritize backend message
+      final data = e.response?.data;
+      if (data is Map && data.containsKey('message')) {
+        message = data['message']?.toString() ?? 'Server Error';
+      } else {
+        message = e.message ?? 'Unknown Server Error';
+      }
+    } else if (e is Exception) {
+      // Strip "Exception: " prefix if present
+      message = e.toString().replaceAll('Exception: ', '');
     } else {
-      message = 'Lỗi không mong muốn: $e';
+      message = 'Unexpected Error: $e';
     }
 
     if (isCategoryError) {
@@ -166,7 +179,7 @@ class BlogVm extends ChangeNotifier {
   Future<void> fetchBlogCategories({bool forceRefresh = false}) async {
     if (_isLoadingCategories && !forceRefresh) return;
     if (!await _checkConnectivity()) {
-      _categoryError = 'Bạn đang offline, không thể tải danh mục.';
+      _categoryError = 'You are offline. Cannot load categories.';
       _isCategoryOffline = true;
       notifyListeners();
       return;
@@ -184,7 +197,7 @@ class BlogVm extends ChangeNotifier {
       if (result.success) {
         _categories = result.data;
       } else {
-        _categoryError = "Lỗi tải danh mục: ${result.message}";
+        _categoryError = "Failed to load categories: ${result.message}";
       }
     } catch (e) {
       _handleError(e, isCategoryError: true);
@@ -197,7 +210,7 @@ class BlogVm extends ChangeNotifier {
   Future<void> fetchBlogs({bool forceRefresh = false}) async {
     if (forceRefresh) {
       if (!await _checkConnectivity()) {
-        _error = 'Bạn đang offline, không thể tải dữ liệu.';
+        _error = 'You are offline. Cannot load data.';
         _isOffline = true;
         _isLoading = false;
         notifyListeners();
@@ -210,7 +223,7 @@ class BlogVm extends ChangeNotifier {
     } else {
       if (_isLoading || _isLoadingMore || !hasNext) return;
       if (!await _checkConnectivity()) {
-        _error = 'Bạn đang offline, không thể tải thêm.';
+        _error = 'You are offline. Cannot load more.';
         _isOffline = true;
         notifyListeners();
         return;
@@ -243,7 +256,7 @@ class BlogVm extends ChangeNotifier {
           _currentPage++;
         }
       } else {
-        _error = "Lỗi tải dữ liệu: ${result.message}";
+        _error = "Failed to load data: ${result.message}";
       }
     } catch (e) {
       _handleError(e);
@@ -256,7 +269,7 @@ class BlogVm extends ChangeNotifier {
 
   Future<void> fetchBlogDetail(String id) async {
     if (!await _checkConnectivity()) {
-      _error = 'Bạn đang offline, không thể tải chi tiết.';
+      _error = 'You are offline. Cannot load details.';
       _isLoadingDetail = false;
       notifyListeners();
       return;
@@ -270,11 +283,11 @@ class BlogVm extends ChangeNotifier {
     try {
       _blogDetail = await BlogService.getBlogDetail(id);
       if (_blogDetail == null) {
-        _error = "Không tải được chi tiết blog hoặc blog không tồn tại.";
+        _error = "Cannot find blog details.";
       }
     } catch (e) {
       _handleError(e);
-      _error = "Lỗi khi tải chi tiết blog: $_error";
+      _error = "Error loading blog details: $_error";
     } finally {
       _isLoadingDetail = false;
       notifyListeners();
@@ -293,17 +306,18 @@ class BlogVm extends ChangeNotifier {
     try {
       final picker = ImagePicker();
       final pickedFile = await picker.pickImage(
-          source: ImageSource.gallery,
-          imageQuality: 80,
-          maxWidth: 1024,
-          maxHeight: 1024);
+        source: ImageSource.gallery,
+        imageQuality: 80,
+        maxWidth: 1024,
+        maxHeight: 1024,
+      );
       if (pickedFile != null) {
         _selectedThumbnailFile = File(pickedFile.path);
         notifyListeners();
         await uploadThumbnailImage();
       }
     } catch (e) {
-      _thumbnailUploadError = "Lỗi khi chọn ảnh: $e";
+      _thumbnailUploadError = "Error selecting image: $e";
       notifyListeners();
     }
   }
@@ -311,7 +325,7 @@ class BlogVm extends ChangeNotifier {
   Future<String?> uploadThumbnailImage() async {
     if (_selectedThumbnailFile == null) return null;
     if (!await _checkConnectivity()) {
-      _thumbnailUploadError = 'Bạn đang offline, không thể upload ảnh.';
+      _thumbnailUploadError = 'You are offline. Cannot upload image.';
       notifyListeners();
       return null;
     }
@@ -326,23 +340,25 @@ class BlogVm extends ChangeNotifier {
     try {
       signatureData = await UtilitiesService.getUploadSignature();
       if (signatureData == null) {
-        _thumbnailUploadError = "Không thể lấy chữ ký upload.";
+        _thumbnailUploadError = "Cannot get upload signature.";
         _isUploadingThumbnail = false;
         notifyListeners();
         return null;
       }
 
       imageUrl = await UtilitiesService.uploadImageToCloudinary(
-          _selectedThumbnailFile!.path, signatureData);
+        _selectedThumbnailFile!.path,
+        signatureData,
+      );
 
       if (imageUrl != null) {
         _uploadedThumbnailUrl = imageUrl;
       } else {
-        _thumbnailUploadError = "Upload ảnh lên Cloudinary thất bại.";
+        _thumbnailUploadError = "Failed to upload image to Cloudinary.";
       }
     } catch (e) {
       _handleError(e);
-      _thumbnailUploadError = "Lỗi upload ảnh: $_error";
+      _thumbnailUploadError = "Upload failed: $_error";
       _error = null;
     } finally {
       _isUploadingThumbnail = false;
@@ -368,7 +384,7 @@ class BlogVm extends ChangeNotifier {
     String? thumbnailUrl,
   }) async {
     if (!await _checkConnectivity()) {
-      _error = 'Bạn đang offline, không thể tạo blog.';
+      _error = 'You are offline. Cannot create blog.';
       notifyListeners();
       return false;
     }
@@ -381,7 +397,7 @@ class BlogVm extends ChangeNotifier {
     String? finalThumbnailUrl = thumbnailUrl;
     if (_selectedThumbnailFile != null) {
       if (_isUploadingThumbnail) {
-        _error = "Đang upload ảnh thumbnail, vui lòng chờ...";
+        _error = "Uploading thumbnail, please wait...";
         _isUpdatingEntity = false;
         notifyListeners();
         return false;
@@ -389,7 +405,7 @@ class BlogVm extends ChangeNotifier {
       if (_uploadedThumbnailUrl != null) {
         finalThumbnailUrl = _uploadedThumbnailUrl;
       } else {
-        _error = _thumbnailUploadError ?? "Lỗi upload ảnh thumbnail.";
+        _error = _thumbnailUploadError ?? "Thumbnail upload failed.";
         _isUpdatingEntity = false;
         notifyListeners();
         return false;
@@ -408,11 +424,11 @@ class BlogVm extends ChangeNotifier {
         resetThumbnailState(notify: false);
         await fetchBlogs(forceRefresh: true);
       } else {
-        _error = "Tạo blog thất bại.";
+        _error = "Failed to create blog.";
       }
     } catch (e) {
       _handleError(e);
-      _error = "Lỗi khi tạo blog: $_error";
+      _error = "Error creating blog: $_error";
       success = false;
     } finally {
       _isUpdatingEntity = false;
@@ -422,15 +438,15 @@ class BlogVm extends ChangeNotifier {
   }
 
   Future<bool> updateBlog(
-      String id, {
-        String? title,
-        String? content,
-        String? categoryId,
-        String? status,
-        String? thumbnailUrl,
-      }) async {
+    String id, {
+    String? title,
+    String? content,
+    String? categoryId,
+    String? status,
+    String? thumbnailUrl,
+  }) async {
     if (!await _checkConnectivity()) {
-      _error = 'Bạn đang offline, không thể cập nhật blog.';
+      _error = 'You are offline. Cannot update blog.';
       notifyListeners();
       return false;
     }
@@ -443,7 +459,7 @@ class BlogVm extends ChangeNotifier {
     String? finalThumbnailUrl = thumbnailUrl;
     if (_selectedThumbnailFile != null) {
       if (_isUploadingThumbnail) {
-        _error = "Đang upload ảnh thumbnail, vui lòng chờ...";
+        _error = "Uploading thumbnail, please wait...";
         _isUpdatingEntity = false;
         notifyListeners();
         return false;
@@ -451,7 +467,7 @@ class BlogVm extends ChangeNotifier {
       if (_uploadedThumbnailUrl != null) {
         finalThumbnailUrl = _uploadedThumbnailUrl;
       } else {
-        _error = _thumbnailUploadError ?? "Lỗi upload ảnh thumbnail.";
+        _error = _thumbnailUploadError ?? "Thumbnail upload failed.";
         _isUpdatingEntity = false;
         notifyListeners();
         return false;
@@ -459,12 +475,14 @@ class BlogVm extends ChangeNotifier {
     }
 
     try {
-      final updatedBlog = await BlogService.updateBlog(id,
-          title: title,
-          content: content,
-          categoryId: categoryId,
-          status: status,
-          thumbnailUrl: finalThumbnailUrl);
+      final updatedBlog = await BlogService.updateBlog(
+        id,
+        title: title,
+        content: content,
+        categoryId: categoryId,
+        status: status,
+        thumbnailUrl: finalThumbnailUrl,
+      );
 
       success = updatedBlog != null;
       if (success) {
@@ -477,11 +495,11 @@ class BlogVm extends ChangeNotifier {
           await fetchBlogs(forceRefresh: true);
         }
       } else {
-        _error = "Cập nhật blog thất bại.";
+        _error = "Failed to update blog.";
       }
     } catch (e) {
       _handleError(e);
-      _error = "Lỗi khi cập nhật blog: $_error";
+      _error = "Error updating blog: $_error";
       success = false;
     } finally {
       _isUpdatingEntity = false;
@@ -492,7 +510,7 @@ class BlogVm extends ChangeNotifier {
 
   Future<bool> deleteBlog(String id, String password) async {
     if (!await _checkConnectivity()) {
-      _error = 'Bạn đang offline, không thể xóa blog.';
+      _error = 'You are offline. Cannot delete blog.';
       notifyListeners();
       return false;
     }
@@ -506,11 +524,11 @@ class BlogVm extends ChangeNotifier {
       if (success) {
         _blogs.removeWhere((blog) => blog.id == id);
       } else {
-        _error = "Xóa blog thất bại. Vui lòng kiểm tra lại mật khẩu.";
+        _error = "Failed to delete blog. Check password.";
       }
     } catch (e) {
       _handleError(e);
-      _error = "Lỗi khi xóa blog: $_error";
+      _error = "Error deleting blog: $_error";
       success = false;
     } finally {
       _isUpdatingEntity = false;
@@ -524,7 +542,7 @@ class BlogVm extends ChangeNotifier {
     String? description,
   }) async {
     if (!await _checkConnectivity()) {
-      _categoryError = 'Bạn đang offline, không thể tạo danh mục.';
+      _categoryError = 'You are offline. Cannot create category.';
       notifyListeners();
       return false;
     }
@@ -541,11 +559,11 @@ class BlogVm extends ChangeNotifier {
       if (success) {
         await fetchBlogCategories(forceRefresh: true);
       } else {
-        _categoryError = "Tạo danh mục thất bại.";
+        _categoryError = "Failed to create category.";
       }
     } catch (e) {
       _handleError(e, isCategoryError: true);
-      _categoryError = "Lỗi khi tạo danh mục: $_categoryError";
+      _categoryError = "Error creating category: $_categoryError";
       success = false;
     } finally {
       _isUpdatingEntity = false;
@@ -555,12 +573,12 @@ class BlogVm extends ChangeNotifier {
   }
 
   Future<bool> updateBlogCategory(
-      String id, {
-        String? name,
-        String? description,
-      }) async {
+    String id, {
+    String? name,
+    String? description,
+  }) async {
     if (!await _checkConnectivity()) {
-      _categoryError = 'Bạn đang offline, không thể cập nhật danh mục.';
+      _categoryError = 'You are offline. Cannot update category.';
       notifyListeners();
       return false;
     }
@@ -578,11 +596,11 @@ class BlogVm extends ChangeNotifier {
       if (success) {
         await fetchBlogCategories(forceRefresh: true);
       } else {
-        _categoryError = "Cập nhật danh mục thất bại.";
+        _categoryError = "Failed to update category.";
       }
     } catch (e) {
       _handleError(e, isCategoryError: true);
-      _categoryError = "Lỗi khi cập nhật danh mục: $_categoryError";
+      _categoryError = "Error updating category: $_categoryError";
       success = false;
     } finally {
       _isUpdatingEntity = false;
@@ -591,10 +609,13 @@ class BlogVm extends ChangeNotifier {
     return success;
   }
 
-  Future<bool> deleteBlogCategory(String id,
-      {required String password, bool forceBulkDelete = false}) async {
+  Future<bool> deleteBlogCategory(
+    String id, {
+    required String password,
+    bool forceBulkDelete = false,
+  }) async {
     if (!await _checkConnectivity()) {
-      _categoryError = 'Bạn đang offline, không thể xóa danh mục.';
+      _categoryError = 'You are offline. Cannot delete category.';
       notifyListeners();
       return false;
     }
@@ -603,18 +624,21 @@ class BlogVm extends ChangeNotifier {
     notifyListeners();
     bool success = false;
     try {
-      success = await BlogService.deleteBlogCategory(id,
-          password: password, forceBulkDelete: forceBulkDelete);
+      success = await BlogService.deleteBlogCategory(
+        id,
+        password: password,
+        forceBulkDelete: forceBulkDelete,
+      );
       if (success) {
         _categories.removeWhere((cat) => cat.id == id);
         await fetchBlogs(forceRefresh: true);
       } else {
         _categoryError =
-        "Xóa thất bại. Sai mật khẩu hoặc danh mục đang được sử dụng.";
+            "Failed to delete. Incorrect password or category in use.";
       }
     } catch (e) {
       _handleError(e, isCategoryError: true);
-      _categoryError = "Lỗi khi xóa danh mục: $_categoryError";
+      _categoryError = "Error deleting category: $_categoryError";
       success = false;
     } finally {
       _isUpdatingEntity = false;

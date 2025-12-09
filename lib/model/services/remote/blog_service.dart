@@ -24,7 +24,8 @@ class BlogService {
         'limit': limit,
         'sortBy': sortBy,
         'sortOrder': sortOrder,
-        if (categoryId != null && categoryId.isNotEmpty) 'categoryId': categoryId,
+        if (categoryId != null && categoryId.isNotEmpty)
+          'categoryId': categoryId,
         if (status != null && status.isNotEmpty) 'status': status,
         if (search != null && search.isNotEmpty) 'search': search,
       };
@@ -42,13 +43,15 @@ class BlogService {
         );
       }
       return GetBlogsResponse(
-          success: false, message: response.data['message'] ?? 'API call failed');
+        success: false,
+        message: response.data['message'] ?? 'API call failed',
+      );
     } on DioException catch (e) {
-      return GetBlogsResponse(
-          success: false,
-          message: 'Lỗi kết nối: ${e.message} ${e.response?.data['message']}');
+      final msg =
+          e.response?.data['message'] ?? e.message ?? 'Connection error';
+      return GetBlogsResponse(success: false, message: 'Network error: $msg');
     } catch (e) {
-      return GetBlogsResponse(success: false, message: 'Lỗi không mong muốn: $e');
+      return GetBlogsResponse(success: false, message: 'Unexpected error: $e');
     }
   }
 
@@ -68,20 +71,24 @@ class BlogService {
         final categoryList = (response.data['data'] as List)
             .map((json) => BlogCategory.fromJson(json as Map<String, dynamic>))
             .toList();
-        return GetBlogCategoriesResponse(
-          success: true,
-          data: categoryList,
-        );
+        return GetBlogCategoriesResponse(success: true, data: categoryList);
       }
       return GetBlogCategoriesResponse(
-          success: false, message: response.data['message'] ?? 'API call failed');
+        success: false,
+        message: response.data['message'] ?? 'API call failed',
+      );
     } on DioException catch (e) {
+      final msg =
+          e.response?.data['message'] ?? e.message ?? 'Connection error';
       return GetBlogCategoriesResponse(
-          success: false,
-          message: 'Lỗi kết nối: ${e.message} ${e.response?.data['message']}');
+        success: false,
+        message: 'Network error: $msg',
+      );
     } catch (e) {
       return GetBlogCategoriesResponse(
-          success: false, message: 'Lỗi không mong muốn: $e');
+        success: false,
+        message: 'Unexpected error: $e',
+      );
     }
   }
 
@@ -106,13 +113,13 @@ class BlogService {
   }
 
   static Future<Blog?> updateBlog(
-      String id, {
-        String? title,
-        String? content,
-        String? categoryId,
-        String? status,
-        String? thumbnailUrl,
-      }) async {
+    String id, {
+    String? title,
+    String? content,
+    String? categoryId,
+    String? status,
+    String? thumbnailUrl,
+  }) async {
     final requestBody = {
       if (title != null && title.isNotEmpty) 'title': title,
       if (content != null && content.isNotEmpty) 'content': content,
@@ -133,7 +140,7 @@ class BlogService {
   static Future<bool> deleteBlog(String id, {required String password}) async {
     if (!await AuthService.verifyPassword(password: password)) {
       print('Password verification failed for deleting blog');
-      return false;
+      throw Exception('Incorrect password');
     }
     final response = await _secureDio.delete('/blogs/$id');
     return response.statusCode == 200 || response.statusCode == 204;
@@ -148,8 +155,10 @@ class BlogService {
       if (description != null && description.isNotEmpty)
         'description': description,
     };
-    final response =
-    await _secureDio.post('/blogs/categories', data: requestBody);
+    final response = await _secureDio.post(
+      '/blogs/categories',
+      data: requestBody,
+    );
     if (response.statusCode == 201 && response.data['data'] != null) {
       return BlogCategory.fromJson(response.data['data']);
     }
@@ -157,10 +166,10 @@ class BlogService {
   }
 
   static Future<BlogCategory?> updateBlogCategory(
-      String id, {
-        String? name,
-        String? description,
-      }) async {
+    String id, {
+    String? name,
+    String? description,
+  }) async {
     final requestBody = {
       if (name != null && name.isNotEmpty) 'name': name,
       if (description != null && description.isNotEmpty)
@@ -168,19 +177,24 @@ class BlogService {
     };
     if (requestBody.isEmpty) return null;
 
-    final response =
-    await _secureDio.patch('/blogs/categories/$id', data: requestBody);
+    final response = await _secureDio.patch(
+      '/blogs/categories/$id',
+      data: requestBody,
+    );
     if (response.statusCode == 200 && response.data['data'] != null) {
       return BlogCategory.fromJson(response.data['data']);
     }
     return null;
   }
 
-  static Future<bool> deleteBlogCategory(String id,
-      {required String password, bool forceBulkDelete = false}) async {
+  static Future<bool> deleteBlogCategory(
+    String id, {
+    required String password,
+    bool forceBulkDelete = false,
+  }) async {
     if (!await AuthService.verifyPassword(password: password)) {
       print('Password verification failed for deleting blog category');
-      return false;
+      throw Exception('Incorrect password');
     }
     final response = await _secureDio.delete(
       '/blogs/categories/$id',

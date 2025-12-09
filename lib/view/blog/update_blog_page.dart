@@ -15,6 +15,8 @@ class UpdateBlogPage extends StatefulWidget {
 }
 
 class _UpdateBlogPageState extends State<UpdateBlogPage> {
+  final GlobalKey<BlogFormState> _formKey = GlobalKey<BlogFormState>();
+
   @override
   void initState() {
     super.initState();
@@ -29,20 +31,28 @@ class _UpdateBlogPageState extends State<UpdateBlogPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: context.theme.card,
+        backgroundColor: context.theme.appBar,
         elevation: 0.5,
         title: Text(
           AppLocalizations.of(context).translate('update_blog_title'),
           style: TextStyle(
-            color: context.theme.textColor,
+            color: context.theme.white,
             fontWeight: FontWeight.w600,
             fontSize: 18,
           ),
         ),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: context.theme.textColor),
+          icon: Icon(Icons.arrow_back, color: context.theme.white),
           onPressed: () => Navigator.pop(context, false),
         ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.check, color: context.theme.white),
+            onPressed: () {
+              _formKey.currentState?.submitForm();
+            },
+          ),
+        ],
       ),
       backgroundColor: context.theme.bg,
       body: Consumer<BlogVm>(
@@ -70,6 +80,7 @@ class _UpdateBlogPageState extends State<UpdateBlogPage> {
             );
           }
           return BlogForm(
+            key: _formKey,
             isUpdate: true,
             blogId: widget.blogId,
             initialData: blogVm.blogDetail,

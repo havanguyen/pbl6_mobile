@@ -23,6 +23,8 @@ import 'package:pbl6mobile/view/blog/update_blog_page.dart';
 import 'package:pbl6mobile/view/auth/forgot_password/forgot_password_page.dart';
 import 'package:pbl6mobile/view/auth/forgot_password/otp_page.dart';
 import 'package:pbl6mobile/view/auth/forgot_password/reset_password_page.dart';
+import 'package:pbl6mobile/view/blog/blog_detail_page.dart';
+import 'package:pbl6mobile/model/entities/blog.dart';
 import 'package:provider/provider.dart';
 
 import '../../model/entities/work_location.dart';
@@ -90,6 +92,7 @@ class Routes {
   static const listBlog = '/listBlog';
   static const createBlog = '/createBlog';
   static const updateBlog = '/updateBlog';
+  static const blogDetail = '/blogDetail';
   static const String manageBlogCategories = '/manage-blog-categories';
   static const String listQuestion = '/listQuestion';
   static const String questionDetail = '/questionDetail';
@@ -349,6 +352,13 @@ class Routes {
           type: PageTransitionType.leftToRight,
           settings: settings,
           child: UpdateBlogPage(blogId: blogId),
+        );
+      case blogDetail:
+        final blog = settings.arguments as Blog;
+        return PageTransition(
+          type: PageTransitionType.rightToLeft,
+          settings: settings,
+          child: BlogDetailPage(blog: blog),
         );
       case listQuestion:
         return PageTransition(
