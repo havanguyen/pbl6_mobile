@@ -38,12 +38,15 @@ class _CreatePatientPageState extends State<CreatePatientPage> {
         );
         Navigator.pop(context);
       } else {
+        // Use the error message from VM if available
+        final errorMessage = patientVm.error != null
+            ? AppLocalizations.of(context).translate(patientVm.error!)
+            : AppLocalizations.of(context).translate('create_patient_failed');
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: context.theme.destructive,
-            content: Text(
-              AppLocalizations.of(context).translate('create_patient_failed'),
-            ),
+            content: Text(errorMessage),
           ),
         );
       }
@@ -53,11 +56,18 @@ class _CreatePatientPageState extends State<CreatePatientPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: context.theme.bg,
       appBar: AppBar(
         title: Text(
           AppLocalizations.of(context).translate('create_patient_title'),
+          style: TextStyle(
+            color: context.theme.white,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        backgroundColor: context.theme.blue,
+        iconTheme: IconThemeData(color: context.theme.white),
+        backgroundColor: context.theme.primary,
+        elevation: 0,
       ),
       body: PatientForm(onSubmit: _handleSubmit, isLoading: _isLoading),
     );

@@ -123,16 +123,7 @@ class _PatientListPageState extends State<PatientListPage> {
   Widget _buildSearchBar(PatientVm vm) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-      decoration: BoxDecoration(
-        color: context.theme.card,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+      color: context.theme.bg, // Match background for seamless look
       child: TextField(
         controller: _searchController,
         onChanged: (value) => vm.setSearch(value),
@@ -147,12 +138,12 @@ class _PatientListPageState extends State<PatientListPage> {
             color: context.theme.primary,
             size: 24,
           ),
+          filled: true,
+          fillColor: context.theme.card, // Use card color for input background
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide.none,
           ),
-          filled: true,
-          fillColor: context.theme.input.withOpacity(0.5),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,
             vertical: 14,
@@ -174,7 +165,9 @@ class _PatientListPageState extends State<PatientListPage> {
   Widget _buildOfflineBanner(BuildContext context) {
     return Container(
       width: double.infinity,
-      color: Colors.amber.shade100,
+      color: Colors
+          .amber
+          .shade100, // Warning color, keep generic for now or verify theme
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -221,17 +214,20 @@ class _PatientListPageState extends State<PatientListPage> {
     }
     return ListView.builder(
       controller: _scrollController,
-      padding: const EdgeInsets.symmetric(vertical: 12),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       itemCount: patientVm.patients.length + (patientVm.isLoadingMore ? 1 : 0),
       itemBuilder: (context, index) {
         if (index == patientVm.patients.length) {
-          return const Center(
+          return Center(
             child: Padding(
-              padding: EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(16.0),
               child: SizedBox(
                 width: 24,
                 height: 24,
-                child: CircularProgressIndicator(strokeWidth: 2.5),
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  color: context.theme.primary,
+                ),
               ),
             ),
           );
@@ -265,7 +261,7 @@ class _PatientListPageState extends State<PatientListPage> {
                               arguments: patient,
                             );
                           },
-                          backgroundColor: context.theme.blue,
+                          backgroundColor: context.theme.primary,
                           foregroundColor: Colors.white,
                           icon: Icons.edit_rounded,
                           label: AppLocalizations.of(context).translate('edit'),
@@ -287,7 +283,7 @@ class _PatientListPageState extends State<PatientListPage> {
                         },
                         backgroundColor: isDeleted
                             ? context.theme.green
-                            : context.theme.red,
+                            : context.theme.destructive,
                         foregroundColor: Colors.white,
                         icon: isDeleted
                             ? Icons.restore_from_trash_rounded
@@ -318,18 +314,21 @@ class _PatientListPageState extends State<PatientListPage> {
     bool isDeleted,
     PatientVm patientVm,
   ) {
-    Color genderColor;
+    // Avoid hardcoded colors, use theme or safely derive from theme
+    // For gender, we can use theme colors or standard distinct colors
+    Color avatarBg;
     IconData genderIcon;
 
-    // Male: true, Female: false, Other/Null: null
     if (patient.isMale == true) {
-      genderColor = Colors.blue.shade600;
+      avatarBg = context.theme.blue.withOpacity(0.1);
       genderIcon = Icons.male;
     } else if (patient.isMale == false) {
-      genderColor = Colors.pink.shade400;
+      avatarBg = context.theme.secondary.withOpacity(
+        0.1,
+      ); // Use secondary (purple/pink often)
       genderIcon = Icons.female;
     } else {
-      genderColor = Colors.grey.shade600;
+      avatarBg = context.theme.grey.withOpacity(0.1);
       genderIcon = Icons.person_outline;
     }
 
@@ -382,11 +381,20 @@ class _PatientListPageState extends State<PatientListPage> {
                 width: 50,
                 height: 50,
                 decoration: BoxDecoration(
-                  color: genderColor.withOpacity(0.1),
+                  color: avatarBg,
                   shape: BoxShape.circle,
                 ),
                 child: Center(
-                  child: Icon(genderIcon, color: genderColor, size: 28),
+                  child: Icon(
+                    genderIcon,
+                    // Use theme primary for male, accent/secondary for female to fit theme
+                    color: patient.isMale == true
+                        ? context.theme.blue
+                        : (patient.isMale == false
+                              ? context.theme.secondary
+                              : context.theme.grey),
+                    size: 28,
+                  ),
                 ),
               ),
               const SizedBox(width: 16),
@@ -467,7 +475,7 @@ class _PatientListPageState extends State<PatientListPage> {
                             vertical: 3,
                           ),
                           decoration: BoxDecoration(
-                            color: context.theme.red.withOpacity(0.1),
+                            color: context.theme.destructive.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Row(
@@ -476,7 +484,7 @@ class _PatientListPageState extends State<PatientListPage> {
                               Icon(
                                 Icons.delete_forever,
                                 size: 12,
-                                color: context.theme.red,
+                                color: context.theme.destructive,
                               ),
                               const SizedBox(width: 4),
                               Text(
@@ -485,7 +493,7 @@ class _PatientListPageState extends State<PatientListPage> {
                                 ).translate('deleted'),
                                 style: TextStyle(
                                   fontSize: 11,
-                                  color: context.theme.red,
+                                  color: context.theme.destructive,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -541,7 +549,7 @@ class _PatientListPageState extends State<PatientListPage> {
       baseColor: context.theme.grey.withOpacity(0.1),
       highlightColor: context.theme.grey.withOpacity(0.05),
       child: ListView.builder(
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.symmetric(vertical: 8),
         itemCount: 6,
         itemBuilder: (context, index) {
           return Padding(

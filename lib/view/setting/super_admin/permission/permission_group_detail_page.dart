@@ -153,7 +153,7 @@ class _PermissionGroupDetailPageState extends State<PermissionGroupDetailPage> {
               ),
               backgroundColor: _isEditing
                   ? Colors.transparent
-                  : context.theme.blue,
+                  : context.theme.primary,
               elevation: 0,
               leading: IconButton(
                 icon: Icon(Icons.arrow_back, color: context.theme.white),
@@ -264,9 +264,9 @@ class _PermissionGroupDetailPageState extends State<PermissionGroupDetailPage> {
                                         ).translate('manage_permissions'),
                                       ),
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: context.theme.blue
+                                        backgroundColor: context.theme.primary
                                             .withOpacity(0.1),
-                                        foregroundColor: context.theme.blue,
+                                        foregroundColor: context.theme.primary,
                                         elevation: 0,
                                         padding: const EdgeInsets.symmetric(
                                           horizontal: 16,
@@ -307,7 +307,9 @@ class _PermissionGroupDetailPageState extends State<PermissionGroupDetailPage> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        'Danger Zone', // Localization needed ideally
+                                        AppLocalizations.of(
+                                          context,
+                                        ).translate('danger_zone'),
                                         style: TextStyle(
                                           color: context.theme.destructive,
                                           fontWeight: FontWeight.bold,
@@ -316,7 +318,9 @@ class _PermissionGroupDetailPageState extends State<PermissionGroupDetailPage> {
                                       ),
                                       const SizedBox(height: 8),
                                       Text(
-                                        'Deleting this group will remove it permanently and revoke permissions from all assigned users.',
+                                        AppLocalizations.of(
+                                          context,
+                                        ).translate('delete_group_warning'),
                                         style: TextStyle(
                                           color: context.theme.destructive
                                               .withOpacity(0.8),
@@ -503,7 +507,7 @@ class _ManagePermissionDialogState extends State<ManagePermissionDialog> {
                   if (success && context.mounted) Navigator.pop(context);
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: context.theme.blue,
+                  backgroundColor: context.theme.primary,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),

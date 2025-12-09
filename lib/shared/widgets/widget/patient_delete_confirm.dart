@@ -16,7 +16,7 @@ class PatientDeleteConfirmDialog extends StatelessWidget {
         AppLocalizations.of(context).translate('confirm_delete_title'),
       ),
       content: Text(
-        '${AppLocalizations.of(context).translate('confirm_delete_patient_message')}${patient.fullName}?',
+        '${AppLocalizations.of(context).translate('confirm_delete_patient_named')}${patient.fullName}?',
       ),
       actions: <Widget>[
         TextButton(

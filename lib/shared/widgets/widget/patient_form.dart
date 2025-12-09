@@ -82,6 +82,20 @@ class _PatientFormState extends State<PatientForm> {
       initialDate: _selectedDate ?? DateTime.now(),
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: ThemeData.light().copyWith(
+            colorScheme: ColorScheme.light(
+              primary: context.theme.primary,
+              onPrimary: Colors.white,
+              surface: context.theme.card,
+              onSurface: context.theme.textColor,
+            ),
+            dialogBackgroundColor: context.theme.card,
+          ),
+          child: child!,
+        );
+      },
     );
     if (picked != null && picked != _selectedDate) {
       setState(() {
@@ -93,6 +107,12 @@ class _PatientFormState extends State<PatientForm> {
 
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
+      // Basic validation for phone if entered
+      if (_phoneController.text.isNotEmpty) {
+        // Simple regex check or just rely on backend?
+        // Let's keep it simple for now as requested or check if user wants strict validation
+      }
+
       final Map<String, dynamic> data = {
         'fullName': _fullNameController.text,
         'email': _emailController.text,
@@ -121,10 +141,11 @@ class _PatientFormState extends State<PatientForm> {
   }) {
     return InputDecoration(
       labelText: labelText,
-      prefixIcon: Icon(icon, color: context.theme.blue.withOpacity(0.8)),
+      labelStyle: TextStyle(color: context.theme.mutedForeground),
+      prefixIcon: Icon(icon, color: context.theme.primary.withOpacity(0.8)),
       suffixIcon: suffixIcon,
       filled: true,
-      fillColor: context.theme.grey.withOpacity(0.05),
+      fillColor: context.theme.input.withOpacity(0.5), // Subtle input bg
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide.none,
@@ -135,15 +156,15 @@ class _PatientFormState extends State<PatientForm> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: context.theme.blue, width: 2),
+        borderSide: BorderSide(color: context.theme.primary, width: 2),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: context.theme.red, width: 1),
+        borderSide: BorderSide(color: context.theme.destructive, width: 1),
       ),
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: context.theme.red, width: 2),
+        borderSide: BorderSide(color: context.theme.destructive, width: 2),
       ),
     );
   }
@@ -164,12 +185,16 @@ class _PatientFormState extends State<PatientForm> {
               ),
               children: [
                 Card(
-                  elevation: 2,
+                  elevation: 0, // Flat design for modern look
+                  color: context.theme.card,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(16),
+                    side: BorderSide(
+                      color: context.theme.border.withOpacity(0.5),
+                    ),
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.all(20.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -179,13 +204,14 @@ class _PatientFormState extends State<PatientForm> {
                           ).translate('personal_information'),
                           style: Theme.of(context).textTheme.titleLarge
                               ?.copyWith(
-                                color: context.theme.blue,
+                                color: context.theme.primary,
                                 fontWeight: FontWeight.bold,
                               ),
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 24),
                         TextFormField(
                           controller: _fullNameController,
+                          style: TextStyle(color: context.theme.textColor),
                           decoration: _buildInputDecoration(
                             labelText: AppLocalizations.of(
                               context,
@@ -204,6 +230,7 @@ class _PatientFormState extends State<PatientForm> {
                         const SizedBox(height: 16),
                         TextFormField(
                           controller: _emailController,
+                          style: TextStyle(color: context.theme.textColor),
                           decoration: _buildInputDecoration(
                             labelText: AppLocalizations.of(
                               context,
@@ -228,6 +255,7 @@ class _PatientFormState extends State<PatientForm> {
                         const SizedBox(height: 16),
                         TextFormField(
                           controller: _phoneController,
+                          style: TextStyle(color: context.theme.textColor),
                           decoration: _buildInputDecoration(
                             labelText: AppLocalizations.of(
                               context,
@@ -239,6 +267,7 @@ class _PatientFormState extends State<PatientForm> {
                         const SizedBox(height: 16),
                         TextFormField(
                           controller: _dateOfBirthController,
+                          style: TextStyle(color: context.theme.textColor),
                           decoration: _buildInputDecoration(
                             labelText: AppLocalizations.of(
                               context,
@@ -251,6 +280,8 @@ class _PatientFormState extends State<PatientForm> {
                         const SizedBox(height: 16),
                         DropdownButtonFormField<bool?>(
                           value: _isMale,
+                          dropdownColor: context.theme.card,
+                          style: TextStyle(color: context.theme.textColor),
                           decoration: _buildInputDecoration(
                             labelText: AppLocalizations.of(
                               context,
@@ -293,12 +324,16 @@ class _PatientFormState extends State<PatientForm> {
                 ),
                 const SizedBox(height: 24),
                 Card(
-                  elevation: 2,
+                  elevation: 0,
+                  color: context.theme.card,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(16),
+                    side: BorderSide(
+                      color: context.theme.border.withOpacity(0.5),
+                    ),
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.all(20.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -308,13 +343,14 @@ class _PatientFormState extends State<PatientForm> {
                           ).translate('contact_address'),
                           style: Theme.of(context).textTheme.titleLarge
                               ?.copyWith(
-                                color: context.theme.blue,
+                                color: context.theme.primary,
                                 fontWeight: FontWeight.bold,
                               ),
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 24),
                         TextFormField(
                           controller: _addressLineController,
+                          style: TextStyle(color: context.theme.textColor),
                           decoration: _buildInputDecoration(
                             labelText: AppLocalizations.of(
                               context,
@@ -325,6 +361,7 @@ class _PatientFormState extends State<PatientForm> {
                         const SizedBox(height: 16),
                         TextFormField(
                           controller: _districtController,
+                          style: TextStyle(color: context.theme.textColor),
                           decoration: _buildInputDecoration(
                             labelText: AppLocalizations.of(
                               context,
@@ -335,6 +372,7 @@ class _PatientFormState extends State<PatientForm> {
                         const SizedBox(height: 16),
                         TextFormField(
                           controller: _provinceController,
+                          style: TextStyle(color: context.theme.textColor),
                           decoration: _buildInputDecoration(
                             labelText: AppLocalizations.of(
                               context,
@@ -348,7 +386,11 @@ class _PatientFormState extends State<PatientForm> {
                 ),
                 const SizedBox(height: 32),
                 widget.isLoading
-                    ? const CircularProgressIndicator()
+                    ? Center(
+                        child: CircularProgressIndicator(
+                          color: context.theme.primary,
+                        ),
+                      )
                     : CustomButtonBlue(
                         text: widget.patient == null
                             ? AppLocalizations.of(

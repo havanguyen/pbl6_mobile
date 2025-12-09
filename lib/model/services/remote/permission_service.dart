@@ -47,7 +47,7 @@ class PermissionService {
     }
   }
 
-  static Future<bool> updateGroup({
+  static Future<Map<String, dynamic>> updateGroup({
     required String id,
     String? name,
     String? description,
@@ -64,10 +64,25 @@ class PermissionService {
       print(
         'PermissionService.updateGroup response: ${response.statusCode} ${response.data}',
       );
-      return response.statusCode == 200 && response.data['success'] == true;
+
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        return {'success': true};
+      } else {
+        return {
+          'success': false,
+          'message': response.data['message'] ?? 'Unknown error',
+          'statusCode': response.statusCode,
+        };
+      }
     } catch (e) {
       print('PermissionService.updateGroup exception: $e');
-      return false;
+      int statusCode = 500;
+      String message = e.toString();
+      if (e is DioException) {
+        statusCode = e.response?.statusCode ?? 500;
+        message = e.response?.data['message'] ?? e.message ?? 'Unknown error';
+      }
+      return {'success': false, 'message': message, 'statusCode': statusCode};
     }
   }
 

@@ -20,6 +20,9 @@ class PatientVm extends ChangeNotifier {
   bool _isOffline = false;
   bool get isOffline => _isOffline;
 
+  String? _error;
+  String? get error => _error;
+
   int _page = 1;
   final int _limit = 10;
   bool _hasNext = true;
@@ -28,7 +31,8 @@ class PatientVm extends ChangeNotifier {
   bool get includeDeleted => _includeDeleted;
 
   String _searchQuery = '';
-  Timer? _debounce;
+  // ignore: unused_field
+  Timer? _debounce; // Keep reference to cancel if needed
 
   @override
   void dispose() {
@@ -58,6 +62,7 @@ class PatientVm extends ChangeNotifier {
     } else {
       _isLoadingMore = true;
     }
+    _error = null;
     notifyListeners();
 
     try {
@@ -94,21 +99,19 @@ class PatientVm extends ChangeNotifier {
       _page++;
 
       // Only cache if we are not searching and not including deleted items
-      // to avoid overwriting the full list cache with partial search results
       if (!_includeDeleted && _searchQuery.isEmpty && patients.isNotEmpty) {
         await _dbHelper.cachePatients(patients);
       }
     } catch (e) {
       if (e is DioException && e.error is SocketException) {
         _isOffline = true;
-        print("Network error: Host lookup failed. App is offline.");
+        debugPrint("Network error: Host lookup failed. App is offline.");
         if ((isFirstLoad || isRefresh) &&
             patients.isEmpty &&
             !_includeDeleted) {
-          print("Loading from cache due to offline status...");
+          debugPrint("Loading from cache due to offline status...");
           final cachedPatients = await _dbHelper.getCachedPatients();
           if (cachedPatients.isNotEmpty) {
-            // If offline, we can attempt client-side filtering on cached data
             if (_searchQuery.isNotEmpty) {
               final query = _searchQuery.toLowerCase();
               patients = cachedPatients
@@ -125,7 +128,8 @@ class PatientVm extends ChangeNotifier {
           }
         }
       } else {
-        print("Error loading patients: $e");
+        _error = 'fetch_patients_error';
+        debugPrint("Error loading patients: $e");
       }
     } finally {
       isLoading = false;
@@ -137,91 +141,125 @@ class PatientVm extends ChangeNotifier {
 
   Future<bool> addPatient(Map<String, dynamic> data) async {
     if (_isOffline) return false;
-    final success = await _patientService.createPatient(data);
-    if (success) {
-      await loadPatients(isRefresh: true);
+    try {
+      final success = await _patientService.createPatient(data);
+      if (success) {
+        await loadPatients(isRefresh: true);
+        return true;
+      } else {
+        _error = 'create_patient_error';
+        return false;
+      }
+    } catch (e) {
+      _error = 'create_patient_error';
+      debugPrint("Add patient error: $e");
+      return false;
     }
-    return success;
   }
 
   Future<bool> editPatient(String id, Map<String, dynamic> data) async {
     if (_isOffline) return false;
-    final success = await _patientService.updatePatient(id, data);
-    if (success) {
-      // If we are searching, reloading might lose the context if the edit changes the search match
-      // But generally safest to reload or update locally.
-      // For backend search, update local list is tricky if sort order changes.
-      // Re-fetching the single patient is safest.
-      final updatedPatient = await _patientService.getPatientById(id);
-      if (updatedPatient != null) {
-        final index = patients.indexWhere((p) => p.id == id);
-        if (index != -1) {
-          patients[index] = updatedPatient;
-          notifyListeners();
+    try {
+      final success = await _patientService.updatePatient(id, data);
+      if (success) {
+        final updatedPatient = await _patientService.getPatientById(id);
+        if (updatedPatient != null) {
+          final index = patients.indexWhere((p) => p.id == id);
+          if (index != -1) {
+            patients[index] = updatedPatient;
+            notifyListeners();
+          } else {
+            await loadPatients(isRefresh: true);
+          }
         } else {
-          // If not in list (maybe newly matches search?), reload
           await loadPatients(isRefresh: true);
         }
+        return true;
       } else {
-        await loadPatients(isRefresh: true);
+        _error = 'update_patient_error';
+        return false;
       }
+    } catch (e) {
+      _error = 'update_patient_error';
+      debugPrint("Edit patient error: $e");
+      return false;
     }
-    return success;
   }
 
   Future<bool> deletePatient(String id) async {
     if (_isOffline) return false;
-    final success = await _patientService.deletePatient(id);
-    if (success) {
-      if (_includeDeleted) {
+    try {
+      final success = await _patientService.deletePatient(id);
+      if (success) {
+        if (_includeDeleted) {
+          final index = patients.indexWhere((p) => p.id == id);
+          if (index != -1) {
+            final updatedPatient = await _patientService.getPatientById(id);
+            if (updatedPatient != null) {
+              patients[index] = updatedPatient;
+              notifyListeners();
+            } else {
+              await loadPatients(isRefresh: true);
+            }
+          }
+        } else {
+          patients.removeWhere((p) => p.id == id);
+          if (_searchQuery.isEmpty && !_includeDeleted) {
+            await _dbHelper.cachePatients(patients);
+          }
+          notifyListeners();
+        }
+        return true;
+      } else {
+        _error = 'delete_patient_error';
+        return false;
+      }
+    } catch (e) {
+      _error = 'delete_patient_error';
+      debugPrint("Delete patient error: $e");
+      return false;
+    }
+  }
+
+  Future<bool> restorePatient(String id) async {
+    if (_isOffline) return false;
+    try {
+      final success = await _patientService.restorePatient(id);
+      if (success) {
         final index = patients.indexWhere((p) => p.id == id);
         if (index != -1) {
           final updatedPatient = await _patientService.getPatientById(id);
           if (updatedPatient != null) {
             patients[index] = updatedPatient;
             notifyListeners();
-          } else {
-            await loadPatients(isRefresh: true);
           }
         }
-      } else {
-        patients.removeWhere((p) => p.id == id);
-        // Only update cache if we are in 'default' view
-        if (_searchQuery.isEmpty && !_includeDeleted) {
-          await _dbHelper.cachePatients(patients);
-        }
-        notifyListeners();
-      }
-    }
-    return success;
-  }
-
-  Future<bool> restorePatient(String id) async {
-    if (_isOffline) return false;
-    final success = await _patientService.restorePatient(id);
-    if (success) {
-      final index = patients.indexWhere((p) => p.id == id);
-      if (index != -1) {
-        final updatedPatient = await _patientService.getPatientById(id);
-        if (updatedPatient != null) {
-          patients[index] = updatedPatient;
+        if (!_includeDeleted) {
+          patients.removeWhere((p) => p.id == id);
           notifyListeners();
         }
+        return true;
+      } else {
+        _error = 'restore_patient_error';
+        return false;
       }
-      // Reload to ensure list state is correct (e.g. if we are only showing deleted)
-      if (!_includeDeleted) {
-        patients.removeWhere((p) => p.id == id);
-        notifyListeners();
-      }
+    } catch (e) {
+      _error = 'restore_patient_error';
+      debugPrint("Restore patient error: $e");
+      return false;
     }
-    return success;
   }
 
   void toggleIncludeDeleted() {
     _includeDeleted = !_includeDeleted;
     if (_includeDeleted) {
-      _dbHelper.clearPatients(); // Don't cache deleted view
+      _dbHelper.clearPatients();
     }
     loadPatients(isRefresh: true);
+  }
+
+  void clearError() {
+    _error = null;
+    notifyListeners();
   }
 }

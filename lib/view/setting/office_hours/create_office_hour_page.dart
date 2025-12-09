@@ -301,7 +301,9 @@ class _CreateOfficeHourPageState extends State<CreateOfficeHourPage> {
         const SizedBox(height: 8),
         _buildRadioTile(
           value: OfficeHourRuleType.global,
-          label: 'Global System Default',
+          label: AppLocalizations.of(
+            context,
+          ).translate('rule_type_global_default'),
           icon: Icons.public,
         ),
       ],

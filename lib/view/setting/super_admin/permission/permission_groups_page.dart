@@ -120,11 +120,13 @@ class _PermissionGroupsPageState extends State<PermissionGroupsPage>
     }
 
     if (vm.stats == null) {
+      final errorMsg = vm.error != null
+          ? AppLocalizations.of(context).translate(vm.error!)
+          : AppLocalizations.of(context).translate('no_statistics_available');
       return Center(
         child: Text(
-          vm.error ??
-              AppLocalizations.of(context).translate('no_statistics_available'),
-          style: TextStyle(color: context.theme.grey),
+          errorMsg,
+          style: TextStyle(color: context.theme.mutedForeground),
         ),
       );
     }
@@ -150,10 +152,7 @@ class _PermissionGroupsPageState extends State<PermissionGroupsPage>
                     AppLocalizations.of(context).translate('total_permissions'),
                     stats.totalPermissions.toString(),
                     Icons.lock_outline,
-                    [
-                      Colors.blue.shade400,
-                      Colors.blue.shade700,
-                    ], // Blue Gradient
+                    [Colors.blue.shade400, Colors.blue.shade700],
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -163,10 +162,7 @@ class _PermissionGroupsPageState extends State<PermissionGroupsPage>
                     AppLocalizations.of(context).translate('total_groups'),
                     stats.totalGroups.toString(),
                     Icons.group_work_outlined,
-                    [
-                      Colors.orange.shade400,
-                      Colors.orange.shade700,
-                    ], // Orange Gradient
+                    [Colors.orange.shade400, Colors.orange.shade700],
                   ),
                 ),
               ],
@@ -180,10 +176,7 @@ class _PermissionGroupsPageState extends State<PermissionGroupsPage>
                     AppLocalizations.of(context).translate('assigned_to_users'),
                     stats.totalUserPermissions.toString(),
                     Icons.person_outline,
-                    [
-                      Colors.purple.shade400,
-                      Colors.purple.shade700,
-                    ], // Purple Gradient
+                    [Colors.purple.shade400, Colors.purple.shade700],
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -195,10 +188,7 @@ class _PermissionGroupsPageState extends State<PermissionGroupsPage>
                     ).translate('assigned_to_groups'),
                     stats.totalGroupPermissions.toString(),
                     Icons.folder_shared_outlined,
-                    [
-                      Colors.green.shade400,
-                      Colors.green.shade700,
-                    ], // Green Gradient
+                    [Colors.green.shade400, Colors.green.shade700],
                   ),
                 ),
               ],
@@ -222,7 +212,7 @@ class _PermissionGroupsPageState extends State<PermissionGroupsPage>
                     ),
                   )
                   .toList(),
-              context.theme.blue,
+              context.theme.primary,
             ),
 
             const SizedBox(height: 32),
@@ -244,7 +234,7 @@ class _PermissionGroupsPageState extends State<PermissionGroupsPage>
                     ),
                   )
                   .toList(),
-              context.theme.yellow,
+              Colors.indigo,
             ),
             const SizedBox(height: 32),
           ],
@@ -291,17 +281,17 @@ class _PermissionGroupsPageState extends State<PermissionGroupsPage>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
         gradient: LinearGradient(
           colors: colors,
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: colors.first.withOpacity(0.3),
+            color: colors.last.withOpacity(0.4),
             blurRadius: 10,
-            offset: const Offset(0, 6),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -314,7 +304,7 @@ class _PermissionGroupsPageState extends State<PermissionGroupsPage>
               color: Colors.white.withOpacity(0.2),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, color: Colors.white, size: 20),
+            child: Icon(icon, color: Colors.white, size: 24),
           ),
           const SizedBox(height: 16),
           Text(
@@ -329,7 +319,7 @@ class _PermissionGroupsPageState extends State<PermissionGroupsPage>
           Text(
             title,
             style: TextStyle(
-              fontSize: 13,
+              fontSize: 14,
               color: Colors.white.withOpacity(0.9),
               fontWeight: FontWeight.w500,
             ),
@@ -404,7 +394,7 @@ class _PermissionGroupsPageState extends State<PermissionGroupsPage>
                     height: 10,
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: context.theme.border.withOpacity(0.3),
+                      color: context.theme.input,
                       borderRadius: BorderRadius.circular(5),
                     ),
                   ),
@@ -415,13 +405,6 @@ class _PermissionGroupsPageState extends State<PermissionGroupsPage>
                       decoration: BoxDecoration(
                         color: color,
                         borderRadius: BorderRadius.circular(5),
-                        boxShadow: [
-                          BoxShadow(
-                            color: color.withOpacity(0.4),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
                       ),
                     ),
                   ),
@@ -447,17 +430,26 @@ class _PermissionGroupsPageState extends State<PermissionGroupsPage>
       backgroundColor: Colors.transparent,
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showCreateGroupDialog(context, vm),
-        backgroundColor: context.theme.blue,
+        backgroundColor: context.theme.primary,
         child: const Icon(Icons.add, color: Colors.white),
       ),
       body: Column(
         children: [
-          _buildSearchBar(context, _groupSearchController, 'Search groups...'),
+          _buildSearchBar(
+            context,
+            _groupSearchController,
+            AppLocalizations.of(context).translate('search_groups_hint'),
+          ),
           Expanded(
             child: vm.isLoading && vm.groups.isEmpty
                 ? const Center(child: CircularProgressIndicator())
                 : filteredGroups.isEmpty
-                ? _buildEmptyState(context, 'No groups found')
+                ? _buildEmptyState(
+                    context,
+                    AppLocalizations.of(
+                      context,
+                    ).translate('no_info_sections_yet'),
+                  ) // Use generic "No items"
                 : ListView.separated(
                     padding: const EdgeInsets.all(16),
                     itemCount: filteredGroups.length,
@@ -469,9 +461,7 @@ class _PermissionGroupsPageState extends State<PermissionGroupsPage>
                         color: context.theme.card,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
-                          side: BorderSide(
-                            color: context.theme.border.withOpacity(0.5),
-                          ),
+                          side: BorderSide(color: context.theme.border),
                         ),
                         child: InkWell(
                           onTap: () {
@@ -489,12 +479,14 @@ class _PermissionGroupsPageState extends State<PermissionGroupsPage>
                                 Container(
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
-                                    color: context.theme.blue.withOpacity(0.1),
+                                    color: context.theme.primary.withOpacity(
+                                      0.1,
+                                    ),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Icon(
                                     Icons.security,
-                                    color: context.theme.blue,
+                                    color: context.theme.primary,
                                     size: 24,
                                   ),
                                 ),
@@ -517,7 +509,8 @@ class _PermissionGroupsPageState extends State<PermissionGroupsPage>
                                         Text(
                                           group.description,
                                           style: TextStyle(
-                                            color: context.theme.grey,
+                                            color:
+                                                context.theme.mutedForeground,
                                             fontSize: 14,
                                           ),
                                           maxLines: 1,
@@ -530,7 +523,8 @@ class _PermissionGroupsPageState extends State<PermissionGroupsPage>
                                 Icon(
                                   Icons.arrow_forward_ios,
                                   size: 16,
-                                  color: context.theme.grey.withOpacity(0.5),
+                                  color: context.theme.mutedForeground
+                                      .withOpacity(0.5),
                                 ),
                               ],
                             ),
@@ -558,12 +552,19 @@ class _PermissionGroupsPageState extends State<PermissionGroupsPage>
       backgroundColor: Colors.transparent,
       body: Column(
         children: [
-          _buildSearchBar(context, _userSearchController, 'Search users...'),
+          _buildSearchBar(
+            context,
+            _userSearchController,
+            AppLocalizations.of(context).translate('search_users_hint'),
+          ),
           Expanded(
             child: vm.isLoading && vm.users.isEmpty
                 ? const Center(child: CircularProgressIndicator())
                 : filteredUsers.isEmpty
-                ? _buildEmptyState(context, 'No users found')
+                ? _buildEmptyState(
+                    context,
+                    AppLocalizations.of(context).translate('no_patients_found'),
+                  ) // Use generic not found
                 : ListView.separated(
                     padding: const EdgeInsets.all(16),
                     itemCount: filteredUsers.length,
@@ -575,9 +576,7 @@ class _PermissionGroupsPageState extends State<PermissionGroupsPage>
                         color: context.theme.card,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
-                          side: BorderSide(
-                            color: context.theme.border.withOpacity(0.5),
-                          ),
+                          side: BorderSide(color: context.theme.border),
                         ),
                         child: InkWell(
                           onTap: () {
@@ -596,14 +595,14 @@ class _PermissionGroupsPageState extends State<PermissionGroupsPage>
                                   tag: 'user_avatar_${user.id}',
                                   child: CircleAvatar(
                                     radius: 24,
-                                    backgroundColor: context.theme.blue
+                                    backgroundColor: context.theme.primary
                                         .withOpacity(0.1),
                                     child: Text(
                                       user.fullName.isNotEmpty
                                           ? user.fullName[0].toUpperCase()
                                           : '?',
                                       style: TextStyle(
-                                        color: context.theme.blue,
+                                        color: context.theme.primary,
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16,
                                       ),
@@ -633,8 +632,8 @@ class _PermissionGroupsPageState extends State<PermissionGroupsPage>
                                               vertical: 4,
                                             ),
                                             decoration: BoxDecoration(
-                                              color: context.theme.grey
-                                                  .withOpacity(0.1),
+                                              color: context.theme.muted
+                                                  .withOpacity(0.3),
                                               borderRadius:
                                                   BorderRadius.circular(6),
                                             ),
@@ -652,7 +651,9 @@ class _PermissionGroupsPageState extends State<PermissionGroupsPage>
                                             child: Text(
                                               user.email,
                                               style: TextStyle(
-                                                color: context.theme.grey,
+                                                color: context
+                                                    .theme
+                                                    .mutedForeground,
                                                 fontSize: 12,
                                               ),
                                               overflow: TextOverflow.ellipsis,
@@ -666,7 +667,8 @@ class _PermissionGroupsPageState extends State<PermissionGroupsPage>
                                 Icon(
                                   Icons.arrow_forward_ios,
                                   size: 16,
-                                  color: context.theme.grey.withOpacity(0.5),
+                                  color: context.theme.mutedForeground
+                                      .withOpacity(0.5),
                                 ),
                               ],
                             ),
@@ -690,27 +692,22 @@ class _PermissionGroupsPageState extends State<PermissionGroupsPage>
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: context.theme.card,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            offset: const Offset(0, 2),
-            blurRadius: 10,
-          ),
-        ],
+        border: Border(bottom: BorderSide(color: context.theme.border)),
       ),
       child: TextField(
         controller: controller,
+        style: TextStyle(color: context.theme.textColor),
         decoration: InputDecoration(
           hintText: hint,
-          prefixIcon: Icon(Icons.search, color: context.theme.grey),
+          prefixIcon: Icon(Icons.search, color: context.theme.mutedForeground),
           filled: true,
-          fillColor: context.theme.bg,
+          fillColor: context.theme.input,
           contentPadding: const EdgeInsets.symmetric(horizontal: 16),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide.none,
           ),
-          hintStyle: TextStyle(color: context.theme.grey),
+          hintStyle: TextStyle(color: context.theme.mutedForeground),
         ),
       ),
     );
@@ -724,13 +721,13 @@ class _PermissionGroupsPageState extends State<PermissionGroupsPage>
           Icon(
             Icons.search_off,
             size: 64,
-            color: context.theme.grey.withOpacity(0.3),
+            color: context.theme.mutedForeground.withOpacity(0.3),
           ),
           const SizedBox(height: 16),
           Text(
             message,
             style: TextStyle(
-              color: context.theme.grey,
+              color: context.theme.mutedForeground,
               fontSize: 16,
               fontWeight: FontWeight.w500,
             ),
@@ -747,28 +744,46 @@ class _PermissionGroupsPageState extends State<PermissionGroupsPage>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: context.theme.bg,
+        backgroundColor: context.theme.card,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
           AppLocalizations.of(context).translate('create_group_title'),
+          style: TextStyle(color: context.theme.textColor),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: nameController,
+              style: TextStyle(color: context.theme.textColor),
               decoration: InputDecoration(
                 labelText: AppLocalizations.of(
                   context,
                 ).translate('group_name_label'),
+                labelStyle: TextStyle(color: context.theme.mutedForeground),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: context.theme.border),
+                ),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: context.theme.primary),
+                ),
               ),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: descController,
+              style: TextStyle(color: context.theme.textColor),
               decoration: InputDecoration(
                 labelText: AppLocalizations.of(
                   context,
                 ).translate('group_desc_label'),
+                labelStyle: TextStyle(color: context.theme.mutedForeground),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: context.theme.border),
+                ),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: context.theme.primary),
+                ),
               ),
             ),
           ],
@@ -778,13 +793,16 @@ class _PermissionGroupsPageState extends State<PermissionGroupsPage>
             onPressed: () => Navigator.pop(context),
             child: Text(
               AppLocalizations.of(context).translate('cancel'),
-              style: TextStyle(color: context.theme.grey),
+              style: TextStyle(color: context.theme.mutedForeground),
             ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: context.theme.blue,
+              backgroundColor: context.theme.primary,
               foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
             onPressed: () async {
               Navigator.pop(context);
@@ -795,14 +813,31 @@ class _PermissionGroupsPageState extends State<PermissionGroupsPage>
               if (success && context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
+                    backgroundColor: context.theme.green,
                     content: Text(
                       AppLocalizations.of(context).translate('create_success'),
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ),
+                );
+              } else if (!success && context.mounted) {
+                final errorMsg = vm.error != null
+                    ? AppLocalizations.of(context).translate(vm.error!)
+                    : AppLocalizations.of(
+                        context,
+                      ).translate('create_failed'); // fallback
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    backgroundColor: context.theme.destructive,
+                    content: Text(
+                      errorMsg,
+                      style: const TextStyle(color: Colors.white),
                     ),
                   ),
                 );
               }
             },
-            child: Text(AppLocalizations.of(context).translate('create_btn')),
+            child: Text(AppLocalizations.of(context).translate('create')),
           ),
         ],
       ),

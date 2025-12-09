@@ -40,12 +40,14 @@ class _UpdatePatientPageState extends State<UpdatePatientPage> {
         );
         Navigator.pop(context);
       } else {
+        final errorMessage = patientVm.error != null
+            ? AppLocalizations.of(context).translate(patientVm.error!)
+            : AppLocalizations.of(context).translate('update_patient_failed');
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: context.theme.destructive,
-            content: Text(
-              AppLocalizations.of(context).translate('update_patient_failed'),
-            ),
+            content: Text(errorMessage),
           ),
         );
       }
@@ -55,11 +57,18 @@ class _UpdatePatientPageState extends State<UpdatePatientPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: context.theme.bg,
       appBar: AppBar(
         title: Text(
           AppLocalizations.of(context).translate('update_patient_title'),
+          style: TextStyle(
+            color: context.theme.white,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        backgroundColor: context.theme.blue,
+        iconTheme: IconThemeData(color: context.theme.white),
+        backgroundColor: context.theme.primary,
+        elevation: 0,
       ),
       body: PatientForm(
         patient: widget.patient,

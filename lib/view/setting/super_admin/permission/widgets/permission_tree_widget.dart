@@ -73,14 +73,14 @@ class _PermissionTreeWidgetState extends State<PermissionTreeWidget> {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: context.theme.blue.withOpacity(0.1),
+                    color: context.theme.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
                     '${widget.assignedPermissionIds.length} ${AppLocalizations.of(context).translate('grant')}',
                     style: TextStyle(
                       fontSize: 12,
-                      color: context.theme.blue,
+                      color: context.theme.primary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -125,7 +125,7 @@ class _PermissionTreeWidgetState extends State<PermissionTreeWidget> {
           children: [
             CircularProgressIndicator(
               value: progress,
-              backgroundColor: context.theme.grey.withOpacity(0.1),
+              backgroundColor: context.theme.bg,
               color: isAllGranted ? Colors.green : Colors.orange,
               strokeWidth: 3,
             ),
@@ -135,7 +135,9 @@ class _PermissionTreeWidgetState extends State<PermissionTreeWidget> {
                   : (isNoneGranted ? Icons.security : Icons.shield),
               color: isAllGranted
                   ? Colors.green
-                  : (isNoneGranted ? context.theme.grey : Colors.orange),
+                  : (isNoneGranted
+                        ? context.theme.mutedForeground
+                        : Colors.orange),
               size: 16,
             ),
           ],
@@ -194,14 +196,14 @@ class _PermissionTreeWidgetState extends State<PermissionTreeWidget> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           color: isGranted
-              ? context.theme.blue
+              ? context.theme.primary
               : (exists
                     ? context.theme.bg
-                    : context.theme.grey.withOpacity(0.05)),
+                    : context.theme.muted.withOpacity(0.1)),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isGranted
-                ? context.theme.blue
+                ? context.theme.primary
                 : (exists
                       ? context.theme.border
                       : context.theme.border.withOpacity(0.5)),
@@ -210,7 +212,7 @@ class _PermissionTreeWidgetState extends State<PermissionTreeWidget> {
           boxShadow: isGranted
               ? [
                   BoxShadow(
-                    color: context.theme.blue.withOpacity(0.3),
+                    color: context.theme.primary.withOpacity(0.3),
                     spreadRadius: 0,
                     blurRadius: 6,
                     offset: const Offset(0, 2),

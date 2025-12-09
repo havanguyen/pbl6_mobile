@@ -37,7 +37,7 @@ class _UserPermissionDetailPageState extends State<UserPermissionDetailPage>
       child: Scaffold(
         backgroundColor: context.theme.bg,
         appBar: AppBar(
-          backgroundColor: context.theme.blue,
+          backgroundColor: context.theme.primary,
           elevation: 0,
           leading: IconButton(
             icon: Icon(Icons.arrow_back, color: context.theme.white),
@@ -138,7 +138,7 @@ class _UserPermissionDetailPageState extends State<UserPermissionDetailPage>
         onPressed: () => _showManageUserGroupsDialog(context, vm),
         label: Text(AppLocalizations.of(context).translate('manage_groups')),
         icon: const Icon(Icons.group_add),
-        backgroundColor: context.theme.blue,
+        backgroundColor: context.theme.primary,
         foregroundColor: Colors.white,
       ),
       body: vm.isLoading && vm.currentUserGroups.isEmpty
@@ -182,10 +182,7 @@ class _UserPermissionDetailPageState extends State<UserPermissionDetailPage>
                         color: Colors.orange.withOpacity(0.1),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
-                        Icons.group_outlined,
-                        color: Colors.orange,
-                      ),
+                      child: Icon(Icons.group_outlined, color: Colors.orange),
                     ),
                     title: Text(
                       group.name,
@@ -335,7 +332,7 @@ class _ManageUserGroupsDialogState extends State<ManageUserGroupsDialog> {
                           title: Text(group.name),
                           subtitle: Text(group.description),
                           value: isSelected,
-                          activeColor: context.theme.blue,
+                          activeColor: context.theme.primary,
                           onChanged: (val) {
                             setState(() {
                               if (val == true)

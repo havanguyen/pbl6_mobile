@@ -93,7 +93,7 @@ class PermissionVm extends ChangeNotifier {
       _users = uniqueList;
       debugPrint("PermissionVm: fetchUsers() loaded ${_users.length} users");
     } catch (e) {
-      _error = 'Lỗi tải danh sách người dùng: $e';
+      _error = 'fetch_users_error'; // Key
       debugPrint("PermissionVm: fetchUsers() error: $e");
     } finally {
       _isLoading = false;
@@ -116,11 +116,11 @@ class PermissionVm extends ChangeNotifier {
           "PermissionVm: getAllGroups() success, count: ${_groups.length}",
         );
       } else {
-        _error = result['message'];
-        debugPrint("PermissionVm: getAllGroups() failed: $_error");
+        _error = 'fetch_groups_error';
+        debugPrint("PermissionVm: getAllGroups() failed: ${result['message']}");
       }
     } catch (e) {
-      _error = 'Lỗi kết nối: $e';
+      _error = 'fetch_groups_error'; // Key
       debugPrint("PermissionVm: getAllGroups() exception: $e");
     } finally {
       _isLoading = false;
@@ -139,7 +139,7 @@ class PermissionVm extends ChangeNotifier {
     if (success) {
       await getAllGroups();
     } else {
-      _error = 'Không thể tạo nhóm quyền';
+      _error = 'create_group_error'; // Key
       debugPrint("PermissionVm: createGroup() failed");
     }
     _isLoading = false;
@@ -151,20 +151,40 @@ class PermissionVm extends ChangeNotifier {
     debugPrint("PermissionVm: updateGroup($id, $name) started");
     _isLoading = true;
     notifyListeners();
-    final success = await PermissionService.updateGroup(
-      id: id,
-      name: name,
-      description: description,
-    );
-    if (success) {
-      await getAllGroups();
-    } else {
-      _error = 'Không thể cập nhật nhóm quyền';
-      debugPrint("PermissionVm: updateGroup() failed");
+    try {
+      final result = await PermissionService.updateGroup(
+        id: id,
+        name: name,
+        description: description,
+      );
+
+      if (result['success'] == true) {
+        await getAllGroups();
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        final statusCode = result['statusCode'];
+        final message = result['message']?.toString() ?? '';
+
+        if (statusCode == 403 ||
+            message.contains('Cannot rename default system group')) {
+          _error = 'error_default_group_update';
+        } else {
+          _error = 'update_group_error';
+        }
+        debugPrint("PermissionVm: updateGroup() failed: $message");
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _error = 'update_group_error';
+      debugPrint("PermissionVm: updateGroup() exception: $e");
+      _isLoading = false;
+      notifyListeners();
+      return false;
     }
-    _isLoading = false;
-    notifyListeners();
-    return success;
   }
 
   Future<bool> deleteGroup(String id) async {
@@ -175,7 +195,7 @@ class PermissionVm extends ChangeNotifier {
     if (success) {
       await getAllGroups();
     } else {
-      _error = 'Không thể xóa nhóm quyền';
+      _error = 'delete_group_error'; // Key
       debugPrint("PermissionVm: deleteGroup() failed");
     }
     _isLoading = false;
@@ -198,11 +218,13 @@ class PermissionVm extends ChangeNotifier {
           "PermissionVm: fetchGroupPermissions success, count: ${result['data'].length}",
         );
       } else {
-        _error = result['message'];
-        debugPrint("PermissionVm: fetchGroupPermissions failed: $_error");
+        _error = 'fetch_permissions_error';
+        debugPrint(
+          "PermissionVm: fetchGroupPermissions failed: ${result['message']}",
+        );
       }
     } catch (e) {
-      _error = 'Lỗi kết nối: $e';
+      _error = 'fetch_permissions_error'; // Key
       debugPrint("PermissionVm: fetchGroupPermissions exception: $e");
     } finally {
       _isLoading = false;
@@ -229,11 +251,13 @@ class PermissionVm extends ChangeNotifier {
           "PermissionVm: fetchAllPermissions success, count: ${_allPermissions.length}",
         );
       } else {
-        _error = result['message'];
-        debugPrint("PermissionVm: fetchAllPermissions failed: $_error");
+        _error = 'fetch_permissions_error';
+        debugPrint(
+          "PermissionVm: fetchAllPermissions failed: ${result['message']}",
+        );
       }
     } catch (e) {
-      _error = 'Lỗi kết nối: $e';
+      _error = 'fetch_permissions_error'; // Key
       debugPrint("PermissionVm: fetchAllPermissions exception: $e");
     } finally {
       _isLoading = false;
@@ -300,7 +324,7 @@ class PermissionVm extends ChangeNotifier {
       notifyListeners();
       return successAdd && successRemove;
     } catch (e) {
-      _error = e.toString();
+      _error = 'update_permissions_error'; // Key
       debugPrint("PermissionVm: updateGroupPermissionsList exception: $e");
       _isLoading = false;
       notifyListeners();
@@ -322,7 +346,7 @@ class PermissionVm extends ChangeNotifier {
         "PermissionVm: fetchUserPermissions success, count: ${_currentUserPermissions.length}",
       );
     } catch (e) {
-      _error = 'Lỗi tải quyền người dùng: $e';
+      _error = 'fetch_permissions_error'; // Key
       debugPrint("PermissionVm: fetchUserPermissions exception: $e");
     } finally {
       _isLoading = false;
@@ -341,7 +365,7 @@ class PermissionVm extends ChangeNotifier {
         "PermissionVm: fetchUserGroups success, count: ${_currentUserGroups.length}",
       );
     } catch (e) {
-      _error = 'Lỗi tải nhóm quyền người dùng: $e';
+      _error = 'fetch_groups_error'; // Key
       debugPrint("PermissionVm: fetchUserGroups exception: $e");
     } finally {
       _isLoading = false;
@@ -423,7 +447,7 @@ class PermissionVm extends ChangeNotifier {
       notifyListeners();
       return successAdd && successRemove;
     } catch (e) {
-      _error = e.toString();
+      _error = 'update_permissions_error'; // Key
       debugPrint("PermissionVm: updateUserPermissionsList exception: $e");
       _isLoading = false;
       notifyListeners();
@@ -469,7 +493,7 @@ class PermissionVm extends ChangeNotifier {
       notifyListeners();
       return successAdd && successRemove;
     } catch (e) {
-      _error = e.toString();
+      _error = 'update_group_error'; // Key - approximate match
       debugPrint("PermissionVm: updateUserGroupsList exception: $e");
       _isLoading = false;
       notifyListeners();
@@ -486,7 +510,7 @@ class PermissionVm extends ChangeNotifier {
       _stats = await PermissionService.getPermissionStats();
       debugPrint("PermissionVm: fetchStats success");
     } catch (e) {
-      _error = 'Error loading stats: $e';
+      _error = 'fetch_stats_error'; // Key
       debugPrint("PermissionVm: fetchStats exception: $e");
     } finally {
       _isLoading = false;
