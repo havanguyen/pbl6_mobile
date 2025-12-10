@@ -1,0 +1,79 @@
+# Test Cases for Medicalink App (SuperAdmin Scenarios)
+# Credentials: superadmin@medicalink.com / SuperAdmin123!
+
+- displayName: 1. SuperAdmin Login
+  id: superadmin_login
+  steps:
+    - goal: Access Login Screen
+      hint: If not on login screen, log out or restart app.
+      successCriteria: Login input fields (Email, Password) are visible.
+    - goal: Enter Credentials
+      hint: Input email "superadmin@medicalink.com" and password "SuperAdmin123!". Tap the visibility icon if needed to check password.
+      successCriteria: Email and password fields are filled.
+    - goal: Submit Login
+      hint: Tap the "Login" or "Sign In" button.
+      successCriteria: The SuperAdmin Dashboard/Home screen is displayed. Verify by looking for Admin specific widgets or bottom navigation.
+
+- displayName: 2. Doctor Management Validation
+  id: doctor_management_check
+  prerequisiteTestCaseId: superadmin_login
+  steps:
+    - goal: Navigate to Doctor List
+      hint: Find and tap on "Doctors" or "Doctor Management" section (could be in a sidebar drawer or a main tab).
+      successCriteria: A list of doctors is displayed.
+    - goal: Search for a Doctor
+      hint: Tap the search bar, type "Test" or a common name, and press search.
+      successCriteria: The list updates to filtered results or shows "No results".
+    - goal: View Doctor Details
+      hint: Tap on the first doctor card in the list to open details.
+      successCriteria: Doctor profile details (Name, Specialty, Experience) are visible.
+    - goal: Navigate Back
+      hint: Tap the back button to return to the list.
+      successCriteria: The Doctor list is visible again.
+
+- displayName: 3. Patient Management Validation
+  id: patient_management_check
+  prerequisiteTestCaseId: superadmin_login
+  steps:
+    - goal: Navigate to Patient List
+      hint: Navigate to "Patients" or "Patient Management" section.
+      successCriteria: A list of registered patients is displayed.
+    - goal: View Patient Details
+      hint: Tap on a patient from the list.
+      successCriteria: Patient detailed information is displayed.
+
+- displayName: 4. Specialty & Category Management
+  id: specialty_management_check
+  prerequisiteTestCaseId: superadmin_login
+  steps:
+    - goal: Navigate to Specialties
+      hint: Look for "Specialties" or "Categories" in the menu/drawer.
+      successCriteria: List of medical specialties is visible.
+    - goal: Initiate Add Specialty (Check UI only)
+      hint: Tap the floating action button (+) or "Add Specialty" button.
+      successCriteria: A form to add a new specialty is displayed.
+    - goal: Cancel Action
+      hint: Tap "Cancel" or the Back button.
+      successCriteria: Return to the Specialty list.
+
+- displayName: 5. Work Location Management
+  id: location_management_check
+  prerequisiteTestCaseId: superadmin_login
+  steps:
+    - goal: Navigate to Work Locations
+      hint: Look for "Work Locations" or "Hospitals/Clinics" in the menu.
+      successCriteria: List of work locations is visible.
+    - goal: View Location Details
+      hint: Tap on a location item.
+      successCriteria: Details of the location (Address, Name) are visible.
+
+- displayName: 6. Admin Profile & Validations
+  id: admin_profile_check
+  prerequisiteTestCaseId: superadmin_login
+  steps:
+    - goal: Go to Profile
+      hint: Tap the "Profile" or "Account" tab/icon.
+      successCriteria: "SuperAdmin profile information is displayed (Email: superadmin@medicalink.com)."
+    - goal: Check Settings/Logout Option
+      hint: Scroll to find "Logout" button to verify it exists.
+      successCriteria: '"Logout" button is visible and clickable.'
