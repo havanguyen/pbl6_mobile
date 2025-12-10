@@ -63,8 +63,7 @@ export function DoctorProfileView() {
   // Log data for debugging (development only)
   useEffect(() => {
     if (completeData && import.meta.env.DEV) {
-      // eslint-disable-next-line no-console
-      console.log('Complete Doctor Data:', completeData)
+      // console.log('Complete Doctor Data:', completeData)
     }
   }, [completeData])
 
@@ -181,7 +180,7 @@ export function DoctorProfileView() {
           </Card>
         )}
 
-        <div className='grid gap-4 md:grid-cols-3'>
+        <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
           {/* Left Column - Avatar & Basic Info */}
           <div className='space-y-4'>
             {/* Avatar Card */}
