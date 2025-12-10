@@ -15,6 +15,9 @@ bao_cao_test
 .swiftpm/
 migrate_working_dir/
 
+
+android/app/keystore_base64.txt
+android/app/upload-keystore.jks
 # IntelliJ related
 *.iml
 *.ipr
