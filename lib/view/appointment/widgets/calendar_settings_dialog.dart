@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pbl6mobile/view_model/appointment/appointment_vm.dart';
 import 'package:provider/provider.dart';
+import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 
 class CalendarSettingsDialog extends StatefulWidget {
@@ -28,7 +29,7 @@ class _CalendarSettingsDialogState extends State<CalendarSettingsDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final theme = context.theme;
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -37,7 +38,7 @@ class _CalendarSettingsDialogState extends State<CalendarSettingsDialog> {
       child: Container(
         constraints: const BoxConstraints(maxWidth: 400),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: theme.card,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
@@ -54,7 +55,7 @@ class _CalendarSettingsDialogState extends State<CalendarSettingsDialog> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
               decoration: BoxDecoration(
-                color: theme.primaryColor.withOpacity(0.05),
+                color: theme.primary.withOpacity(0.05),
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(16),
                   topRight: Radius.circular(16),
@@ -62,7 +63,7 @@ class _CalendarSettingsDialogState extends State<CalendarSettingsDialog> {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.settings, color: theme.primaryColor),
+                  Icon(Icons.settings, color: theme.primary),
                   const SizedBox(width: 12),
                   Text(
                     AppLocalizations.of(
@@ -71,12 +72,12 @@ class _CalendarSettingsDialogState extends State<CalendarSettingsDialog> {
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: theme.primaryColor,
+                      color: theme.primary,
                     ),
                   ),
                   const Spacer(),
                   IconButton(
-                    icon: const Icon(Icons.close),
+                    icon: Icon(Icons.close, color: theme.mutedForeground),
                     onPressed: () => Navigator.pop(context),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
@@ -93,12 +94,13 @@ class _CalendarSettingsDialogState extends State<CalendarSettingsDialog> {
                   children: [
                     _buildSectionTitle(
                       AppLocalizations.of(context).translate('display_hours'),
+                      theme,
                     ),
                     const SizedBox(height: 16),
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade200),
+                        border: Border.all(color: theme.border),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Column(
@@ -108,14 +110,16 @@ class _CalendarSettingsDialogState extends State<CalendarSettingsDialog> {
                             children: [
                               Text(
                                 '${_startHour.toInt()}:00',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontWeight: FontWeight.bold,
+                                  color: theme.textColor,
                                 ),
                               ),
                               Text(
                                 '${_endHour.toInt()}:00',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontWeight: FontWeight.bold,
+                                  color: theme.textColor,
                                 ),
                               ),
                             ],
@@ -125,6 +129,8 @@ class _CalendarSettingsDialogState extends State<CalendarSettingsDialog> {
                             min: 0,
                             max: 24,
                             divisions: 24,
+                            activeColor: theme.primary,
+                            inactiveColor: theme.muted,
                             labels: RangeLabels(
                               '${_startHour.toInt()}:00',
                               '${_endHour.toInt()}:00',
@@ -145,6 +151,7 @@ class _CalendarSettingsDialogState extends State<CalendarSettingsDialog> {
                     const SizedBox(height: 24),
                     _buildSectionTitle(
                       AppLocalizations.of(context).translate('card_appearance'),
+                      theme,
                     ),
                     const SizedBox(height: 16),
                     Row(
@@ -177,6 +184,7 @@ class _CalendarSettingsDialogState extends State<CalendarSettingsDialog> {
                     const SizedBox(height: 24),
                     _buildSectionTitle(
                       AppLocalizations.of(context).translate('working_days'),
+                      theme,
                     ),
                     const SizedBox(height: 16),
                     Wrap(
@@ -193,21 +201,23 @@ class _CalendarSettingsDialogState extends State<CalendarSettingsDialog> {
                               _workingDays[dayIndex] = value;
                             });
                           },
-                          checkmarkColor: Colors.white,
-                          selectedColor: theme.primaryColor,
+                          checkmarkColor: theme.primaryForeground,
+                          selectedColor: theme.primary,
                           labelStyle: TextStyle(
-                            color: isSelected ? Colors.white : Colors.black87,
+                            color: isSelected
+                                ? theme.primaryForeground
+                                : theme.textColor,
                             fontWeight: isSelected
                                 ? FontWeight.bold
                                 : FontWeight.normal,
                           ),
-                          backgroundColor: Colors.grey.shade100,
+                          backgroundColor: theme.muted.withOpacity(0.1),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                             side: BorderSide(
                               color: isSelected
                                   ? Colors.transparent
-                                  : Colors.grey.shade300,
+                                  : theme.border,
                             ),
                           ),
                         );
@@ -228,6 +238,8 @@ class _CalendarSettingsDialogState extends State<CalendarSettingsDialog> {
                       onPressed: () => Navigator.pop(context),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
+                        foregroundColor: theme.mutedForeground,
+                        side: BorderSide(color: theme.border),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -250,6 +262,8 @@ class _CalendarSettingsDialogState extends State<CalendarSettingsDialog> {
                         Navigator.pop(context);
                       },
                       style: ElevatedButton.styleFrom(
+                        backgroundColor: theme.primary,
+                        foregroundColor: theme.primaryForeground,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -270,13 +284,13 @@ class _CalendarSettingsDialogState extends State<CalendarSettingsDialog> {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
+  Widget _buildSectionTitle(String title, CustomThemeExtension theme) {
     return Text(
       title,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.bold,
-        color: Colors.black87,
+        color: theme.textColor,
       ),
     );
   }
@@ -288,7 +302,7 @@ class _CalendarSettingsDialogState extends State<CalendarSettingsDialog> {
     Color color,
   ) {
     final isSelected = _badgeVariant == value;
-    final theme = Theme.of(context);
+    final theme = context.theme;
 
     return Expanded(
       child: InkWell(
@@ -297,11 +311,9 @@ class _CalendarSettingsDialogState extends State<CalendarSettingsDialog> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: isSelected
-                ? theme.primaryColor.withOpacity(0.1)
-                : Colors.white,
+            color: isSelected ? theme.primary.withOpacity(0.1) : theme.card,
             border: Border.all(
-              color: isSelected ? theme.primaryColor : Colors.grey.shade200,
+              color: isSelected ? theme.primary : theme.border,
               width: 2,
             ),
             borderRadius: BorderRadius.circular(12),
@@ -310,7 +322,7 @@ class _CalendarSettingsDialogState extends State<CalendarSettingsDialog> {
             children: [
               Icon(
                 icon,
-                color: isSelected ? theme.primaryColor : Colors.grey,
+                color: isSelected ? theme.primary : theme.mutedForeground,
                 size: 24,
               ),
               const SizedBox(height: 8),
@@ -319,7 +331,7 @@ class _CalendarSettingsDialogState extends State<CalendarSettingsDialog> {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  color: isSelected ? theme.primaryColor : Colors.grey.shade700,
+                  color: isSelected ? theme.primary : theme.mutedForeground,
                 ),
                 textAlign: TextAlign.center,
               ),

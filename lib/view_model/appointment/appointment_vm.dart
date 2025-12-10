@@ -106,7 +106,7 @@ class AppointmentVm extends ChangeNotifier {
 
     // New Logic: API (Sync) -> Local DB -> Memory/UI
     // 1. Load from cache immediately
-    await _loadFromCache(fromDate, toDate);
+    await _loadFromCache(fromDate, toDate, doctorId: doctorId);
 
     // 2. If forced or not synced, sync data
     if (forceRefresh || !_isSynced) {
@@ -189,18 +189,31 @@ class AppointmentVm extends ChangeNotifier {
       _isSynced = true;
 
       if (_lastFromDate != null && _lastToDate != null) {
-        await _loadFromCache(_lastFromDate!, _lastToDate!);
+        await _loadFromCache(
+          _lastFromDate!,
+          _lastToDate!,
+          doctorId: _lastDoctorId,
+        );
       }
     } catch (e) {
       print('--- [ERROR] AppointmentVm: Sync error: $e ---');
     }
   }
 
-  Future<void> _loadFromCache(DateTime fromDate, DateTime toDate) async {
+  Future<void> _loadFromCache(
+    DateTime fromDate,
+    DateTime toDate, {
+    String? doctorId,
+  }) async {
     print('--- [DEBUG] AppointmentVm: Loading from cache... ---');
+    print('--- [DEBUG] _loadFromCache: doctorId=$doctorId ---');
     try {
       final cachedAppointments = await AppointmentDatabaseHelper.instance
-          .getAppointments(fromDate: fromDate, toDate: toDate);
+          .getAppointments(
+            fromDate: fromDate,
+            toDate: toDate,
+            doctorId: doctorId,
+          );
       if (cachedAppointments.isNotEmpty) {
         _appointments = cachedAppointments.toSet().toList();
         print(
@@ -228,9 +241,32 @@ class AppointmentVm extends ChangeNotifier {
   }
 
   Future<void> refresh() async {
-    // Force sync on refresh
-    _isSynced = false;
-    await _syncAppointments();
+    print(
+      '--- [DEBUG] AppointmentVm: Force Refresh - Clearing all local data ---',
+    );
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      // 1. Clear memory immediately to avoid showing old data
+      _appointments = [];
+      _dataSource.appointments = [];
+      _dataSource.notifyListeners(CalendarDataSourceAction.reset, []);
+
+      // 2. Clear DB (Full invalidation as requested)
+      await AppointmentDatabaseHelper.instance.clearAll();
+
+      // 3. Reset sync status
+      _isSynced = false;
+
+      // 4. Re-fetch data
+      await _syncAppointments();
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<bool> cancelAppointment(String id, String reason) async {

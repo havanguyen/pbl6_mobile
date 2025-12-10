@@ -307,28 +307,22 @@ class AppointmentCalendar extends StatelessWidget {
     CalendarView view,
     BoxConstraints constraints,
   ) {
-    final color = _getStatusColor(context, appointment.status);
+    final style = _getAppointmentStyle(appointment.status);
     final isSmall = constraints.maxHeight < 40;
 
     return Container(
       decoration: BoxDecoration(
-        color: color.withOpacity(0.9), // Slightly transparent for glass feel
+        color: style.bgColor,
         borderRadius: BorderRadius.circular(6),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.4),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        border: Border.all(color: style.borderColor),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       child: isSmall
           ? Center(
               child: Text(
                 appointment.patient.fullName,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: style.textColor,
                   fontSize: 10,
                   fontWeight: FontWeight.bold,
                 ),
@@ -342,8 +336,8 @@ class AppointmentCalendar extends StatelessWidget {
               children: [
                 Text(
                   appointment.patient.fullName,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: style.textColor,
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                   ),
@@ -354,7 +348,7 @@ class AppointmentCalendar extends StatelessWidget {
                   Text(
                     'Dr. ${appointment.doctor.name ?? ''}',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.9),
+                      color: style.textColor.withOpacity(0.8),
                       fontSize: 10,
                     ),
                     overflow: TextOverflow.ellipsis,
@@ -371,12 +365,12 @@ class AppointmentCalendar extends StatelessWidget {
     CalendarView view,
     BoxConstraints constraints,
   ) {
-    final color = _getStatusColor(context, appointment.status);
+    final style = _getAppointmentStyle(appointment.status);
     return Container(
       decoration: BoxDecoration(
         color: context.theme.card,
         borderRadius: BorderRadius.circular(6),
-        border: Border(left: BorderSide(color: color, width: 4)),
+        border: Border(left: BorderSide(color: style.textColor, width: 4)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -411,12 +405,12 @@ class AppointmentCalendar extends StatelessWidget {
     CalendarView view,
     BoxConstraints constraints,
   ) {
-    final color = _getStatusColor(context, appointment.status);
+    final style = _getAppointmentStyle(appointment.status);
     return Container(
       decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
+        color: style.bgColor,
         borderRadius: BorderRadius.circular(6),
-        border: Border(left: BorderSide(color: color, width: 4)),
+        border: Border(left: BorderSide(color: style.textColor, width: 4)),
       ),
       padding: const EdgeInsets.fromLTRB(8, 2, 4, 2),
       child: Column(
@@ -426,7 +420,7 @@ class AppointmentCalendar extends StatelessWidget {
           Text(
             appointment.patient.fullName,
             style: TextStyle(
-              color: context.theme.textColor,
+              color: style.textColor,
               fontSize: 11,
               fontWeight: FontWeight.bold,
             ),
@@ -439,22 +433,52 @@ class AppointmentCalendar extends StatelessWidget {
   }
 
   Color _getStatusColor(BuildContext context, String status) {
-    // Premium Colors
+    return _getAppointmentStyle(status).textColor;
+  }
+
+  _AppointmentStyle _getAppointmentStyle(String status) {
     switch (status) {
-      case 'BOOKED': // Blue-ish
-        return const Color(0xFF3B82F6);
-      case 'CONFIRMED': // Teal/Green
-        return const Color(0xFF10B981);
-      case 'COMPLETED': // Green
-        return const Color(0xFF059669);
+      case 'BOOKED':
+      case 'RESCHEDULED':
+        return _AppointmentStyle(
+          bgColor: const Color(0xFFEFF6FF), // blue-50
+          textColor: const Color(0xFF1D4ED8), // blue-700
+          borderColor: const Color(0xFFBFDBFE), // blue-200
+        );
+      case 'CONFIRMED':
+        return _AppointmentStyle(
+          bgColor: const Color(0xFFF0FDF4), // green-50
+          textColor: const Color(0xFF15803D), // green-700
+          borderColor: const Color(0xFFBBF7D0), // green-200
+        );
+      case 'COMPLETED':
+        return _AppointmentStyle(
+          bgColor: const Color(
+            0xFFF5F5F5,
+          ), // neutral-100 (slightly darker than 50 for visibility)
+          textColor: const Color(0xFF404040), // neutral-700
+          borderColor: const Color(0xFFE5E5E5), // neutral-200
+        );
       case 'CANCELLED':
       case 'CANCELLED_BY_STAFF':
-      case 'CANCELLED_BY_PATIENT': // Red
-        return const Color(0xFFEF4444);
-      case 'RESCHEDULED': // Amber/Orange
-        return const Color(0xFFF59E0B);
+      case 'CANCELLED_BY_PATIENT':
+        return _AppointmentStyle(
+          bgColor: const Color(0xFFFEF2F2), // red-50
+          textColor: const Color(0xFFB91C1C), // red-700
+          borderColor: const Color(0xFFFECACA), // red-200
+        );
+      case 'NO_SHOW':
+        return _AppointmentStyle(
+          bgColor: const Color(0xFFFFF7ED), // orange-50
+          textColor: const Color(0xFFC2410C), // orange-700
+          borderColor: const Color(0xFFFED7AA), // orange-200
+        );
       default:
-        return const Color(0xFF6B7280); // Gray
+        return _AppointmentStyle(
+          bgColor: const Color(0xFFFAFAFA),
+          textColor: const Color(0xFF171717),
+          borderColor: const Color(0xFFE5E5E5),
+        );
     }
   }
 
@@ -465,15 +489,29 @@ class AppointmentCalendar extends StatelessWidget {
       case 'CONFIRMED':
         return 'Confirmed';
       case 'COMPLETED':
-        return 'Done';
+        return 'Completed';
       case 'CANCELLED':
       case 'CANCELLED_BY_STAFF':
       case 'CANCELLED_BY_PATIENT':
         return 'Cancelled';
       case 'RESCHEDULED':
         return 'Rescheduled';
+      case 'NO_SHOW':
+        return 'No Show';
       default:
         return status;
     }
   }
+}
+
+class _AppointmentStyle {
+  final Color bgColor;
+  final Color textColor;
+  final Color borderColor;
+
+  _AppointmentStyle({
+    required this.bgColor,
+    required this.textColor,
+    required this.borderColor,
+  });
 }

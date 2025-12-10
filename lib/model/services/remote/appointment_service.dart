@@ -74,11 +74,13 @@ class AppointmentService {
     required String doctorId,
     required String date,
     String? locationId,
+    bool allowPast = false,
   }) async {
     try {
       final params = {
         'doctorId': doctorId,
         'serviceDate': date,
+        'allowPast': allowPast,
         if (locationId != null) 'workLocationId': locationId,
       };
 

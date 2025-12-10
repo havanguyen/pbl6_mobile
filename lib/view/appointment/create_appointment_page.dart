@@ -8,6 +8,7 @@ import 'package:pbl6mobile/view/appointment/widgets/appointment_scheduler.dart';
 import 'package:pbl6mobile/view_model/appointment/create_appointment_vm.dart';
 import 'package:provider/provider.dart';
 import 'package:pbl6mobile/shared/localization/app_localizations.dart';
+import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 
 class CreateAppointmentPage extends StatefulWidget {
   const CreateAppointmentPage({super.key});
@@ -40,7 +41,7 @@ class _BodyState extends State<_Body> {
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<CreateAppointmentVm>();
-    final theme = Theme.of(context);
+    final theme = context.theme;
 
     final List<String> steps = [
       AppLocalizations.of(context).translate('step_patient'),
@@ -80,10 +81,10 @@ class _BodyState extends State<_Body> {
     );
   }
 
-  Widget _buildStepIndicator(ThemeData theme, List<String> steps) {
+  Widget _buildStepIndicator(CustomThemeExtension theme, List<String> steps) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-      color: Colors.white,
+      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+      color: theme.card,
       child: Row(
         children: List.generate(steps.length, (index) {
           final isCompleted = index < _currentStep;
@@ -100,31 +101,40 @@ class _BodyState extends State<_Body> {
                         color: index == 0
                             ? Colors.transparent
                             : (index <= _currentStep
-                                  ? theme.primaryColor
-                                  : Colors.grey.shade300),
+                                  ? theme.primary
+                                  : theme.border),
                       ),
                     ),
                     Container(
-                      width: 24,
-                      height: 24,
+                      width: 28,
+                      height: 28,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: isCompleted || isCurrent
-                            ? theme.primaryColor
-                            : Colors.white,
+                            ? theme.primary
+                            : theme.card,
                         border: Border.all(
                           color: isCompleted || isCurrent
-                              ? theme.primaryColor
-                              : Colors.grey.shade300,
+                              ? theme.primary
+                              : theme.border,
                           width: 2,
                         ),
+                        boxShadow: isCurrent
+                            ? [
+                                BoxShadow(
+                                  color: theme.primary.withOpacity(0.3),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ]
+                            : null,
                       ),
                       child: Center(
                         child: isCompleted
-                            ? const Icon(
+                            ? Icon(
                                 Icons.check,
-                                size: 14,
-                                color: Colors.white,
+                                size: 16,
+                                color: theme.primaryForeground,
                               )
                             : Text(
                                 '${index + 1}',
@@ -132,8 +142,8 @@ class _BodyState extends State<_Body> {
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
                                   color: isCurrent
-                                      ? Colors.white
-                                      : Colors.grey.shade500,
+                                      ? theme.primaryForeground
+                                      : theme.mutedForeground,
                                 ),
                               ),
                       ),
@@ -144,21 +154,19 @@ class _BodyState extends State<_Body> {
                         color: index == steps.length - 1
                             ? Colors.transparent
                             : (index < _currentStep
-                                  ? theme.primaryColor
-                                  : Colors.grey.shade300),
+                                  ? theme.primary
+                                  : theme.border),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 8),
                 Text(
                   steps[index],
                   style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
-                    color: isCurrent
-                        ? theme.primaryColor
-                        : Colors.grey.shade600,
+                    fontSize: 11,
+                    fontWeight: isCurrent ? FontWeight.bold : FontWeight.w500,
+                    color: isCurrent ? theme.primary : theme.mutedForeground,
                   ),
                   textAlign: TextAlign.center,
                   maxLines: 1,
@@ -172,7 +180,7 @@ class _BodyState extends State<_Body> {
     );
   }
 
-  Widget _buildCurrentStep(CreateAppointmentVm vm, ThemeData theme) {
+  Widget _buildCurrentStep(CreateAppointmentVm vm, CustomThemeExtension theme) {
     switch (_currentStep) {
       case 0:
         return _buildPatientStep(vm, theme);
@@ -189,11 +197,14 @@ class _BodyState extends State<_Body> {
     }
   }
 
-  Widget _buildBottomControls(CreateAppointmentVm vm, ThemeData theme) {
+  Widget _buildBottomControls(
+    CreateAppointmentVm vm,
+    CustomThemeExtension theme,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.card,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -209,6 +220,8 @@ class _BodyState extends State<_Body> {
               child: OutlinedButton(
                 onPressed: () => setState(() => _currentStep--),
                 style: OutlinedButton.styleFrom(
+                  foregroundColor: theme.textColor,
+                  side: BorderSide(color: theme.border),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -223,6 +236,8 @@ class _BodyState extends State<_Body> {
             child: ElevatedButton(
               onPressed: vm.isLoading ? null : _onNext,
               style: ElevatedButton.styleFrom(
+                backgroundColor: theme.primary,
+                foregroundColor: theme.primaryForeground,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -230,12 +245,12 @@ class _BodyState extends State<_Body> {
                 elevation: 0,
               ),
               child: vm.isLoading && _currentStep == 4
-                  ? const SizedBox(
+                  ? SizedBox(
                       width: 20,
                       height: 20,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: Colors.white,
+                        color: theme.primaryForeground,
                       ),
                     )
                   : Text(
@@ -299,13 +314,17 @@ class _BodyState extends State<_Body> {
     }
   }
 
-  Widget _buildPatientStep(CreateAppointmentVm vm, ThemeData theme) {
+  Widget _buildPatientStep(CreateAppointmentVm vm, CustomThemeExtension theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           AppLocalizations.of(context).translate('search_select_patient'),
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: theme.textColor,
+          ),
         ),
         const SizedBox(height: 16),
         Autocomplete<Patient>(
@@ -327,46 +346,97 @@ class _BodyState extends State<_Body> {
                   controller: controller,
                   focusNode: focusNode,
                   onEditingComplete: onEditingComplete,
+                  style: TextStyle(color: theme.textColor),
                   decoration: InputDecoration(
                     labelText: AppLocalizations.of(
                       context,
                     ).translate('search_patient_hint'),
-                    prefixIcon: const Icon(Icons.search),
+                    labelStyle: TextStyle(color: theme.mutedForeground),
+                    prefixIcon: Icon(
+                      Icons.search,
+                      color: theme.mutedForeground,
+                    ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: theme.border),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: theme.border),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: theme.primary),
                     ),
                     suffixIcon: vm.isLoadingPatients
-                        ? const SizedBox(
+                        ? SizedBox(
                             width: 20,
                             height: 20,
                             child: Padding(
-                              padding: EdgeInsets.all(12.0),
-                              child: CircularProgressIndicator(strokeWidth: 2),
+                              padding: const EdgeInsets.all(12.0),
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: theme.primary,
+                              ),
                             ),
                           )
                         : null,
                   ),
                 );
               },
+          optionsViewBuilder: (context, onSelected, options) {
+            return Align(
+              alignment: Alignment.topLeft,
+              child: Material(
+                elevation: 4.0,
+                color: theme.card,
+                borderRadius: BorderRadius.circular(12),
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width - 32, // Adjust width
+                  child: ListView.builder(
+                    padding: EdgeInsets.zero,
+                    shrinkWrap: true,
+                    itemCount: options.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      final Patient option = options.elementAt(index);
+                      return ListTile(
+                        title: Text(
+                          option.fullName,
+                          style: TextStyle(color: theme.textColor),
+                        ),
+                        subtitle: Text(
+                          option.phone ?? '',
+                          style: TextStyle(color: theme.mutedForeground),
+                        ),
+                        onTap: () {
+                          onSelected(option);
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ),
+            );
+          },
         ),
         if (vm.selectedPatient != null) ...[
           const SizedBox(height: 24),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: theme.primaryColor.withOpacity(0.05),
+              color: theme.primary.withOpacity(0.05),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: theme.primaryColor.withOpacity(0.2)),
+              border: Border.all(color: theme.primary.withOpacity(0.2)),
             ),
             child: Row(
               children: [
                 CircleAvatar(
                   radius: 28,
-                  backgroundColor: theme.primaryColor.withOpacity(0.2),
+                  backgroundColor: theme.primary.withOpacity(0.2),
                   child: Text(
                     vm.selectedPatient!.fullName[0].toUpperCase(),
                     style: TextStyle(
-                      color: theme.primaryColor,
+                      color: theme.primary,
                       fontWeight: FontWeight.bold,
                       fontSize: 24,
                     ),
@@ -379,29 +449,32 @@ class _BodyState extends State<_Body> {
                     children: [
                       Text(
                         vm.selectedPatient!.fullName,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
+                          color: theme.textColor,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         vm.selectedPatient!.email ??
                             AppLocalizations.of(context).translate('no_email'),
-                        style: TextStyle(color: Colors.grey[600]),
+                        style: TextStyle(color: theme.mutedForeground),
                       ),
                       Text(
                         vm.selectedPatient!.phone ??
                             AppLocalizations.of(context).translate('no_phone'),
-                        style: TextStyle(color: Colors.grey[600]),
+                        style: TextStyle(color: theme.mutedForeground),
                       ),
                     ],
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close, color: Colors.red),
+                  icon: Icon(Icons.close, color: theme.destructive),
                   onPressed: () {
-                    // Clear selection logic if needed
+                    // This logic was empty in original, assume it might be implemented later or just UI for now
+                    // To actually clear, we would need a method in VM.
+                    // For now keeping UI consistent.
                   },
                 ),
               ],
@@ -412,13 +485,17 @@ class _BodyState extends State<_Body> {
     );
   }
 
-  Widget _buildServiceStep(CreateAppointmentVm vm, ThemeData theme) {
+  Widget _buildServiceStep(CreateAppointmentVm vm, CustomThemeExtension theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           AppLocalizations.of(context).translate('service_info'),
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: theme.textColor,
+          ),
         ),
         const SizedBox(height: 16),
         _buildDropdown<WorkLocation>(
@@ -428,6 +505,7 @@ class _BodyState extends State<_Body> {
           itemLabel: (item) => item.name,
           onChanged: vm.selectLocation,
           icon: Icons.location_on_outlined,
+          theme: theme,
         ),
         const SizedBox(height: 16),
         _buildDropdown<Specialty>(
@@ -437,6 +515,7 @@ class _BodyState extends State<_Body> {
           itemLabel: (item) => item.name,
           onChanged: vm.selectSpecialty,
           icon: Icons.category_outlined,
+          theme: theme,
         ),
         const SizedBox(height: 16),
         _buildDropdown<Doctor>(
@@ -452,13 +531,14 @@ class _BodyState extends State<_Body> {
           hint: vm.isLoadingDoctors
               ? AppLocalizations.of(context).translate('loading_list')
               : AppLocalizations.of(context).translate('select_doctor'),
+          theme: theme,
         ),
         if (vm.selectedDoctor != null) ...[
           const SizedBox(height: 24),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: theme.card,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
@@ -467,7 +547,7 @@ class _BodyState extends State<_Body> {
                   offset: const Offset(0, 4),
                 ),
               ],
-              border: Border.all(color: Colors.grey.shade100),
+              border: Border.all(color: theme.border),
             ),
             child: Row(
               children: [
@@ -479,7 +559,7 @@ class _BodyState extends State<_Body> {
                   ),
                   onBackgroundImageError: (_, __) {},
                   child: vm.selectedDoctor!.avatarUrl == null
-                      ? const Icon(Icons.person)
+                      ? Icon(Icons.person, color: theme.mutedForeground)
                       : null,
                 ),
                 const SizedBox(width: 16),
@@ -489,9 +569,10 @@ class _BodyState extends State<_Body> {
                     children: [
                       Text(
                         vm.selectedDoctor!.fullName,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
+                          color: theme.textColor,
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -499,7 +580,7 @@ class _BodyState extends State<_Body> {
                         vm.selectedSpecialty?.name ??
                             AppLocalizations.of(context).translate('specialty'),
                         style: TextStyle(
-                          color: theme.primaryColor,
+                          color: theme.primary,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -514,13 +595,20 @@ class _BodyState extends State<_Body> {
     );
   }
 
-  Widget _buildScheduleStep(CreateAppointmentVm vm, ThemeData theme) {
+  Widget _buildScheduleStep(
+    CreateAppointmentVm vm,
+    CustomThemeExtension theme,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           AppLocalizations.of(context).translate('select_time'),
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: theme.textColor,
+          ),
         ),
         const SizedBox(height: 16),
         AppointmentScheduler(
@@ -563,33 +651,69 @@ class _BodyState extends State<_Body> {
     );
   }
 
-  Widget _buildDetailsStep(CreateAppointmentVm vm, ThemeData theme) {
+  Widget _buildDetailsStep(CreateAppointmentVm vm, CustomThemeExtension theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           AppLocalizations.of(context).translate('details_info'),
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: theme.textColor,
+          ),
         ),
         const SizedBox(height: 16),
         TextFormField(
+          style: TextStyle(color: theme.textColor),
           decoration: InputDecoration(
             labelText: AppLocalizations.of(
               context,
             ).translate('reason_for_visit'),
-            prefixIcon: const Icon(Icons.assignment_outlined),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            labelStyle: TextStyle(color: theme.mutedForeground),
+            prefixIcon: Icon(
+              Icons.assignment_outlined,
+              color: theme.mutedForeground,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: theme.border),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: theme.border),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: theme.primary),
+            ),
           ),
           onChanged: vm.setReason,
         ),
         const SizedBox(height: 16),
         TextFormField(
+          style: TextStyle(color: theme.textColor),
           decoration: InputDecoration(
             labelText: AppLocalizations.of(
               context,
             ).translate('additional_notes'),
-            prefixIcon: const Icon(Icons.note_alt_outlined),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            labelStyle: TextStyle(color: theme.mutedForeground),
+            prefixIcon: Icon(
+              Icons.note_alt_outlined,
+              color: theme.mutedForeground,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: theme.border),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: theme.border),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: theme.primary),
+            ),
           ),
           maxLines: 3,
           onChanged: vm.setNotes,
@@ -600,13 +724,27 @@ class _BodyState extends State<_Body> {
             Expanded(
               flex: 2,
               child: TextFormField(
+                style: TextStyle(color: theme.textColor),
                 decoration: InputDecoration(
                   labelText: AppLocalizations.of(
                     context,
                   ).translate('examination_price'),
-                  prefixIcon: const Icon(Icons.attach_money),
+                  labelStyle: TextStyle(color: theme.mutedForeground),
+                  prefixIcon: Icon(
+                    Icons.attach_money,
+                    color: theme.mutedForeground,
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: theme.border),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: theme.border),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: theme.primary),
                   ),
                 ),
                 keyboardType: const TextInputType.numberWithOptions(
@@ -619,16 +757,30 @@ class _BodyState extends State<_Body> {
             Expanded(
               flex: 1,
               child: DropdownButtonFormField<String>(
+                dropdownColor: theme.card,
                 decoration: InputDecoration(
                   labelText: AppLocalizations.of(context).translate('currency'),
+                  labelStyle: TextStyle(color: theme.mutedForeground),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: theme.border),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: theme.border),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: theme.primary),
                   ),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                 ),
                 value: vm.currency,
                 items: ['VND', 'USD'].map((c) {
-                  return DropdownMenuItem(value: c, child: Text(c));
+                  return DropdownMenuItem(
+                    value: c,
+                    child: Text(c, style: TextStyle(color: theme.textColor)),
+                  );
                 }).toList(),
                 onChanged: (val) {
                   if (val != null) vm.setCurrency(val);
@@ -641,24 +793,28 @@ class _BodyState extends State<_Body> {
     );
   }
 
-  Widget _buildReviewStep(CreateAppointmentVm vm, ThemeData theme) {
+  Widget _buildReviewStep(CreateAppointmentVm vm, CustomThemeExtension theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           AppLocalizations.of(context).translate('confirm_info'),
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: theme.textColor,
+          ),
         ),
         const SizedBox(height: 16),
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: theme.card,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.grey.shade200),
+            border: Border.all(color: theme.border),
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withOpacity(0.1),
+                color: Colors.black.withOpacity(0.05),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -669,46 +825,54 @@ class _BodyState extends State<_Body> {
               _buildReviewRow(
                 AppLocalizations.of(context).translate('step_patient'),
                 vm.selectedPatient?.fullName ?? '',
+                theme,
               ),
-              const Divider(height: 24),
+              Divider(height: 24, color: theme.border),
               _buildReviewRow(
                 AppLocalizations.of(context).translate('doctor'),
                 vm.selectedDoctor?.fullName ?? '',
+                theme,
               ),
               _buildReviewRow(
                 AppLocalizations.of(context).translate('specialty'),
                 vm.selectedSpecialty?.name ?? '',
+                theme,
               ),
               _buildReviewRow(
                 AppLocalizations.of(context).translate('location'),
                 vm.selectedLocation?.name ?? '',
+                theme,
               ),
-              const Divider(height: 24),
+              Divider(height: 24, color: theme.border),
               _buildReviewRow(
                 AppLocalizations.of(context).translate('time'),
                 vm.selectedSlot != null
                     ? '${vm.selectedSlot!.timeStart} - ${DateFormat('dd/MM/yyyy').format(vm.selectedDate!)}'
                     : '',
+                theme,
                 isHighlight: true,
               ),
-              const Divider(height: 24),
+              Divider(height: 24, color: theme.border),
               _buildReviewRow(
                 AppLocalizations.of(context).translate('reason'),
                 vm.reason.isEmpty
                     ? AppLocalizations.of(context).translate('none')
                     : vm.reason,
+                theme,
               ),
               _buildReviewRow(
                 AppLocalizations.of(context).translate('notes'),
                 vm.notes.isEmpty
                     ? AppLocalizations.of(context).translate('none')
                     : vm.notes,
+                theme,
               ),
               _buildReviewRow(
                 AppLocalizations.of(context).translate('price'),
                 vm.priceAmount != null
                     ? '${vm.priceAmount} ${vm.currency}'
                     : AppLocalizations.of(context).translate('not_entered'),
+                theme,
               ),
             ],
           ),
@@ -719,7 +883,8 @@ class _BodyState extends State<_Body> {
 
   Widget _buildReviewRow(
     String label,
-    String value, {
+    String value,
+    CustomThemeExtension theme, {
     bool isHighlight = false,
   }) {
     return Padding(
@@ -731,8 +896,8 @@ class _BodyState extends State<_Body> {
             width: 100,
             child: Text(
               label,
-              style: const TextStyle(
-                color: Colors.grey,
+              style: TextStyle(
+                color: theme.mutedForeground,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -743,7 +908,7 @@ class _BodyState extends State<_Body> {
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: isHighlight ? 16 : 14,
-                color: isHighlight ? Colors.blue : Colors.black87,
+                color: isHighlight ? theme.primary : theme.textColor,
               ),
               textAlign: TextAlign.right,
             ),
@@ -760,25 +925,45 @@ class _BodyState extends State<_Body> {
     required String Function(T) itemLabel,
     required void Function(T?)? onChanged,
     required IconData icon,
+    required CustomThemeExtension theme,
     String? hint,
   }) {
     return DropdownButtonFormField<T>(
       isExpanded: true,
+      dropdownColor: theme.card,
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        labelStyle: TextStyle(color: theme.mutedForeground),
+        prefixIcon: Icon(icon, color: theme.mutedForeground),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: theme.border),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: theme.border),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: theme.primary),
+        ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 12,
           vertical: 16,
         ),
       ),
-      hint: hint != null ? Text(hint) : null,
+      hint: hint != null
+          ? Text(hint, style: TextStyle(color: theme.mutedForeground))
+          : null,
       value: value,
       items: items.map((item) {
         return DropdownMenuItem(
           value: item,
-          child: Text(itemLabel(item), overflow: TextOverflow.ellipsis),
+          child: Text(
+            itemLabel(item),
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(color: theme.textColor),
+          ),
         );
       }).toList(),
       onChanged: onChanged,

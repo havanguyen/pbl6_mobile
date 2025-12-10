@@ -59,6 +59,7 @@ class AppointmentDatabaseHelper {
   Future<List<AppointmentData>> getAppointments({
     required DateTime fromDate,
     required DateTime toDate,
+    String? doctorId,
   }) async {
     final db = await database;
     try {
@@ -75,11 +76,31 @@ class AppointmentDatabaseHelper {
         whereArgs: [endStr, startStr],
       );
 
-      return maps.map((map) {
+      final appointments = maps.map((map) {
         final jsonMap =
             jsonDecode(map['dataJson'] as String) as Map<String, dynamic>;
         return AppointmentData.fromJson(jsonMap);
       }).toList();
+
+      if (doctorId != null) {
+        print('--- [DEBUG] Filtering Local Cache ---');
+        print('Target filter doctorId: $doctorId');
+        print('Total appointments before filter: ${appointments.length}');
+
+        // Debug first appointment's doctorId
+        if (appointments.isNotEmpty) {
+          print('First Appt DoctorId: ${appointments.first.doctorId}');
+          print('First Appt Doctor Prop ID: ${appointments.first.doctor.id}');
+        }
+
+        final filtered = appointments
+            .where((app) => app.doctorId == doctorId)
+            .toList();
+        print('Total after filter: ${filtered.length}');
+        return filtered;
+      }
+
+      return appointments;
     } catch (e) {
       print("Error getting appointments from database: $e");
       return [];

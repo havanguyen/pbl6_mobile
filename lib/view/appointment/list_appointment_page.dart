@@ -10,7 +10,6 @@ import 'package:pbl6mobile/view/appointment/widgets/custom_calendar_header.dart'
 import 'package:pbl6mobile/view/appointment/widgets/calendar_settings_dialog.dart';
 import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 import 'package:pbl6mobile/shared/services/store.dart';
-import 'package:pbl6mobile/model/services/remote/doctor_service.dart';
 
 class ListAppointmentPage extends StatefulWidget {
   const ListAppointmentPage({super.key});
@@ -27,8 +26,6 @@ class _ListAppointmentPageState extends State<ListAppointmentPage>
   CalendarView _currentView = CalendarView.week;
 
   String? _selectedDoctorId;
-  String? _selectedWorkLocationId;
-  String? _selectedSpecialtyId;
   bool _isDoctor = false;
 
   @override
@@ -52,7 +49,9 @@ class _ListAppointmentPageState extends State<ListAppointmentPage>
       setState(() {
         _isDoctor = true;
       });
-      // Fetch self profile to get doctor ID
+      // NOTE: ReactJS does not auto-filter by doctor ID. We mimic that behavior here.
+      // If filtering is needed, user can use the filter dialog.
+      /*
       try {
         final doctorProfile = await DoctorService.getSelfProfileComplete();
         if (doctorProfile != null) {
@@ -62,12 +61,11 @@ class _ListAppointmentPageState extends State<ListAppointmentPage>
           setState(() {
             _selectedDoctorId = doctorProfile.id;
           });
-        } else {
-          print('Doctor Profile is NULL');
         }
       } catch (e) {
         print('Error fetching doctor profile: $e');
       }
+      */
     } else {
       print('User is NOT DOCTOR (or role is null)');
     }
@@ -171,8 +169,6 @@ class _ListAppointmentPageState extends State<ListAppointmentPage>
       fromDate,
       toDate,
       doctorId: _selectedDoctorId,
-      workLocationId: _selectedWorkLocationId,
-      specialtyId: _selectedSpecialtyId,
       forceRefresh: forceRefresh,
     );
   }
@@ -206,19 +202,17 @@ class _ListAppointmentPageState extends State<ListAppointmentPage>
       context: context,
       builder: (context) => AppointmentFilterDialog(
         selectedDoctorId: _selectedDoctorId,
-        selectedWorkLocationId: _selectedWorkLocationId,
-        selectedSpecialtyId: _selectedSpecialtyId,
         isDoctor: _isDoctor,
       ),
     );
 
     if (result != null) {
-      setState(() {
-        _selectedDoctorId = result['doctorId'];
-        _selectedWorkLocationId = result['workLocationId'];
-        _selectedSpecialtyId = result['specialtyId'];
-      });
-      _fetchDataForVisibleDates(details: null, forceRefresh: true);
+      if (mounted) {
+        setState(() {
+          _selectedDoctorId = result['doctorId'];
+        });
+        _fetchDataForVisibleDates(details: null, forceRefresh: true);
+      }
     }
   }
 
@@ -294,10 +288,7 @@ class _ListAppointmentPageState extends State<ListAppointmentPage>
                         IconButton(
                           icon: Icon(
                             Icons.filter_list,
-                            color:
-                                (_selectedDoctorId != null ||
-                                    _selectedWorkLocationId != null ||
-                                    _selectedSpecialtyId != null)
+                            color: (_selectedDoctorId != null)
                                 ? context.theme.primary
                                 : context.theme.textColor,
                           ),
