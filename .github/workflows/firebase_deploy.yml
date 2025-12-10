@@ -37,7 +37,11 @@ jobs:
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
 
-      # 6. Build file APK Release (Kèm biến môi trường để signing)
+      # 6. Tạo file .env từ Secret
+      - name: Create .env file
+        run: echo "${{ secrets.ENV_FILE }}" > .env
+
+      # 7. Build file APK Release (Kèm biến môi trường để signing)
       - name: Build Android Release APK
         env:
           ANDROID_KEYSTORE_PATH: upload-keystore.jks # Đường dẫn tương đối trong folder android/app
