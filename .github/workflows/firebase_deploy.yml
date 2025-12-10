@@ -56,6 +56,6 @@ jobs:
         with:
           appId: ${{ secrets.FIREBASE_APP_ID }}
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_CREDENTIAL_FILE_CONTENT }}
-          groups: internal-team # Tên nhóm tester bạn đã tạo trên Firebase
+          groups: medicalink-app-tester # Tên nhóm tester bạn đã tạo trên Firebase
           file: build/app/outputs/flutter-apk/app-release.apk
           releaseNotes: "New build from GitHub Actions (Commit: ${{ github.sha }})"
