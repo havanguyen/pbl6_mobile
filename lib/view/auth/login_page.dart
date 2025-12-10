@@ -377,6 +377,7 @@ class LoginPageState extends State<LoginPage>
                         ),
                       ),
                     ),
+
                     const SizedBox(height: 20),
                     AnimatedBuilder(
                       animation: _buttonAnimation,

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1091939675124",
+    "project_id": "medicalink-app",
+    "storage_bucket": "medicalink-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1091939675124:android:92f3a85ef8e9f60ec327a1",
+        "android_client_info": {
+          "package_name": "com.example.pbl6mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD_WxQuQCFPWQW14ddQdF_L5s94epTBffM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
