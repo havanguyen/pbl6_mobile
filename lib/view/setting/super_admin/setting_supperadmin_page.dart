@@ -60,6 +60,22 @@ class SettingSupperAdminPage extends StatelessWidget {
           ),
           const Divider(height: 1, color: Colors.grey),
           ListTile(
+            key: const ValueKey('dashboard_menu_item'),
+            leading: Icon(
+              Icons.dashboard_outlined,
+              color: context.theme.blue,
+              size: 28,
+            ),
+            title: Text(
+              'Dashboard',
+              style: TextStyle(fontSize: 16, color: context.theme.textColor),
+            ),
+            onTap: () {
+              Navigator.pushNamed(context, Routes.dashboard);
+            },
+          ),
+          const Divider(height: 1, color: Colors.grey),
+          ListTile(
             key: const ValueKey('settings_page_permission_button'),
             leading: Icon(
               Icons.admin_panel_settings_outlined,

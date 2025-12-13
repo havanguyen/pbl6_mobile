@@ -58,6 +58,22 @@ class SettingAdminPage extends StatelessWidget {
           ),
           const Divider(height: 1, color: Colors.grey),
           ListTile(
+            key: const ValueKey('dashboard_menu_item'),
+            leading: Icon(
+              Icons.dashboard_outlined,
+              color: context.theme.blue,
+              size: 28,
+            ),
+            title: Text(
+              'Dashboard',
+              style: TextStyle(fontSize: 16, color: context.theme.textColor),
+            ),
+            onTap: () {
+              Navigator.pushNamed(context, Routes.dashboard);
+            },
+          ),
+          const Divider(height: 1, color: Colors.grey),
+          ListTile(
             leading: Icon(
               Icons.type_specimen_outlined,
               color: context.theme.blue,

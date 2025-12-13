@@ -59,9 +59,12 @@ import 'package:pbl6mobile/shared/widgets/widget/edit_profile_page.dart';
 import 'package:pbl6mobile/view/specialty/update_info_section.dart';
 import 'package:pbl6mobile/view/specialty/update_specialty.dart';
 import 'package:pbl6mobile/view/specialty/specialty_detail.dart';
+import 'package:pbl6mobile/view/dashboard/dashboard_page.dart';
 
 class Routes {
   static const login = '/login';
+  static const dashboard = '/dashboard';
+
   static const mainPageDoctor = '/mainPageDoctor';
   static const changePassword = '/changePassword';
   static const mainPageSuperAdmin = '/mainPageSuperAdmin';
@@ -111,6 +114,12 @@ class Routes {
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
+      case dashboard:
+        return PageTransition(
+          type: PageTransitionType.fade,
+          settings: settings,
+          child: const DashboardPage(),
+        );
       case profileDoctor:
         return PageTransition(
           type: PageTransitionType.leftToRight,
