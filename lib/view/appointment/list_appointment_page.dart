@@ -27,6 +27,7 @@ class _ListAppointmentPageState extends State<ListAppointmentPage>
 
   String? _selectedDoctorId;
   bool _isDoctor = false;
+  late AppointmentVm _vm;
 
   @override
   void initState() {
@@ -34,40 +35,36 @@ class _ListAppointmentPageState extends State<ListAppointmentPage>
     _tabController = TabController(length: 5, vsync: this, initialIndex: 1);
     _tabController!.addListener(_onTabChanged);
 
+    _vm = context.read<AppointmentVm>();
+    _vm.addListener(_onErrorChanged);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializePage();
     });
   }
 
+  void _onErrorChanged() {
+    if (!mounted) return;
+    if (_vm.error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_vm.error!),
+          backgroundColor: context.theme.destructive,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      // We don't clear error here as it might be needed for UI state (e.g. empty view)
+      // modifying it would trigger another notifyListeners loop
+    }
+  }
+
   Future<void> _initializePage() async {
-    print('--- [DEBUG] ListAppointmentPage._initializePage ---');
     final role = await Store.getUserRole();
-    print('User Role: $role');
 
     if (role?.toUpperCase() == 'DOCTOR') {
-      print('User is DOCTOR. Fetching self profile...');
       setState(() {
         _isDoctor = true;
       });
-      // NOTE: ReactJS does not auto-filter by doctor ID. We mimic that behavior here.
-      // If filtering is needed, user can use the filter dialog.
-      /*
-      try {
-        final doctorProfile = await DoctorService.getSelfProfileComplete();
-        if (doctorProfile != null) {
-          print(
-            'Doctor Profile Fetched: ID=${doctorProfile.id}, Name=${doctorProfile.fullName}',
-          );
-          setState(() {
-            _selectedDoctorId = doctorProfile.id;
-          });
-        }
-      } catch (e) {
-        print('Error fetching doctor profile: $e');
-      }
-      */
-    } else {
-      print('User is NOT DOCTOR (or role is null)');
     }
 
     _fetchDataForVisibleDates(details: null, forceRefresh: true);
@@ -75,6 +72,7 @@ class _ListAppointmentPageState extends State<ListAppointmentPage>
 
   @override
   void dispose() {
+    _vm.removeListener(_onErrorChanged);
     _tabController?.removeListener(_onTabChanged);
     _tabController?.dispose();
     super.dispose();
@@ -159,11 +157,6 @@ class _ListAppointmentPageState extends State<ListAppointmentPage>
       fromDate = visibleDates.first.subtract(const Duration(days: 7));
       toDate = visibleDates.last.add(const Duration(days: 7));
     }
-
-    print('--- [DEBUG] ListAppointmentPage._fetchDataForVisibleDates ---');
-    print('Current View: $_currentView');
-    print('Visible Dates: ${visibleDates.first} to ${visibleDates.last}');
-    print('Fetching Range: $fromDate to $toDate');
 
     vm.fetchAppointments(
       fromDate,

@@ -37,6 +37,33 @@ class _Body extends StatefulWidget {
 class _BodyState extends State<_Body> {
   int _currentStep = 0;
   final _formKey = GlobalKey<FormState>();
+  late CreateAppointmentVm _vm;
+
+  @override
+  void initState() {
+    super.initState();
+    _vm = context.read<CreateAppointmentVm>();
+    _vm.addListener(_onErrorChanged);
+  }
+
+  @override
+  void dispose() {
+    _vm.removeListener(_onErrorChanged);
+    super.dispose();
+  }
+
+  void _onErrorChanged() {
+    if (!mounted) return;
+    if (_vm.error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_vm.error!),
+          backgroundColor: context.theme.destructive,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

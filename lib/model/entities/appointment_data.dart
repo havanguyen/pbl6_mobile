@@ -161,13 +161,15 @@ class AppointmentData {
       updatedAt: _dateTimeFromJson(json['updatedAt']),
       cancelledAt: _dateTimeFromJson(json['cancelledAt']),
       completedAt: _dateTimeFromJson(json['completedAt']),
-      patient: AppointmentPatient.fromJson(
-        json['patient'] as Map<String, dynamic>,
-      ),
-      event: AppointmentEvent.fromJson(json['event'] as Map<String, dynamic>),
-      doctor: AppointmentDoctor.fromJson(
-        json['doctor'] as Map<String, dynamic>,
-      ),
+      patient: json['patient'] != null
+          ? AppointmentPatient.fromJson(json['patient'] as Map<String, dynamic>)
+          : AppointmentPatient(fullName: 'Unknown Patient'),
+      event: json['event'] != null
+          ? AppointmentEvent.fromJson(json['event'] as Map<String, dynamic>)
+          : AppointmentEvent(id: '', serviceDate: DateTime.now()),
+      doctor: json['doctor'] != null
+          ? AppointmentDoctor.fromJson(json['doctor'] as Map<String, dynamic>)
+          : AppointmentDoctor(id: '', name: 'Unknown Doctor'),
     );
   }
 

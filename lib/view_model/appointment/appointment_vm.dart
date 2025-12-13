@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pbl6mobile/model/entities/appointment_data.dart';
 import 'package:pbl6mobile/model/services/remote/appointment_service.dart';
-import 'package:pbl6mobile/model/services/local/appointment_database_helper.dart';
+
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 class AppointmentVm extends ChangeNotifier {
@@ -30,6 +30,8 @@ class AppointmentVm extends ChangeNotifier {
   String? _lastWorkLocationId;
   String? _lastSpecialtyId;
   String? _lastPatientId;
+
+  List<AppointmentData> _allAppointmentsCache = [];
 
   // Calendar Settings
   double _startHour = 7;
@@ -86,15 +88,9 @@ class AppointmentVm extends ChangeNotifier {
   }) async {
     print('--- [DEBUG] AppointmentVm.fetchAppointments ---');
     print('fromDate: $fromDate, toDate: $toDate');
-    print(
-      'Filters: doctorId=$doctorId, locationId=$workLocationId, specialtyId=$specialtyId, forceRefresh=$forceRefresh',
-    );
-    await Future.delayed(Duration.zero);
 
     if (_isLoading) return;
 
-    _lastFromDate = fromDate;
-    _lastToDate = toDate;
     _lastDoctorId = doctorId;
     _lastWorkLocationId = workLocationId;
     _lastSpecialtyId = specialtyId;
@@ -104,168 +100,114 @@ class AppointmentVm extends ChangeNotifier {
     _error = null;
     notifyListeners();
 
-    // New Logic: API (Sync) -> Local DB -> Memory/UI
-    // 1. Load from cache immediately
-    await _loadFromCache(fromDate, toDate, doctorId: doctorId);
-
-    // 2. If forced or not synced, sync data
-    if (forceRefresh || !_isSynced) {
-      if (forceRefresh) {
-        print(
-          '--- [DEBUG] Force refresh requested. Resetting sync status. ---',
-        );
-        _isSynced = false;
-      }
-      // Run sync in background, don't await to block UI
-      _syncAppointments();
-    }
-
-    _isLoading = false;
-    notifyListeners();
-  }
-
-  bool _isSynced = false;
-
-  Future<void> _syncAppointments() async {
-    print(
-      '--- [DEBUG] AppointmentVm: Starting background sync of ALL pages (2 years range) ---',
-    );
-    final now = DateTime.now();
-    final syncFrom = DateTime(now.year - 2, now.month, now.day);
-    final syncTo = DateTime(now.year + 2, now.month, now.day);
-
-    int currentPage = 1;
-    bool hasNext = true;
-    List<AppointmentData> allSyncedAppointments = [];
-
     try {
-      while (hasNext) {
-        print('--- [DEBUG] Fetching page $currentPage ---');
-        final response = await _appointmentService.getAppointments(
-          fromDate: syncFrom,
-          toDate: syncTo,
-          doctorId: _lastDoctorId,
-          workLocationId: _lastWorkLocationId,
-          specialtyId: _lastSpecialtyId,
-          patientId: _lastPatientId,
-          limit: 100,
-          page: currentPage,
-        );
+      List<AppointmentData> allAppointments = [];
 
-        if (response != null && response.success) {
-          if (response.data.isNotEmpty) {
-            allSyncedAppointments.addAll(response.data);
-          }
+      // Check Cache
+      if (!forceRefresh &&
+          _lastFromDate != null &&
+          _lastToDate != null &&
+          _lastFromDate == fromDate &&
+          _lastToDate == toDate &&
+          _allAppointmentsCache.isNotEmpty) {
+        allAppointments = List.from(_allAppointmentsCache);
+      } else {
+        // Fetch from API
+        int currentPage = 1;
+        bool hasNext = true;
 
-          final meta = response.meta;
-          if (meta != null && meta['hasNext'] == true) {
-            currentPage++;
+        while (hasNext) {
+          final response = await _appointmentService.getAppointments(
+            fromDate: fromDate,
+            toDate: toDate,
+            doctorId: null,
+            workLocationId: null,
+            specialtyId: null,
+            patientId: null,
+            limit: 100, // Respect API limit
+            page: currentPage,
+          );
+
+          if (response != null && response.success) {
+            allAppointments.addAll(response.data);
+
+            final meta = response.meta;
+            if (meta != null && meta['hasNext'] == true) {
+              currentPage++;
+            } else {
+              hasNext = false;
+            }
           } else {
-            hasNext = false;
+            _error = response?.message ?? 'Failed to fetch appointments';
+            hasNext = false; // Stop on error
           }
-        } else {
-          print('--- [ERROR] Sync failed at page $currentPage. Stopping. ---');
-          hasNext = false;
+        }
+
+        // Update Cache if successful
+        if (_error == null) {
+          _allAppointmentsCache = List.from(allAppointments);
+          _lastFromDate = fromDate;
+          _lastToDate = toDate;
         }
       }
 
-      print(
-        '--- [DEBUG] AppointmentVm: Sync complete. Total fetched: ${allSyncedAppointments.length} ---',
-      );
+      // Update state only if we fetched something or it was a successful empty result
+      if (_error == null) {
+        // Apply Filters LOCALLY
+        var filteredList = allAppointments;
 
-      // CLEAR cache for the synced range first
-      await AppointmentDatabaseHelper.instance.deleteAppointmentsInRange(
-        fromDate: syncFrom,
-        toDate: syncTo,
-      );
+        if (doctorId != null) {
+          filteredList = filteredList
+              .where(
+                (appt) =>
+                    appt.doctorId == doctorId || appt.doctor.id == doctorId,
+              )
+              .toList();
+        }
+        if (workLocationId != null) {
+          filteredList = filteredList
+              .where((appt) => appt.locationId == workLocationId)
+              .toList();
+        }
+        if (specialtyId != null) {
+          filteredList = filteredList
+              .where((appt) => appt.specialtyId == specialtyId)
+              .toList();
+        }
+        if (patientId != null) {
+          filteredList = filteredList
+              .where((appt) => appt.patientId == patientId)
+              .toList();
+        }
 
-      // THEN insert new data
-      if (allSyncedAppointments.isNotEmpty) {
-        await AppointmentDatabaseHelper.instance.insertAppointments(
-          allSyncedAppointments,
-        );
-      }
-
-      _isSynced = true;
-
-      if (_lastFromDate != null && _lastToDate != null) {
-        await _loadFromCache(
-          _lastFromDate!,
-          _lastToDate!,
-          doctorId: _lastDoctorId,
-        );
-      }
-    } catch (e) {
-      print('--- [ERROR] AppointmentVm: Sync error: $e ---');
-    }
-  }
-
-  Future<void> _loadFromCache(
-    DateTime fromDate,
-    DateTime toDate, {
-    String? doctorId,
-  }) async {
-    print('--- [DEBUG] AppointmentVm: Loading from cache... ---');
-    print('--- [DEBUG] _loadFromCache: doctorId=$doctorId ---');
-    try {
-      final cachedAppointments = await AppointmentDatabaseHelper.instance
-          .getAppointments(
-            fromDate: fromDate,
-            toDate: toDate,
-            doctorId: doctorId,
-          );
-      if (cachedAppointments.isNotEmpty) {
-        _appointments = cachedAppointments.toSet().toList();
-        print(
-          '--- [DEBUG] Loaded ${_appointments.length} unique appointments (original: ${cachedAppointments.length}) ---',
-        );
+        _appointments = filteredList;
         _dataSource.appointments = List.from(_appointments);
         _dataSource.notifyListeners(
           CalendarDataSourceAction.reset,
           _dataSource.appointments!,
         );
-        print(
-          '--- [DEBUG] AppointmentVm: Loaded ${cachedAppointments.length} appointments from cache ---',
-        );
-        // If we successfully loaded from cache, we can clear the error or show a specific "Offline" message
-        // For now, let's append to the error so the user knows they are offline but seeing cached data
-        _error = "${_error ?? 'Lỗi kết nối'}. Đang hiển thị dữ liệu offline.";
-      } else {
-        print(
-          '--- [DEBUG] AppointmentVm: No cached appointments found for this range ---',
-        );
       }
-    } catch (e) {
-      print('--- [ERROR] AppointmentVm: Failed to load from cache: $e ---');
-    }
-  }
-
-  Future<void> refresh() async {
-    print(
-      '--- [DEBUG] AppointmentVm: Force Refresh - Clearing all local data ---',
-    );
-    _isLoading = true;
-    notifyListeners();
-
-    try {
-      // 1. Clear memory immediately to avoid showing old data
-      _appointments = [];
-      _dataSource.appointments = [];
-      _dataSource.notifyListeners(CalendarDataSourceAction.reset, []);
-
-      // 2. Clear DB (Full invalidation as requested)
-      await AppointmentDatabaseHelper.instance.clearAll();
-
-      // 3. Reset sync status
-      _isSynced = false;
-
-      // 4. Re-fetch data
-      await _syncAppointments();
     } catch (e) {
       _error = e.toString();
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  // Removed _syncAppointments, _loadFromCache as we are now using direct fetch on demand.
+
+  Future<void> refresh() async {
+    if (_lastFromDate != null && _lastToDate != null) {
+      await fetchAppointments(
+        _lastFromDate!,
+        _lastToDate!,
+        doctorId: _lastDoctorId,
+        workLocationId: _lastWorkLocationId,
+        specialtyId: _lastSpecialtyId,
+        patientId: _lastPatientId,
+        forceRefresh: true,
+      );
     }
   }
 

@@ -1,5 +1,3 @@
-import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
@@ -128,16 +126,6 @@ class DoctorService {
         queryParameters: params,
       );
 
-      // ... existing logs ...
-      print('--- [DEBUG] DoctorService.getDoctors ---');
-      print('Params: $params');
-      print('Response Status: ${response.statusCode}');
-      if (response.statusCode == 200) {
-        print('Response Data count: ${(response.data['data'] as List).length}');
-      } else {
-        print('Response Body: ${response.data}');
-      }
-
       if (response.statusCode == 200) {
         final doctorList = (response.data['data'] as List)
             .map((json) => Doctor.fromJson(json as Map<String, dynamic>))
@@ -181,15 +169,10 @@ class DoctorService {
         if (workLocationId != null) 'workLocationIds': workLocationId,
       };
 
-      print('--- [DEBUG] DoctorService.getPublicDoctors ---');
-      print('Params: $params');
-
       final response = await _secureDio.get(
         '/doctors/profile/public',
         queryParameters: params,
       );
-
-      print('Response Status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         if (response.data is List) {
@@ -215,42 +198,22 @@ class DoctorService {
       if (response.statusCode == 200 && response.data['data'] != null) {
         final Map<String, dynamic> dataToParse = response.data['data'];
 
-        debugPrint("--- [DEBUG] BẮT ĐẦU PARSE GetDoctorWithProfile ---");
-        debugPrint(jsonEncode(dataToParse));
-
         try {
           if (dataToParse['specialties'] != null) {
-            debugPrint("[DEBUG] Đang parse Specialties...");
             (dataToParse['specialties'] as List<dynamic>).forEach(
               (e) => Specialty.fromJson(e as Map<String, dynamic>),
             );
-            debugPrint("[DEBUG] Parse Specialties THÀNH CÔNG");
           }
 
           if (dataToParse['workLocations'] != null) {
-            debugPrint("[DEBUG] Đang parse WorkLocations...");
             (dataToParse['workLocations'] as List<dynamic>).forEach(
               (e) => WorkLocation.fromJson(e as Map<String, dynamic>),
             );
-            debugPrint("[DEBUG] Parse WorkLocations THÀNH CÔNG");
           }
 
-          debugPrint("[DEBUG] Đang parse DoctorDetail (chính)...");
           final doctorDetail = DoctorDetail.fromJson(dataToParse);
-          debugPrint("[DEBUG] PARSE DOCTOR DETAIL THÀNH CÔNG!");
-
           return doctorDetail;
-        } catch (e, stackTrace) {
-          debugPrint("--- [DEBUG] LỖI PARSING NGHIÊM TRỌNG ---");
-          debugPrint("Lỗi: ${e.toString()}");
-          debugPrint("Stack Trace: $stackTrace");
-
-          if (e is TypeError) {
-            debugPrint(
-              "LỖI TYPEERROR: Rất có thể một model con (Specialty, WorkLocation) bị lỗi cast.",
-            );
-          }
-          debugPrint("--- HẾT LỖI PARSING ---");
+        } catch (e) {
           return null;
         }
       }
@@ -309,38 +272,19 @@ class DoctorService {
     bool isActive,
   ) async {
     try {
-      print(
-        "➡️ [SERVICE] Sending PATCH request to '/doctors/profile/$profileId/toggle-active'",
-      );
-      print("   - Payload: {'isActive': $isActive}");
-
       final response = await _secureDio.patch(
         '/doctors/profile/$profileId/toggle-active',
         data: {'isActive': isActive},
       );
 
-      print(
-        "⬅️ [SERVICE] Received response with statusCode: ${response.statusCode}",
-      );
-
       if (response.statusCode == 200 && response.data['data'] != null) {
-        print("   - Response data: ${response.data['data']}");
         final profile = DoctorProfile.fromJson(response.data['data']);
-        print(
-          "   - Successfully parsed DoctorProfile. New isActive: ${profile.isActive}",
-        );
         return profile;
       } else {
-        print(
-          "   - Response was successful but data is null or status code is not 200.",
-        );
         return null;
       }
     } catch (e) {
-      print("🔥 [SERVICE-ERROR] Toggle Doctor Active failed: $e");
-      if (e is DioException) {
-        print("   - DioException details: ${e.response?.data}");
-      }
+      if (e is DioException) {}
       return null;
     }
   }
@@ -481,42 +425,22 @@ class DoctorService {
       if (response.statusCode == 200 && response.data['data'] != null) {
         final Map<String, dynamic> dataToParse = response.data['data'];
 
-        debugPrint("--- [DEBUG] BẮT ĐẦU PARSE GetSelfProfileComplete ---");
-        debugPrint(jsonEncode(dataToParse));
-
         try {
           if (dataToParse['specialties'] != null) {
-            debugPrint("[DEBUG] Đang parse Specialties...");
             (dataToParse['specialties'] as List<dynamic>).forEach(
               (e) => Specialty.fromJson(e as Map<String, dynamic>),
             );
-            debugPrint("[DEBUG] Parse Specialties THÀNH CÔNG");
           }
 
           if (dataToParse['workLocations'] != null) {
-            debugPrint("[DEBUG] Đang parse WorkLocations...");
             (dataToParse['workLocations'] as List<dynamic>).forEach(
               (e) => WorkLocation.fromJson(e as Map<String, dynamic>),
             );
-            debugPrint("[DEBUG] Parse WorkLocations THÀNH CÔNG");
           }
 
-          debugPrint("[DEBUG] Đang parse DoctorDetail (chính)...");
           final doctorDetail = DoctorDetail.fromJson(dataToParse);
-          debugPrint("[DEBUG] PARSE DOCTOR DETAIL THÀNH CÔNG!");
-
           return doctorDetail;
-        } catch (e, stackTrace) {
-          debugPrint("--- [DEBUG] LỖI PARSING NGHIÊM TRỌNG ---");
-          debugPrint("Lỗi: ${e.toString()}");
-          debugPrint("Stack Trace: $stackTrace");
-
-          if (e is TypeError) {
-            debugPrint(
-              "LỖI TYPEERROR: Rất có thể một model con (Specialty, WorkLocation) bị lỗi cast.",
-            );
-          }
-          debugPrint("--- HẾT LỖI PARSING ---");
+        } catch (e) {
           return null;
         }
       }
@@ -558,10 +482,6 @@ class DoctorService {
     bool allowPast = false,
   }) async {
     try {
-      print('--- [DEBUG] getDoctorAvailableSlots ---');
-      print('URL: /doctors/profile/$profileId/slots');
-      print('Params: locationId=$locationId, date=$serviceDate');
-
       final response = await _secureDio.get(
         '/doctors/profile/$profileId/slots',
         queryParameters: {
@@ -570,11 +490,6 @@ class DoctorService {
           'allowPast': allowPast,
         },
       );
-
-      print('Response Status: ${response.statusCode}');
-      if (response.statusCode != 200) {
-        print('Response Body: ${response.data}');
-      }
 
       if (response.statusCode == 200 && response.data != null) {
         List<dynamic> dataList = [];
@@ -587,7 +502,6 @@ class DoctorService {
         final list = dataList
             .map((e) => DoctorSlot.fromJson(e as Map<String, dynamic>))
             .toList();
-        print('Found ${list.length} slots for $serviceDate');
         return list;
       }
       return [];
@@ -616,8 +530,8 @@ class DoctorService {
       allDates.add(d.toIso8601String().split('T')[0]);
     }
 
-    // Process in batches of 7
-    const batchSize = 7;
+    // Process in batches of 3 to avoid Rate Limiting (429)
+    const batchSize = 3;
     for (var i = 0; i < allDates.length; i += batchSize) {
       final endRange = (i + batchSize < allDates.length)
           ? i + batchSize
@@ -641,6 +555,11 @@ class DoctorService {
           }
         }),
       );
+
+      // Add a small delay between batches to be nice to the API
+      if (endRange < allDates.length) {
+        await Future.delayed(const Duration(milliseconds: 300));
+      }
     }
     availableDates.sort();
     return availableDates;
