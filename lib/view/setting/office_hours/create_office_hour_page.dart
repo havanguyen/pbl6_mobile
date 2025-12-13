@@ -607,17 +607,30 @@ class _CreateOfficeHourPageState extends State<CreateOfficeHourPage> {
         isGlobal: isGlobal,
       );
 
-      if (success && mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: context.theme.green,
-            content: Text(
-              successMsg,
-              style: TextStyle(color: context.theme.white),
+      if (mounted) {
+        if (success) {
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: context.theme.green,
+              content: Text(
+                successMsg,
+                style: TextStyle(color: context.theme.white),
+              ),
             ),
-          ),
-        );
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: context.theme.destructive,
+              content: Text(
+                vm.error ??
+                    AppLocalizations.of(context).translate('create_failed'),
+                style: TextStyle(color: context.theme.white),
+              ),
+            ),
+          );
+        }
       }
     }
   }

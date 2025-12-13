@@ -536,7 +536,7 @@ class _OfficeHoursPageState extends State<OfficeHoursPage>
   void _confirmDelete(BuildContext context, OfficeHour item, OfficeHoursVm vm) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         backgroundColor: context.theme.card,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -546,15 +546,71 @@ class _OfficeHoursPageState extends State<OfficeHoursPage>
           ).translate('delete_office_hour_confirm_title'),
           style: TextStyle(color: context.theme.foreground),
         ),
-        content: Text(
-          AppLocalizations.of(
-            context,
-          ).translate('delete_office_hour_confirm_message'),
-          style: TextStyle(color: context.theme.mutedForeground),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              AppLocalizations.of(
+                context,
+              ).translate('delete_office_hour_confirm_message'),
+              style: TextStyle(color: context.theme.mutedForeground),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: context.theme.muted.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: context.theme.border),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildDetailRow(
+                    context,
+                    Icons.calendar_today,
+                    item.dayOfWeek.getDayName(context),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildDetailRow(
+                    context,
+                    Icons.access_time,
+                    '${item.startTime.formatTime(context)} - ${item.endTime.formatTime(context)}',
+                  ),
+                  if (item.doctor != null) ...[
+                    const SizedBox(height: 8),
+                    _buildDetailRow(
+                      context,
+                      Icons.person,
+                      item.doctor!.fullName,
+                    ),
+                  ],
+                  if (item.workLocation != null) ...[
+                    const SizedBox(height: 8),
+                    _buildDetailRow(
+                      context,
+                      Icons.location_on,
+                      item.workLocation!.name,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              AppLocalizations.of(context).translate('action_cannot_undo'),
+              style: TextStyle(
+                color: context.theme.destructive,
+                fontWeight: FontWeight.w500,
+                fontSize: 13,
+              ),
+            ),
+          ],
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: Text(
               AppLocalizations.of(context).translate('cancel'),
               style: TextStyle(color: context.theme.mutedForeground),
@@ -562,21 +618,35 @@ class _OfficeHoursPageState extends State<OfficeHoursPage>
           ),
           TextButton(
             onPressed: () async {
-              Navigator.pop(context);
-              final successMsg = AppLocalizations.of(
-                context,
-              ).translate('delete_office_hour_success');
+              Navigator.pop(dialogContext);
               final success = await vm.deleteOfficeHour(item.id);
-              if (success && mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    backgroundColor: context.theme.green,
-                    content: Text(
-                      successMsg,
-                      style: const TextStyle(color: Colors.white),
+              if (mounted) {
+                if (success) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      backgroundColor: context.theme.green,
+                      content: Text(
+                        AppLocalizations.of(
+                          context,
+                        ).translate('delete_office_hour_success'),
+                        style: const TextStyle(color: Colors.white),
+                      ),
                     ),
-                  ),
-                );
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      backgroundColor: context.theme.destructive,
+                      content: Text(
+                        vm.error ??
+                            AppLocalizations.of(
+                              context,
+                            ).translate('delete_failed'),
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  );
+                }
               }
             },
             child: Text(
@@ -586,6 +656,26 @@ class _OfficeHoursPageState extends State<OfficeHoursPage>
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildDetailRow(BuildContext context, IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: context.theme.mutedForeground),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              color: context.theme.foreground,
+              fontWeight: FontWeight.w500,
+              fontSize: 14,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
     );
   }
 }

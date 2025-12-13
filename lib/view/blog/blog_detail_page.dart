@@ -1,21 +1,78 @@
 import 'package:flutter/material.dart';
 import 'package:pbl6mobile/model/entities/blog.dart';
+import 'package:pbl6mobile/model/services/remote/blog_service.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/shared/localization/app_localizations.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../../shared/widgets/common/image_display.dart';
 
-class BlogDetailPage extends StatelessWidget {
+class BlogDetailPage extends StatefulWidget {
   final Blog blog;
 
   const BlogDetailPage({super.key, required this.blog});
 
   @override
+  State<BlogDetailPage> createState() => _BlogDetailPageState();
+}
+
+class _BlogDetailPageState extends State<BlogDetailPage> {
+  late Blog _blog;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _blog = widget.blog; // Initial display with passed data
+    _loadFullDetails();
+  }
+
+  Future<void> _loadFullDetails() async {
+    try {
+      final fullBlog = await BlogService.getBlogDetail(_blog.id);
+      if (fullBlog != null && mounted) {
+        setState(() {
+          _blog = fullBlog;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading blog details: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  String _processHtmlContent(String content) {
+    final String baseUrl = dotenv.env['API_BASE_URL'] ?? '';
+    if (baseUrl.isEmpty) return content;
+
+    final uri = Uri.parse(baseUrl);
+    final String hostUrl = '${uri.scheme}://${uri.authority}';
+
+    // Replace relative paths starting with /
+    // src="/uploads/..." -> src="http://host/uploads/..."
+    String processed = content.replaceAll('src="/', 'src="$hostUrl/');
+    processed = processed.replaceAll("src='/", "src='$hostUrl/");
+
+    // Remove explicit height and width attributes from img tags to allow flutter_html Style to control sizing
+    processed = processed.replaceAll(RegExp(r'height="\d+"'), '');
+    processed = processed.replaceAll(RegExp(r'width="\d+"'), '');
+    processed = processed.replaceAll(RegExp(r"height='\d+'"), '');
+    processed = processed.replaceAll(RegExp(r"width='\d+'"), '');
+
+    return processed;
+  }
+
+  @override
   Widget build(BuildContext context) {
     String formattedDate = DateFormat(
       'MMMM d, yyyy',
-    ).format(blog.createdAt.toLocal());
+    ).format(_blog.createdAt.toLocal());
     bool isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
@@ -36,7 +93,18 @@ class BlogDetailPage extends StatelessWidget {
           ),
         ),
         actions: [
-          // Potential future actions (Share, etc.)
+          if (_isLoading)
+            Padding(
+              padding: const EdgeInsets.only(right: 16.0),
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: context.theme.primary,
+                ),
+              ),
+            ),
         ],
       ),
       body: SingleChildScrollView(
@@ -45,11 +113,11 @@ class BlogDetailPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Thumbnail
-            if (blog.thumbnailUrl != null && blog.thumbnailUrl!.isNotEmpty)
+            if (_blog.thumbnailUrl != null && _blog.thumbnailUrl!.isNotEmpty)
               Hero(
-                tag: 'blog_thumbnail_${blog.id}',
+                tag: 'blog_thumbnail_${_blog.id}',
                 child: CommonImage(
-                  imageUrl: blog.thumbnailUrl!,
+                  imageUrl: _blog.thumbnailUrl!,
                   width: double.infinity,
                   height: 250,
                   fit: BoxFit.cover,
@@ -57,8 +125,7 @@ class BlogDetailPage extends StatelessWidget {
               )
             else
               Container(
-                height:
-                    100, // Small spacer if no image, or maybe a default gradient?
+                height: 100, // Small spacer if no image
               ),
 
             Padding(
@@ -82,7 +149,7 @@ class BlogDetailPage extends StatelessWidget {
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
-                          blog.category.name,
+                          _blog.category.name,
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -104,7 +171,7 @@ class BlogDetailPage extends StatelessWidget {
 
                   // Title
                   Text(
-                    blog.title,
+                    _blog.title,
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -128,7 +195,7 @@ class BlogDetailPage extends StatelessWidget {
                             ),
                             child: CommonImage(
                               imageUrl:
-                                  'https://ui-avatars.com/api/?name=${Uri.encodeComponent(blog.authorName ?? 'Admin')}&background=random',
+                                  'https://ui-avatars.com/api/?name=${Uri.encodeComponent(_blog.authorName ?? 'Admin')}&background=random',
                               width: 40,
                               height: 40,
                               borderRadius: 20,
@@ -140,7 +207,7 @@ class BlogDetailPage extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                blog.authorName ?? 'Super Admin',
+                                _blog.authorName ?? 'Super Admin',
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
@@ -160,74 +227,71 @@ class BlogDetailPage extends StatelessWidget {
                           ),
                         ],
                       ),
-
-                      // View Count
-                      /* // Could allow enabling this
-                      Row(
-                         children: [
-                            Icon(Icons.remove_red_eye_rounded, size: 16, color: context.theme.mutedForeground),
-                            const SizedBox(width: 4),
-                            Text(
-                              '${blog.publicIds?.length ?? 0} ${AppLocalizations.of(context).translate('views_label')}', // Note: publicIds isn't exactly view count but close enough based on React code 'viewCount'
-                               style: TextStyle(fontSize: 13, color: context.theme.mutedForeground),
-                            )
-                         ],
-                      )
-                      */
                     ],
                   ),
 
                   const Divider(height: 48),
 
                   // Content
-                  Html(
-                    data: blog.content ?? '',
-                    style: {
-                      "body": Style(
-                        margin: Margins.zero,
-                        padding: HtmlPaddings.zero,
-                        fontSize: FontSize(16),
-                        lineHeight: LineHeight(1.6),
-                        color: isDark
-                            ? const Color(0xFFE0E0E0)
-                            : const Color(0xFF333333),
-                        fontFamily: 'Roboto', // Or app default font
-                      ),
-                      "p": Style(margin: Margins.only(bottom: 16)),
-                      "h1": Style(
-                        fontSize: FontSize(22),
-                        fontWeight: FontWeight.bold,
-                      ),
-                      "h2": Style(
-                        fontSize: FontSize(20),
-                        fontWeight: FontWeight.bold,
-                      ),
-                      "h3": Style(
-                        fontSize: FontSize(18),
-                        fontWeight: FontWeight.bold,
-                      ),
-                      "blockquote": Style(
-                        padding: HtmlPaddings.only(left: 16),
-                        border: Border(
-                          left: BorderSide(
-                            color: context.theme.primary,
-                            width: 4,
-                          ),
+                  if (_isLoading &&
+                      (_blog.content == null || _blog.content!.isEmpty))
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child: CircularProgressIndicator(
+                          color: context.theme.primary,
                         ),
-                        fontStyle: FontStyle.italic,
-                        color: context.theme.mutedForeground,
                       ),
-                      "img": Style(
-                        width: Width(100, Unit.percent),
-                        height: Height.auto(),
-                        display: Display.block,
-                        margin: Margins.symmetric(vertical: 10),
+                    )
+                  else
+                    Html(
+                      data: _processHtmlContent(
+                        _blog.content ??
+                            '<p>${AppLocalizations.of(context).translate('no_content')}</p>',
                       ),
-                    },
-                    onLinkTap: (url, _, __) {
-                      // Handle outside links if needed
-                    },
-                  ),
+                      style: {
+                        "body": Style(
+                          margin: Margins.zero,
+                          padding: HtmlPaddings.zero,
+                          fontSize: FontSize(16),
+                          lineHeight: LineHeight(1.6),
+                          color: isDark
+                              ? const Color(0xFFE0E0E0)
+                              : const Color(0xFF333333),
+                          fontFamily: 'Roboto',
+                        ),
+                        "p": Style(margin: Margins.only(bottom: 16)),
+                        "h1": Style(
+                          fontSize: FontSize(22),
+                          fontWeight: FontWeight.bold,
+                        ),
+                        "h2": Style(
+                          fontSize: FontSize(20),
+                          fontWeight: FontWeight.bold,
+                        ),
+                        "h3": Style(
+                          fontSize: FontSize(18),
+                          fontWeight: FontWeight.bold,
+                        ),
+                        "blockquote": Style(
+                          padding: HtmlPaddings.only(left: 16),
+                          border: Border(
+                            left: BorderSide(
+                              color: context.theme.primary,
+                              width: 4,
+                            ),
+                          ),
+                          fontStyle: FontStyle.italic,
+                          color: context.theme.mutedForeground,
+                        ),
+                        "img": Style(
+                          width: Width(100, Unit.percent),
+                          height: Height.auto(),
+                          display: Display.block,
+                          margin: Margins.symmetric(vertical: 10),
+                        ),
+                      },
+                    ),
                 ],
               ),
             ),
