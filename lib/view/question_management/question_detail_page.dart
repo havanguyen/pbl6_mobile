@@ -104,7 +104,12 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
-              final success = await questionVm.deleteAnswer(answer.id);
+              final success = await questionVm.deleteAnswer(
+                answer.id,
+                errorContext: AppLocalizations.of(
+                  context,
+                ).translate('error_delete_answer'),
+              );
               if (mounted) {
                 if (success) {
                   snackbarService.showSuccess(
@@ -139,7 +144,12 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
     );
     final questionVm = Provider.of<QuestionVm>(context, listen: false);
 
-    final success = await questionVm.acceptAnswer(answer.id);
+    final success = await questionVm.acceptAnswer(
+      answer.id,
+      errorContext: AppLocalizations.of(
+        context,
+      ).translate('error_accept_answer'),
+    );
     if (mounted) {
       if (success) {
         snackbarService.showSuccess(
@@ -232,6 +242,9 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                   final success = await questionVm.postAnswer(
                     widget.questionId,
                     answerController.text,
+                    errorContext: AppLocalizations.of(
+                      context,
+                    ).translate('error_post_answer'),
                   );
                   if (mounted) {
                     if (success) {
@@ -337,6 +350,9 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                   final success = await questionVm.updateAnswer(
                     answer.id,
                     answerController.text,
+                    errorContext: AppLocalizations.of(
+                      context,
+                    ).translate('error_update_answer'),
                   );
                   if (mounted) {
                     if (success) {
@@ -377,9 +393,9 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
 
     showDialog(
       context: context,
-      builder: (context) {
+      builder: (dialogContext) {
         return StatefulBuilder(
-          builder: (context, setDialogState) {
+          builder: (dialogContext, setDialogState) {
             // Get unique specialties to avoid duplicate dropdown items
             final uniqueSpecialties = <String, Specialty>{};
             for (final specialty in vm.specialties) {
@@ -404,7 +420,9 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    AppLocalizations.of(context).translate('specialty_label'),
+                    AppLocalizations.of(
+                      dialogContext,
+                    ).translate('specialty_label'),
                     style: TextStyle(
                       color: context.theme.textColor,
                       fontWeight: FontWeight.w500,
@@ -415,7 +433,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                     value: validSelectedSpecialtyId,
                     hint: Text(
                       AppLocalizations.of(
-                        context,
+                        dialogContext,
                       ).translate('select_specialty'),
                       style: TextStyle(color: context.theme.mutedForeground),
                     ),
@@ -455,7 +473,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    AppLocalizations.of(context).translate('status'),
+                    AppLocalizations.of(dialogContext).translate('status'),
                     style: TextStyle(
                       color: context.theme.textColor,
                       fontWeight: FontWeight.w500,
@@ -465,7 +483,9 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                   DropdownButtonFormField<String>(
                     value: selectedStatus,
                     hint: Text(
-                      AppLocalizations.of(context).translate('select_status'),
+                      AppLocalizations.of(
+                        dialogContext,
+                      ).translate('select_status'),
                       style: TextStyle(color: context.theme.mutedForeground),
                     ),
                     isExpanded: true,
@@ -489,13 +509,13 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                       DropdownMenuItem(
                         value: 'PENDING',
                         child: Text(
-                          '⏳ ${AppLocalizations.of(context).translate('status_pending')}',
+                          '⏳ ${AppLocalizations.of(dialogContext).translate('status_pending')}',
                         ),
                       ),
                       DropdownMenuItem(
                         value: 'ANSWERED',
                         child: Text(
-                          '✅ ${AppLocalizations.of(context).translate('status_answered')}',
+                          '✅ ${AppLocalizations.of(dialogContext).translate('status_answered')}',
                         ),
                       ),
                       DropdownMenuItem(
@@ -505,22 +525,6 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                         ),
                       ),
                     ],
-                    selectedItemBuilder: (context) {
-                      return [
-                        Text(
-                          '⏳ ${AppLocalizations.of(context).translate('status_pending')}',
-                          style: TextStyle(color: context.theme.textColor),
-                        ),
-                        Text(
-                          '✅ ${AppLocalizations.of(context).translate('status_answered')}',
-                          style: TextStyle(color: context.theme.textColor),
-                        ),
-                        Text(
-                          '🔒 ${AppLocalizations.of(context).translate('status_closed')}',
-                          style: TextStyle(color: context.theme.textColor),
-                        ),
-                      ];
-                    },
                     onChanged: (value) {
                       setDialogState(() {
                         selectedStatus = value;
@@ -531,9 +535,9 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
               ),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () => Navigator.pop(dialogContext),
                   child: Text(
-                    AppLocalizations.of(context).translate('cancel'),
+                    AppLocalizations.of(dialogContext).translate('cancel'),
                     style: TextStyle(color: context.theme.grey),
                   ),
                 ),
@@ -546,15 +550,23 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                       (selectedSpecialtyId == null || selectedStatus == null)
                       ? null
                       : () async {
-                          Navigator.pop(context);
+                          Navigator.pop(dialogContext);
                           final data = {
                             'specialtyId': selectedSpecialtyId,
                             'status': selectedStatus,
                           };
+
+                          // Capture localized string before async gap
+                          final errorContext = AppLocalizations.of(
+                            context,
+                          ).translate('error_update_question');
+
                           final success = await vm.updateQuestion(
                             question.id,
                             data,
+                            errorContext: errorContext,
                           );
+
                           if (mounted) {
                             if (success) {
                               snackbarService.showSuccess(
@@ -572,7 +584,9 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                             }
                           }
                         },
-                  child: Text(AppLocalizations.of(context).translate('update')),
+                  child: Text(
+                    AppLocalizations.of(dialogContext).translate('update'),
+                  ),
                 ),
               ],
             );
@@ -772,6 +786,37 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                       ],
                     ),
                   ),
+                  const SizedBox(height: 16),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        _buildStatChip(
+                          context,
+                          Icons.visibility_outlined,
+                          '${question.viewCount} ${AppLocalizations.of(context).translate('views')}',
+                        ),
+                        const SizedBox(width: 12),
+                        _buildStatChip(
+                          context,
+                          Icons.chat_bubble_outline_rounded,
+                          '${question.answerCount} ${AppLocalizations.of(context).translate('answers_count')}',
+                        ),
+                        if (question.specialty != null) ...[
+                          const SizedBox(width: 12),
+                          _buildStatChip(
+                            context,
+                            Icons.medical_services_outlined,
+                            question.specialty!.name,
+                            color: context.theme.primary,
+                            backgroundColor: context.theme.primary.withOpacity(
+                              0.1,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
                   const SizedBox(height: 24),
                   Row(
                     children: [
@@ -952,7 +997,10 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '${AppLocalizations.of(context).translate('doctor_id')}: ${answer.authorId}',
+                        answer.authorName ??
+                            AppLocalizations.of(
+                              context,
+                            ).translate('unknown_doctor'),
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
@@ -1068,6 +1116,41 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildStatChip(
+    BuildContext context,
+    IconData icon,
+    String label, {
+    Color? color,
+    Color? backgroundColor,
+  }) {
+    final effectiveColor = color ?? context.theme.mutedForeground;
+    final effectiveBg = backgroundColor ?? context.theme.muted.withOpacity(0.3);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: effectiveBg,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: effectiveColor.withOpacity(0.2)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: effectiveColor),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(
+              color: effectiveColor,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
       ),
     );
   }

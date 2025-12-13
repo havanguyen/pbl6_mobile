@@ -74,15 +74,15 @@ class QuestionService {
     }
   }
 
-  static Future<List<Answer>> getAnswers(String questionId,
-      {int page = 1, int limit = 10}) async {
+  static Future<List<Answer>> getAnswers(
+    String questionId, {
+    int page = 1,
+    int limit = 10,
+  }) async {
     try {
       final response = await _secureDio.get(
         '/questions/$questionId/answers',
-        queryParameters: {
-          'page': page,
-          'limit': limit,
-        },
+        queryParameters: {'page': page, 'limit': limit},
       );
       if (response.statusCode == 200 && response.data['success'] == true) {
         return (response.data['data'] as List)
@@ -111,14 +111,19 @@ class QuestionService {
 
   static Future<bool> acceptAnswer(String answerId) async {
     try {
-      final response = await _secureDio.patch('/questions/answers/$answerId/accept');
+      final response = await _secureDio.patch(
+        '/questions/answers/$answerId/accept',
+      );
       return response.statusCode == 200 && response.data['success'] == true;
     } catch (e) {
       return false;
     }
   }
 
-  static Future<Question> updateQuestion(String questionId, Map<String, dynamic> data) async {
+  static Future<Question> updateQuestion(
+    String questionId,
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await _secureDio.patch(
         '/questions/$questionId',
@@ -131,6 +136,23 @@ class QuestionService {
           requestOptions: response.requestOptions,
           response: response,
           message: response.data['message'] ?? 'Cập nhật câu hỏi thất bại',
+        );
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  static Future<Question> createQuestion(Map<String, dynamic> data) async {
+    try {
+      final response = await _secureDio.post('/questions', data: data);
+      if (response.statusCode == 201 && response.data['success'] == true) {
+        return Question.fromJson(response.data['data']);
+      } else {
+        throw DioException(
+          requestOptions: response.requestOptions,
+          response: response,
+          message: response.data['message'] ?? 'Tạo câu hỏi thất bại',
         );
       }
     } catch (e) {

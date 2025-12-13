@@ -24,28 +24,12 @@ class QuestionDeleteConfirmationDialog extends StatefulWidget {
 
 class _QuestionDeleteConfirmationDialogState
     extends State<QuestionDeleteConfirmationDialog> {
-  final _formKey = GlobalKey<FormState>();
-  final _passwordController = TextEditingController();
   bool _isLoading = false;
-  bool _obscureText = true;
-
-  @override
-  void dispose() {
-    _passwordController.dispose();
-    super.dispose();
-  }
 
   Future<void> _deleteQuestion() async {
-    if (!(_formKey.currentState?.validate() ?? false)) {
-      return;
-    }
-
     setState(() => _isLoading = true);
     final questionVm = context.read<QuestionVm>();
-    final success = await questionVm.deleteQuestion(
-      widget.question['id'],
-      _passwordController.text,
-    );
+    final success = await questionVm.deleteQuestion(widget.question['id']);
 
     if (mounted) {
       setState(() => _isLoading = false);
@@ -80,84 +64,24 @@ class _QuestionDeleteConfirmationDialogState
         ],
       ),
       content: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '${AppLocalizations.of(context).translate('confirm_delete_question')} "${widget.question['title']}"?',
-                style: TextStyle(color: context.theme.mutedForeground),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '${AppLocalizations.of(context).translate('confirm_delete_question')} "${widget.question['title']}"?',
+              style: TextStyle(color: context.theme.mutedForeground),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              AppLocalizations.of(context).translate('action_cannot_undo'),
+              style: TextStyle(
+                color: context.theme.destructive,
+                fontWeight: FontWeight.w500,
+                fontSize: 13,
               ),
-              const SizedBox(height: 8),
-              Text(
-                AppLocalizations.of(context).translate('action_cannot_undo'),
-                style: TextStyle(
-                  color: context.theme.destructive,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 13,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                AppLocalizations.of(
-                  context,
-                ).translate('enter_password_confirm'),
-                style: TextStyle(
-                  color: context.theme.textColor,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 14,
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _passwordController,
-                obscureText: _obscureText,
-                style: TextStyle(color: context.theme.textColor),
-                decoration: InputDecoration(
-                  labelText: AppLocalizations.of(context).translate('password'),
-                  labelStyle: TextStyle(color: context.theme.mutedForeground),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(
-                      color: context.theme.primary,
-                      width: 1.5,
-                    ),
-                  ),
-                  filled: true,
-                  fillColor: context.theme.input,
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscureText ? Icons.visibility_off : Icons.visibility,
-                      color: context.theme.mutedForeground,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _obscureText = !_obscureText;
-                      });
-                    },
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return AppLocalizations.of(
-                      context,
-                    ).translate('password_required');
-                  }
-                  if (value.length < 1) {
-                    return AppLocalizations.of(
-                      context,
-                    ).translate('password_min_length');
-                  }
-                  return null;
-                },
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
       actions: <Widget>[

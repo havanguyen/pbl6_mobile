@@ -968,7 +968,11 @@ class _ListQuestionPageState extends State<ListQuestionPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            question.authorName,
+                            question.authorName.isNotEmpty
+                                ? question.authorName
+                                : AppLocalizations.of(
+                                    context,
+                                  ).translate('unknown_doctor'),
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
@@ -1083,6 +1087,38 @@ class _ListQuestionPageState extends State<ListQuestionPage> {
                       ),
                     ],
                   ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.visibility_outlined,
+                      size: 14,
+                      color: context.theme.mutedForeground,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${question.viewCount}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: context.theme.mutedForeground,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Icon(
+                      Icons.chat_bubble_outline_rounded,
+                      size: 14,
+                      color: context.theme.mutedForeground,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${question.answerCount}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: context.theme.mutedForeground,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

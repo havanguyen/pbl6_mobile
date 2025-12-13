@@ -4,7 +4,6 @@ import 'package:pbl6mobile/model/entities/answer.dart';
 import 'package:pbl6mobile/model/entities/question.dart';
 import 'package:pbl6mobile/model/entities/specialty.dart';
 import 'package:pbl6mobile/model/services/local/question_database_helper.dart';
-import 'package:pbl6mobile/model/services/remote/auth_service.dart';
 import 'package:pbl6mobile/model/services/remote/specialty_service.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
@@ -235,28 +234,10 @@ class QuestionVm extends ChangeNotifier {
     }
   }
 
-  Future<bool> deleteQuestion(String id, String password) async {
+  Future<bool> deleteQuestion(String id, {String? errorContext}) async {
     await _checkConnectivity();
     if (isOffline) {
       error = 'Không thể xóa khi offline';
-      notifyListeners();
-      return false;
-    }
-
-    bool verifySuccess = false;
-    try {
-      verifySuccess = await AuthService.verifyPassword(password: password);
-      if (!verifySuccess) {
-        error = 'Mật khẩu không chính xác.';
-        notifyListeners();
-        return false;
-      }
-    } on DioException catch (e) {
-      error = _handleDioError(e, "Lỗi xác thực mật khẩu");
-      notifyListeners();
-      return false;
-    } catch (e) {
-      error = 'Lỗi không mong muốn khi xác thực: $e';
       notifyListeners();
       return false;
     }
@@ -271,16 +252,16 @@ class QuestionVm extends ChangeNotifier {
         await _dbHelper.batchInsertQuestions(questions);
         return true;
       } else {
-        error = 'Xóa câu hỏi thất bại từ phía server.';
+        error = '${errorContext ?? "Xóa thất bại"}: Server error';
         notifyListeners();
         return false;
       }
     } on DioException catch (e) {
-      error = _handleDioError(e, "Lỗi xóa câu hỏi");
+      error = _handleDioError(e, errorContext ?? "Lỗi xóa câu hỏi");
       notifyListeners();
       return false;
     } catch (e) {
-      error = 'Lỗi không mong muốn khi xóa: $e';
+      error = '${errorContext ?? "Lỗi xóa"}: $e';
       notifyListeners();
       return false;
     }
@@ -303,7 +284,7 @@ class QuestionVm extends ChangeNotifier {
     } on DioException catch (e) {
       error = _handleDioError(e, "Lỗi tải chi tiết câu hỏi");
     } catch (e) {
-      error = 'Lỗi không mong muốn khi tải chi tiết: $e';
+      error = 'Detail error: $e';
     } finally {
       isLoading = false;
       notifyListeners();
@@ -342,7 +323,7 @@ class QuestionVm extends ChangeNotifier {
     }
   }
 
-  Future<bool> deleteAnswer(String answerId) async {
+  Future<bool> deleteAnswer(String answerId, {String? errorContext}) async {
     await _checkConnectivity();
     if (isOffline) {
       error = 'Không thể xóa khi offline';
@@ -354,22 +335,22 @@ class QuestionVm extends ChangeNotifier {
       if (success && currentQuestion != null) {
         await fetchAnswers(currentQuestion!.id);
       } else if (!success) {
-        error = 'Xóa câu trả lời thất bại từ phía server.';
+        error = '${errorContext ?? "Xóa thất bại"}: Server error';
         notifyListeners();
       }
       return success;
     } on DioException catch (e) {
-      error = _handleDioError(e, "Lỗi xóa câu trả lời");
+      error = _handleDioError(e, errorContext ?? "Lỗi xóa câu trả lời");
       notifyListeners();
       return false;
     } catch (e) {
-      error = 'Lỗi không mong muốn khi xóa câu trả lời: $e';
+      error = '${errorContext ?? "Lỗi xóa"}: $e';
       notifyListeners();
       return false;
     }
   }
 
-  Future<bool> acceptAnswer(String answerId) async {
+  Future<bool> acceptAnswer(String answerId, {String? errorContext}) async {
     await _checkConnectivity();
     if (isOffline) {
       error = 'Không thể duyệt khi offline';
@@ -381,22 +362,26 @@ class QuestionVm extends ChangeNotifier {
       if (success && currentQuestion != null) {
         await fetchAnswers(currentQuestion!.id);
       } else if (!success) {
-        error = 'Duyệt câu trả lời thất bại từ phía server.';
+        error = '${errorContext ?? "Duyệt thất bại"}: Server error';
         notifyListeners();
       }
       return success;
     } on DioException catch (e) {
-      error = _handleDioError(e, "Lỗi duyệt câu trả lời");
+      error = _handleDioError(e, errorContext ?? "Lỗi duyệt câu trả lời");
       notifyListeners();
       return false;
     } catch (e) {
-      error = 'Lỗi không mong muốn khi duyệt câu trả lời: $e';
+      error = '${errorContext ?? "Lỗi duyệt"}: $e';
       notifyListeners();
       return false;
     }
   }
 
-  Future<bool> postAnswer(String questionId, String body) async {
+  Future<bool> postAnswer(
+    String questionId,
+    String body, {
+    String? errorContext,
+  }) async {
     await _checkConnectivity();
     if (isOffline) {
       error = 'Không thể gửi câu trả lời khi offline';
@@ -410,17 +395,21 @@ class QuestionVm extends ChangeNotifier {
       notifyListeners();
       return true;
     } on DioException catch (e) {
-      error = _handleDioError(e, "Lỗi gửi câu trả lời");
+      error = _handleDioError(e, errorContext ?? "Lỗi gửi câu trả lời");
       notifyListeners();
       return false;
     } catch (e) {
-      error = 'Lỗi không mong muốn khi gửi câu trả lời: $e';
+      error = '${errorContext ?? "Lỗi gửi"}: $e';
       notifyListeners();
       return false;
     }
   }
 
-  Future<bool> updateAnswer(String answerId, String body) async {
+  Future<bool> updateAnswer(
+    String answerId,
+    String body, {
+    String? errorContext,
+  }) async {
     await _checkConnectivity();
     if (isOffline) {
       error = 'Không thể cập nhật khi offline';
@@ -437,11 +426,11 @@ class QuestionVm extends ChangeNotifier {
       }
       return true;
     } on DioException catch (e) {
-      error = _handleDioError(e, "Lỗi cập nhật câu trả lời");
+      error = _handleDioError(e, errorContext ?? "Lỗi cập nhật câu trả lời");
       notifyListeners();
       return false;
     } catch (e) {
-      error = 'Lỗi không mong muốn khi cập nhật câu trả lời: $e';
+      error = '${errorContext ?? "Lỗi cập nhật"}: $e';
       notifyListeners();
       return false;
     }
@@ -449,8 +438,9 @@ class QuestionVm extends ChangeNotifier {
 
   Future<bool> updateQuestion(
     String questionId,
-    Map<String, dynamic> data,
-  ) async {
+    Map<String, dynamic> data, {
+    String? errorContext,
+  }) async {
     await _checkConnectivity();
     if (isOffline) {
       error = 'Không thể cập nhật khi offline';
@@ -467,11 +457,38 @@ class QuestionVm extends ChangeNotifier {
       notifyListeners();
       return true;
     } on DioException catch (e) {
-      error = _handleDioError(e, "Lỗi cập nhật câu hỏi");
+      error = _handleDioError(e, errorContext ?? "Lỗi cập nhật câu hỏi");
       notifyListeners();
       return false;
     } catch (e) {
-      error = 'Lỗi không mong muốn khi cập nhật câu hỏi: $e';
+      error = '${errorContext ?? "Lỗi cập nhật"}: $e';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> createQuestion(
+    Map<String, dynamic> data, {
+    String? errorContext,
+  }) async {
+    await _checkConnectivity();
+    if (isOffline) {
+      error = 'Không thể tạo câu hỏi khi offline';
+      notifyListeners();
+      return false;
+    }
+    try {
+      final newQuestion = await QuestionService.createQuestion(data);
+      questions.insert(0, newQuestion);
+      error = null;
+      notifyListeners();
+      return true;
+    } on DioException catch (e) {
+      error = _handleDioError(e, errorContext ?? "Lỗi tạo câu hỏi");
+      notifyListeners();
+      return false;
+    } catch (e) {
+      error = '${errorContext ?? "Lỗi tạo"}: $e';
       notifyListeners();
       return false;
     }
