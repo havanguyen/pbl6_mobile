@@ -58,7 +58,10 @@ class DoctorDetail {
     required this.updatedAt,
     required this.profileCreatedAt,
     required this.profileUpdatedAt,
+    this.staffAccountId,
   });
+
+  final String? staffAccountId;
 
   factory DoctorDetail.fromJson(Map<String, dynamic> json) =>
       _$DoctorDetailFromJson(json);
@@ -91,6 +94,7 @@ class DoctorDetail {
     DateTime? updatedAt,
     DateTime? profileCreatedAt,
     DateTime? profileUpdatedAt,
+    String? staffAccountId,
   }) {
     return DoctorDetail(
       id: id ?? this.id,
@@ -118,6 +122,7 @@ class DoctorDetail {
       updatedAt: updatedAt ?? this.updatedAt,
       profileCreatedAt: profileCreatedAt ?? this.profileCreatedAt,
       profileUpdatedAt: profileUpdatedAt ?? this.profileUpdatedAt,
+      staffAccountId: staffAccountId ?? this.staffAccountId,
     );
   }
 }

@@ -212,8 +212,16 @@ class DoctorService {
           }
 
           final doctorDetail = DoctorDetail.fromJson(dataToParse);
-          return doctorDetail;
+          print('--- [DEBUG] DoctorService.getDoctorWithProfile ---');
+          print('Input Id: $doctorId');
+          print('Parsed Id (Entity.id): ${doctorDetail.id}');
+          print('Parsed ProfileId: ${doctorDetail.profileId}');
+          print('Raw JSON Id: ${dataToParse['id']}');
+          print('Raw JSON ProfileId: ${dataToParse['profileId']}');
+
+          return doctorDetail.copyWith(staffAccountId: dataToParse['id']);
         } catch (e) {
+          print('Error parsing doctor detail: $e');
           return null;
         }
       }
@@ -260,6 +268,22 @@ class DoctorService {
       return null;
     } catch (e) {
       print('Update Doctor Profile Error: $e');
+      if (e is DioException) {
+        print('DioException response: ${e.response?.data}');
+      }
+      return null;
+    }
+  }
+
+  static Future<DoctorProfile?> getDoctorProfileById(String profileId) async {
+    try {
+      final response = await _secureDio.get('/doctors/profile/$profileId');
+      if (response.statusCode == 200 && response.data['data'] != null) {
+        return DoctorProfile.fromJson(response.data['data']);
+      }
+      return null;
+    } catch (e) {
+      print('Get Doctor Profile By ID Error: $e');
       if (e is DioException) {
         print('DioException response: ${e.response?.data}');
       }
@@ -563,5 +587,45 @@ class DoctorService {
     }
     availableDates.sort();
     return availableDates;
+  }
+
+  static Future<List<String>> getDoctorMonthSlots({
+    required String profileId,
+    required String locationId,
+    required int month,
+    required int year,
+    bool allowPast = false,
+  }) async {
+    try {
+      final response = await _secureDio.get(
+        '/doctors/profile/$profileId/month-slots',
+        queryParameters: {
+          'month': month,
+          'year': year,
+          'locationId': locationId,
+          'allowPast': allowPast,
+        },
+      );
+
+      print('--- [DEBUG] DoctorService.getDoctorMonthSlots ---');
+      print('ProfileId: $profileId, Month: $month, Year: $year');
+      print('Status: ${response.statusCode}');
+
+      if (response.statusCode == 200 && response.data != null) {
+        if (response.data['success'] == true) {
+          final data = response.data['data'];
+          if (data != null && data['availableDates'] != null) {
+            return List<String>.from(data['availableDates']);
+          }
+        }
+      }
+      return [];
+    } catch (e) {
+      print('Get Doctor Month Slots Error: $e');
+      if (e is DioException) {
+        print('Dio response: ${e.response?.data}');
+      }
+      return [];
+    }
   }
 }

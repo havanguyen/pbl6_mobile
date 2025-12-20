@@ -122,6 +122,11 @@ class ReviewService {
       if (e.response != null) {
         print('DioException Data: ${e.response?.data}');
         print('DioException Status: ${e.response?.statusCode}');
+
+        // Handle 404 as empty list (Backend returns 404 when no reviews found or doctor has no reviews)
+        if (e.response?.statusCode == 404) {
+          return GetReviewsResponse(success: true, data: [], meta: {});
+        }
       }
       return GetReviewsResponse(
         success: false,

@@ -268,7 +268,12 @@ class DoctorVm extends ChangeNotifier {
         } else {
           await _dbHelper.insertDoctorDetail(_doctorDetail!);
         }
-        await fetchReviewPreview(_doctorDetail!.profileId);
+        print(
+          '--- [DEBUG] Fetching Reviews Preview for doctorId: ${_doctorDetail!.staffAccountId ?? _doctorDetail!.id}',
+        );
+        await fetchReviewPreview(
+          _doctorDetail!.staffAccountId ?? _doctorDetail!.id,
+        );
       } else {
         if (cachedDoctor == null) {
           _error = "Không tìm thấy thông tin bác sĩ hoặc có lỗi xảy ra.";

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:pbl6mobile/model/entities/review.dart';
+import 'package:pbl6mobile/model/services/remote/doctor_service.dart';
 import 'package:pbl6mobile/model/services/remote/review_service.dart';
 
 class ReviewVm extends ChangeNotifier {
-  final String doctorId;
+  String doctorId; // Make it non-final so we can update it after resolution
+  final String? profileId;
 
   List<Review> _reviews = [];
   bool _isLoading = false;
@@ -19,7 +21,10 @@ class ReviewVm extends ChangeNotifier {
   String? get error => _error;
   bool get hasNext => _meta['hasNext'] ?? false;
 
-  ReviewVm({required this.doctorId}) {
+  ReviewVm({required this.doctorId, this.profileId}) {
+    print('--- [DEBUG] ReviewVm initialized ---');
+    print('Received doctorId: $doctorId');
+    print('Received profileId: $profileId');
     fetchReviews(forceRefresh: true);
   }
 
@@ -37,6 +42,25 @@ class ReviewVm extends ChangeNotifier {
     notifyListeners();
 
     try {
+      // Resolve doctorId (staffAccountId) from profileId ONLY if doctorId is missing or invalid
+      if ((doctorId.isEmpty || doctorId == 'undefined') && profileId != null) {
+        print('Resolving staffAccountId from profileId: $profileId');
+        final profile = await DoctorService.getDoctorProfileById(profileId!);
+        if (profile != null) {
+          doctorId = profile.staffAccountId;
+          print('Resolved doctorId: $doctorId');
+        } else {
+          print('Warning: Could not fetch profile to resolve ID.');
+        }
+      }
+
+      if (doctorId.isEmpty) {
+        _error = 'Missing Doctor ID';
+        _isLoading = false;
+        notifyListeners();
+        return;
+      }
+
       final result = await ReviewService.getReviewsForDoctor(
         doctorId: doctorId,
         page: _currentPage,

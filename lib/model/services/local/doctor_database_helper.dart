@@ -6,13 +6,13 @@ import 'package:pbl6mobile/model/entities/doctor.dart';
 
 class DoctorDatabaseHelper {
   static const _databaseName = "doctors.db";
-  static const _databaseVersion = 3;
+  static const _databaseVersion = 5;
   static const _table = "doctors";
   static const _tableDetails = "doctor_details_cache";
 
   DoctorDatabaseHelper._privateConstructor();
   static final DoctorDatabaseHelper instance =
-  DoctorDatabaseHelper._privateConstructor();
+      DoctorDatabaseHelper._privateConstructor();
 
   static Database? _database;
 
@@ -45,12 +45,14 @@ class DoctorDatabaseHelper {
         fullName TEXT NOT NULL,
         phone TEXT,
         role TEXT NOT NULL,
+        profileId TEXT,
         isMale INTEGER,
         dateOfBirth TEXT,
         createdAt TEXT,
         updatedAt TEXT,
         deletedAt TEXT,
-        avatarUrl TEXT
+        avatarUrl TEXT,
+        appointmentDuration INTEGER
       )
     ''');
   }
@@ -82,6 +84,31 @@ class DoctorDatabaseHelper {
         print("Database upgraded: Added doctor_details_cache table.");
       } catch (e) {
         print("Error upgrading DB to v3 (adding doctor_details_cache): $e");
+      }
+    }
+    if (oldVersion < 4) {
+      try {
+        // Check if column exists before adding (sqlite doesn't support IF NOT EXISTS for columns easily, so try-catch is okay)
+        await db.execute('ALTER TABLE $_table ADD COLUMN profileId TEXT');
+        print("Database upgraded: Added profileId column to doctors table.");
+      } catch (e) {
+        print("Error upgrading DB to v4 (adding profileId): $e");
+      }
+    }
+    if (oldVersion < 5) {
+      try {
+        await db.execute(
+          'ALTER TABLE $_table ADD COLUMN appointmentDuration INTEGER DEFAULT 30',
+        );
+        print(
+          "Database upgraded: Added appointmentDuration column to doctors table.",
+        );
+
+        // Clear cache to ensure fresh data structure
+        await db.execute('DELETE FROM $_tableDetails');
+        print("Database upgraded: Cleared doctor_details_cache.");
+      } catch (e) {
+        print("Error upgrading DB to v5: $e");
       }
     }
   }
@@ -177,11 +204,10 @@ class DoctorDatabaseHelper {
 
   Future<void> insertDoctorDetail(DoctorDetail detail) async {
     final db = await database;
-    await db.insert(
-      _tableDetails,
-      {'id': detail.id, 'detailJson': jsonEncode(detail.toJson())},
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await db.insert(_tableDetails, {
+      'id': detail.id,
+      'detailJson': jsonEncode(detail.toJson()),
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<DoctorDetail?> getDoctorDetail(String doctorId) async {
@@ -195,7 +221,8 @@ class DoctorDatabaseHelper {
     if (maps.isNotEmpty) {
       try {
         final jsonMap =
-        jsonDecode(maps.first['detailJson'] as String) as Map<String, dynamic>;
+            jsonDecode(maps.first['detailJson'] as String)
+                as Map<String, dynamic>;
         return DoctorDetail.fromJson(jsonMap);
       } catch (e) {
         print("Error decoding cached doctor detail: $e");

@@ -38,14 +38,56 @@ class UpdateDoctorPage extends StatelessWidget {
     String? id,
   }) async {
     final convertedDate = _convertDateFormat(dateOfBirth);
+
+    // Check for changes
+    final initialEmail = doctor['email'] as String? ?? '';
+    final initialFullName = doctor['fullName'] as String? ?? '';
+    final initialPhone = doctor['phone'] as String?;
+    final initialIsMale = doctor['isMale'] as bool?;
+    final initialDobRaw = doctor['dateOfBirth'] as String?;
+    String initialDob = '';
+    if (initialDobRaw != null) {
+      // Assuming initialDob comes in YYYY-MM-DD or ISO format from backend/json
+      // We should try to normalize it to simple YYYY-MM-DD for comparison if possible,
+      // roughly matching _convertDateFormat's output.
+      if (initialDobRaw.contains('T')) {
+        initialDob = initialDobRaw.split('T')[0];
+      } else {
+        initialDob = initialDobRaw;
+      }
+    }
+
+    final String? emailToSend = (email != initialEmail) ? email : null;
+    final String? fullNameToSend = (fullName != initialFullName)
+        ? fullName
+        : null;
+    final String? passwordToSend = (password.isNotEmpty)
+        ? password
+        : null; // Password always optional/change if present
+    final String? phoneToSend = (phone != initialPhone) ? phone : null;
+    final bool? isMaleToSend = (isMale != initialIsMale) ? isMale : null;
+    final String? dobToSend = (convertedDate != initialDob)
+        ? convertedDate
+        : null;
+
+    // If no changes, return true immediately or Handle as success
+    if (emailToSend == null &&
+        fullNameToSend == null &&
+        passwordToSend == null &&
+        phoneToSend == null &&
+        isMaleToSend == null &&
+        dobToSend == null) {
+      return true;
+    }
+
     final success = await DoctorService.updateDoctor(
       id!,
-      fullName: fullName,
-      email: email,
-      password: password.isEmpty ? null : password,
-      phone: phone,
-      dateOfBirth: convertedDate,
-      isMale: isMale,
+      fullName: fullNameToSend,
+      email: emailToSend,
+      password: passwordToSend,
+      phone: phoneToSend,
+      dateOfBirth: dobToSend,
+      isMale: isMaleToSend,
     );
 
     return success;

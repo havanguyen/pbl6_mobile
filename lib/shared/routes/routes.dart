@@ -329,11 +329,12 @@ class Routes {
         final args = settings.arguments as Map<String, dynamic>;
         final doctorId = args['doctorId'] as String;
         final doctorName = args['doctorName'] as String;
+        final profileId = args['profileId'] as String?;
         return PageTransition(
           type: PageTransitionType.leftToRight,
           settings: settings,
           child: ChangeNotifierProvider(
-            create: (_) => ReviewVm(doctorId: doctorId),
+            create: (_) => ReviewVm(doctorId: doctorId, profileId: profileId),
             child: DoctorReviewPage(doctorId: doctorId, doctorName: doctorName),
           ),
         );

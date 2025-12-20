@@ -265,17 +265,43 @@ class CreateAppointmentVm extends ChangeNotifier {
     notifyListeners();
 
     try {
-      print(
-        '--- [DEBUG] Fetching dates for Doctor Profile: ${_selectedDoctor!.profileId} ---',
-      );
+      final String profileId =
+          _selectedDoctor!.profileId ?? _selectedDoctor!.id;
+      print('--- [DEBUG] Fetching dates for Doctor Profile: $profileId ---');
 
-      // Use profileId if available, otherwise fallback to id (which might be the profileId in some contexts, or we fetched detail to fix it)
-      final String targetId = _selectedDoctor!.profileId ?? _selectedDoctor!.id;
+      final now = DateTime.now();
+      final currentMonth = now.month;
+      final currentYear = now.year;
 
-      _availableDates = await DoctorService.getDoctorAvailableDates(
-        targetId,
-        _selectedLocation!.id,
-      );
+      // Calculate next month
+      var nextMonth = currentMonth + 1;
+      var nextYear = currentYear;
+      if (nextMonth > 12) {
+        nextMonth = 1;
+        nextYear++;
+      }
+
+      // Fetch current and next month
+      final futures = [
+        DoctorService.getDoctorMonthSlots(
+          profileId: profileId,
+          locationId: _selectedLocation!.id,
+          month: currentMonth,
+          year: currentYear,
+          allowPast: true, // Allow fetching today
+        ),
+        DoctorService.getDoctorMonthSlots(
+          profileId: profileId,
+          locationId: _selectedLocation!.id,
+          month: nextMonth,
+          year: nextYear,
+        ),
+      ];
+
+      final results = await Future.wait(futures);
+      final allDates = {...results[0], ...results[1]}.toList()..sort();
+
+      _availableDates = allDates;
       print(
         '--- [DEBUG] Available Dates Fetched: ${_availableDates.length} ---',
       );

@@ -326,11 +326,28 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                                         ),
                                       ),
                                       onPressed: () {
+                                        print(
+                                          '--- [DEBUG] DoctorDetailPage Navigation ---',
+                                        );
+                                        print('doctor.id: ${doctor.id}');
+                                        print(
+                                          'doctor.profileId: ${doctor.profileId}',
+                                        );
+                                        print(
+                                          'doctor.staffAccountId: ${doctor.staffAccountId}',
+                                        );
+                                        print(
+                                          'Passing doctorId: ${doctor.staffAccountId ?? doctor.id}',
+                                        );
+
                                         Navigator.pushNamed(
                                           context,
                                           Routes.doctorReviewPage,
                                           arguments: {
-                                            'doctorId': doctor.profileId,
+                                            'doctorId':
+                                                doctor.staffAccountId ??
+                                                doctor.id,
+                                            'profileId': doctor.profileId,
                                             'doctorName': doctor.fullName,
                                           },
                                         );
