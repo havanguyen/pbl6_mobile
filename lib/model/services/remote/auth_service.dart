@@ -319,6 +319,26 @@ class AuthService {
     return token != null;
   }
 
+  static Future<bool> updateProfile(Map<String, dynamic> data) async {
+    try {
+      print('Updating profile with data: $data');
+      final response = await _secureDio.patch('/auth/profile', data: data);
+
+      print('Update profile response: ${response.statusCode}');
+      if (response.data != null) {
+        print('Response data: ${response.data}');
+      }
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print("Update profile error: $e");
+      if (e is DioException) {
+        print("DioException Response: ${e.response?.data}");
+      }
+      return false;
+    }
+  }
+
   static Future<Profile?> getProfile() async {
     try {
       final response = await _secureDio.get('/auth/profile');

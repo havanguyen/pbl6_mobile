@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pbl6mobile/model/entities/profile.dart';
-import 'package:pbl6mobile/model/services/remote/doctor_service.dart';
+import 'package:pbl6mobile/model/services/remote/auth_service.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/shared/widgets/widget/doctor_form.dart';
 
@@ -35,15 +35,24 @@ class EditAccountDoctorPage extends StatelessWidget {
     String? id,
   }) async {
     final convertedDate = _convertDateFormat(dateOfBirth);
-    return await DoctorService.updateDoctor(
-      id!,
-      fullName: fullName,
-      email: email,
-      password: password.isEmpty ? null : password,
-      phone: phone,
-      dateOfBirth: convertedDate,
-      isMale: isMale,
-    );
+
+    final initialData = {
+      'fullName': fullName,
+      'phone': phone,
+      'dateOfBirth': convertedDate,
+      'isMale': isMale,
+    };
+
+    print('--- [DEBUG] EditAccountDoctorPage._onSubmit ---');
+    print('Updating Profile for ID: $id');
+    print('Data: $initialData');
+
+    // Remove null or empty values
+    final dataToSend = Map<String, dynamic>.from(initialData);
+    dataToSend.removeWhere((key, value) => value == null || value == '');
+
+    // Use AuthService.updateProfile which maps to PATCH /auth/profile
+    return await AuthService.updateProfile(dataToSend);
   }
 
   @override

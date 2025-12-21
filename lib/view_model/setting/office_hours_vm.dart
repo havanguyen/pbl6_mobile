@@ -45,6 +45,10 @@ class OfficeHoursVm extends ChangeNotifier {
         return apiMessage ?? 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.';
       }
 
+      if (statusCode == 409) {
+        return 'Khung giờ này bị trùng lặp với lịch hiện có. Vui lòng kiểm tra lại.';
+      }
+
       return '$contextMessage: ${apiMessage ?? e.message} (Code: $statusCode)';
     } else {
       return '$contextMessage: ${e.message}';
