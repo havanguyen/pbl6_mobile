@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:pbl6mobile/view/dashboard/widgets/recent_sales.dart';
-import 'package:pbl6mobile/view/dashboard/widgets/revenue_chart.dart';
-import 'package:pbl6mobile/view/dashboard/widgets/stat_card.dart';
+import 'package:pbl6mobile/view/dashboard/widgets/dashboard_stats_card.dart';
 import 'package:pbl6mobile/view_model/stats/stats_vm.dart';
 import 'package:provider/provider.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
-import '../../../../shared/widgets/animations/fade_in_up.dart';
 import '../../../../shared/localization/app_localizations.dart';
+import '../../../../shared/widgets/animations/fade_in_up.dart';
 
 class DashboardOverview extends StatelessWidget {
   const DashboardOverview({super.key});
@@ -16,190 +13,244 @@ class DashboardOverview extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<StatsVm>(
       builder: (context, vm, child) {
-        // Format Total Revenue
-        final totalRevenue = NumberFormat.currency(
-          locale: 'vi_VN',
-          symbol: '₫',
-        ).format(vm.totalRevenue);
+        final bookingStats = vm.doctorStats?.booking;
+        final contentStats = vm.doctorStats?.content;
+        final isLoading = vm.isLoadingDoctorStats;
 
-        // Stat Cards Layout
-        // Grid View is tricky inside List View, so use Wrap or Column+Rows
-        // Or GridView.count with shrinkWrap
+        // Calculate Completed Rate
+        String completedRate = '0%';
+        if (bookingStats != null && bookingStats.total > 0) {
+          final rate = (bookingStats.completedCount / bookingStats.total) * 100;
+          completedRate = '${rate.toStringAsFixed(1)}%';
+        }
+
+        // Calculate Average Rating
+        String avgRating = '0.0';
+        if (contentStats != null) {
+          avgRating = contentStats.averageRating.toStringAsFixed(1);
+        }
+
         return SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // --- Stat Cards Grid ---
+              // --- Booking Stats ---
+              FadeInUp(
+                delay: const Duration(milliseconds: 100),
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Text(
+                    AppLocalizations.of(context).translate('booking_stats'),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: context.theme.textColor,
+                    ),
+                  ),
+                ),
+              ),
+              _buildGrid(
+                children: [
+                  DashboardStatsCard(
+                    title: AppLocalizations.of(
+                      context,
+                    ).translate('total_appointments'),
+                    value: bookingStats?.total.toString() ?? '0',
+                    description: AppLocalizations.of(
+                      context,
+                    ).translate('new_this_month'), // Placeholder or real logic
+                    icon: Icons.calendar_today,
+                    isLoading: isLoading,
+                  ),
+                  DashboardStatsCard(
+                    title: AppLocalizations.of(
+                      context,
+                    ).translate('pending_confirmation'),
+                    value: bookingStats?.bookedCount.toString() ?? '0',
+                    description: AppLocalizations.of(
+                      context,
+                    ).translate('from_last_month'), // Placeholder
+                    icon: Icons.timer, // loading/pending icon
+                    isLoading: isLoading,
+                    iconColor: Colors.orange,
+                  ),
+                  DashboardStatsCard(
+                    title: AppLocalizations.of(context).translate('confirmed'),
+                    value: bookingStats?.confirmedCount.toString() ?? '0',
+                    description: AppLocalizations.of(
+                      context,
+                    ).translate('from_last_month'),
+                    icon: Icons.check_circle_outline,
+                    isLoading: isLoading,
+                    iconColor: Colors.blue,
+                  ),
+                  DashboardStatsCard(
+                    title: AppLocalizations.of(
+                      context,
+                    ).translate('completed_rate'),
+                    value: completedRate,
+                    description: AppLocalizations.of(
+                      context,
+                    ).translate('from_last_month'),
+                    icon: Icons.pie_chart,
+                    isLoading: isLoading,
+                    iconColor: Colors.green,
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 24),
+
+              // --- Content Stats ---
+              FadeInUp(
+                delay: const Duration(milliseconds: 300),
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Text(
+                    AppLocalizations.of(context).translate('content_stats'),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: context.theme.textColor,
+                    ),
+                  ),
+                ),
+              ),
+              _buildGrid(
+                children: [
+                  DashboardStatsCard(
+                    title: AppLocalizations.of(context).translate('reviews'),
+                    value: contentStats?.totalReviews.toString() ?? '0',
+                    description: AppLocalizations.of(
+                      context,
+                    ).translate('new_this_month'),
+                    icon: Icons.star_border,
+                    isLoading: isLoading,
+                  ),
+                  DashboardStatsCard(
+                    title: AppLocalizations.of(context).translate('avg_rating'),
+                    value: avgRating,
+                    description: AppLocalizations.of(
+                      context,
+                    ).translate('from_last_month'),
+                    icon: Icons.star,
+                    isLoading: isLoading,
+                    iconColor: Colors.yellow[700],
+                  ),
+                  DashboardStatsCard(
+                    title: AppLocalizations.of(context).translate('qa_answers'),
+                    value: contentStats?.totalAnswers.toString() ?? '0',
+                    description:
+                        '${contentStats?.totalAcceptedAnswers ?? 0} ${AppLocalizations.of(context).translate('accepted_answers')}',
+                    icon: Icons.question_answer_outlined,
+                    isLoading: isLoading,
+                    iconColor: Colors.purple,
+                  ),
+                  DashboardStatsCard(
+                    title: AppLocalizations.of(
+                      context,
+                    ).translate('published_blogs'),
+                    value:
+                        contentStats?.totalBlogs.toString() ??
+                        '0', // Assuming totalBlogs exists in ContentStats
+                    description: AppLocalizations.of(
+                      context,
+                    ).translate('new_this_month'),
+                    icon: Icons.article_outlined,
+                    isLoading: isLoading,
+                    iconColor: Colors.teal,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+
+              // --- Bottom Cards ---
               LayoutBuilder(
                 builder: (context, constraints) {
-                  // Simple 2x2 grid logic if width allows, otherwise 1 col
-                  int crossAxisCount = constraints.maxWidth > 600 ? 4 : 2;
-                  double childAspectRatio = crossAxisCount == 4 ? 1.4 : 1.1;
-
                   return GridView.count(
-                    crossAxisCount: crossAxisCount,
+                    crossAxisCount: constraints.maxWidth > 600 ? 2 : 1,
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    childAspectRatio: childAspectRatio,
+                    childAspectRatio: constraints.maxWidth > 600 ? 2.5 : 2.0,
                     children: [
-                      // Total Staff
-                      FadeInUp(
-                        delay: const Duration(milliseconds: 100),
-                        child: StatCard(
-                          title: AppLocalizations.of(
-                            context,
-                          ).translate('total_staffs'),
-                          value: vm.staffStats?.total.toString() ?? '0',
-                          subtitle:
-                              '${vm.staffStats?.recentlyCreated ?? 0} ${AppLocalizations.of(context).translate('recently_created')}',
-                          icon: Icons.people,
-                          iconColor: Colors.blue,
-                          isLoading: vm.isLoadingStaff,
-                        ),
-                      ),
-                      // Total Patients
-                      FadeInUp(
-                        delay: const Duration(milliseconds: 200),
-                        child: StatCard(
-                          title: AppLocalizations.of(
-                            context,
-                          ).translate('total_patients'),
-                          value:
-                              vm.patientStats?.totalPatients.toString() ?? '0',
-                          subtitle:
-                              '+${vm.patientStats?.currentMonthPatients ?? 0} ${AppLocalizations.of(context).translate('new_this_month')}',
-                          icon: Icons.person_outline,
-                          iconColor: Colors.orange,
-                          isLoading: vm.isLoadingPatients,
-                        ),
-                      ),
-                      // Appointments
-                      FadeInUp(
-                        delay: const Duration(milliseconds: 300),
-                        child: StatCard(
-                          title: AppLocalizations.of(
-                            context,
-                          ).translate('appointments'),
-                          value:
-                              vm.appointmentStats?.totalAppointments
-                                  .toString() ??
-                              '0',
-                          subtitle: _formatGrowth(
-                            context,
-                            vm.appointmentStats?.growthPercent ?? 0,
+                      // Booking Performance Card
+                      _buildPerformanceCard(
+                        context,
+                        title: AppLocalizations.of(
+                          context,
+                        ).translate('booking_performance'),
+                        subtitle: 'Details about appointment status',
+                        items: [
+                          _PerformanceItem(
+                            label: AppLocalizations.of(
+                              context,
+                            ).translate('status_completed'),
+                            value:
+                                bookingStats?.completedCount.toString() ?? '0',
+                            icon: Icons.check_circle_outline,
+                            color: Colors.green,
                           ),
-                          icon: Icons.calendar_today,
-                          iconColor: Colors.pink,
-                          isLoading: vm.isLoadingAppointments,
-                        ),
+                          _PerformanceItem(
+                            label: AppLocalizations.of(
+                              context,
+                            ).translate('status_confirmed'),
+                            value:
+                                bookingStats?.confirmedCount.toString() ?? '0',
+                            icon: Icons.access_time,
+                            color: Colors.orange,
+                          ),
+                          _PerformanceItem(
+                            label: AppLocalizations.of(
+                              context,
+                            ).translate('status_cancelled'),
+                            value:
+                                bookingStats?.cancelledCount.toString() ?? '0',
+                            icon: Icons.cancel_outlined,
+                            color: Colors.red,
+                          ),
+                        ],
                       ),
-                      // Revenue
-                      FadeInUp(
-                        delay: const Duration(milliseconds: 400),
-                        child: StatCard(
-                          title: AppLocalizations.of(
-                            context,
-                          ).translate('total_revenue'),
-                          value: totalRevenue,
-                          subtitle:
-                              'Year to date', // TODO: Localize 'year_to_date' if needed.
-                          icon: Icons.attach_money,
-                          iconColor: Colors.green,
-                          isLoading: vm.isLoadingRevenue,
-                        ),
+                      // Content Engagement Card
+                      _buildPerformanceCard(
+                        context,
+                        title: AppLocalizations.of(
+                          context,
+                        ).translate('content_engagement'),
+                        subtitle: 'Engagement with posts and answers',
+                        items: [
+                          _PerformanceItem(
+                            label: AppLocalizations.of(
+                              context,
+                            ).translate('avg_rating'),
+                            value: '$avgRating / 5.0',
+                            icon: Icons.star,
+                            color: Colors.amber,
+                          ),
+                          _PerformanceItem(
+                            label: AppLocalizations.of(
+                              context,
+                            ).translate('accepted_answers'),
+                            value:
+                                '${contentStats?.totalAcceptedAnswers ?? 0} / ${contentStats?.totalAnswers ?? 0}',
+                            icon: Icons.message_outlined,
+                            color: Colors.blue,
+                          ),
+                          _PerformanceItem(
+                            label: AppLocalizations.of(
+                              context,
+                            ).translate('published_blogs'),
+                            value: contentStats?.totalBlogs.toString() ?? '0',
+                            icon: Icons.article_outlined,
+                            color: Colors.purple,
+                          ),
+                        ],
                       ),
                     ],
                   );
                 },
-              ),
-
-              const SizedBox(height: 24),
-
-              // --- Overview Chart & Recent Sales ---
-              // On mobile, stack them vertically.
-
-              // Chart Section
-              FadeInUp(
-                delay: const Duration(milliseconds: 500),
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: context.theme.card,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: context.theme.border),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        AppLocalizations.of(context).translate('overview'),
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: context.theme.textColor,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      SizedBox(
-                        height: 300,
-                        child: vm.isLoadingRevenue
-                            ? const Center(child: CircularProgressIndicator())
-                            : RevenueChart(data: vm.revenueStats),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Recent Sales (Top Doctors)
-              FadeInUp(
-                delay: const Duration(milliseconds: 600),
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: context.theme.card,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: context.theme.border),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            AppLocalizations.of(
-                              context,
-                            ).translate('top_doctors_revenue'),
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: context.theme.textColor,
-                            ),
-                          ),
-                          Text(
-                            AppLocalizations.of(
-                              context,
-                            ).translate('highest_earning_doctors'),
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: context.theme.mutedForeground,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      vm.isLoadingTopDoctors
-                          ? const Center(child: CircularProgressIndicator())
-                          : RecentSales(data: vm.revenueByDoctorStats),
-                    ],
-                  ),
-                ),
               ),
             ],
           ),
@@ -208,9 +259,114 @@ class DashboardOverview extends StatelessWidget {
     );
   }
 
-  String _formatGrowth(BuildContext context, double growth) {
-    if (growth > 0)
-      return '+$growth% ${AppLocalizations.of(context).translate('from_last_month')}';
-    return '$growth% ${AppLocalizations.of(context).translate('from_last_month')}';
+  Widget _buildPerformanceCard(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required List<_PerformanceItem> items,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: context.theme.card,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: context.theme.border, width: 0.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: context.theme.textColor,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            subtitle,
+            style: TextStyle(
+              fontSize: 12,
+              color: context.theme.mutedForeground,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: items.map((item) {
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(item.icon, size: 16, color: item.color),
+                        const SizedBox(width: 8),
+                        Text(
+                          item.label,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: context.theme.textColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      item.value,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: context.theme.textColor,
+                      ),
+                    ),
+                  ],
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
   }
+
+  Widget _buildGrid({required List<Widget> children}) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        int crossAxisCount = constraints.maxWidth > 600 ? 4 : 2;
+        double childAspectRatio = crossAxisCount == 4 ? 1.4 : 1.3;
+
+        return GridView.count(
+          crossAxisCount: crossAxisCount,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          childAspectRatio: childAspectRatio,
+          children: children,
+        );
+      },
+    );
+  }
+}
+
+class _PerformanceItem {
+  final String label;
+  final String value;
+  final IconData icon;
+  final Color color;
+
+  _PerformanceItem({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.color,
+  });
 }

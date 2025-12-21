@@ -73,9 +73,23 @@ class DoctorInfo {
     required this.avatarUrl,
   });
 
-  factory DoctorInfo.fromJson(Map<String, dynamic> json) =>
-      _$DoctorInfoFromJson(json);
-  Map<String, dynamic> toJson() => _$DoctorInfoToJson(this);
+  factory DoctorInfo.fromJson(Map<String, dynamic> json) {
+    return DoctorInfo(
+      id: json['id'] as String? ?? '',
+      staffAccountId: json['staffAccountId'] as String? ?? '',
+      fullName: json['fullName'] as String? ?? 'Unknown Doctor',
+      isActive: json['isActive'] as bool? ?? false,
+      avatarUrl: json['avatarUrl'] as String? ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'staffAccountId': staffAccountId,
+    'fullName': fullName,
+    'isActive': isActive,
+    'avatarUrl': avatarUrl,
+  };
 }
 
 /// Revenue stats by doctor
@@ -168,4 +182,239 @@ class QAOverviewStats {
   factory QAOverviewStats.fromJson(Map<String, dynamic> json) =>
       _$QAOverviewStatsFromJson(json);
   Map<String, dynamic> toJson() => _$QAOverviewStatsToJson(this);
+}
+
+/// Doctor booking stats
+@JsonSerializable()
+class DoctorBookingStats {
+  final int total;
+  final int bookedCount;
+  final int confirmedCount;
+  final int cancelledCount;
+  final int completedCount;
+  final double completedRate;
+
+  DoctorBookingStats({
+    required this.total,
+    required this.bookedCount,
+    required this.confirmedCount,
+    required this.cancelledCount,
+    required this.completedCount,
+    required this.completedRate,
+  });
+
+  factory DoctorBookingStats.fromJson(Map<String, dynamic> json) {
+    return DoctorBookingStats(
+      total: json['total'] as int? ?? 0,
+      bookedCount: json['bookedCount'] as int? ?? 0,
+      confirmedCount: json['confirmedCount'] as int? ?? 0,
+      cancelledCount: json['cancelledCount'] as int? ?? 0,
+      completedCount: json['completedCount'] as int? ?? 0,
+      completedRate: (json['completedRate'] as num?)?.toDouble() ?? 0.0,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'total': total,
+    'bookedCount': bookedCount,
+    'confirmedCount': confirmedCount,
+    'cancelledCount': cancelledCount,
+    'completedCount': completedCount,
+    'completedRate': completedRate,
+  };
+}
+
+/// Doctor content stats
+@JsonSerializable()
+class DoctorContentStats {
+  final int totalReviews;
+  final double averageRating;
+  final int totalAnswers;
+  final int totalAcceptedAnswers;
+  final double answerAcceptedRate;
+  final int totalBlogs;
+
+  DoctorContentStats({
+    required this.totalReviews,
+    required this.averageRating,
+    required this.totalAnswers,
+    required this.totalAcceptedAnswers,
+    required this.answerAcceptedRate,
+    required this.totalBlogs,
+  });
+
+  factory DoctorContentStats.fromJson(Map<String, dynamic> json) {
+    return DoctorContentStats(
+      totalReviews: json['totalReviews'] as int? ?? 0,
+      averageRating: (json['averageRating'] as num?)?.toDouble() ?? 0.0,
+      totalAnswers: json['totalAnswers'] as int? ?? 0,
+      totalAcceptedAnswers: json['totalAcceptedAnswers'] as int? ?? 0,
+      answerAcceptedRate:
+          (json['answerAcceptedRate'] as num?)?.toDouble() ?? 0.0,
+      totalBlogs: json['totalBlogs'] as int? ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'totalReviews': totalReviews,
+    'averageRating': averageRating,
+    'totalAnswers': totalAnswers,
+    'totalAcceptedAnswers': totalAcceptedAnswers,
+    'answerAcceptedRate': answerAcceptedRate,
+    'totalBlogs': totalBlogs,
+  };
+}
+
+/// Doctor my stats
+@JsonSerializable()
+class DoctorMyStats {
+  final DoctorBookingStats booking;
+  final DoctorContentStats content;
+
+  DoctorMyStats({required this.booking, required this.content});
+
+  factory DoctorMyStats.fromJson(Map<String, dynamic> json) {
+    return DoctorMyStats(
+      booking: DoctorBookingStats.fromJson(
+        json['booking'] as Map<String, dynamic>,
+      ),
+      content: DoctorContentStats.fromJson(
+        json['content'] as Map<String, dynamic>,
+      ),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'booking': booking.toJson(),
+    'content': content.toJson(),
+  };
+}
+
+/// Doctor Booking Stats Item for List
+class DoctorBookingStatsItem {
+  final DoctorInfo doctor;
+  final int total;
+  final int bookedCount;
+  final int confirmedCount;
+  final int cancelledCount;
+  final int completedCount;
+  final double completedRate;
+
+  DoctorBookingStatsItem({
+    required this.doctor,
+    required this.total,
+    required this.bookedCount,
+    required this.confirmedCount,
+    required this.cancelledCount,
+    required this.completedCount,
+    required this.completedRate,
+  });
+
+  factory DoctorBookingStatsItem.fromJson(Map<String, dynamic> json) {
+    return DoctorBookingStatsItem(
+      doctor: DoctorInfo.fromJson(json['doctor'] as Map<String, dynamic>),
+      total: json['total'] as int? ?? 0,
+      bookedCount: json['bookedCount'] as int? ?? 0,
+      confirmedCount: json['confirmedCount'] as int? ?? 0,
+      cancelledCount: json['cancelledCount'] as int? ?? 0,
+      completedCount: json['completedCount'] as int? ?? 0,
+      completedRate: (json['completedRate'] as num?)?.toDouble() ?? 0.0,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'doctor': doctor.toJson(),
+    'total': total,
+    'bookedCount': bookedCount,
+    'confirmedCount': confirmedCount,
+    'cancelledCount': cancelledCount,
+    'completedCount': completedCount,
+    'completedRate': completedRate,
+  };
+}
+
+class DoctorBookingStatsResponse {
+  final List<DoctorBookingStatsItem> data;
+  final Map<String, dynamic>? meta;
+
+  DoctorBookingStatsResponse({required this.data, this.meta});
+
+  factory DoctorBookingStatsResponse.fromJson(Map<String, dynamic> json) {
+    return DoctorBookingStatsResponse(
+      data:
+          (json['data'] as List<dynamic>?)
+              ?.map(
+                (e) =>
+                    DoctorBookingStatsItem.fromJson(e as Map<String, dynamic>),
+              )
+              .toList() ??
+          [],
+      meta: json['meta'] as Map<String, dynamic>?,
+    );
+  }
+}
+
+/// Doctor Content Stats Item for List
+class DoctorContentStatsItem {
+  final DoctorInfo doctor;
+  final int totalReviews;
+  final double averageRating;
+  final int totalAnswers;
+  final int totalAcceptedAnswers;
+  final double answerAcceptedRate;
+  final int totalBlogs;
+
+  DoctorContentStatsItem({
+    required this.doctor,
+    required this.totalReviews,
+    required this.averageRating,
+    required this.totalAnswers,
+    required this.totalAcceptedAnswers,
+    required this.answerAcceptedRate,
+    required this.totalBlogs,
+  });
+
+  factory DoctorContentStatsItem.fromJson(Map<String, dynamic> json) {
+    return DoctorContentStatsItem(
+      doctor: DoctorInfo.fromJson(json['doctor'] as Map<String, dynamic>),
+      totalReviews: json['totalReviews'] as int? ?? 0,
+      averageRating: (json['averageRating'] as num?)?.toDouble() ?? 0.0,
+      totalAnswers: json['totalAnswers'] as int? ?? 0,
+      totalAcceptedAnswers: json['totalAcceptedAnswers'] as int? ?? 0,
+      answerAcceptedRate:
+          (json['answerAcceptedRate'] as num?)?.toDouble() ?? 0.0,
+      totalBlogs: json['totalBlogs'] as int? ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'doctor': doctor.toJson(),
+    'totalReviews': totalReviews,
+    'averageRating': averageRating,
+    'totalAnswers': totalAnswers,
+    'totalAcceptedAnswers': totalAcceptedAnswers,
+    'answerAcceptedRate': answerAcceptedRate,
+    'totalBlogs': totalBlogs,
+  };
+}
+
+class DoctorContentStatsResponse {
+  final List<DoctorContentStatsItem> data;
+  final Map<String, dynamic>? meta;
+
+  DoctorContentStatsResponse({required this.data, this.meta});
+
+  factory DoctorContentStatsResponse.fromJson(Map<String, dynamic> json) {
+    return DoctorContentStatsResponse(
+      data:
+          (json['data'] as List<dynamic>?)
+              ?.map(
+                (e) =>
+                    DoctorContentStatsItem.fromJson(e as Map<String, dynamic>),
+              )
+              .toList() ??
+          [],
+      meta: json['meta'] as Map<String, dynamic>?,
+    );
+  }
 }

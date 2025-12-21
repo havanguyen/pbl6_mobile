@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/view/dashboard/tabs/dashboard_overview.dart';
-import 'package:pbl6mobile/view/dashboard/tabs/dashboard_analytics.dart';
+import 'package:pbl6mobile/view/dashboard/tabs/dashboard_appointments.dart';
+import 'package:pbl6mobile/view/dashboard/tabs/dashboard_content.dart';
 import 'package:pbl6mobile/view_model/stats/stats_vm.dart';
 import 'package:provider/provider.dart';
 import '../../../shared/localization/app_localizations.dart';
@@ -26,7 +27,7 @@ class DashboardView extends StatelessWidget {
     final vm = context.watch<StatsVm>();
 
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: Scaffold(
         backgroundColor: context.theme.bg,
         appBar: AppBar(
@@ -50,7 +51,16 @@ class DashboardView extends StatelessWidget {
             indicatorColor: context.theme.primary,
             tabs: [
               Tab(text: AppLocalizations.of(context).translate('overview')),
-              Tab(text: AppLocalizations.of(context).translate('analytics')),
+              Tab(
+                text: AppLocalizations.of(
+                  context,
+                ).translate('doctor_booking_stats'),
+              ),
+              Tab(
+                text: AppLocalizations.of(
+                  context,
+                ).translate('doctor_content_stats'),
+              ),
             ],
           ),
           actions: [
@@ -61,7 +71,11 @@ class DashboardView extends StatelessWidget {
           ],
         ),
         body: TabBarView(
-          children: [const DashboardOverview(), const DashboardAnalytics()],
+          children: const [
+            DashboardOverview(),
+            DashboardAppointments(),
+            DashboardContent(),
+          ],
         ),
       ),
     );

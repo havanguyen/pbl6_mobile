@@ -11,6 +11,7 @@ class StatsVm extends ChangeNotifier {
   AppointmentStats? _appointmentStats;
   ReviewsOverviewStats? _reviewsStats;
   QAOverviewStats? _qaStats;
+  DoctorMyStats? _doctorStats;
 
   bool _isLoadingStaff = false;
   bool _isLoadingRevenue = false;
@@ -19,6 +20,7 @@ class StatsVm extends ChangeNotifier {
   bool _isLoadingAppointments = false;
   bool _isLoadingReviews = false;
   bool _isLoadingQA = false;
+  bool _isLoadingDoctorStats = false;
 
   String? _error;
 
@@ -31,6 +33,21 @@ class StatsVm extends ChangeNotifier {
   ReviewsOverviewStats? get reviewsStats => _reviewsStats;
   QAOverviewStats? get qaStats => _qaStats;
 
+  // Admin Stats
+  DoctorBookingStatsResponse? _doctorsBookingStats;
+  DoctorContentStatsResponse? _doctorsContentStats;
+
+  DoctorBookingStatsResponse? get doctorsBookingStats => _doctorsBookingStats;
+  DoctorContentStatsResponse? get doctorsContentStats => _doctorsContentStats;
+
+  // Loading states for specific sections
+  bool _isLoadingDoctorsBooking = false;
+  bool _isLoadingDoctorsContent = false;
+
+  bool get isLoadingDoctorsBooking => _isLoadingDoctorsBooking;
+  bool get isLoadingDoctorsContent => _isLoadingDoctorsContent;
+  DoctorMyStats? get doctorStats => _doctorStats;
+
   bool get isLoadingStaff => _isLoadingStaff;
   bool get isLoadingRevenue => _isLoadingRevenue;
   bool get isLoadingTopDoctors => _isLoadingTopDoctors;
@@ -38,6 +55,7 @@ class StatsVm extends ChangeNotifier {
   bool get isLoadingAppointments => _isLoadingAppointments;
   bool get isLoadingReviews => _isLoadingReviews;
   bool get isLoadingQA => _isLoadingQA;
+  bool get isLoadingDoctorStats => _isLoadingDoctorStats;
 
   bool get isLoadingAny =>
       _isLoadingStaff ||
@@ -46,7 +64,8 @@ class StatsVm extends ChangeNotifier {
       _isLoadingPatients ||
       _isLoadingAppointments ||
       _isLoadingReviews ||
-      _isLoadingQA;
+      _isLoadingQA ||
+      _isLoadingDoctorStats;
 
   String? get error => _error;
 
@@ -82,6 +101,7 @@ class StatsVm extends ChangeNotifier {
       fetchAppointmentStats(),
       fetchReviewsStats(),
       fetchQAStats(),
+      fetchDoctorStats(),
     ]);
   }
 
@@ -186,6 +206,65 @@ class StatsVm extends ChangeNotifier {
       _handleError(e);
     } finally {
       _isLoadingQA = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> fetchDoctorStats() async {
+    _isLoadingDoctorStats = true;
+    notifyListeners();
+    try {
+      _doctorStats = await StatsService.getDoctorMyStats();
+    } catch (e) {
+      _handleError(e);
+    } finally {
+      _isLoadingDoctorStats = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> fetchDoctorsBookingStats({
+    int page = 1,
+    int limit = 10,
+    String sortBy = 'completedRate',
+    String sortOrder = 'DESC',
+  }) async {
+    _isLoadingDoctorsBooking = true;
+    notifyListeners();
+    try {
+      _doctorsBookingStats = await StatsService.getDoctorsBookingStats(
+        page: page,
+        limit: limit,
+        sortBy: sortBy,
+        sortOrder: sortOrder,
+      );
+    } catch (e) {
+      debugPrint('Error fetching doctors booking stats: $e');
+    } finally {
+      _isLoadingDoctorsBooking = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> fetchDoctorsContentStats({
+    int page = 1,
+    int limit = 10,
+    String sortBy = 'averageRating',
+    String sortOrder = 'DESC',
+  }) async {
+    _isLoadingDoctorsContent = true;
+    notifyListeners();
+    try {
+      _doctorsContentStats = await StatsService.getDoctorsContentStats(
+        page: page,
+        limit: limit,
+        sortBy: sortBy,
+        sortOrder: sortOrder,
+      );
+    } catch (e) {
+      debugPrint('Error fetching doctors content stats: $e');
+    } finally {
+      _isLoadingDoctorsContent = false;
       notifyListeners();
     }
   }
