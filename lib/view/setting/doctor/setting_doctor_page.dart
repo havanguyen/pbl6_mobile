@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:provider/provider.dart';
 import 'package:pbl6mobile/shared/extensions/custome_theme_extension.dart';
 import 'package:pbl6mobile/shared/routes/routes.dart';
 
@@ -7,6 +8,8 @@ import '../../../shared/themes/cubit/theme_cubit.dart';
 import '../../../shared/widgets/widget/logout_confirm_dialog.dart';
 import '../../../shared/localization/app_localizations.dart';
 import '../../../shared/widgets/language_switcher.dart';
+import 'package:pbl6mobile/view/doctor_management/doctor_dashboard_page.dart';
+import 'package:pbl6mobile/view_model/doctor_dashboard_vm.dart';
 
 class SettingDoctorPage extends StatelessWidget {
   const SettingDoctorPage({super.key});
@@ -47,6 +50,59 @@ class SettingDoctorPage extends StatelessWidget {
             ),
             onTap: () {
               Navigator.pushNamed(context, Routes.accountDoctor);
+            },
+          ),
+          const Divider(height: 1, color: Colors.grey),
+          ListTile(
+            leading: Icon(
+              Icons.dashboard_outlined,
+              color: context.theme.blue,
+              size: 28,
+            ),
+            title: Text(
+              AppLocalizations.of(context).translate('doctor_dashboard'),
+              style: TextStyle(fontSize: 16, color: context.theme.textColor),
+            ),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ChangeNotifierProvider(
+                    create: (_) => DoctorDashboardVm(),
+                    child: const DoctorDashboardPage(),
+                  ),
+                ),
+              );
+            },
+          ),
+          const Divider(height: 1, color: Colors.grey),
+          ListTile(
+            leading: Icon(
+              Icons.people_outline,
+              color: context.theme.blue,
+              size: 28,
+            ),
+            title: Text(
+              AppLocalizations.of(context).translate('patient_management'),
+              style: TextStyle(fontSize: 16, color: context.theme.textColor),
+            ),
+            onTap: () {
+              Navigator.pushNamed(context, Routes.listPatient);
+            },
+          ),
+          const Divider(height: 1, color: Colors.grey),
+          ListTile(
+            leading: Icon(
+              Icons.lock_reset_outlined,
+              color: context.theme.blue,
+              size: 28,
+            ),
+            title: Text(
+              AppLocalizations.of(context).translate('change_password'),
+              style: TextStyle(fontSize: 16, color: context.theme.textColor),
+            ),
+            onTap: () {
+              Navigator.pushNamed(context, Routes.changePassword);
             },
           ),
           const Divider(height: 1, color: Colors.grey),

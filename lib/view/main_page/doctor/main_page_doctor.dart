@@ -214,12 +214,12 @@ class _MainPageDoctorState extends State<MainPageDoctor> {
                 child: CustomCircularButton(
                   context,
                   size: 140,
-                  icon: Icons.lock_reset_outlined,
+                  icon: Icons.article_outlined,
                   label: AppLocalizations.of(
                     context,
-                  ).translate('change_password'),
+                  ).translate('blog_management'),
                   onTap: () {
-                    Navigator.pushNamed(context, Routes.changePassword);
+                    Navigator.pushNamed(context, Routes.listBlog);
                   },
                 ),
               ),
