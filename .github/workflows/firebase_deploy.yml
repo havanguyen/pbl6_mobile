@@ -6,7 +6,7 @@ on:
       - main # Hoặc tên branch bạn muốn trigger (ví dụ: develop, master)
 
 env:
-  MAJOR_VERSION: 1
+  MAJOR_VERSION: 2
   MINOR_VERSION: 1
 
 jobs:

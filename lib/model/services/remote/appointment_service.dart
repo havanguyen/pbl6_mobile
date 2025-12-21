@@ -168,10 +168,31 @@ class AppointmentService {
   }
 
   Future<bool> confirmAppointment(String id) async {
+    print('--- [DEBUG] confirmAppointment calling for ID: $id ---');
     try {
       final response = await _dio.patch('/appointments/$id/confirm');
+      print(
+        '--- [DEBUG] confirmAppointment success: ${response.statusCode} ---',
+      );
       return response.statusCode == 200;
     } catch (e) {
+      print('--- [ERROR] confirmAppointment failed: $e ---');
+      if (e is DioException) {
+        print('--- [DEBUG] DioError Data: ${e.response?.data} ---');
+        // Handle "Appointment already confirmed" case
+        if (e.response?.statusCode == 400) {
+          final data = e.response?.data;
+          if (data is Map &&
+              data['message'].toString().contains(
+                'Appointment already confirmed',
+              )) {
+            print(
+              '--- [DEBUG] Appointment already confirmed. Treating as success. ---',
+            );
+            return true;
+          }
+        }
+      }
       return false;
     }
   }

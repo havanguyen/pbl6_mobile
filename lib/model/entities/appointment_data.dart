@@ -61,6 +61,20 @@ class AppointmentEvent {
     };
   }
 
+  AppointmentEvent copyWith({
+    String? id,
+    DateTime? serviceDate,
+    DateTime? timeStart,
+    DateTime? timeEnd,
+  }) {
+    return AppointmentEvent(
+      id: id ?? this.id,
+      serviceDate: serviceDate ?? this.serviceDate,
+      timeStart: timeStart ?? this.timeStart,
+      timeEnd: timeEnd ?? this.timeEnd,
+    );
+  }
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -201,6 +215,48 @@ class AppointmentData {
       'event': event.toJson(),
       'doctor': doctor.toJson(),
     };
+  }
+
+  AppointmentData copyWith({
+    String? id,
+    String? patientId,
+    String? doctorId,
+    String? locationId,
+    String? eventId,
+    String? specialtyId,
+    String? status,
+    String? reason,
+    String? notes,
+    double? priceAmount,
+    String? currency,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    DateTime? cancelledAt,
+    DateTime? completedAt,
+    AppointmentPatient? patient,
+    AppointmentEvent? event,
+    AppointmentDoctor? doctor,
+  }) {
+    return AppointmentData(
+      id: id ?? this.id,
+      patientId: patientId ?? this.patientId,
+      doctorId: doctorId ?? this.doctorId,
+      locationId: locationId ?? this.locationId,
+      eventId: eventId ?? this.eventId,
+      specialtyId: specialtyId ?? this.specialtyId,
+      status: status ?? this.status,
+      reason: reason ?? this.reason,
+      notes: notes ?? this.notes,
+      priceAmount: priceAmount ?? this.priceAmount,
+      currency: currency ?? this.currency,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      cancelledAt: cancelledAt ?? this.cancelledAt,
+      completedAt: completedAt ?? this.completedAt,
+      patient: patient ?? this.patient,
+      event: event ?? this.event,
+      doctor: doctor ?? this.doctor,
+    );
   }
 
   DateTime get appointmentStartTime {

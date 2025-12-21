@@ -211,13 +211,37 @@ class AppointmentVm extends ChangeNotifier {
     }
   }
 
+  void _updateLocalAppointment(
+    String id,
+    AppointmentData Function(AppointmentData) updater,
+  ) {
+    final index = _appointments.indexWhere((element) => element.id == id);
+    if (index != -1) {
+      final updatedAppointment = updater(_appointments[index]);
+      _appointments[index] = updatedAppointment;
+      _dataSource.appointments = List.from(_appointments);
+      _dataSource.notifyListeners(
+        CalendarDataSourceAction.reset,
+        _dataSource.appointments!,
+      );
+      notifyListeners();
+    }
+  }
+
   Future<bool> cancelAppointment(String id, String reason) async {
     _setActionLoading(id, true);
     _actionError = null;
     try {
       final success = await _appointmentService.cancelAppointment(id, reason);
       if (success) {
-        await refresh();
+        // Optimistic Update
+        _updateLocalAppointment(
+          id,
+          (appt) => appt.copyWith(status: 'CANCELLED_BY_STAFF'),
+        ); // Assuming staff role
+
+        // Refresh to ensure sync
+        refresh();
         return true;
       } else {
         _actionError = "Không thể hủy lịch hẹn";
@@ -255,6 +279,24 @@ class AppointmentVm extends ChangeNotifier {
       );
 
       if (success) {
+        // Optimistic Update: Update time and date
+        // Note: Parsing time strings back to DateTime for local update might be complex without helper,
+        // but we can at least update the status or trigger a refresh.
+        // For rescheduling, a full refresh is often safer because slot availability changes.
+        // However, we can try to update locally if we have the new DateTimes.
+        // Let's assume we rely on refresh for the complex time/event changes for now,
+        // OR we can make a best-effort update if we construct the new Event.
+        // For now, let's Stick to Refesh for Reschedule as it is complex (affects slots),
+        // but verify if user wanted *immediate* UI update even here.
+        // The user asked for "reschedual , comfirm , update , cancel".
+        // Let's try to update locally if possible.
+        // We need to construct new AppointmentEvent.
+
+        // Actually, without parsing timeStart (HH:mm:ss) to DateTime properly relative to serviceDate,
+        // it's hard to update the CalendarDataSource which relies on DateTime.
+        // We'll rely on the `await refresh()` below, BUT we can update the status/color immediately if needed.
+        // Since Reschedule often moves the appointment, the Calendar view needs the new times.
+        // We will do a full refresh as it's the safest for Calendar consistency.
         await refresh();
         return true;
       } else {
@@ -276,7 +318,11 @@ class AppointmentVm extends ChangeNotifier {
     try {
       final success = await _appointmentService.completeAppointment(id);
       if (success) {
-        await refresh();
+        _updateLocalAppointment(
+          id,
+          (appt) => appt.copyWith(status: 'COMPLETED'),
+        );
+        refresh();
         return true;
       } else {
         _actionError = "Không thể hoàn thành lịch hẹn";
@@ -296,7 +342,8 @@ class AppointmentVm extends ChangeNotifier {
     try {
       final success = await _appointmentService.confirmAppointment(id);
       if (success) {
-        await refresh();
+        _updateLocalAppointment(id, (appt) => appt.copyWith(status: 'BOOKED'));
+        refresh();
         return true;
       } else {
         _actionError = "Không thể xác nhận lịch hẹn";
@@ -330,7 +377,17 @@ class AppointmentVm extends ChangeNotifier {
         reason,
       );
       if (success) {
-        await refresh();
+        _updateLocalAppointment(
+          id,
+          (appt) => appt.copyWith(
+            notes: notes,
+            priceAmount: price,
+            currency: currency,
+            status: status,
+            reason: reason,
+          ),
+        );
+        refresh();
         return true;
       } else {
         _actionError = "Không thể cập nhật lịch hẹn";
