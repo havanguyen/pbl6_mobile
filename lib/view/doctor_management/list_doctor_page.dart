@@ -506,8 +506,26 @@ class _DoctorListPageState extends State<DoctorListPage> {
           ? null
           : ActionPane(
               motion: const StretchMotion(),
-              extentRatio: 0.5,
+              extentRatio: 0.75,
               children: [
+                SlidableAction(
+                  onPressed: (context) {
+                    Navigator.pushNamed(
+                      context,
+                      Routes.doctorStats,
+                      arguments: {'id': doctor.id, 'name': doctor.fullName},
+                    );
+                  },
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                  icon: Icons.bar_chart,
+                  label: AppLocalizations.of(context).translate('view_stats'),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    bottomLeft: Radius.circular(16),
+                  ),
+                  padding: EdgeInsets.zero,
+                ),
                 SlidableAction(
                   onPressed: (context) async {
                     final doctorVm = Provider.of<DoctorVm>(
@@ -525,10 +543,7 @@ class _DoctorListPageState extends State<DoctorListPage> {
                   foregroundColor: context.theme.white,
                   icon: Icons.edit_outlined,
                   label: AppLocalizations.of(context).translate('edit'),
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(16),
-                    bottomLeft: Radius.circular(16),
-                  ),
+                  borderRadius: BorderRadius.zero,
                   padding: EdgeInsets.zero,
                 ),
                 SlidableAction(

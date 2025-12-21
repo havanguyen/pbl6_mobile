@@ -3,6 +3,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
 
 import 'package:pbl6mobile/model/entities/review.dart';
+import 'package:pbl6mobile/model/entities/review/review_analysis.dart';
 import 'package:pbl6mobile/model/services/remote/auth_service.dart';
 import 'package:pbl6mobile/shared/services/store.dart';
 
@@ -151,6 +152,101 @@ class ReviewService {
         print('DioException response: ${e.response?.data}');
       }
       return false;
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // Review Analysis
+  // --------------------------------------------------------------------------
+
+  /// POST /reviews/analyze
+  static Future<ReviewAnalysis?> createAnalysis(
+    CreateReviewAnalysisRequest request,
+  ) async {
+    try {
+      final response = await _secureDio.post(
+        '/reviews/analyze',
+        data: request.toJson(),
+      );
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final data = response.data;
+        if (data != null) {
+          return ReviewAnalysis.fromJson(data);
+        }
+      }
+      return null;
+    } catch (e) {
+      print('Create Analysis Error: $e');
+      rethrow;
+    }
+  }
+
+  /// GET /reviews/:doctorId/analyses
+  static Future<List<ReviewAnalysisListItem>> listAnalyses({
+    required String doctorId,
+    int page = 1,
+    int limit = 50,
+    DateRangeType? dateRange,
+  }) async {
+    try {
+      final params = {
+        'page': page,
+        'limit': limit,
+        if (dateRange != null) 'dateRange': dateRange.name,
+      };
+
+      final response = await _secureDio.get(
+        '/reviews/$doctorId/analyses',
+        queryParameters: params,
+      );
+
+      if (response.statusCode == 200) {
+        final data = response.data['data'];
+        if (data is List) {
+          return data
+              .map(
+                (e) =>
+                    ReviewAnalysisListItem.fromJson(e as Map<String, dynamic>),
+              )
+              .toList();
+        }
+      }
+      return [];
+    } catch (e) {
+      print('List Analyses Error: $e');
+      rethrow;
+    }
+  }
+
+  /// GET /reviews/analyses/:id
+  static Future<ReviewAnalysis?> getAnalysisById(String id) async {
+    print('--- [DEBUG] getAnalysisById: $id ---');
+    try {
+      final response = await _secureDio.get('/reviews/analyses/$id');
+      print('Status: ${response.statusCode}');
+      print('Response Data: ${response.data}');
+
+      if (response.statusCode == 200) {
+        var data = response.data;
+
+        // Handle common API wrapper { success: true, data: ... }
+        if (data is Map && data.containsKey('data')) {
+          print('Unwrapping Response Wrapper...');
+          data = data['data'];
+        }
+
+        if (data != null && data is Map<String, dynamic>) {
+          return ReviewAnalysis.fromJson(data);
+        } else if (data != null && data is Map) {
+          // Handle Map<dynamic, dynamic> -> Map<String, dynamic>
+          return ReviewAnalysis.fromJson(Map<String, dynamic>.from(data));
+        }
+      }
+      return null;
+    } catch (e) {
+      print('Get Analysis By Id Error: $e');
+      rethrow;
     }
   }
 }

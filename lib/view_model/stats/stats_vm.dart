@@ -12,6 +12,7 @@ class StatsVm extends ChangeNotifier {
   ReviewsOverviewStats? _reviewsStats;
   QAOverviewStats? _qaStats;
   DoctorMyStats? _doctorStats;
+  DoctorMyStats? _selectedDoctorStats;
 
   bool _isLoadingStaff = false;
   bool _isLoadingRevenue = false;
@@ -47,6 +48,7 @@ class StatsVm extends ChangeNotifier {
   bool get isLoadingDoctorsBooking => _isLoadingDoctorsBooking;
   bool get isLoadingDoctorsContent => _isLoadingDoctorsContent;
   DoctorMyStats? get doctorStats => _doctorStats;
+  DoctorMyStats? get selectedDoctorStats => _selectedDoctorStats;
 
   bool get isLoadingStaff => _isLoadingStaff;
   bool get isLoadingRevenue => _isLoadingRevenue;
@@ -215,6 +217,20 @@ class StatsVm extends ChangeNotifier {
     notifyListeners();
     try {
       _doctorStats = await StatsService.getDoctorMyStats();
+    } catch (e) {
+      _handleError(e);
+    } finally {
+      _isLoadingDoctorStats = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> fetchDoctorStatsById(String doctorId) async {
+    _isLoadingDoctorStats = true;
+    _selectedDoctorStats = null;
+    notifyListeners();
+    try {
+      _selectedDoctorStats = await StatsService.getDoctorStatsById(doctorId);
     } catch (e) {
       _handleError(e);
     } finally {

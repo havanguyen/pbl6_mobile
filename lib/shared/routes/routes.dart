@@ -26,6 +26,8 @@ import 'package:pbl6mobile/view/auth/forgot_password/otp_page.dart';
 import 'package:pbl6mobile/view/auth/forgot_password/reset_password_page.dart';
 import 'package:pbl6mobile/view/blog/blog_detail_page.dart';
 import 'package:pbl6mobile/model/entities/blog.dart';
+import 'package:pbl6mobile/view_model/reviews/review_analysis_vm.dart';
+import 'package:pbl6mobile/view_model/stats/stats_vm.dart';
 import 'package:provider/provider.dart';
 
 import '../../model/entities/work_location.dart';
@@ -38,6 +40,7 @@ import '../../view/doctor_management/create_doctor_page.dart';
 import '../../view/doctor_management/doctor_review_page.dart';
 import '../../view/doctor_management/list_doctor_page.dart';
 import '../../view/doctor_management/update_doctor_page.dart';
+import '../../view/doctor_management/doctor_stats_page.dart';
 import '../../view/location_work_management/create_location_work.dart';
 import '../../view/location_work_management/list_location_work.dart';
 import '../../view/location_work_management/update_location_work.dart';
@@ -88,6 +91,7 @@ class Routes {
   static const createInfoSection = '/createInfoSection';
   static const updateInfoSection = '/updateInfoSection';
   static const doctorDetail = '/doctorDetail';
+  static const doctorStats = '/doctorStats';
   static const editDoctorProfile = '/editDoctorProfile';
   static const editProfile = '/editProfile';
   static const profileDoctor = '/profileDoctor';
@@ -282,6 +286,22 @@ class Routes {
           type: PageTransitionType.leftToRight,
           settings: settings,
           child: DoctorDetailPage(doctorId: doctorId),
+        );
+      case doctorStats:
+        final args = settings.arguments as Map<String, dynamic>;
+        return PageTransition(
+          type: PageTransitionType.leftToRight,
+          settings: settings,
+          child: MultiProvider(
+            providers: [
+              ChangeNotifierProvider(create: (_) => StatsVm()),
+              ChangeNotifierProvider(create: (_) => ReviewAnalysisVm()),
+            ],
+            child: DoctorStatsPage(
+              doctorId: args['id'] as String,
+              doctorName: args['name'] as String,
+            ),
+          ),
         );
       case editDoctorProfile:
         final args = settings.arguments as Map<String, dynamic>;

@@ -133,10 +133,6 @@ class StatsService {
     try {
       final response = await _dio.get('/stats/doctors/me');
       if (response.statusCode == 200 && response.data != null) {
-        // The API returns the object directly or wrapped in data?
-        // ReactJS: return response.data
-        // Flutter usually wraps in 'data' field standard response.
-        // Assuming standard response wrapper:
         final data = response.data['data'] ?? response.data;
         if (data != null) {
           return DoctorMyStats.fromJson(data);
@@ -147,6 +143,22 @@ class StatsService {
       if (e is DioException) {
         // Handle specific errors potentially
       }
+      rethrow;
+    }
+  }
+
+  /// GET /stats/doctors/:id
+  static Future<DoctorMyStats?> getDoctorStatsById(String doctorId) async {
+    try {
+      final response = await _dio.get('/stats/doctors/$doctorId');
+      if (response.statusCode == 200 && response.data != null) {
+        final data = response.data['data'] ?? response.data;
+        if (data != null) {
+          return DoctorMyStats.fromJson(data);
+        }
+      }
+      return null;
+    } catch (e) {
       rethrow;
     }
   }
